@@ -1,0 +1,44 @@
+{
+    "logging_config": {
+        "save_path": "./logs/pendulum",
+        "experiment_name": "reinforce",
+        "log_interval": 1,
+        "checkpoint_interval": 10
+    },
+    "model_config": {
+        "architecture": "mlp",
+        "layers": [128, 128]
+    },
+    "optimizer_config": {
+        "optimizer": "adam",
+        "lr": 3e-4
+    },
+    "learner_config": {
+        "task": "reinforcement_learning",
+        "env_config": {
+            "env_type": "gym",
+            "env_name": "Pendulum-v1",
+            "env_kwargs": {}
+        },
+        "seeds": {
+            "model_seed": 42,
+            "buffer_seed": 42,
+            "env_seed": 42
+        },
+        "buffer_config": {
+            "buffer_type": "default",
+            "buffer_size": 4096
+        },
+        "learner": "reinforce",
+        "gamma": 0.99,
+        "value_rms": false,
+        "policy_distribution": "gaussian",
+        "min_std": 1e-7,
+        "pi_loss_setting": {
+            "reduction": "mean"
+        }
+    },
+    "train_config": {
+        "num_epochs": 1000
+    }
+}

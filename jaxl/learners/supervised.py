@@ -1,0 +1,94 @@
+from types import SimpleNamespace
+from typing import Any, Dict, Tuple
+
+import chex
+import jax
+import jax.random as jrandom
+import numpy as np
+import optax
+
+from jaxl.constants import *
+from jaxl.learners.learner import OfflineLearner
+from jaxl.losses import get_loss_function, make_aggregate_loss
+from jaxl.models import get_model, get_optimizer
+from jaxl.utils import parse_dict
+
+
+"""
+Supervised learner. We assume traditional setting where we have input/output 
+pairs sampled i.i.d. from a data distribution. We support seq-to-seq style
+learning, provided that the correct buffers and losses are provided.
+XXX: Feel free to add new components as needed.
+"""
+
+
+class SupervisedLearner(OfflineLearner):
+    def __init__(
+        self,
+        config: SimpleNamespace,
+        model_config: SimpleNamespace,
+        optimizer_config: SimpleNamespace,
+    ):
+        super().__init__(config, model_config, optimizer_config)
+        self._initialize_losses()
+        self.train_step = jax.jit(self.make_train_step())
+
+    def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
+        self._model = get_model(input_dim, output_dim, self._model_config)
+        self._optimizer = get_optimizer(self._optimizer_config)
+
+        model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
+        dummy_x = self._generate_dummy_x()
+        params = self._model.init(model_key, dummy_x)
+        opt_state = self._optimizer.init(params)
+        self._model_dict = {CONST_MODEL: params, CONST_OPT_STATE: opt_state}
+
+    def _initialize_losses(self):
+        losses = {}
+        for loss, loss_setting in zip(self._config.losses, self._config.loss_settings):
+            loss_setting_ns = parse_dict(loss_setting)
+            losses[loss] = (
+                get_loss_function(self._model, loss, loss_setting_ns),
+                loss_setting_ns.coefficient,
+            )
+        self._loss = jax.jit(make_aggregate_loss(losses))
+
+    def make_train_step(self):
+        def _train_step(
+            model_dict: Dict[str, Any],
+            train_x: chex.Array,
+            train_carry: chex.Array,
+            train_y: chex.Array,
+            *args,
+            **kwargs,
+        ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            (agg_loss, aux), grads = jax.value_and_grad(self._loss, has_aux=True)(
+                model_dict[CONST_MODEL],
+                train_x,
+                train_carry,
+                train_y,
+            )
+            aux[CONST_AGG_LOSS] = agg_loss
+            updates, opt_state = self._optimizer.update(
+                grads, model_dict[CONST_OPT_STATE], model_dict[CONST_MODEL]
+            )
+            params = optax.apply_updates(model_dict[CONST_MODEL], updates)
+            return {CONST_MODEL: params, CONST_OPT_STATE: opt_state}, aux
+
+        return _train_step
+
+    def compute_loss(
+        self, xs: chex.Array, ys: chex.Array
+    ) -> Tuple[chex.Array, Dict[str, Any]]:
+        return self._loss(self._model_dict[CONST_MODEL], xs, ys)
+
+    def update(self, *args, **kwargs) -> Dict[str, Any]:
+        train_x, train_carry, train_y, _ = self._buffer.sample(self._config.batch_size)
+        self.model_dict, aux = self.train_step(
+            self._model_dict, train_x, train_carry, train_y
+        )
+        assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+
+        aux[CONST_LOG] = {CONST_AGG_LOSS: aux[CONST_AGG_LOSS]}
+
+        return aux

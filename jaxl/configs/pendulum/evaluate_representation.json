@@ -1,0 +1,42 @@
+{
+    "logging_config": {
+        "save_path": "./logs",
+        "experiment_name": "debug",
+        "log_interval": 5000,
+        "checkpoint_interval": 5000
+    },
+    "model_config": {
+        "architecture": "mlp",
+        "layers": [128, 128]
+    },
+    "optimizer_config": {
+        "optimizer": "sgd",
+        "lr": 3e-4
+    },
+    "learner_config": {
+        "task": "imitation_learning",
+        "buffer_config": {
+            "load_buffer": "<TO_FIX>",
+            "buffer_type": "NextStateNumPyBuffer"
+        },
+        "seeds": {
+            "model_seed": 42,
+            "buffer_seed": 42
+        },
+        "learner": "mle",
+        "batch_size": 128,
+        "losses": ["gaussian", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean"
+            },
+            {
+                "coefficient": 0.0
+            }
+        ]
+    },
+    "train_config": {
+        "num_epochs": 1000
+    }
+}
