@@ -58,5 +58,3 @@ By default, the `Learner` class enforces all learners have a way to perform chec
 - Implement environments that can be sampled from a distribution
   - Start with Cartpole environment
 - Implement behavioural cloning
-- Update docstring
-  - models

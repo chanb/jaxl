@@ -13,6 +13,8 @@ from jaxl.models.modules import MLPModule
 
 
 class Model(ABC):
+    """Abstract model class."""
+
     forward: Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -32,6 +34,8 @@ class Model(ABC):
 
 
 class MLP(Model):
+    """A multilayer perceptron."""
+
     def __init__(self, layers: Sequence[int]) -> None:
         self.model = MLPModule(layers)
         self.forward = jax.jit(self.make_forward())
@@ -39,6 +43,17 @@ class MLP(Model):
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
     ) -> Union[FrozenVariableDict, Dict[str, Any]]:
+        """
+        Initialize model parameters.
+
+        :param model_key: the random number generation key for initializing parameters
+        :param dummy_x: the input data
+        :type model_key: jrandom.PRNGKey
+        :type dummy_x: chex.Array
+        :return: the initialized parameters
+        :rtype: Union[FrozenVariableDict, Dict[str, Any]]
+
+        """
         return self.model.init(model_key, dummy_x)
 
     def make_forward(
@@ -51,11 +66,38 @@ class MLP(Model):
         ],
         Tuple[chex.Array, chex.Array],
     ]:
+        """
+        Makes the forward call of the MLP model.
+
+        :return: the forward call.
+        :rtype: Callable[
+            [
+                Union[FrozenVariableDict, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+            ],
+            Tuple[chex.Array, chex.Array],
+        ]
+        """
+
         def forward(
             params: Union[FrozenVariableDict, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
         ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Forward call of the MLP.
+
+            :param params: the model parameters
+            :param input: the input
+            :param carry: the hidden state (not used)
+            :type params: Union[FrozenVariableDict
+            :type input: chex.Array
+            :type carry: chex.Array
+            :return: the output and a pass-through carry
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
             # NOTE: Assume batch size is first dim
             input = input.reshape((input.shape[0], -1))
             return self.model.apply(params, input), carry
@@ -64,6 +106,8 @@ class MLP(Model):
 
 
 class Policy(ABC):
+    """Abstract policy class."""
+
     compute_action: Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -76,21 +120,41 @@ class Policy(ABC):
 
     @abstractmethod
     def make_deterministic_action(
-        self, policy: nn.Module
+        self, policy: Model
     ) -> Callable[
         [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
+        """
+        Makes the function for taking deterministic action.
+
+        :param policy: the policy
+        :type policy: Model
+        :return: a function for taking deterministic action
+        :rtype: Callable[
+            [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
+            Tuple[chex.Array, chex.Array],
+        ]
+
+        """
         raise NotImplementedError
 
-    def reset(self):
+    def reset(self) -> chex.Array:
+        """
+        Resets hidden state.
+
+        :return: a hidden state
+        :rtype: chex.Array
+        """
         return np.array([0.0], dtype=np.float32)
 
 
 class StochasticPolicy(Policy):
+    """Abstract stochastic policy class that extends ``Policy``."""
+
     @abstractmethod
     def make_random_action(
-        self, policy: nn.Module
+        self, policy: Model
     ) -> Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -100,11 +164,23 @@ class StochasticPolicy(Policy):
         ],
         Tuple[chex.Array, chex.Array],
     ]:
+        """
+        Makes the function for taking random action.
+
+        :param policy: the policy
+        :type policy: Model
+        :return: a function for taking random action
+        :rtype: Callable[
+            [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
+            Tuple[chex.Array, chex.Array],
+        ]
+
+        """
         raise NotImplementedError
 
     @abstractmethod
     def make_act_lprob(
-        self, policy: nn.Module
+        self, policy: Model
     ) -> Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -114,13 +190,37 @@ class StochasticPolicy(Policy):
         ],
         Tuple[chex.Array, chex.Array, chex.Array],
     ]:
+        """
+        Makes the function for taking random action and computing its log probability.
+
+        :param policy: the policy
+        :type policy: Model
+        :return: a function for taking random action and computing its log probability
+        :rtype: Callable[
+            [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
+            Tuple[chex.Array, chex.Array, chex.Array],
+        ]
+
+        """
         raise NotImplementedError
 
     @abstractmethod
     def make_lprob(
-        self, policy: nn.Module
+        self, policy: Model
     ) -> Callable[
         [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]:
+        """
+        Makes the function for computing action log probability.
+
+        :param policy: the policy
+        :type policy: Model
+        :return: a function for computing action log probability
+        :rtype: Callable[
+            [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+            chex.Array,
+        ]
+
+        """
         raise NotImplementedError

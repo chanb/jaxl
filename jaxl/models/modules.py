@@ -5,6 +5,8 @@ import chex
 
 
 class MLPModule(nn.Module):
+    """Multilayer Perceptron."""
+
     layers: Sequence[int]
 
     @nn.compact
