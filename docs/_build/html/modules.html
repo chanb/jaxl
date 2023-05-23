@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>jaxl &#8212; JAX Learning 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="jaxl">
+<h1>jaxl<a class="headerlink" href="#jaxl" title="Permalink to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="jaxl.html">jaxl package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.buffers.html">jaxl.buffers package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.buffers.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.buffers.html#module-jaxl.buffers.buffers">jaxl.buffers.buffers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.buffers.html#module-jaxl.buffers.ram_buffers">jaxl.buffers.ram_buffers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.buffers.html#module-jaxl.buffers">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.constants.html">jaxl.constants package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.constants.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.buffers">jaxl.constants.buffers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.envs">jaxl.constants.envs module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.learners">jaxl.constants.learners module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.losses">jaxl.constants.losses module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.models">jaxl.constants.models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.optimizers">jaxl.constants.optimizers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.distributions.html">jaxl.distributions package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#module-jaxl.distributions.distributions">jaxl.distributions.distributions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#module-jaxl.distributions.transforms">jaxl.distributions.transforms module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#module-jaxl.distributions">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.envs.html">jaxl.envs package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#module-jaxl.envs.rollouts">jaxl.envs.rollouts module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#module-jaxl.envs">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html">jaxl.learners package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.a2c">jaxl.learners.a2c module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.bc">jaxl.learners.bc module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.learner">jaxl.learners.learner module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.ppo">jaxl.learners.ppo module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.reinforce">jaxl.learners.reinforce module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.reinforcement">jaxl.learners.reinforcement module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.supervised">jaxl.learners.supervised module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html">jaxl.losses package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.losses.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.losses.html#module-jaxl.losses.regularization">jaxl.losses.regularization module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.losses.html#module-jaxl.losses.reinforcement">jaxl.losses.reinforcement module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.losses.html#module-jaxl.losses.supervised">jaxl.losses.supervised module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.losses.html#module-jaxl.losses">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html">jaxl.models package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.common">jaxl.models.common module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.modules">jaxl.models.modules module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.policies">jaxl.models.policies module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#module-jaxl.models">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.html#module-jaxl.learning_utils">jaxl.learning_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.learning_utils.get_learner"><code class="docutils literal notranslate"><span class="pre">get_learner()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.learning_utils.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.html#jaxl-main-module">jaxl.main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.html#module-jaxl.utils">jaxl.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.utils.DummySummaryWriter"><code class="docutils literal notranslate"><span class="pre">DummySummaryWriter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.html#jaxl.utils.DummySummaryWriter.add_scalar"><code class="docutils literal notranslate"><span class="pre">DummySummaryWriter.add_scalar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.html#jaxl.utils.DummySummaryWriter.add_scalars"><code class="docutils literal notranslate"><span class="pre">DummySummaryWriter.add_scalars()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.utils.RunningMeanStd"><code class="docutils literal notranslate"><span class="pre">RunningMeanStd</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.html#jaxl.utils.RunningMeanStd.normalize"><code class="docutils literal notranslate"><span class="pre">RunningMeanStd.normalize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.html#jaxl.utils.RunningMeanStd.unnormalize"><code class="docutils literal notranslate"><span class="pre">RunningMeanStd.unnormalize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.html#jaxl.utils.RunningMeanStd.update"><code class="docutils literal notranslate"><span class="pre">RunningMeanStd.update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.html#jaxl.utils.RunningMeanStd.update_from_moments"><code class="docutils literal notranslate"><span class="pre">RunningMeanStd.update_from_moments()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.utils.batch_flatten"><code class="docutils literal notranslate"><span class="pre">batch_flatten()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.utils.flatten_dict"><code class="docutils literal notranslate"><span class="pre">flatten_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.utils.get_reduction"><code class="docutils literal notranslate"><span class="pre">get_reduction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.utils.l2_norm"><code class="docutils literal notranslate"><span class="pre">l2_norm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.utils.parse_dict"><code class="docutils literal notranslate"><span class="pre">parse_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.utils.set_seed"><code class="docutils literal notranslate"><span class="pre">set_seed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.html#jaxl.utils.to_jnp"><code class="docutils literal notranslate"><span class="pre">to_jnp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.html#module-jaxl">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">JAX Learning</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Bryan Chan.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/modules.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
