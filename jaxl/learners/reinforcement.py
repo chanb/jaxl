@@ -102,8 +102,8 @@ class ReinforcementLearner(OnlineLearner):
             aux[CONST_LOG][f"{CONST_OBS_RMS}/var_max_norm-idx"] = max_norm_var_idx
 
         if self.val_rms:
-            aux[CONST_LOG][f"{CONST_VALUE_RMS}-mean"] = self.val_rms.mean.item()
-            aux[CONST_LOG][f"{CONST_VALUE_RMS}-var"] = self.val_rms.var.item()
+            aux[CONST_LOG][f"{CONST_VALUE_RMS}/mean"] = self.val_rms.mean.item()
+            aux[CONST_LOG][f"{CONST_VALUE_RMS}/var"] = self.val_rms.var.item()
 
         return aux
 
