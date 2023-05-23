@@ -12,6 +12,11 @@ from jaxl.utils import RunningMeanStd
 
 
 class Rollout:
+    """
+    Interconnection between policy and environment.
+    This executes the provided policy in the specified environment.
+    """
+
     def __init__(self, env: DefaultGymWrapper, seed: int = 0):
         self._env = env
         self._curr_obs = None
@@ -30,6 +35,23 @@ class Rollout:
         buffer: ReplayBuffer,
         num_steps: int,
     ) -> Tuple[chex.Array, chex.Array]:
+        """
+        Executes the policy in the environment.
+
+        :param params: the model parameters
+        :param policy: the policy
+        :param obs_rms: the running statistics for observations
+        :param buffer: the buffer
+        :param num_steps: the number of interactions to have with the environment
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type policy: Policy
+        :type obs_rms: Union[bool, RunningMeanStd]
+        :type buffer: ReplayBuffer
+        :type num_steps: int
+        :return: the current observation and the current hidden state
+        :rtype: Tuple[chex.Array, chex.Array]
+
+        """
         for _ in range(num_steps):
             if self._done:
                 self._done = False
@@ -78,14 +100,17 @@ class Rollout:
 
     @property
     def episodic_returns(self):
+        """ """
         return self._episodic_returns
 
     @property
     def episode_lengths(self):
+        """ """
         return self._episode_lengths
 
     @property
     def latest_return(self):
+        """ """
         if self._done:
             return self._episodic_returns[-1]
         if len(self._episodic_returns) > 2:
@@ -94,6 +119,7 @@ class Rollout:
 
     @property
     def latest_episode_length(self):
+        """ """
         if self._done:
             return self._episode_lengths[-1]
         if len(self._episode_lengths) > 2:

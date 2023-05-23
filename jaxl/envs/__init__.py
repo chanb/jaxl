@@ -5,6 +5,15 @@ from jaxl.envs.wrappers import DefaultGymWrapper
 
 
 def get_environment(env_config: SimpleNamespace) -> DefaultGymWrapper:
+    """
+    Gets an environment.
+
+    :param env_config: the environment configration file
+    :type env_config: SimpleNamespace
+    :return: the environment
+    :rtype: DefaultGymWrapper
+
+    """
     assert (
         env_config.env_type in VALID_ENV_TYPE
     ), f"{env_config.env_type} is not supported (one of {VALID_ENV_TYPE})"

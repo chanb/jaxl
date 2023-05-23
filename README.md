@@ -60,6 +60,4 @@ By default, the `Learner` class enforces all learners have a way to perform chec
 - Implement behavioural cloning
 - Update docstring
   - buffers
-  - distributions
-  - envs
   - models
