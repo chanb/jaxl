@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, Iterable, Sequence
+from typing import Any, Callable, Dict, Iterable, Iterator, Sequence
 
 import chex
 import jax
@@ -31,6 +31,14 @@ def parse_dict(d: Dict) -> SimpleNamespace:
         for k, v in d.items()
     ]
     return x
+
+
+def flatten_dict(p: Dict, label: str = None) -> Iterator:
+    if isinstance(p, dict):
+        for k, v in p.items():
+            yield from flatten_dict(v, k if label is None else f"{label}.{k}")
+    else:
+        yield (label, p)
 
 
 def get_reduction(reduction: str) -> Callable[..., chex.Array]:

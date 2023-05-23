@@ -6,6 +6,7 @@ from jaxl.constants.models import *
 from jaxl.constants.optimizers import *
 
 CONST_CONFIG = "config"
+CONST_HYPERPARAMETERS = "hyperparameters"
 CONST_MODEL_DICT = "model_dict"
 CONST_OPTIMIZER = "optimizer"
 CONST_OPT_STATE = "opt_state"

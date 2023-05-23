@@ -46,6 +46,7 @@ XXX: Try not to modify this
 def train(
     learner: Learner,
     config: SimpleNamespace,
+    hyperparameter_str: str,
     save_path: str = None,
 ):
     logging_config = config.logging_config
@@ -61,6 +62,11 @@ def train(
         with open(os.path.join(save_path, "config.pkl"), "wb") as f:
             pickle.dump(config, f)
         summary_writer = SummaryWriter(log_dir=f"{save_path}/tensorboard")
+        summary_writer = SummaryWriter(log_dir=f"{save_path}/tensorboard")
+        summary_writer.add_text(
+            CONST_HYPERPARAMETERS,
+            hyperparameter_str,
+        )
 
     # try:
     true_epoch = 0

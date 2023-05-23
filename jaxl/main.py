@@ -14,7 +14,7 @@ import timeit
 import uuid
 
 from learning_utils import get_learner, train
-from jaxl.utils import parse_dict, set_seed
+from jaxl.utils import flatten_dict, parse_dict, set_seed
 
 
 FLAGS = flags.FLAGS
@@ -37,7 +37,16 @@ def main(config_path: str, run_seed: int = None):
     set_seed(run_seed)
     assert os.path.isfile(config_path), f"{config_path} is not a file"
     with open(config_path, "r") as f:
-        config = parse_dict(json.load(f))
+        config_dict = json.load(f)
+        hyperparameter_str = "|param|value|\n|-|-|\n%s" % (
+            "\n".join(
+                [
+                    f"|{key}|{value}|"
+                    for key, value in dict(flatten_dict(config_dict)).items()
+                ]
+            )
+        )
+        config = parse_dict(config_dict)
 
     pprint(config)
 
@@ -55,7 +64,7 @@ def main(config_path: str, run_seed: int = None):
     learner = get_learner(
         config.learner_config, config.model_config, config.optimizer_config
     )
-    train(learner, config, save_path)
+    train(learner, config, hyperparameter_str, save_path)
     toc = timeit.default_timer()
     print(f"Experiment Time: {toc - tic}s")
 
