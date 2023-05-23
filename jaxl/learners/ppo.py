@@ -216,7 +216,7 @@ class PPO(OnPolicyLearner):
         rollout_time = timeit.default_timer() - tic
 
         tic = timeit.default_timer()
-        obss, h_states, acts, rews, dones, _, _, _, lengths, _ = self._buffer.sample(
+        obss, h_states, acts, rews, _, dones, _, _, lengths, _ = self._buffer.sample(
             batch_size=self._update_frequency, idxes=self._sample_idxes
         )
 
