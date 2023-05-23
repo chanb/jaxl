@@ -118,6 +118,8 @@ class Learner(ABC):
 
         :param *args:
         :param **kwargs:
+        :return: the update information
+        :rtype: Dict[str, Any]
 
         """
         raise NotImplementedError

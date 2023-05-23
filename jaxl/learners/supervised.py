@@ -84,7 +84,7 @@ class SupervisedLearner(OfflineLearner):
             **kwargs,
         ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
             """
-            The training step that computes the loss and performs model update
+            The training step that computes the loss and performs model update.
 
             :param model_dict: the model state and optimizer state
             :param train_x: the training inputs
@@ -96,7 +96,8 @@ class SupervisedLearner(OfflineLearner):
             :type train_x: chex.Array
             :type train_carry: chex.Array
             :type train_y: chex.Array
-
+            :return: the updated model state and optimizer state, and auxiliary information
+            :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
             """
             (agg_loss, aux), grads = jax.value_and_grad(self._loss, has_aux=True)(
                 model_dict[CONST_MODEL],
@@ -117,22 +118,26 @@ class SupervisedLearner(OfflineLearner):
         self, xs: chex.Array, ys: chex.Array
     ) -> Tuple[chex.Array, Dict[str, Any]]:
         """
-        Computes the loss
+        Computes the loss.
 
         :param xs: the batch of inputs
         :param ys: the batch of outputs
         :type xs: chex.Array
         :type ys: chex.Array
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict[str, Any]]
 
         """
         return self._loss(self._model_dict[CONST_MODEL], xs, ys)
 
     def update(self, *args, **kwargs) -> Dict[str, Any]:
         """
-        Updates the model
+        Updates the model.
 
         :param *args:
         :param **kwargs:
+        :return: the update information
+        :rtype: Dict[str, Any]
 
         """
         train_x, train_carry, train_y, _ = self._buffer.sample(self._config.batch_size)

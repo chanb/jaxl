@@ -30,6 +30,10 @@ Standard PPO.
 
 
 class PPO(OnPolicyLearner):
+    """
+    Proximal Policy Optimization (PPO) algorithm. This extends `OnPolicyLearner`.
+    """
+
     _gae_lambda: float
     _normalize_advantage: bool
     _eps: float
@@ -76,6 +80,31 @@ class PPO(OnPolicyLearner):
             *args,
             **kwargs,
         ) -> Tuple[chex.Array, Dict]:
+            """
+            Aggregates the actor loss and the critic loss.
+
+            :param model_dict: the actor and critic states and their optimizers state
+            :param obss: the training observations
+            :param h_states: the training hidden states for memory-based models
+            :param acts: the training actions
+            :param rets: the Monte-Carlo returns
+            :param advs: the advantages
+            :param vals: the predicted values from the critic
+            :param old_lprobs: the action log probabilities
+            :param *args:
+            :param **kwargs:
+            :type model_dict: Dict[str, Any]
+            :type obss: chex.Array
+            :type h_states: chex.Array
+            :type acts: chex.Array
+            :type rets: chex.Array
+            :types advs: chex.Array
+            :types vals: chex.Array
+            :types old_lprobs: chex.Array
+            :return: the aggregate loss and auxiliary information
+            :rtype: Tuple[chex.Array, Dict[str, Any]]
+
+            """
             pi_loss, pi_aux = self._pi_loss(
                 model_dicts[CONST_POLICY],
                 obss,
@@ -114,6 +143,15 @@ class PPO(OnPolicyLearner):
         self.joint_step = jax.jit(self.make_joint_step())
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
+        """
+        Construct the actor and critic, and their corresponding optimizers.
+
+        :param input_dim: input dimension of the data point
+        :param output_dim: output dimension of the data point
+        :type input_dim: chex.Array
+        :type output_dim: chex.Array
+
+        """
         act_dim = policy_output_dim(output_dim, self._config)
         self._model = {
             CONST_POLICY: get_model(input_dim, act_dim, self._model_config.policy),
@@ -144,6 +182,10 @@ class PPO(OnPolicyLearner):
         }
 
     def make_joint_step(self):
+        """
+        Makes the training step for both actor update and critic update.
+        """
+
         def _joint_step(
             model_dict: Dict[str, Any],
             obss: chex.Array,
@@ -156,6 +198,31 @@ class PPO(OnPolicyLearner):
             *args,
             **kwargs,
         ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            """
+            The training step that computes the PPO loss and performs actor update and critic update.
+
+            :param model_dict: the actor and critic states and their optimizers state
+            :param obss: the training observations
+            :param h_states: the training hidden states for memory-based models
+            :param acts: the training actions
+            :param rets: the Monte-Carlo returns
+            :param advs: the advantages
+            :param vals: the predicted values from the critic
+            :param old_lprobs: the action log probabilities
+            :param *args:
+            :param **kwargs:
+            :type model_dict: Dict[str, Any]
+            :type obss: chex.Array
+            :type h_states: chex.Array
+            :type acts: chex.Array
+            :type rets: chex.Array
+            :types advs: chex.Array
+            :types vals: chex.Array
+            :types old_lprobs: chex.Array
+            :return: the aggregate loss and auxiliary information
+            :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
+
+            """
             (agg_loss, aux), grads = jax.value_and_grad(self._joint_loss, has_aux=True)(
                 {
                     CONST_POLICY: model_dict[CONST_MODEL][CONST_POLICY],
@@ -205,6 +272,15 @@ class PPO(OnPolicyLearner):
         return _joint_step
 
     def update(self, *args, **kwargs) -> Dict[str, Any]:
+        """
+        Updates the actor and the critic.
+
+        :param *args:
+        :param **kwargs:
+        :return: the update information
+        :rtype: Dict[str, Any]
+
+        """
         tic = timeit.default_timer()
         next_obs, next_h_state = self._rollout.rollout(
             self._model_dict[CONST_MODEL][CONST_POLICY],

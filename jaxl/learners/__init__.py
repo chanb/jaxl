@@ -14,7 +14,7 @@ def get_rl_learner(
     optimizer_config: SimpleNamespace,
 ) -> Learner:
     """
-    Gets reinforcement learning learner
+    Gets reinforcement learning learner.
 
     :param learner_config: the learner configuration
     :param model_config: the model configuration
@@ -47,7 +47,7 @@ def get_il_learner(
     optimizer_config: SimpleNamespace,
 ) -> Learner:
     """
-    Gets imitation learning learner
+    Gets imitation learning learner.
 
     :param learner_config: the learner configuration
     :param model_config: the model configuration

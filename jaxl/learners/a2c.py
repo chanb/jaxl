@@ -27,6 +27,10 @@ Standard A2C.
 
 
 class A2C(OnPolicyLearner):
+    """
+    Advantage Actor Critic (A2C) algorithm. This extends `OnPolicyLearner`.
+    """
+
     def __init__(
         self,
         config: SimpleNamespace,
@@ -49,7 +53,26 @@ class A2C(OnPolicyLearner):
             rets: chex.Array,
             *args,
             **kwargs,
-        ) -> Tuple[chex.Array, Dict]:
+        ) -> Tuple[chex.Array, Dict[str, Any]]:
+            """
+            Aggregates the actor loss and the critic loss.
+
+            :param model_dict: the actor and critic states and their optimizers state
+            :param obss: the training observations
+            :param h_states: the training hidden states for memory-based models
+            :param acts: the training actions
+            :param rets: the Monte-Carlo returns
+            :param *args:
+            :param **kwargs:
+            :type model_dict: Dict[str, Any]
+            :type obss: chex.Array
+            :type h_states: chex.Array
+            :type acts: chex.Array
+            :type rets: chex.Array
+            :return: the aggregate loss and auxiliary information
+            :rtype: Tuple[chex.Array, Dict[str, Any]]
+
+            """
             vf_loss, vf_aux = self._vf_loss(
                 model_dicts[CONST_VF],
                 obss,
@@ -83,6 +106,15 @@ class A2C(OnPolicyLearner):
         self.joint_step = jax.jit(self.make_joint_step())
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
+        """
+        Construct the actor and critic, and their corresponding optimizers.
+
+        :param input_dim: input dimension of the data point
+        :param output_dim: output dimension of the data point
+        :type input_dim: chex.Array
+        :type output_dim: chex.Array
+
+        """
         act_dim = policy_output_dim(output_dim, self._config)
         self._model = {
             CONST_POLICY: get_model(input_dim, act_dim, self._model_config.policy),
@@ -113,6 +145,10 @@ class A2C(OnPolicyLearner):
         }
 
     def make_joint_step(self):
+        """
+        Makes the training step for both actor update and critic update.
+        """
+
         def _joint_step(
             model_dict: Dict[str, Any],
             obss: chex.Array,
@@ -122,6 +158,26 @@ class A2C(OnPolicyLearner):
             *args,
             **kwargs,
         ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            """
+            The training step that computes the A2C loss and performs actor update and critic update.
+
+            :param model_dict: the model state and optimizer state
+            :param obss: the training observations
+            :param h_states: the training hidden states for memory-based models
+            :param acts: the training actions
+            :param rets: the Monte-Carlo returns
+            :param *args:
+            :param **kwargs:
+            :type model_dict: Dict[str, Any]
+            :type obss: chex.Array
+            :type h_states: chex.Array
+            :type acts: chex.Array
+            :type rets: chex.Array
+            :return: the updated actor state and critic state, their corresponding updated
+                     optimizer state, and auxiliary information
+            :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
+
+            """
             (agg_loss, aux), grads = jax.value_and_grad(self._joint_loss, has_aux=True)(
                 {
                     CONST_POLICY: model_dict[CONST_MODEL][CONST_POLICY],
@@ -168,6 +224,15 @@ class A2C(OnPolicyLearner):
         return _joint_step
 
     def update(self, *args, **kwargs) -> Dict[str, Any]:
+        """
+        Updates the actor and the critic.
+
+        :param *args:
+        :param **kwargs:
+        :return: the update information
+        :rtype: Dict[str, Any]
+
+        """
         tic = timeit.default_timer()
         self._rollout.rollout(
             self._model_dict[CONST_MODEL][CONST_POLICY],

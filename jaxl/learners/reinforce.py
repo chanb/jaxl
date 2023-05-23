@@ -27,6 +27,10 @@ Standard REINFORCE.
 
 
 class REINFORCE(OnPolicyLearner):
+    """
+    REINFORCE algorithm. This extends `OnPolicyLearner`.
+    """
+
     def __init__(
         self,
         config: SimpleNamespace,
@@ -40,6 +44,15 @@ class REINFORCE(OnPolicyLearner):
         self.policy_step = jax.jit(self.make_policy_step())
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
+        """
+        Construct the policy and the optimizer.
+
+        :param input_dim: input dimension of the data point
+        :param output_dim: output dimension of the data point
+        :type input_dim: chex.Array
+        :type output_dim: chex.Array
+
+        """
         output_dim = policy_output_dim(output_dim, self._config)
         self._model = get_model(input_dim, output_dim, self._model_config)
         self._optimizer = get_optimizer(self._optimizer_config)
@@ -54,6 +67,10 @@ class REINFORCE(OnPolicyLearner):
         }
 
     def make_policy_step(self):
+        """
+        Makes the training step for policy update.
+        """
+
         def _policy_step(
             model_dict: Dict[str, Any],
             obss: chex.Array,
@@ -63,6 +80,25 @@ class REINFORCE(OnPolicyLearner):
             *args,
             **kwargs,
         ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            """
+            The training step that computes the REINFORCE loss and performs policy update.
+
+            :param model_dict: the model state and optimizer state
+            :param obss: the training observations
+            :param h_states: the training hidden states for memory-based models
+            :param acts: the training actions
+            :param rets: the Monte-Carlo returns
+            :param *args:
+            :param **kwargs:
+            :type model_dict: Dict[str, Any]
+            :type obss: chex.Array
+            :type h_states: chex.Array
+            :type acts: chex.Array
+            :type rets: chex.Array
+            :return: the updated model state and optimizer state, and auxiliary information
+            :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
+
+            """
             (agg_loss, aux), grads = jax.value_and_grad(self._loss, has_aux=True)(
                 model_dict[CONST_MODEL][CONST_POLICY],
                 obss,
@@ -87,6 +123,15 @@ class REINFORCE(OnPolicyLearner):
         return _policy_step
 
     def update(self, *args, **kwargs) -> Dict[str, Any]:
+        """
+        Updates the policy.
+
+        :param *args:
+        :param **kwargs:
+        :return: the update information
+        :rtype: Dict[str, Any]
+
+        """
         tic = timeit.default_timer()
         self._rollout.rollout(
             self._model_dict[CONST_MODEL][CONST_POLICY],

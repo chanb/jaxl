@@ -12,7 +12,20 @@ Standard Behavioural Cloning.
 
 
 class BC(SupervisedLearner):
+    """
+    Behavioural Cloning (BC) algorithm. This extends `SupervisedLearner`.
+    """
+
     def update(self, *args, **kwargs) -> Dict[str, Any]:
+        """
+        Updates the policy.
+
+        :param *args:
+        :param **kwargs:
+        :return: the update information
+        :rtype: Dict[str, Any]
+
+        """
         obss, h_states, acts_e, _, _, _, _, _, _, _ = self._buffer.sample(
             self._config.batch_size
         )
