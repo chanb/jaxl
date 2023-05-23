@@ -20,6 +20,21 @@ def get_buffer(
     env: DefaultGymWrapper = None,
     h_state_dim: chex.Array = (1,),
 ) -> ReplayBuffer:
+    """
+    Gets a buffer.
+
+    :param buffer_config: the buffer configuration
+    :param buffer_seed: the seed for buffer sampling
+    :param env: the environment
+    :param h_state_dim: the hidden state dimension
+    :type buffer_config: SimpleNamespace:
+    :type buffer_seed: int:  (Default value = None)
+    :type env: DefaultGymWrapper:  (Default value = None)
+    :type h_state_dim: chex.Array:  (Default value = (1,)):
+    :return: a replay buffer
+    :rtype: ReplayBuffer
+
+    """
     assert (
         buffer_config.buffer_type in VALID_BUFFER
     ), f"{buffer_config.buffer_type} is not supported (one of {VALID_BUFFER})"

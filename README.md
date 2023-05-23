@@ -59,5 +59,4 @@ By default, the `Learner` class enforces all learners have a way to perform chec
   - Start with Cartpole environment
 - Implement behavioural cloning
 - Update docstring
-  - buffers
   - models

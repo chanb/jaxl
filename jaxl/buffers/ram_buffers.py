@@ -31,6 +31,8 @@ XXX: Extensions such as prioritized experience replay and hindsight experience r
 
 
 class AbstractNumPyBuffer(ReplayBuffer):
+    """Abstract NumPy Buffer that extends the ``ReplayBuffer`` class."""
+
     def __init__(
         self,
         buffer_size: int,
@@ -96,25 +98,37 @@ class AbstractNumPyBuffer(ReplayBuffer):
 
     @property
     def input_dim(self):
+        """The input data dimension."""
         return self.observations.shape[1:]
 
     @property
     def output_dim(self):
+        """The output data dimension."""
         return self.actions.shape[1:]
 
     @property
     def buffer_size(self):
+        """The buffer size."""
         return self._buffer_size
 
     @property
     def is_full(self):
+        """Whether or not the buffer is full."""
         return self._count >= self.buffer_size
 
     @property
     def pointer(self):
+        """The pointer index."""
         return self._pointer
 
     def set_size(self, size: int):
+        """
+        Change the buffer size and move data.
+
+        :param size: new buffer size
+        :type size: int
+
+        """
         if size == self._buffer_size:
             return
         elif size < self._buffer_size:
@@ -145,6 +159,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
         return min(self._count, self.buffer_size)
 
     def _checkpoint(self):
+        """Checkpoints data."""
         transitions_to_save = np.where(self._checkpoint_idxes == 0)[0]
 
         if len(transitions_to_save) == 0:
@@ -198,6 +213,28 @@ class AbstractNumPyBuffer(ReplayBuffer):
         info: dict,
         **kwargs,
     ) -> bool:
+        """
+        Push data into buffer.
+
+        :param obs: the observation
+        :param h_state: the hidden state
+        :param act: the action taken
+        :param rew: the reward
+        :param terminated: end of the episode
+        :param truncated: early truncation due to time limit
+        :param info: environment information
+        :param **kwargs:
+        :type obs: chex.Array
+        :type h_state: chex.Array
+        :type act: chex.Array
+        :type rew: float
+        :type terminated: bool
+        :type truncated: bool
+        :type info: dict
+        :return: whether the sample is pushed successfully
+        :rtype: bool
+
+        """
         # Stores the overwritten observation and hidden state into historic variables
         if self.burn_in_window > 0 and self._count >= self._buffer_size:
             self.historic_observations = np.concatenate(
@@ -235,6 +272,12 @@ class AbstractNumPyBuffer(ReplayBuffer):
         return True
 
     def clear(self, **kwargs):
+        """
+        Reset the buffer to be empty.
+
+        :param **kwargs:
+
+        """
         self._pointer = 0
         self._count = 0
         self._checkpoint_idxes.fill(1)
@@ -246,6 +289,16 @@ class AbstractNumPyBuffer(ReplayBuffer):
     def _get_burn_in_window(
         self, idxes: chex.Array
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
+        """
+        Gets the history of observations and hidden states.
+
+        :param idxes: the indices of the samples
+        :type idxes: chex.Array
+        :return: the historical observation, the historical hidden states, and
+                 their sequence lengths
+        :rtype: Tuple[chex.Array, chex.Array, chex.Array]
+
+        """
         historic_observations = np.zeros(
             (len(idxes), self.burn_in_window, *self.observations.shape[1:])
         )
@@ -325,6 +378,17 @@ class AbstractNumPyBuffer(ReplayBuffer):
         dict,
         chex.Array,
     ]:
+        """
+        Gets a transition.
+
+        :param idxes: the indices of the samples
+        :type idxes: chex.Array
+        :return: observations, hidden states, actions, rewards, dones,
+                 terminations, truncations, environment informations, and sequence lengths
+        :rtype: Tuple[chex.Array, chex.Array, chex.Array, chex.Array,
+                      chex.Array, chex.Array, chex.Array, dict, chex.Array]
+
+        """
         obss = self.observations[idxes]
         h_states = self.hidden_states[idxes]
         acts = self.actions[idxes]
@@ -394,11 +458,36 @@ class AbstractNumPyBuffer(ReplayBuffer):
         chex.Array,
         chex.Array,
     ]:
+        """
+        Sample data from the buffer.
+
+        :param batch_size: batch size
+        :param idxes: the specified indices if needed
+        :param **kwargs:
+
+        :type batch_size: int
+        :type idxes: Optional[chex.Array]:  (Default value = None)
+        :return: observations, hidden states, actions, rewards, dones,
+                 terminations, truncations, environment informations, sequence lengths, and
+                 sampled indices
+        :rtype: Tuple[chex.Array, chex.Array, chex.Array, chex.Array,
+                      chex.Array, chex.Array, chex.Array, dict, chex.Array, chex.Array]
+        """
         raise NotImplementedError
 
     def sample_init_obs(
         self, batch_size: int, **kwargs
     ) -> Tuple[chex.Array, chex.Array]:
+        """
+        Sample initial observations from the buffer.
+
+        :param batch_size: batch size
+        :param **kwargs:
+        :type batch_size: int
+        :return: the initial observations and hidden states
+        :rtype: Tuple[chex.Array, chex.Array]
+
+        """
         if np.sum(self.dones) == 0:
             raise NoSampleError
         init_idxes = (np.where(self.dones == 1)[0] + 1) % self._buffer_size
@@ -413,6 +502,13 @@ class AbstractNumPyBuffer(ReplayBuffer):
         return self.observations[random_idxes], self.hidden_states[random_idxes]
 
     def get_buffer_dict(self) -> Dict[str, Any]:
+        """
+        Get buffer dictionary.
+
+        :return: buffer dictionary
+        :rtype: Dict[str, Any]
+
+        """
         buffer_dict = {
             c.OBSERVATIONS: self.observations,
             c.HIDDEN_STATES: self.hidden_states,
@@ -437,6 +533,13 @@ class AbstractNumPyBuffer(ReplayBuffer):
         return buffer_dict
 
     def load_from_buffer_dict(self, buffer_dict: Dict[str, Any]):
+        """
+        Load from a buffer dictionary.
+
+        :param buffer_dict: buffer dictionary
+        :type buffer_dict: Dict[str, Any]
+
+        """
         self._buffer_size = buffer_dict[c.BUFFER_SIZE]
         self.observations = buffer_dict[c.OBSERVATIONS]
         self.hidden_states = buffer_dict[c.HIDDEN_STATES]
@@ -466,6 +569,16 @@ class AbstractNumPyBuffer(ReplayBuffer):
                 self.historic_dones = buffer_dict[c.BURN_IN_WINDOW][c.DONES]
 
     def save(self, save_path: str, end_with_done: bool = True, **kwargs):
+        """
+        Saves the replay buffer.
+
+        :param save_path: the file name of the replay buffer
+        :param end_with_done: whether or not to keep unfinished episodes
+        :param **kwargs:
+        :type save_path: str
+        :type end_with_done: bool:  (Default value = True)
+
+        """
         pointer = self._pointer
         count = self._count
 
@@ -494,14 +607,33 @@ class AbstractNumPyBuffer(ReplayBuffer):
             )
 
     def load(self, load_path: str, **kwargs):
+        """
+        Loads a replay buffer.
+
+        :param load_path: the file name of the replay buffer
+        :param **kwargs:
+        :type load_path: str
+
+        """
         with gzip.open(load_path, "rb") as f:
             buffer_dict = pickle.load(f)
         self.load_from_buffer_dict(buffer_dict)
 
 
 class TransitionNumPyBuffer(AbstractNumPyBuffer):
+    """Transition buffer that extends the ``AbstractNumPyBuffer`` class."""
+
     @abstractmethod
     def get_next(self, next_idxes: chex.Array) -> Tuple[chex.Array, chex.Array]:
+        """
+        Gets the next observation and the next hidden state.
+
+        :param next_idxes: the indices to get from.
+        :type next_idxes: chex.Array
+        :return: the next observations and the next hidden states
+        :rtype: Tuple[chex.Array, chex.Array]
+
+        """
         raise NotImplementedError
 
     def sample(
@@ -518,6 +650,22 @@ class TransitionNumPyBuffer(AbstractNumPyBuffer):
         chex.Array,
         chex.Array,
     ]:
+        """
+        Sample transition from the buffer.
+
+        :param batch_size: batch size
+        :param idxes: the specified indices if needed
+        :param **kwargs:
+
+        :type batch_size: int
+        :type idxes: Optional[chex.Array]:  (Default value = None)
+        :return: observations, hidden states, actions, rewards, dones,
+                 terminations, truncations, environment informations, sequence lengths, and
+                 sampled indices
+        :rtype: Tuple[chex.Array, chex.Array, chex.Array, chex.Array,
+                      chex.Array, chex.Array, chex.Array, dict, chex.Array, chex.Array]
+
+        """
         if not len(self):
             raise NoSampleError
 
@@ -569,6 +717,22 @@ class TransitionNumPyBuffer(AbstractNumPyBuffer):
         chex.Array,
         chex.Array,
     ]:
+        """
+        Sample transition with next observations from the buffer.
+
+        :param batch_size: batch size
+        :param idxes: the specified indices if needed
+        :param **kwargs:
+
+        :type batch_size: int
+        :type idxes: Optional[chex.Array]:  (Default value = None)
+        :return: observations, hidden states, actions, rewards, dones,
+                 terminations, truncations, next observations, next hidden states,
+                 environment informations, sequence lengths, and sampled indices
+        :rtype: Tuple[chex.Array, chex.Array, chex.Array, chex.Array, chex.Array, chex.Array,
+                      chex.Array, chex.Array, chex.Array, dict, chex.Array, chex.Array]
+
+        """
         (
             obss,
             h_states,
@@ -604,6 +768,8 @@ class TransitionNumPyBuffer(AbstractNumPyBuffer):
 
 
 class MemoryEfficientNumPyBuffer(TransitionNumPyBuffer):
+    """A memory efficient version of a ``TransitionNumPyBuffer``."""
+
     def __init__(
         self,
         buffer_size: int,
@@ -651,6 +817,32 @@ class MemoryEfficientNumPyBuffer(TransitionNumPyBuffer):
         next_h_state: chex.Array,
         **kwargs,
     ) -> bool:
+        """
+        Push data into buffer.
+
+        :param obs: the observation
+        :param h_state: the hidden state
+        :param act: the action taken
+        :param rew: the reward
+        :param terminated: end of the episode
+        :param truncated: early truncation due to time limit
+        :param info: environment information
+        :param next_obs: the next observation
+        :param next_h_state: the next hidden state
+        :param **kwargs:
+        :type obs: chex.Array
+        :type h_state: chex.Array
+        :type act: chex.Array
+        :type rew: float
+        :type terminated: bool
+        :type truncated: bool
+        :type info: dict
+        :type next_obs: chex.Array
+        :type next_h_state: chex.Array
+        :return: whether the sample is pushed successfully
+        :rtype: bool
+
+        """
         self.next_observation = next_obs
         self.next_hidden_state = next_h_state
 
@@ -665,6 +857,15 @@ class MemoryEfficientNumPyBuffer(TransitionNumPyBuffer):
         )
 
     def get_next(self, next_idxes: chex.Array) -> Tuple[chex.Array, chex.Array]:
+        """
+        Gets the next observation and the next hidden state.
+
+        :param next_idxes: the indices to get from.
+        :type next_idxes: chex.Array
+        :return: the next observations and the next hidden states
+        :rtype: Tuple[chex.Array, chex.Array]
+
+        """
         # Replace all indices that are equal to memory size to zero
         idxes_to_modify = np.where(next_idxes == len(self))[0]
         next_idxes[idxes_to_modify] = 0
@@ -679,18 +880,34 @@ class MemoryEfficientNumPyBuffer(TransitionNumPyBuffer):
         return next_obss, next_h_states
 
     def get_buffer_dict(self) -> Dict[str, Any]:
+        """
+        Get buffer dictionary.
+
+        :return: buffer dictionary
+        :rtype: Dict[str, Any]
+
+        """
         buffer_dict = super().get_buffer_dict()
         buffer_dict[c.NEXT_HIDDEN_STATE] = self.next_hidden_state
         buffer_dict[c.NEXT_OBSERVATION] = self.next_observation
         return buffer_dict
 
     def load_from_buffer_dict(self, buffer_dict: Dict[str, Any]):
+        """
+        Load from a buffer dictionary.
+
+        :param buffer_dict: buffer dictionary
+        :type buffer_dict: Dict[str, Any]
+
+        """
         super().load_from_buffer_dict(buffer_dict)
         self.next_observation = buffer_dict[c.NEXT_OBSERVATION]
         self.next_hidden_state = buffer_dict[c.NEXT_HIDDEN_STATE]
 
 
 class NextStateNumPyBuffer(TransitionNumPyBuffer):
+    """A version of a ``TransitionNumPyBuffer`` that explicitly keeps track of next states."""
+
     def __init__(
         self,
         buffer_size: int,
@@ -745,6 +962,7 @@ class NextStateNumPyBuffer(TransitionNumPyBuffer):
         )
 
     def _checkpoint(self):
+        """Checkpoints data."""
         transitions_to_save = np.where(self._checkpoint_idxes == 0)[0]
 
         if len(transitions_to_save) == 0:
@@ -802,6 +1020,32 @@ class NextStateNumPyBuffer(TransitionNumPyBuffer):
         next_h_state: chex.Array,
         **kwargs,
     ) -> bool:
+        """
+        Push data into buffer.
+
+        :param obs: the observation
+        :param h_state: the hidden state
+        :param act: the action taken
+        :param rew: the reward
+        :param terminated: end of the episode
+        :param truncated: early truncation due to time limit
+        :param info: environment information
+        :param next_obs: the next observation
+        :param next_h_state: the next hidden state
+        :param **kwargs:
+        :type obs: chex.Array
+        :type h_state: chex.Array
+        :type act: chex.Array
+        :type rew: float
+        :type terminated: bool
+        :type truncated: bool
+        :type info: dict
+        :type next_obs: chex.Array
+        :type next_h_state: chex.Array
+        :return: whether the sample is pushed successfully
+        :rtype: bool
+
+        """
         self.next_observations[self._pointer] = next_obs
         self.next_hidden_states[self._pointer] = next_h_state
 
@@ -816,24 +1060,47 @@ class NextStateNumPyBuffer(TransitionNumPyBuffer):
         )
 
     def get_next(self, next_idxes: chex.Array) -> Tuple[chex.Array, chex.Array]:
+        """
+        Gets the next observation and the next hidden state.
+
+        :param next_idxes: the indices to get from.
+        :type next_idxes: chex.Array
+        :return: the next observations and the next hidden states
+        :rtype: Tuple[chex.Array, chex.Array]
+
+        """
         next_obss = self.next_observations[next_idxes]
         next_h_states = self.next_hidden_states[next_idxes]
         return next_obss, next_h_states
 
     def get_buffer_dict(self) -> Dict[str, Any]:
+        """
+        Get buffer dictionary.
+
+        :return: buffer dictionary
+        :rtype: Dict[str, Any]
+
+        """
         buffer_dict = super().get_buffer_dict()
         buffer_dict[c.NEXT_OBSERVATIONS] = self.next_observations
         buffer_dict[c.NEXT_HIDDEN_STATES] = self.next_hidden_states
         return buffer_dict
 
     def load_from_buffer_dict(self, buffer_dict: Dict[str, Any]):
+        """
+        Load from a buffer dictionary.
+
+        :param buffer_dict: buffer dictionary
+        :type buffer_dict: Dict[str, Any]
+
+        """
         super().load_from_buffer_dict(buffer_dict)
         self.next_observations = buffer_dict[c.NEXT_OBSERVATIONS]
         self.next_hidden_states = buffer_dict[c.NEXT_HIDDEN_STATES]
 
 
 class TrajectoryNumPyBuffer(AbstractNumPyBuffer):
-    """This buffer stores one trajectory as a sample"""
+    """This buffer stores one trajectory as a sample."""
 
     def __init__(
         self,
@@ -885,6 +1152,32 @@ class TrajectoryNumPyBuffer(AbstractNumPyBuffer):
         next_h_state: chex.Array,
         **kwargs,
     ) -> bool:
+        """
+        Push data into buffer.
+
+        :param obs: the observation
+        :param h_state: the hidden state
+        :param act: the action taken
+        :param rew: the reward
+        :param terminated: end of the episode
+        :param truncated: early truncation due to time limit
+        :param info: environment information
+        :param next_obs: the next observation
+        :param next_h_state: the next hidden state
+        :param **kwargs:
+        :type obs: chex.Array
+        :type h_state: chex.Array
+        :type act: chex.Array
+        :type rew: float
+        :type terminated: bool
+        :type truncated: bool
+        :type info: dict
+        :type next_obs: chex.Array
+        :type next_h_state: chex.Array
+        :return: whether the sample is pushed successfully
+        :rtype: bool
+
+        """
         self._episode_lengths[-1] += 1
         self._last_observations[-1] = next_obs
         self._last_h_states[-1] = next_h_state
@@ -931,6 +1224,24 @@ class TrajectoryNumPyBuffer(AbstractNumPyBuffer):
         chex.Array,
         chex.Array,
     ]:
+        """
+        Sample data from the buffer.
+
+        :param batch_size: batch size
+        :param idxes: the specified indices if needed
+        :param horizon_length: the length of the sequences
+        :param **kwargs:
+
+        :type batch_size: int
+        :type idxes: Optional[chex.Array]:  (Default value = None)
+        :type horizon_length: int:  (Default value = 2)
+        :return: observations, hidden states, actions, rewards, dones,
+                 terminations, truncations, environment informations, sequence lengths, and
+                 sampled indices
+        :rtype: Tuple[chex.Array, chex.Array, chex.Array, chex.Array,
+                      chex.Array, chex.Array, chex.Array, dict, chex.Array, chex.Array]
+
+        """
         assert (
             horizon_length >= 2
         ), f"horizon_length must be at least length of 2. Got: {horizon_length}"
@@ -1004,6 +1315,13 @@ class TrajectoryNumPyBuffer(AbstractNumPyBuffer):
         )
 
     def get_buffer_dict(self) -> Dict[str, Any]:
+        """
+        Get buffer dictionary.
+
+        :return: buffer dictionary
+        :rtype: Dict[str, Any]
+
+        """
         buffer_dict = super().get_buffer_dict()
         buffer_dict[c.LAST_OBSERVATIONS] = self._last_observations
         buffer_dict[c.LAST_HIDDEN_STATES] = self._last_h_states
@@ -1013,6 +1331,13 @@ class TrajectoryNumPyBuffer(AbstractNumPyBuffer):
         return buffer_dict
 
     def load_from_buffer_dict(self, buffer_dict: Dict[str, Any]):
+        """
+        Load from a buffer dictionary.
+
+        :param buffer_dict: buffer dictionary
+        :type buffer_dict: Dict[str, Any]
+
+        """
         super().load_from_buffer_dict(buffer_dict)
         self._curr_episode_length = buffer_dict[c.CURR_EPISODE_LENGTH]
         self._last_observations = buffer_dict[c.LAST_OBSERVATIONS]
