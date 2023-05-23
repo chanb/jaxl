@@ -16,6 +16,8 @@ setup(
         "gymnasium>=0.28.1",
         "tensorboard>=2.13.0",
         "torch>=2.0.0",
+        "sphinx>=7.0.1",
+        "pyment>=0.3.3",
     ],
     extras_requires={},
     packages=find_packages(),
