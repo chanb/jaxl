@@ -11,20 +11,54 @@ from jaxl.constants import *
 
 
 def set_seed(seed: int = 0):
+    """
+    Sets the random number generators' seed.
+
+    :param seed: the seed
+    :type seed: int:  (Default value = 0)
+
+    """
     random.seed(seed)
     np.random.seed(seed)
 
 
 def to_jnp(*args: Iterable) -> Iterable[chex.Array]:
+    """
+    Convert iterables to JAX NumPy arrays.
+
+    :param *args: an iterable of items
+    :type *args: Iterable
+    :return: JAX NumPy array variant of the items
+    :rtype: Iterable[chex.Array]
+
+    """
     return [jax.device_put(arg) for arg in args]
 
 
 def batch_flatten(*args: Iterable) -> Iterable[chex.Array]:
+    """
+    Flatten the batch of items in the iterable.
+
+    :param *args: an iterable of items
+    :type *args: Iterable
+    :return: Flattened items
+    :rtype: Iterable[chex.Array]
+
+    """
     return [arg.reshape((len(arg), -1)) for arg in args]
 
 
 def parse_dict(d: Dict) -> SimpleNamespace:
-    # Reference: https://stackoverflow.com/questions/66208077/how-to-convert-a-nested-python-dictionary-into-a-simple-namespace
+    """
+    Parse dictionary into a namespace.
+    Reference: https://stackoverflow.com/questions/66208077/how-to-convert-a-nested-python-dictionary-into-a-simple-namespace
+
+    :param d: the dictionary
+    :type d: Dict
+    :return: the namespace version of the dictionary's content
+    :rtype: SimpleNamespace
+
+    """
     x = SimpleNamespace()
     _ = [
         setattr(x, k, parse_dict(v)) if isinstance(v, dict) else setattr(x, k, v)
@@ -33,15 +67,33 @@ def parse_dict(d: Dict) -> SimpleNamespace:
     return x
 
 
-def flatten_dict(p: Dict, label: str = None) -> Iterator:
-    if isinstance(p, dict):
-        for k, v in p.items():
+def flatten_dict(d: Dict, label: str = None) -> Iterator:
+    """
+    Flattens a dictionary.
+
+    :param d: the dictionary
+    :param label: the parent's key name
+    :type d: Dict
+    :type label: str:  (Default value = None)
+    :return: an iterator that yields the key-value pairs
+    :rtype: Iterator
+
+    """
+    if isinstance(d, dict):
+        for k, v in d.items():
             yield from flatten_dict(v, k if label is None else f"{label}.{k}")
     else:
-        yield (label, p)
+        yield (label, d)
 
 
 def get_reduction(reduction: str) -> Callable[..., chex.Array]:
+    """
+    Gets a reduction function.
+
+    :param reduction: the reduction function name
+    :type reduction: str
+
+    """
     assert (
         reduction in VALID_REDUCTION
     ), f"{reduction} is not supported (one of {VALID_REDUCTION})"
@@ -55,21 +107,46 @@ def get_reduction(reduction: str) -> Callable[..., chex.Array]:
     return reduction_func
 
 
-def l2_norm(params: Any):
+def l2_norm(params: chex.PyTreeDef):
+    """
+    Computes the L2 norm of a PyTree.
+
+    :param params: the pytree object with scalars
+    :type params: PyTreeDef
+
+    """
     return sum(jnp.sum(p**2) for p in jax.tree_util.tree_leaves(params))
 
 
 class DummySummaryWriter:
+    """
+    A fake SummaryWriter class for Tensorboard.
+    """
+
     def add_scalar(self, *args, **kwargs):
+        """
+
+        :param *args:
+        :param **kwargs:
+
+        """
         pass
 
     def add_scalars(self, *args, **kwargs):
+        """
+
+        :param *args:
+        :param **kwargs:
+
+        """
         pass
 
 
 class RunningMeanStd:
-    """Modified from Baseline
-    Assumes shape to be (number of inputs, input_shape)
+    """
+    This keeps track of the running mean and standard deviation.
+    Modified from Baseline.
+    Assumes shape to be (number of inputs, input_shape).
     """
 
     def __init__(
@@ -88,7 +165,14 @@ class RunningMeanStd:
         self.a_min = a_min
         self.a_max = a_max
 
-    def update(self, x: np.ndarray):
+    def update(self, x: chex.Array):
+        """
+        Updates the running statistics.
+
+        :param x: the data
+        :type x: chex.Array
+
+        """
         x = x.reshape(-1, *self.shape)
         batch_mean = np.mean(x, axis=0)
         batch_var = np.var(x, axis=0)
@@ -101,8 +185,19 @@ class RunningMeanStd:
         self.update_from_moments(batch_mean, batch_var, batch_count)
 
     def update_from_moments(
-        self, batch_mean: np.ndarray, batch_var: np.ndarray, batch_count: int
+        self, batch_mean: chex.Array, batch_var: chex.Array, batch_count: int
     ):
+        """
+        Updates from the moments
+
+        :param batch_mean: the mean of the current batch
+        :param batch_var: the variance of the current batch
+        :param batch_count: the amount of data in the current batch
+        :type batch_mean: chex.Array
+        :type batch_var: chex.Array
+        :type batch_count: chex.Array
+
+        """
         delta = batch_mean - self.mean
         tot_count = self.count + batch_count
 
@@ -117,7 +212,16 @@ class RunningMeanStd:
         self.var = new_var
         self.count = new_count
 
-    def normalize(self, x: np.ndarray) -> np.ndarray:
+    def normalize(self, x: chex.Array) -> chex.Array:
+        """
+        Normalizes the data using running statistics.
+
+        :param x: the data
+        :type x: chex.Array
+        :return: the normalized data
+        :rtype: chex.Array
+
+        """
         x_shape = x.shape
         x = x.reshape(-1, *self.shape)
         normalized_x = np.clip(
@@ -129,7 +233,16 @@ class RunningMeanStd:
         normalized_x = normalized_x.reshape(x_shape)
         return normalized_x
 
-    def unnormalize(self, x: np.ndarray) -> np.ndarray:
+    def unnormalize(self, x: chex.Array) -> chex.Array:
+        """
+        Unnormalizes the data using running statistics.
+
+        :param x: the data
+        :type x: chex.Array
+        :return: the normalized data
+        :rtype: chex.Array
+
+        """
         x_shape = x.shape
         x = x.reshape(-1, *self.shape)
         return (x * np.sqrt(self.var + self.epsilon) + self.mean).reshape(x_shape)

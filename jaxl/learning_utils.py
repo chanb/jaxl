@@ -23,6 +23,19 @@ def get_learner(
     model_config: SimpleNamespace,
     optimizer_config: SimpleNamespace,
 ) -> Learner:
+    """
+    Gets a learner.
+
+    :param learner_config: the learner configuration
+    :param model_config: the model configuration
+    :param optimizer_config: the optimizer configuration
+    :type learner_config: SimpleNamespace
+    :type model_config: SimpleNamespace
+    :type optimizer_config: SimpleNamespace
+    :return: a learner
+    :type: Learner
+
+    """
     assert (
         learner_config.task in VALID_TASK
     ), f"{learner_config.task} is not supported (one of {VALID_TASK})"
@@ -49,6 +62,19 @@ def train(
     hyperparameter_str: str,
     save_path: str = None,
 ):
+    """
+    Executes the training loop.
+
+    :param learner: the learner
+    :param config: the experiment configuration
+    :param hyperparameter_str: the hyperparameter setting in string format
+    :param save_path: the directory to save the experiment progress
+    :type learner: Learner
+    :type config: SimpleNamespace
+    :type hyperparameter_str: str
+    :type save_path: str: (Default value = None)
+
+    """
     logging_config = config.logging_config
     train_config = config.train_config
 

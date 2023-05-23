@@ -33,6 +33,15 @@ This function constructs the model, optimizer, and learner and executes training
 
 
 def main(config_path: str, run_seed: int = None):
+    """
+    Orchestrates the experiment.
+
+    :param config_path: the experiment configuration file path
+    :param run_seed: the seed to initialize the random number generators
+    :type config_path: str
+    :type run_seed: int: (Default value = None)
+
+    """
     tic = timeit.default_timer()
     set_seed(run_seed)
     assert os.path.isfile(config_path), f"{config_path} is not a file"
@@ -73,6 +82,12 @@ if __name__ == "__main__":
     jax.config.config_with_absl()
 
     def _main(argv):
+        """
+        Runs the experiment.
+
+        :param argv: the arguments provided by the user
+
+        """
         del argv
         config_path = FLAGS.config_path
         seed = FLAGS.run_seed
