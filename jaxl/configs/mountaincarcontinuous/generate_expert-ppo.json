@@ -46,6 +46,7 @@
         "gae_lambda": 0.95,
         "normalize_advantage": true,
         "eps": 1e-5,
+        "obs_rms": false,
         "value_rms": false,
         "policy_distribution": "gaussian",
         "min_std": 1e-7,

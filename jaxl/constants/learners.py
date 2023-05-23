@@ -25,6 +25,7 @@ CONST_POST_PARAM_NORM = "post_param_norm"
 CONST_PARAM_NORM = "param_norm"
 CONST_GRAD_NORM = "grad_norm"
 
+CONST_OBS_RMS = "obs_rms"
 CONST_VALUE_RMS = "value_rms"
 
 CONST_UPDATE_TIME = "update_time"

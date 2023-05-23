@@ -209,15 +209,22 @@ class PPO(OnPolicyLearner):
         next_obs, next_h_state = self._rollout.rollout(
             self._model_dict[CONST_MODEL][CONST_POLICY],
             self._pi,
+            self._obs_rms,
             self._buffer,
             self._update_frequency,
         )
         rollout_time = timeit.default_timer() - tic
 
         tic = timeit.default_timer()
-        obss, h_states, acts, rews, dones, _, _, _, _, _ = self._buffer.sample(
+        obss, h_states, acts, rews, dones, _, _, _, lengths, _ = self._buffer.sample(
             batch_size=self._update_frequency, idxes=self._sample_idxes
         )
+
+        if self.obs_rms:
+            idxes = lengths.reshape((-1, *[1 for _ in range(obss.ndim - 1)])) - 1
+            update_obss = np.take_along_axis(obss, idxes, 1)
+            self.model.obs_rms.update(update_obss)
+            obss = self.obs_rms.normalize(obss)
 
         # Get value predictions for computing GAE return
         vals, _ = self._model[CONST_VF].forward(
@@ -291,4 +298,5 @@ class PPO(OnPolicyLearner):
             f"time/{CONST_UPDATE_TIME}": update_time,
         }
 
+        self.gather_rms(aux)
         return aux

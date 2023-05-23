@@ -81,8 +81,8 @@ class RunningMeanStd:
     ):
         assert epsilon > 0.0
         self.shape = shape
-        self.mean = np.zeros(shape, dtype=np.float)
-        self.var = np.ones(shape, dtype=np.float)
+        self.mean = np.zeros(shape, dtype=float)
+        self.var = np.ones(shape, dtype=float)
         self.epsilon = epsilon
         self.count = 0
         self.a_min = a_min

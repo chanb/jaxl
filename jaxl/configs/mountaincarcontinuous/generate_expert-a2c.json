@@ -43,6 +43,7 @@
         },
         "learner": "a2c",
         "gamma": 0.99,
+        "obs_rms": false,
         "value_rms": false,
         "policy_distribution": "gaussian",
         "min_std": 1e-7,

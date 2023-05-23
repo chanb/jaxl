@@ -41,7 +41,7 @@ def get_policy(policy: Model, config: SimpleNamespace) -> Policy:
         config.policy_distribution in VALID_POLICY_DISTRIBUTION
     ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
     if config.policy_distribution == CONST_GAUSSIAN:
-        return GaussianPolicy(policy, config.min_std)
+        return GaussianPolicy(policy, hasattr(config, CONST_MIN_STD))
     else:
         raise NotImplementedError
 

@@ -15,6 +15,8 @@ CONST_TRAIN = "train"
 CONST_VALIDATION = "validation"
 CONST_VAL_PREDS = "validation_predictions"
 CONST_LOG = "log"
+CONST_SCALAR = "scalar"
+CONST_SCALARS = "scalars"
 
 CONST_IL = "imitation_learning"
 CONST_RL = "reinforcement_learning"

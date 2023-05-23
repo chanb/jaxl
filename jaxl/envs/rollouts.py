@@ -8,6 +8,7 @@ import numpy as np
 from jaxl.buffers import ReplayBuffer
 from jaxl.envs.wrappers.wrapper import DefaultGymWrapper
 from jaxl.models import Policy
+from jaxl.utils import RunningMeanStd
 
 
 class Rollout:
@@ -25,6 +26,7 @@ class Rollout:
         self,
         params: Union[FrozenVariableDict, Dict[str, Any]],
         policy: Policy,
+        obs_rms: Union[bool, RunningMeanStd],
         buffer: ReplayBuffer,
         num_steps: int,
     ) -> Tuple[chex.Array, chex.Array]:
@@ -38,9 +40,13 @@ class Rollout:
                 self._curr_obs, self._curr_info = self._env.reset(seed=seed)
                 self._curr_h_state = policy.reset()
 
+            normalize_obs = np.array([self._curr_obs])
+            if obs_rms:
+                normalize_obs = obs_rms.normalize(normalize_obs)
+
             act, next_h_state = policy.compute_action(
                 params,
-                np.array([self._curr_obs]),
+                normalize_obs,
                 np.array([self._curr_h_state]),
                 self._exploration_key,
             )
