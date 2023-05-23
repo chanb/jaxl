@@ -43,8 +43,8 @@
         },
         "learner": "a2c",
         "gamma": 0.99,
-        "obs_rms": false,
-        "value_rms": false,
+        "obs_rms": true,
+        "value_rms": true,
         "policy_distribution": "gaussian",
         "min_std": 1e-7,
         "vf_loss_setting": {
