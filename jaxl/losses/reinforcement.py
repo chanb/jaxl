@@ -21,21 +21,17 @@ def monte_carlo_returns(
         rets[step] = rets[step + 1] * gamma * (1 - dones[step]) + rews[step]
     return rets[:-1]
 
-def scan_monte_carlo_returns(
-    rews: chex.Array, dones: chex.Array, gamma: float
-):
+
+def scan_monte_carlo_returns(rews: chex.Array, dones: chex.Array, gamma: float):
     def _returns(next_val, transition):
         rew, done = transition
         val = next_val * gamma * (1 - done) + rew
         return val, val
 
     return jax.lax.scan(
-        _returns,
-        0,
-        np.concatenate((rews, dones), axis=-1),
-        len(rews),
-        reverse=True
+        _returns, 0, np.concatenate((rews, dones), axis=-1), len(rews), reverse=True
     )[1]
+
 
 def gae_lambda_returns(
     rews: chex.Array,
@@ -51,6 +47,7 @@ def gae_lambda_returns(
         gae = delta + gamma * gae_lambda * (1 - dones[step]) * gae
         rets[step] = gae + vals[step]
     return rets[:-1]
+
 
 def scan_gae_lambda_returns(
     rews: chex.Array,
@@ -71,8 +68,9 @@ def scan_gae_lambda_returns(
         (0, vals[-1, 0]),
         np.concatenate((rews, vals[:-1], dones), axis=-1),
         len(rews),
-        reverse=True
+        reverse=True,
     )[1]
+
 
 def make_reinforce_loss(
     policy: StochasticPolicy,

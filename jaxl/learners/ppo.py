@@ -220,11 +220,7 @@ class PPO(OnPolicyLearner):
             batch_size=self._update_frequency, idxes=self._sample_idxes
         )
 
-        if self.obs_rms:
-            idxes = lengths.reshape((-1, *[1 for _ in range(obss.ndim - 1)])) - 1
-            update_obss = np.take_along_axis(obss, idxes, 1)
-            self.model.obs_rms.update(update_obss)
-            obss = self.obs_rms.normalize(obss)
+        obss = self.update_obs_rms_and_normalize(obss, lengths)
 
         # Get value predictions for computing GAE return
         vals, _ = self._model[CONST_VF].forward(
@@ -236,16 +232,15 @@ class PPO(OnPolicyLearner):
         if self.val_rms:
             vals = self.val_rms.unnormalize(vals)
 
-        rets = scan_gae_lambda_returns(rews, vals, dones, self._gamma, self._gae_lambda)[:, None]
+        rets = scan_gae_lambda_returns(
+            rews, vals, dones, self._gamma, self._gae_lambda
+        )[:, None]
+        rets = self.update_value_rms_and_normalize(rets)
 
         vals = vals[:-1]
         advs = rets - vals
         if self._normalize_advantage:
             advs = (advs - advs.mean()) / (advs.std() + self._eps)
-
-        if self.val_rms:
-            self.val_rms.update(rets)
-            rets = self.val_rms.normalize(rets)
 
         # Get action log probabilities for importance sampling
         old_lprobs = self._pi.lprob(

@@ -102,16 +102,10 @@ class REINFORCE(OnPolicyLearner):
             batch_size=self._update_frequency, idxes=self._sample_idxes
         )
 
-        if self.obs_rms:
-            idxes = lengths.reshape((-1, *[1 for _ in range(obss.ndim - 1)])) - 1
-            update_obss = np.take_along_axis(obss, idxes, 1)
-            self.obs_rms.update(update_obss)
-            obss = self.obs_rms.normalize(obss)
+        obss = self.update_obs_rms_and_normalize(obss, lengths)
 
         rets = monte_carlo_returns(rews, dones, self._gamma)
-        if self.val_rms:
-            self.val_rms.update(rets)
-            rets = self.val_rms.normalize(rets)
+        rets = self.update_value_rms_and_normalize(rets)
 
         self.model_dict, aux = self.policy_step(
             self._model_dict, obss, h_states, acts, rets

@@ -66,15 +66,39 @@ class ReinforcementLearner(OnlineLearner):
             self._obs_rms = learner_dict[CONST_OBS_RMS]
             self._val_rms = learner_dict[CONST_VALUE_RMS]
 
-    def gather_rms(self, aux: Dict[str, Any]):
+    def update_value_rms_and_normalize(self, rets: chex.Array) -> chex.Array:
+        if self.val_rms:
+            self.val_rms.update(rets)
+            rets = self.val_rms.normalize(rets)
+        return rets
+
+    def update_obs_rms_and_normalize(
+        self, obss: chex.Array, lengths: chex.Array
+    ) -> chex.Array:
+        if self.obs_rms:
+            idxes = lengths.reshape((-1, *[1 for _ in range(obss.ndim - 1)])) - 1
+            update_obss = np.take_along_axis(obss, idxes, 1)
+            self.obs_rms.update(update_obss)
+            obss = self.obs_rms.normalize(obss)
+        return obss
+
+    def gather_rms(self, aux: Dict[str, Any]) -> Dict[str, Any]:
         if self.obs_rms:
             max_norm_mean_idx = np.argmax(np.abs(self.obs_rms.mean))
             max_norm_var_idx = np.argmax(np.abs(self.obs_rms.var))
-            aux[CONST_LOG][f"{CONST_OBS_RMS}/mean_max_norm-mean"] = self.obs_rms.mean[max_norm_mean_idx]
-            aux[CONST_LOG][f"{CONST_OBS_RMS}/mean_max_norm-var"] = self.obs_rms.var[max_norm_mean_idx]
+            aux[CONST_LOG][f"{CONST_OBS_RMS}/mean_max_norm-mean"] = self.obs_rms.mean[
+                max_norm_mean_idx
+            ]
+            aux[CONST_LOG][f"{CONST_OBS_RMS}/mean_max_norm-var"] = self.obs_rms.var[
+                max_norm_mean_idx
+            ]
             aux[CONST_LOG][f"{CONST_OBS_RMS}/mean_max_norm-idx"] = max_norm_mean_idx
-            aux[CONST_LOG][f"{CONST_OBS_RMS}/var_max_norm-mean"] = self.obs_rms.mean[max_norm_var_idx]
-            aux[CONST_LOG][f"{CONST_OBS_RMS}/var_max_norm-var"] = self.obs_rms.var[max_norm_var_idx]
+            aux[CONST_LOG][f"{CONST_OBS_RMS}/var_max_norm-mean"] = self.obs_rms.mean[
+                max_norm_var_idx
+            ]
+            aux[CONST_LOG][f"{CONST_OBS_RMS}/var_max_norm-var"] = self.obs_rms.var[
+                max_norm_var_idx
+            ]
             aux[CONST_LOG][f"{CONST_OBS_RMS}/var_max_norm-idx"] = max_norm_var_idx
 
         if self.val_rms:
