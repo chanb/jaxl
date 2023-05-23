@@ -1,10 +1,8 @@
 from flax.core.scope import FrozenVariableDict
-from flax import linen as nn
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Union, Tuple
 
 import chex
-import numpy as np
 
 from jaxl.constants import *
 from jaxl.losses.regularization import *
@@ -13,19 +11,22 @@ from jaxl.losses.supervised import *
 from jaxl.models.common import Model
 
 
-def get_worst_value_for_loss(loss: str) -> chex.Array:
-    assert loss in VALID_LOSS, f"{loss} is not supported (one of {VALID_LOSS})"
-    if loss == CONST_GAUSSIAN:
-        return np.inf
-    elif loss == CONST_L2:
-        return np.inf
-
-    raise NotImplementedError
-
-
 def get_loss_function(
     model: Model, loss: str, loss_setting: SimpleNamespace
 ) -> Callable[..., chex.Array]:
+    """
+    Gets a loss function.
+
+    :param model: the model
+    :param loss: the loss name
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss: str
+    :type loss_setting: SimpleNamespace
+    :return: the loss function
+    :rtype: Callable[..., chex.Array]
+
+    """
     assert loss in VALID_LOSS, f"{loss} is not supported (one of {VALID_LOSS})"
 
     if loss == CONST_GAUSSIAN:
@@ -45,12 +46,35 @@ def make_aggregate_loss(
     [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
     Tuple[chex.Array, Dict],
 ]:
+    """
+    Aggregates losses by a weighted sum.
+
+    :param losses: the loss functions to aggregate
+    :type losses: Dict[str, Tuple[Callable[..., chex.Array], float]]
+    :return: the aggregated loss function
+    :type: Callable[
+        [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+        Tuple[chex.Array, Dict],
+    ]
+
+    """
+
     def compute_aggregate_loss(
         params: Union[FrozenVariableDict, Dict[str, Any]],
         x: chex.Array,
         carry: chex.Array,
         y: chex.Array,
     ):
+        """
+
+        :param params: Union[FrozenVariableDict:
+        :param Dict[str:
+        :param Any]]:
+        :param x: chex.Array:
+        :param carry: chex.Array:
+        :param y: chex.Array:
+
+        """
         total_loss = 0.0
         aux = {}
         for loss_key, (loss_function, coefficient) in losses.items():

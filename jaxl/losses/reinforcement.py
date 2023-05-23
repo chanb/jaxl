@@ -16,6 +16,19 @@ from jaxl.utils import get_reduction
 def monte_carlo_returns(
     rews: chex.Array, dones: chex.Array, gamma: float
 ) -> chex.Array:
+    """
+    Computes Monte-Carlo return.
+
+    :param rews: rewards
+    :param dones: terminated
+    :param gamma: discount factor
+    :type rews: chex.Array
+    :type dones: chex.Array
+    :type gamma: float
+    :return: Monte-Carlo return
+    :rtype: chex.Array
+
+    """
     rets = np.zeros((rews.shape[0] + 1, *rews.shape[1:]))
     for step in reversed(range(len(rews))):
         rets[step] = rets[step + 1] * gamma * (1 - dones[step]) + rews[step]
@@ -23,7 +36,34 @@ def monte_carlo_returns(
 
 
 def scan_monte_carlo_returns(rews: chex.Array, dones: chex.Array, gamma: float):
-    def _returns(next_val, transition):
+    """
+    Computes Monte-Carlo return using `jax.lax.scan`.
+
+    :param rews: rewards
+    :param dones: terminated
+    :param gamma: discount factor
+    :type rews: chex.Array
+    :type dones: chex.Array
+    :type gamma: float
+    :return: Monte-Carlo return
+    :rtype: chex.Array
+
+    """
+
+    def _returns(
+        next_val: chex.Array, transition: Tuple[chex.Array, chex.Array]
+    ) -> Tuple[chex.Array, chex.Array]:
+        """
+        Compute per-step return
+
+        :param next_val: next value estimate
+        :param transition: current transition consisting of reward and termination
+        :type next_val: chex.Array
+        :type transition: Tuple[chex.Array, chex.Array]
+        :return: the current return
+        :rtype: Tuple[chex.Array, chex.Array]
+
+        """
         rew, done = transition
         val = next_val * gamma * (1 - done) + rew
         return val, val
@@ -40,6 +80,23 @@ def gae_lambda_returns(
     gamma: float,
     gae_lambda: float,
 ) -> chex.Array:
+    """
+    Computes Generalized Advantage Estimation (GAE).
+
+    :param rews: rewards
+    :param vals: predicted values
+    :param dones: terminated
+    :param gamma: discount factor
+    :param gae_lambda: GAE lambda
+    :type rews: chex.Array
+    :type vals: chex.Array
+    :type dones: chex.Array
+    :type gamma: float
+    :type gae_lambda: float
+    :return: GAE
+    :rtype: chex.Array
+
+    """
     rets = np.zeros((rews.shape[0] + 1, *rews.shape[1:]))
     gae = 0
     for step in reversed(range(len(rews))):
@@ -56,7 +113,39 @@ def scan_gae_lambda_returns(
     gamma: float,
     gae_lambda: float,
 ):
-    def _returns(next_res, transition):
+    """
+    Computes Generalized Advantage Estimation (GAE) using `jax.lax.scan`.
+
+    :param rews: rewards
+    :param vals: predicted values
+    :param dones: terminated
+    :param gamma: discount factor
+    :param gae_lambda: GAE lambda
+    :type rews: chex.Array
+    :type vals: chex.Array
+    :type dones: chex.Array
+    :type gamma: float
+    :type gae_lambda: float
+    :return: GAE
+    :rtype: chex.Array
+
+    """
+
+    def _returns(
+        next_res: Tuple[chex.Array, chex.Array],
+        transition: Tuple[chex.Array, chex.Array, chex.Array],
+    ) -> Tuple[Tuple[chex.Array, chex.Array], chex.Array]:
+        """
+        Compute per-step return
+
+        :param next_res: GAE and value from the next timestep
+        :param transition: current transition consisting of reward, value, and termination
+        :type next_res: Tuple[chex.Array, chex.Array]
+        :type transition: Tuple[chex.Array, chex.Array, chex.Array]
+        :return: the current GAE and return, and current GAE estimate
+        :rtype: Tuple[Tuple[chex.Array, chex.Array], chex.Array]
+
+        """
         rew, val, done = transition
         next_gae, next_val = next_res
         delta = rew + (1 - done) * gamma * next_val - val
@@ -85,6 +174,15 @@ def make_reinforce_loss(
     ],
     Tuple[chex.Array, Dict],
 ]:
+    """
+    Gets REINFORCE loss function.
+
+    :param policy: the policy
+    :param loss_setting: the loss configuration
+    :type policy: StochasticPolicy
+    :type loss_setting: SimpleNamespace
+
+    """
     reduction = get_reduction(loss_setting.reduction)
 
     def reinforce_loss(
@@ -95,6 +193,25 @@ def make_reinforce_loss(
         rets: chex.Array,
         baselines: chex.Array,
     ) -> Tuple[chex.Array, Dict]:
+        """
+        REINFORCE with baseline.
+
+        :param params: the model parameters
+        :param obss: the observations
+        :param h_states: the hidden states
+        :param acts: the actions taken
+        :param rets: the returns
+        :param baselines: the baselines
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type obss: chex.Array
+        :type h_states: chex.Array
+        :type acts: chex.Array
+        :type rets: chex.Array
+        :type baselines: chex.Array
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
         lprobs = policy.lprob(params, obss, h_states, acts)
 
         # TODO: Logging of action lprobs
@@ -117,6 +234,15 @@ def make_ppo_pi_loss(
     ],
     Tuple[chex.Array, Dict],
 ]:
+    """
+    Gets PPO policy loss function.
+
+    :param policy: the policy
+    :param loss_setting: the loss configuration
+    :type policy: StochasticPolicy
+    :type loss_setting: SimpleNamespace
+
+    """
     reduction = get_reduction(loss_setting.reduction)
 
     def pi_loss(
@@ -127,6 +253,25 @@ def make_ppo_pi_loss(
         advs: chex.Array,
         old_lprobs: chex.Array,
     ) -> Tuple[chex.Array, Dict]:
+        """
+        PPO policy loss.
+
+        :param params: the model parameters
+        :param obss: the observations
+        :param h_states: the hidden states
+        :param acts: the actions taken
+        :param advs: the advantages
+        :param old_lprobs: the action log probabilities for importance sampling
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type obss: chex.Array
+        :type h_states: chex.Array
+        :type acts: chex.Array
+        :type advs: chex.Array
+        :type old_lprobs: chex.Array
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
         lprobs = policy.lprob(params, obss, h_states, acts)
         is_ratio = jnp.exp(lprobs - old_lprobs)
 
@@ -163,6 +308,15 @@ def make_ppo_vf_loss(
     ],
     Tuple[chex.Array, Dict],
 ]:
+    """
+    Gets PPO value loss function.
+
+    :param model: the value function
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+
+    """
     reduction = get_reduction(loss_setting.reduction)
 
     def vf_loss(
@@ -172,6 +326,23 @@ def make_ppo_vf_loss(
         rets: chex.Array,
         vals: chex.Array,
     ) -> Tuple[chex.Array, Dict]:
+        """
+        PPO value loss.
+
+        :param params: the model parameters
+        :param obss: the observations
+        :param h_states: the hidden states
+        :param rets: the estimated returns
+        :param vals: the old value estimate to clip from
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type obss: chex.Array
+        :type h_states: chex.Array
+        :type rets: chex.Array
+        :type vals: chex.Array
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
         preds, _ = model.forward(params, obss, h_states)
 
         clipped_preds = vals + jnp.clip(

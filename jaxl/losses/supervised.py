@@ -19,6 +19,17 @@ def make_squared_loss(
     [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
     Tuple[chex.Array, Dict],
 ]:
+    """
+    Gets squared loss function.
+
+    :param model: the model
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+    :return: the loss function
+    :rtype: Callable[..., chex.Array]
+
+    """
     reduction = get_reduction(loss_setting.reduction)
 
     def squared_loss(
@@ -27,6 +38,20 @@ def make_squared_loss(
         carry: chex.Array,
         y: chex.Array,
     ) -> Tuple[chex.Array, Dict]:
+        """
+        Squared Loss.
+
+        :param params: the model parameters
+        :param x: the input
+        :param carry: the hidden state
+        :param y: the output
+        :param *args:
+        :param **kwargs:
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
         y_pred, _ = model.forward(params, x, carry)
         return reduction((y_pred - y) ** 2), {CONST_PREDICTIONS: y_pred}
 
@@ -40,6 +65,17 @@ def make_cross_entropy_loss(
     [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
     Tuple[chex.Array, Dict],
 ]:
+    """
+    Gets cross-entropy loss function.
+
+    :param model: the model
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+    :return: the loss function
+    :rtype: Callable[..., chex.Array]
+
+    """
     reduction = get_reduction(loss_setting.reduction)
 
     def cross_entropy_loss(
@@ -48,6 +84,20 @@ def make_cross_entropy_loss(
         carry: chex.Array,
         y: chex.Array,
     ) -> Tuple[chex.Array, Dict]:
+        """
+        Cross-entropy Loss.
+
+        :param params: the model parameters
+        :param x: the input
+        :param carry: the hidden state
+        :param y: the output
+        :param *args:
+        :param **kwargs:
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
         logits, _ = model.forward(params, x, carry)
         y_one_hot = jax.nn.one_hot(jnp.squeeze(y), num_classes=loss_setting.num_classes)
 

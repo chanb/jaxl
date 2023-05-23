@@ -50,9 +50,16 @@ By default, the `Learner` class enforces all learners have a way to perform chec
   The online learner can also interact with the environment, which is implemented via the `gymnasium` API.
 
 
+## Styling
+- We use [`black`](https://github.com/psf/black/blob/main/README.md) to format code and [`pyment`](https://github.com/dadadel/pyment/blob/master/README.rst) to generate docstrings with `reST` style.
 
 ## TODO:
 - Update README as more implementation comes
 - Implement environments that can be sampled from a distribution
   - Start with Cartpole environment
 - Implement behavioural cloning
+- Update docstring
+  - buffers
+  - distributions
+  - envs
+  - models
