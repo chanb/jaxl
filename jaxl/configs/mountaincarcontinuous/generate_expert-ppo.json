@@ -55,12 +55,12 @@
         "vf_loss_setting": {
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": 0.1
         },
         "pi_loss_setting": {
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": 0.1
         }
     },
     "train_config": {
