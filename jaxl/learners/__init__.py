@@ -13,6 +13,19 @@ def get_rl_learner(
     model_config: SimpleNamespace,
     optimizer_config: SimpleNamespace,
 ) -> Learner:
+    """
+    Gets reinforcement learning learner
+
+    :param learner_config: the learner configuration
+    :param model_config: the model configuration
+    :param optimizer_config: the optimizer configuration
+    :type learner_config: SimpleNamespace
+    :type model_config: SimpleNamespace
+    :type optimizer_config: SimpleNamespace
+    :return: the reinforcement learning learner
+    :rtype: Learner
+
+    """
     assert (
         learner_config.learner in VALID_RL_LEARNER
     ), f"{learner_config.learner} is not supported (one of {VALID_RL_LEARNER})"
@@ -33,6 +46,19 @@ def get_il_learner(
     model_config: SimpleNamespace,
     optimizer_config: SimpleNamespace,
 ) -> Learner:
+    """
+    Gets imitation learning learner
+
+    :param learner_config: the learner configuration
+    :param model_config: the model configuration
+    :param optimizer_config: the optimizer configuration
+    :type learner_config: SimpleNamespace
+    :type model_config: SimpleNamespace
+    :type optimizer_config: SimpleNamespace
+    :return: the imitation learning learner
+    :rtype: Learner
+
+    """
     assert (
         learner_config.learner in VALID_RL_LEARNER
     ), f"{learner_config.learner} is not supported (one of {VALID_RL_LEARNER})"

@@ -98,10 +98,13 @@ class ReinforcementLearner(OnlineLearner):
 
     def update_value_rms_and_normalize(self, rets: chex.Array) -> chex.Array:
         """
-        Updates the running statistics for value estimate.
+        Updates the running statistics for value estimate
+        and normalize the returns.
 
         :param rets: the returns for updating the statistics
         :type rets: chex.Array
+        :return: the normalized returns
+        :rtype: chex.Array
 
         """
         if self.val_rms:
@@ -113,7 +116,8 @@ class ReinforcementLearner(OnlineLearner):
         self, obss: chex.Array, lengths: chex.Array
     ) -> chex.Array:
         """
-        Updates the running statistics for observations.
+        Updates the running statistics for observations
+        and normalize the observations.
         If the observations are stacked with previous timesteps,
         then update using only the current timestep.
 
@@ -121,6 +125,8 @@ class ReinforcementLearner(OnlineLearner):
         :param lengths: the lengths of each observation sequence
         :type obss: chex.Array
         :type lengths: chex.Array
+        :return: the normalized observations
+        :rtype: chex.Array
 
         """
         if self.obs_rms:
@@ -136,7 +142,8 @@ class ReinforcementLearner(OnlineLearner):
 
         :param aux: the auxiliary dictionary to put the runnint statistics into
         :type aux: Dict[str, Any]
-
+        :return: the auxiliary dictionary with running statistics
+        :rtype: Dict[str, Any]
         """
         if self.obs_rms:
             max_norm_mean_idx = np.argmax(np.abs(self.obs_rms.mean))
