@@ -13,6 +13,11 @@ from jaxl.utils import RunningMeanStd
 
 
 class ReinforcementLearner(OnlineLearner):
+    """
+    Reinforcement learner class that extends the ``OnlineLearner`` class.
+    This is the general learner for reinforcement learning agents.
+    """
+
     _update_frequency: int
     _gamma: float
     _value_rms: Union[bool, RunningMeanStd]
@@ -38,17 +43,35 @@ class ReinforcementLearner(OnlineLearner):
 
     @property
     def obs_rms(self):
+        """
+        Running statistics for observations.
+        """
         return self._obs_rms
 
     @property
     def val_rms(self):
+        """
+        Running statistics for value estimates.
+        """
         return self._val_rms
 
     @property
     def update_frequency(self):
+        """
+        The frequency to perform model update after environment steps.
+        """
         return self._update_frequency
 
     def checkpoint(self, checkpoint_path: str, exist_ok: bool = False):
+        """
+        Saves the current model state.
+
+        :param checkpoint_path: directory path to store the checkpoint to
+        :param exist_ok: whether to overwrite the existing checkpoint path
+        :type checkpoint_path: str
+        :type exist_ok: bool (Default value = False)
+
+        """
         super().checkpoint(checkpoint_path, exist_ok)
         learner_dict = {
             CONST_OBS_RMS: self.obs_rms,
@@ -59,6 +82,13 @@ class ReinforcementLearner(OnlineLearner):
             pickle.dump(learner_dict, f)
 
     def load_checkpoint(self, checkpoint_path: str):
+        """
+        Loads a model state from a saved checkpoint.
+
+        :param checkpoint_path: directory path to load the checkpoint from
+        :type checkpoint_path: str
+
+        """
         super().load_checkpoint(checkpoint_path)
 
         with open(os.path.join(checkpoint_path, "learner_dict.pkl"), "rb") as f:
@@ -67,6 +97,13 @@ class ReinforcementLearner(OnlineLearner):
             self._val_rms = learner_dict[CONST_VALUE_RMS]
 
     def update_value_rms_and_normalize(self, rets: chex.Array) -> chex.Array:
+        """
+        Updates the running statistics for value estimate.
+
+        :param rets: the returns for updating the statistics
+        :type rets: chex.Array
+
+        """
         if self.val_rms:
             self.val_rms.update(rets)
             rets = self.val_rms.normalize(rets)
@@ -75,6 +112,17 @@ class ReinforcementLearner(OnlineLearner):
     def update_obs_rms_and_normalize(
         self, obss: chex.Array, lengths: chex.Array
     ) -> chex.Array:
+        """
+        Updates the running statistics for observations.
+        If the observations are stacked with previous timesteps,
+        then update using only the current timestep.
+
+        :param obss: the observations for updating the statistics
+        :param lengths: the lengths of each observation sequence
+        :type obss: chex.Array
+        :type lengths: chex.Array
+
+        """
         if self.obs_rms:
             idxes = lengths.reshape((-1, *[1 for _ in range(obss.ndim - 1)])) - 1
             update_obss = np.take_along_axis(obss, idxes, 1)
@@ -83,6 +131,13 @@ class ReinforcementLearner(OnlineLearner):
         return obss
 
     def gather_rms(self, aux: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Logs the running statistics of observations and value estimate.
+
+        :param aux: the auxiliary dictionary to put the runnint statistics into
+        :type aux: Dict[str, Any]
+
+        """
         if self.obs_rms:
             max_norm_mean_idx = np.argmax(np.abs(self.obs_rms.mean))
             max_norm_var_idx = np.argmax(np.abs(self.obs_rms.var))
@@ -109,6 +164,11 @@ class ReinforcementLearner(OnlineLearner):
 
 
 class OnPolicyLearner(ReinforcementLearner):
+    """
+    On-policy learner class that extends the ``ReinforcementLearner`` class.
+    This is the general learner for on-policy reinforcement learning agents.
+    """
+
     _sample_idxes: chex.Array
     _rollout: Rollout
 
@@ -123,6 +183,15 @@ class OnPolicyLearner(ReinforcementLearner):
         self._rollout = Rollout(self._env)
 
     def checkpoint(self, checkpoint_path: str, exist_ok: bool = False):
+        """
+        Saves the current model state.
+
+        :param checkpoint_path: directory path to store the checkpoint to
+        :param exist_ok: whether to overwrite the existing checkpoint path
+        :type checkpoint_path: str
+        :type exist_ok: bool (Default value = False)
+
+        """
         super().checkpoint(checkpoint_path, exist_ok)
 
         with open(os.path.join(checkpoint_path, "train_returns.pkl"), "wb") as f:
