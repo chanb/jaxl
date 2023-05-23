@@ -229,11 +229,12 @@ class PPO(OnPolicyLearner):
             np.concatenate((h_states, np.array([[next_h_state]])), axis=0),
         )
 
+        unnormalized_vals = vals
         if self.val_rms:
-            vals = self.val_rms.unnormalize(vals)
+            unnormalized_vals = self.val_rms.unnormalize(vals)
 
         rets = scan_gae_lambda_returns(
-            rews, vals, dones, self._gamma, self._gae_lambda
+            rews, unnormalized_vals, dones, self._gamma, self._gae_lambda
         )[:, None]
         rets = self.update_value_rms_and_normalize(np.array(rets))
 
