@@ -27,7 +27,7 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 4096
+            "buffer_size": 2048
         },
         "learner": "reinforce",
         "gamma": 0.99,

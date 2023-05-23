@@ -235,7 +235,7 @@ class PPO(OnPolicyLearner):
         rets = scan_gae_lambda_returns(
             rews, vals, dones, self._gamma, self._gae_lambda
         )[:, None]
-        rets = self.update_value_rms_and_normalize(rets)
+        rets = self.update_value_rms_and_normalize(np.array(rets))
 
         vals = vals[:-1]
         advs = rets - vals
