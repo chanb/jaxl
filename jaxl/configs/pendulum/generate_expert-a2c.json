@@ -39,11 +39,12 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 4096
+            "buffer_size": 2048
         },
         "learner": "a2c",
         "gamma": 0.99,
-        "value_rms": false,
+        "obs_rms": true,
+        "value_rms": true,
         "policy_distribution": "gaussian",
         "min_std": 1e-7,
         "vf_loss_setting": {
