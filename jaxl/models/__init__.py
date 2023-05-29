@@ -25,12 +25,18 @@ def get_optimizer(opt_config: SimpleNamespace) -> optax.GradientTransformation:
     :rtype: optax.GradientTransformation
 
     """
+    opt_transforms = []
+    if opt_config.max_grad_norm:
+        opt_transforms.append(optax.clip_by_global_norm(opt_config.max_grad_norm))
     if opt_config.optimizer == CONST_ADAM:
-        return optax.adam(learning_rate=opt_config.lr)
+        opt_transforms.append(optax.scale_by_adam())
     elif opt_config.optimizer == CONST_SGD:
-        return optax.sgd(learning_rate=opt_config.lr)
+        pass
     else:
         raise NotImplementedError
+
+    opt_transforms.append(optax.scale(-opt_config.lr))
+    return optax.chain(*opt_transforms)
 
 
 def get_model(

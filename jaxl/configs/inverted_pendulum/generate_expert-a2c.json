@@ -18,11 +18,13 @@
     "optimizer_config": {
         "policy": {
             "optimizer": "adam",
-            "lr": 1e-3
+            "lr": 1e-3,
+            "max_grad_norm": false
         },
         "vf": {
             "optimizer": "adam",
-            "lr": 1e-3
+            "lr": 1e-3,
+            "max_grad_norm": false
         }
     },
     "learner_config": {

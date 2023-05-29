@@ -136,7 +136,11 @@ class Rollout:
         :rtype: chex.Array
 
         """
-        latest_returns = self.episodic_returns[-num_episodes:]
+        latest_returns = self.episodic_returns[-num_episodes - 1 :]
+        if self._done:
+            latest_returns = latest_returns[1:]
+        else:
+            latest_returns = latest_returns[:-1]
         return np.mean(latest_returns)
 
     def latest_average_episode_length(self, num_episodes: int = 5) -> chex.Array:
@@ -149,5 +153,9 @@ class Rollout:
         :rtype: chex.Array
 
         """
-        latest_episode_lengths = self.episode_lengths[-num_episodes:]
+        latest_episode_lengths = self.episode_lengths[-num_episodes - 1 :]
+        if self._done:
+            latest_episode_lengths = latest_episode_lengths[1:]
+        else:
+            latest_episode_lengths = latest_episode_lengths[:-1]
         return np.mean(latest_episode_lengths)
