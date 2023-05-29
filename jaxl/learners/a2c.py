@@ -233,49 +233,71 @@ class A2C(OnPolicyLearner):
         :rtype: Dict[str, Any]
 
         """
-        tic = timeit.default_timer()
-        self._rollout.rollout(
-            self._model_dict[CONST_MODEL][CONST_POLICY],
-            self._pi,
-            self._obs_rms,
-            self._buffer,
-            self._update_frequency,
-        )
-        rollout_time = timeit.default_timer() - tic
 
-        tic = timeit.default_timer()
-        obss, h_states, acts, rews, dones, _, _, _, lengths, _ = self._buffer.sample(
-            batch_size=self._update_frequency, idxes=self._sample_idxes
-        )
+        auxes = []
+        for _ in range(self._num_update_steps):
+            auxes.append({})
+            tic = timeit.default_timer()
+            self._rollout.rollout(
+                self._model_dict[CONST_MODEL][CONST_POLICY],
+                self._pi,
+                self._obs_rms,
+                self._buffer,
+                self._update_frequency,
+            )
+            rollout_time = timeit.default_timer() - tic
 
-        obss = self.update_obs_rms_and_normalize(obss, lengths)
+            tic = timeit.default_timer()
+            (
+                obss,
+                h_states,
+                acts,
+                rews,
+                dones,
+                _,
+                _,
+                _,
+                lengths,
+                _,
+            ) = self._buffer.sample(
+                batch_size=self._update_frequency, idxes=self._sample_idxes
+            )
 
-        rets = monte_carlo_returns(rews, dones, self._gamma)
-        rets = self.update_value_rms_and_normalize(rets)
+            obss = self.update_obs_rms_and_normalize(obss, lengths)
 
-        self.model_dict, aux = self.joint_step(
-            self._model_dict, obss, h_states, acts, rets
-        )
-        update_time = timeit.default_timer() - tic
-        assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+            rets = monte_carlo_returns(rews, dones, self._gamma)
+            rets = self.update_value_rms_and_normalize(rets)
 
+            self.model_dict, aux = self.joint_step(
+                self._model_dict, obss, h_states, acts, rets
+            )
+            update_time = timeit.default_timer() - tic
+            assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+
+            auxes[-1][CONST_ROLLOUT_TIME] = rollout_time
+            auxes[-1][CONST_UPDATE_TIME] = update_time
+            auxes[-1][CONST_AUX] = aux
+
+        auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
         aux[CONST_LOG] = {
-            f"losses/{CONST_AGG_LOSS}": aux[CONST_AGG_LOSS].item(),
-            f"losses/pi": aux[CONST_POLICY].item(),
-            f"losses/vf": aux[CONST_VF].item(),
-            f"losses/advantage_mean": aux[CONST_ADVANTAGE].item(),
-            f"{CONST_GRAD_NORM}/pi": aux[CONST_GRAD_NORM][CONST_POLICY].item(),
+            f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
+            f"losses/pi": auxes[CONST_AUX][CONST_POLICY].item(),
+            f"losses/vf": auxes[CONST_AUX][CONST_VF].item(),
+            f"losses/{CONST_ADVANTAGE}": auxes[CONST_AUX][CONST_ADVANTAGE].item(),
+            f"{CONST_GRAD_NORM}/pi": auxes[CONST_AUX][CONST_GRAD_NORM][
+                CONST_POLICY
+            ].item(),
             f"{CONST_PARAM_NORM}/pi": l2_norm(
                 self.model_dict[CONST_MODEL][CONST_POLICY]
             ).item(),
-            f"{CONST_GRAD_NORM}/vf": aux[CONST_GRAD_NORM][CONST_VF].item(),
+            f"{CONST_GRAD_NORM}/vf": auxes[CONST_AUX][CONST_GRAD_NORM][CONST_VF].item(),
             f"{CONST_PARAM_NORM}/vf": l2_norm(
                 self.model_dict[CONST_MODEL][CONST_VF]
             ).item(),
             f"interaction/{CONST_AVERAGE_RETURN}": self._rollout.latest_average_return(),
             f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}": self._rollout.latest_average_episode_length(),
-            f"time/{CONST_ROLLOUT_TIME}": rollout_time,
-            f"time/{CONST_UPDATE_TIME}": update_time,
+            f"time/{CONST_ROLLOUT_TIME}": auxes[CONST_ROLLOUT_TIME].item(),
+            f"time/{CONST_UPDATE_TIME}": auxes[CONST_UPDATE_TIME].item(),
         }
 
         self.gather_rms(aux)

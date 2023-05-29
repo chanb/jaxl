@@ -44,6 +44,7 @@
             "buffer_size": 2048
         },
         "learner": "ppo",
+        "num_steps_per_epoch": 2048,
         "gamma": 0.99,
         "gae_lambda": 0.95,
         "normalize_advantage": true,

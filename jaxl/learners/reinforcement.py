@@ -19,6 +19,7 @@ class ReinforcementLearner(OnlineLearner):
     """
 
     _update_frequency: int
+    _num_steps_per_epoch: int
     _gamma: float
     _value_rms: Union[bool, RunningMeanStd]
     _obs_rms: Union[bool, RunningMeanStd]
@@ -31,6 +32,7 @@ class ReinforcementLearner(OnlineLearner):
     ):
         super().__init__(config, model_config, optimizer_config)
         self._update_frequency = config.buffer_config.buffer_size
+        self._num_steps_per_epoch = config.num_steps_per_epoch
         self._gamma = config.gamma
 
         self._obs_rms = False
@@ -176,6 +178,7 @@ class OnPolicyLearner(ReinforcementLearner):
     This is the general learner for on-policy reinforcement learning agents.
     """
 
+    _num_update_steps: int
     _sample_idxes: chex.Array
     _rollout: Rollout
 
@@ -186,6 +189,12 @@ class OnPolicyLearner(ReinforcementLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
+        assert (
+            self._num_steps_per_epoch % self._update_frequency == 0
+        ), "num_steps_per_epoch {} should be divisible by update_frequency {} for on-policy algorithms".format(
+            self._num_steps_per_epoch, self._update_frequency
+        )
+        self._num_update_steps = self._num_steps_per_epoch // self._update_frequency
         self._sample_idxes = np.arange(self._update_frequency)
         self._rollout = Rollout(self._env)
 

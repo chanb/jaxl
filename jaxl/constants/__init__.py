@@ -23,6 +23,12 @@ CONST_RL = "reinforcement_learning"
 
 VALID_TASK = [CONST_IL, CONST_RL]
 
+CONST_ADVANTAGE = "advantage"
+CONST_RETURN = "return"
+CONST_VALUE = "value"
+CONST_ADVANTAGES = "advantages"
+CONST_RETURNS = "returns"
+CONST_VALUES = "values"
 CONST_LATEST_RETURN = "latest_return"
 CONST_LATEST_EPISODE_LENGTH = "latest_episode_length"
 CONST_AVERAGE_RETURN = "average_return"

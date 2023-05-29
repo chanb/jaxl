@@ -34,5 +34,4 @@ CONST_ROLLOUT_TIME = "rollout_time"
 CONST_PI_LOSS_SETTING = "pi_loss_setting"
 CONST_VF_LOSS_SETTING = "vf_loss_setting"
 
-CONST_ADVANTAGE = "advantage"
 CONST_NUM_CLIPPED = "num_clipped"

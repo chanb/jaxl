@@ -44,6 +44,7 @@
             "buffer_size": 2048
         },
         "learner": "a2c",
+        "num_steps_per_epoch": 2048,
         "gamma": 0.99,
         "obs_rms": true,
         "value_rms": true,

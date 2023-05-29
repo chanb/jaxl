@@ -281,93 +281,126 @@ class PPO(OnPolicyLearner):
         :rtype: Dict[str, Any]
 
         """
-        tic = timeit.default_timer()
-        next_obs, next_h_state = self._rollout.rollout(
-            self._model_dict[CONST_MODEL][CONST_POLICY],
-            self._pi,
-            self._obs_rms,
-            self._buffer,
-            self._update_frequency,
-        )
-        rollout_time = timeit.default_timer() - tic
-
-        tic = timeit.default_timer()
-        obss, h_states, acts, rews, _, dones, _, _, lengths, _ = self._buffer.sample(
-            batch_size=self._update_frequency, idxes=self._sample_idxes
-        )
-
-        obss = self.update_obs_rms_and_normalize(obss, lengths)
-
-        # Get value predictions for computing GAE return
-        vals, _ = self._model[CONST_VF].forward(
-            self._model_dict[CONST_MODEL][CONST_VF],
-            np.concatenate((obss, np.array([[next_obs]])), axis=0),
-            np.concatenate((h_states, np.array([[next_h_state]])), axis=0),
-        )
-
-        unnormalized_vals = vals
-        if self.val_rms:
-            unnormalized_vals = self.val_rms.unnormalize(vals)
-
-        rets = scan_gae_lambda_returns(
-            rews, unnormalized_vals, dones, self._gamma, self._gae_lambda
-        )[:, None]
-        rets = self.update_value_rms_and_normalize(np.array(rets))
-
-        vals = vals[:-1]
-        advs = rets - vals
-        if self._normalize_advantage:
-            advs = (advs - advs.mean()) / (advs.std() + self._eps)
-
-        # Get action log probabilities for importance sampling
-        old_lprobs = self._pi.lprob(
-            self._model_dict[CONST_MODEL][CONST_POLICY], obss, h_states, acts
-        )
 
         auxes = []
-        for _ in range(self._opt_epochs):
-            minibatch_idxes = jrandom.permutation(self._sample_key, self._sample_idxes)[
-                self._opt_batch_size
-            ]
-            self._sample_key = jrandom.split(self._sample_key, num=1)[0]
-            self.model_dict, aux = self.joint_step(
-                self._model_dict,
-                obss[minibatch_idxes],
-                h_states[minibatch_idxes],
-                acts[minibatch_idxes],
-                rets[minibatch_idxes],
-                advs[minibatch_idxes],
-                vals[minibatch_idxes],
-                old_lprobs[minibatch_idxes],
+        for _ in range(self._num_update_steps):
+            auxes.append({})
+            tic = timeit.default_timer()
+            next_obs, next_h_state = self._rollout.rollout(
+                self._model_dict[CONST_MODEL][CONST_POLICY],
+                self._pi,
+                self._obs_rms,
+                self._buffer,
+                self._update_frequency,
             )
-            assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
-            auxes.append(aux)
+            rollout_time = timeit.default_timer() - tic
 
-        update_time = timeit.default_timer() - tic
+            tic = timeit.default_timer()
+            (
+                obss,
+                h_states,
+                acts,
+                rews,
+                _,
+                dones,
+                _,
+                _,
+                lengths,
+                _,
+            ) = self._buffer.sample(
+                batch_size=self._update_frequency, idxes=self._sample_idxes
+            )
+
+            obss = self.update_obs_rms_and_normalize(obss, lengths)
+
+            # Get value predictions for computing GAE return
+            vals, _ = self._model[CONST_VF].forward(
+                self._model_dict[CONST_MODEL][CONST_VF],
+                np.concatenate((obss, np.array([[next_obs]])), axis=0),
+                np.concatenate((h_states, np.array([[next_h_state]])), axis=0),
+            )
+
+            unnormalized_vals = vals
+            if self.val_rms:
+                unnormalized_vals = self.val_rms.unnormalize(vals)
+
+            rets = scan_gae_lambda_returns(
+                rews, unnormalized_vals, dones, self._gamma, self._gae_lambda
+            )[:, None]
+            rets = self.update_value_rms_and_normalize(np.array(rets))
+
+            vals = vals[:-1]
+            advs = rets - vals
+            if self._normalize_advantage:
+                advs = (advs - advs.mean()) / (advs.std() + self._eps)
+
+            # Get action log probabilities for importance sampling
+            old_lprobs = self._pi.lprob(
+                self._model_dict[CONST_MODEL][CONST_POLICY], obss, h_states, acts
+            )
+
+            auxes_per_epoch = []
+            for _ in range(self._opt_epochs):
+                minibatch_idxes = jrandom.permutation(
+                    self._sample_key, self._sample_idxes
+                )[self._opt_batch_size]
+                self._sample_key = jrandom.split(self._sample_key, num=1)[0]
+                self.model_dict, aux = self.joint_step(
+                    self._model_dict,
+                    obss[minibatch_idxes],
+                    h_states[minibatch_idxes],
+                    acts[minibatch_idxes],
+                    rets[minibatch_idxes],
+                    advs[minibatch_idxes],
+                    vals[minibatch_idxes],
+                    old_lprobs[minibatch_idxes],
+                )
+                assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+                auxes_per_epoch.append(aux)
+            update_time = timeit.default_timer() - tic
+
+            auxes[-1][CONST_ROLLOUT_TIME] = rollout_time
+            auxes[-1][CONST_UPDATE_TIME] = update_time
+            auxes[-1][CONST_RETURNS] = rets.mean().item()
+            auxes[-1][CONST_VALUES] = vals.mean().item()
+            auxes[-1][CONST_ADVANTAGES] = advs.mean().item()
+
+            auxes_per_epoch = jax.tree_util.tree_map(
+                lambda *args: np.mean(args), *auxes_per_epoch
+            )
+            auxes[-1][CONST_AUX] = auxes_per_epoch
 
         auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
         aux[CONST_LOG] = {
-            f"losses/{CONST_AGG_LOSS}": auxes[CONST_AGG_LOSS].item(),
-            f"losses/pi": auxes[CONST_POLICY][CONST_LOSS].item(),
-            f"losses/vf": auxes[CONST_VF][CONST_LOSS].item(),
-            f"losses/return_mean": rets.mean().item(),
-            f"losses/advantage_mean": advs.mean().item(),
-            f"losses/vf_preds_mean": vals.mean().item(),
-            f"losses/pi_num_clipped": auxes[CONST_POLICY][CONST_NUM_CLIPPED].item(),
-            f"losses/vf_num_clipped": auxes[CONST_VF][CONST_NUM_CLIPPED].item(),
-            f"losses/is_ratio": auxes[CONST_POLICY][CONST_IS_RATIO].mean().item(),
-            f"{CONST_GRAD_NORM}/pi": auxes[CONST_GRAD_NORM][CONST_POLICY].item(),
+            f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
+            f"losses/pi": auxes[CONST_AUX][CONST_POLICY][CONST_LOSS].item(),
+            f"losses/vf": auxes[CONST_AUX][CONST_VF][CONST_LOSS].item(),
+            f"losses/{CONST_RETURN}": auxes[CONST_RETURNS].item(),
+            f"losses/{CONST_ADVANTAGE}": auxes[CONST_ADVANTAGES].item(),
+            f"losses/{CONST_VALUE}": auxes[CONST_VALUES].item(),
+            f"losses/pi_num_clipped": auxes[CONST_AUX][CONST_POLICY][
+                CONST_NUM_CLIPPED
+            ].item(),
+            f"losses/vf_num_clipped": auxes[CONST_AUX][CONST_VF][
+                CONST_NUM_CLIPPED
+            ].item(),
+            f"losses/is_ratio": auxes[CONST_AUX][CONST_POLICY][CONST_IS_RATIO]
+            .mean()
+            .item(),
+            f"{CONST_GRAD_NORM}/pi": auxes[CONST_AUX][CONST_GRAD_NORM][
+                CONST_POLICY
+            ].item(),
             f"{CONST_PARAM_NORM}/pi": l2_norm(
                 self.model_dict[CONST_MODEL][CONST_POLICY]
             ).item(),
-            f"{CONST_GRAD_NORM}/vf": auxes[CONST_GRAD_NORM][CONST_VF].item(),
+            f"{CONST_GRAD_NORM}/vf": auxes[CONST_AUX][CONST_GRAD_NORM][CONST_VF].item(),
             f"{CONST_PARAM_NORM}/vf": l2_norm(
                 self.model_dict[CONST_MODEL][CONST_VF]
             ).item(),
             f"interaction/{CONST_AVERAGE_RETURN}": self._rollout.latest_average_return(),
             f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}": self._rollout.latest_average_episode_length(),
-            f"time/{CONST_ROLLOUT_TIME}": rollout_time,
-            f"time/{CONST_UPDATE_TIME}": update_time,
+            f"time/{CONST_ROLLOUT_TIME}": auxes[CONST_ROLLOUT_TIME].item(),
+            f"time/{CONST_UPDATE_TIME}": auxes[CONST_UPDATE_TIME].item(),
         }
 
         self.gather_rms(aux)
