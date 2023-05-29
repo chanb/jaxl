@@ -28,7 +28,7 @@ import os
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
     "main_path",
-    default="../jaxl/main.py",
+    default="../../../../jaxl/main.py",
     help="Path to main.py",
     required=False,
 )
