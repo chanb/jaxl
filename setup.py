@@ -21,7 +21,11 @@ setup(
             "sphinx>=7.0.1",
             "pyment>=0.3.3",
             "black>=23.3.0",
-        ]
+        ],
+        "mujoco": [
+            "mujoco>=2.3.5",
+            "mujoco-py>=2.1.2.14",
+        ],
     },
     packages=find_packages(include=["jaxl"]),
     include_package_data=True,
