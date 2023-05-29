@@ -9,8 +9,8 @@ python generate_experts.py \
     --num_model_seeds=1 \
     --num_env_seeds=1 \
     --num_envs=1000 \
-    --min_gravity=-9.0 \
-    --max_gravity=-8.0
+    --min_gravity=-11.0 \
+    --max_gravity=-9.0
 
 
 Then, to generate the data, run the generated script run_all-*.sh
@@ -107,11 +107,17 @@ def main(config):
         if len(env_seeds) == len(np.unique(env_seeds)):
             break
 
-    assert config.num_envs > 0, f"need at least one environment variant, got {config.num_envs}"
-    assert config.min_gravity <= config.max_gravity, f"min_gravity {config.min_gravity} should be less than max_gravity {config.max_gravity}"
+    assert (
+        config.num_envs > 0
+    ), f"need at least one environment variant, got {config.num_envs}"
+    assert (
+        config.min_gravity <= config.max_gravity
+    ), f"min_gravity {config.min_gravity} should be less than max_gravity {config.max_gravity}"
     gravities = np.ones(config.num_envs) * config.min_gravity
     if config.min_gravity < config.max_gravity:
-        gravities = np.random.uniform(config.min_gravity, config.max_gravity, size=config.num_envs)
+        gravities = np.random.uniform(
+            config.min_gravity, config.max_gravity, size=config.num_envs
+        )
 
     # Standard template
     template["logging_config"]["experiment_name"] = ""
@@ -132,7 +138,9 @@ def main(config):
             os.makedirs(curr_run_dir, exist_ok=True)
             os.makedirs(curr_script_dir, exist_ok=True)
 
-        variant = f"variant-env_seed_{env_seed}-model_seed_{model_seed}-gravity_{gravity}"
+        variant = (
+            f"variant-env_seed_{env_seed}-model_seed_{model_seed}-gravity_{gravity}"
+        )
         template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
         template["learner_config"]["seeds"]["env_seed"] = int(env_seed)
         template["learner_config"]["env_config"]["env_kwargs"]["gravity"] = gravity
