@@ -14,7 +14,7 @@ setup(
         "matplotlib>=3.7.1",
         "gymnasium>=0.28.1",
         "tensorboard>=2.13.0",
-        "torch>=2.0.0",
+        "torch>=1.13.0",
     ],
     extras_requires={
         "formatting": [
