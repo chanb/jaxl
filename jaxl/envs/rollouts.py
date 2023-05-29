@@ -126,12 +126,12 @@ class Rollout:
             return self._episode_lengths[-2]
         return 0
 
-    def latest_average_return(self, num_episodes: int) -> chex.Array:
+    def latest_average_return(self, num_episodes: int=5) -> chex.Array:
         """
         Gets the average return of the last few episodes
 
         :param num_episodes: the number of episodes to smooth over.
-        :type params: int
+        :type params: int:  (Default Value = 5)
         :return: the average return over the last `num_episodes` episodes
         :rtype: chex.Array
 
@@ -139,12 +139,12 @@ class Rollout:
         latest_returns = self.episodic_returns[-num_episodes:]
         return np.mean(latest_returns)
 
-    def latest_average_episode_length(self, num_episodes: int) -> chex.Array:
+    def latest_average_episode_length(self, num_episodes: int=5) -> chex.Array:
         """
         Gets the average episode length of the last few episodes
 
         :param num_episodes: the number of episodes to smooth over.
-        :type params: int
+        :type params: int int:  (Default Value = 5)
         :return: the average episode length over the last `num_episodes` episodes
         :rtype: chex.Array
 
