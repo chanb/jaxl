@@ -63,6 +63,4 @@ make html​
 
 ## TODO:
 - Update README as more implementation comes
-- Implement environments that can be sampled from a distribution
-  - Start with Cartpole environment
 - Implement behavioural cloning
