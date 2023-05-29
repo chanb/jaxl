@@ -164,8 +164,8 @@ class REINFORCE(OnPolicyLearner):
             f"{CONST_PARAM_NORM}/pi": l2_norm(
                 self.model_dict[CONST_MODEL][CONST_POLICY]
             ).item(),
-            f"interaction/{CONST_LATEST_RETURN}": self._rollout.latest_return,
-            f"interaction/{CONST_LATEST_EPISODE_LENGTH}": self._rollout.latest_episode_length,
+            f"interaction/{CONST_AVERAGE_RETURN}": self._rollout.latest_average_return(),
+            f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}": self._rollout.latest_average_episode_length(),
             f"time/{CONST_ROLLOUT_TIME}": rollout_time,
             f"time/{CONST_UPDATE_TIME}": update_time,
         }

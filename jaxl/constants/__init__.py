@@ -25,6 +25,8 @@ VALID_TASK = [CONST_IL, CONST_RL]
 
 CONST_LATEST_RETURN = "latest_return"
 CONST_LATEST_EPISODE_LENGTH = "latest_episode_length"
+CONST_AVERAGE_RETURN = "average_return"
+CONST_AVERAGE_EPISODE_LENGTH = "average_episode_length"
 CONST_EPISODE_LENGTHS = "episode_lengths"
 CONST_EPISODIC_RETURNS = "episodic_returns"
 

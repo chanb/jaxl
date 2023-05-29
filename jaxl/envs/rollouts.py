@@ -126,7 +126,7 @@ class Rollout:
             return self._episode_lengths[-2]
         return 0
 
-    def latest_average_return(self, num_episodes: int=5) -> chex.Array:
+    def latest_average_return(self, num_episodes: int = 5) -> chex.Array:
         """
         Gets the average return of the last few episodes
 
@@ -139,7 +139,7 @@ class Rollout:
         latest_returns = self.episodic_returns[-num_episodes:]
         return np.mean(latest_returns)
 
-    def latest_average_episode_length(self, num_episodes: int=5) -> chex.Array:
+    def latest_average_episode_length(self, num_episodes: int = 5) -> chex.Array:
         """
         Gets the average episode length of the last few episodes
 
