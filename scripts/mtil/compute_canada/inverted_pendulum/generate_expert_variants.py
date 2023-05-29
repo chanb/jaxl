@@ -1,11 +1,10 @@
 """ Script for generating experiment for multitask imitation learning
 
 Example command:
-python generate_experts.py \
-    --main_path=/Users/chanb/research/personal/jaxl/jaxl/main.py \
-    --config_template=/Users/chanb/research/personal/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-generate_expert-reinforce.json \
+python generate_expert_variants.py \
+    --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-generate_expert-reinforce.json \
     --exp_name=inverted_pendulum \
-    --out_dir=/Users/chanb/research/personal/jaxl/data/inverted_pendulum \
+    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum \
     --num_model_seeds=1 \
     --num_env_seeds=1 \
     --num_envs=1000 \
@@ -13,7 +12,7 @@ python generate_experts.py \
     --max_gravity=-9.0
 
 
-Then, to generate the data, run the generated script run_all-*.sh ${run_seed}
+This will generate a dat file that consists of various runs.
 """
 
 from absl import app, flags
@@ -26,12 +25,6 @@ import os
 
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string(
-    "main_path",
-    default="../../../../jaxl/main.py",
-    help="Path to main.py",
-    required=False,
-)
 flags.DEFINE_string(
     "config_template",
     default=None,
@@ -123,18 +116,15 @@ def main(config):
     template["logging_config"]["experiment_name"] = ""
 
     base_script_dir = os.path.join(config.out_dir, "scripts")
-    base_log_dir = os.path.join(config.out_dir, "logs")
     base_run_dir = os.path.join(config.out_dir, "runs")
-    shell_script = "run_seed=$1\n"
+    dat_content = ""
     for idx, (env_seed, model_seed, gravity) in enumerate(
         itertools.product(env_seeds, model_seeds, gravities)
     ):
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
-        curr_log_dir = os.path.join(base_log_dir, dir_i)
         curr_run_dir = os.path.join(base_run_dir, dir_i)
         if idx % NUM_FILES_PER_DIRECTORY == 0:
-            os.makedirs(curr_log_dir, exist_ok=True)
             os.makedirs(curr_run_dir, exist_ok=True)
             os.makedirs(curr_script_dir, exist_ok=True)
 
@@ -150,11 +140,11 @@ def main(config):
         with open(f"{out_path}.json", "w+") as f:
             json.dump(template, f)
 
-        shell_script += "python {} --config_path={}.json --run_seed=${{run_seed}} > {}.logs 2>&1 \n".format(
-            config.main_path, out_path, os.path.join(curr_log_dir, variant)
+        dat_content += "export config_path={}.json \n".format(
+            out_path
         )
-    with open(os.path.join(f"./run_all-{config.exp_name}.sh"), "w+") as f:
-        f.writelines(shell_script)
+    with open(os.path.join(f"./export-{config.exp_name}.dat"), "w+") as f:
+        f.writelines(dat_content)
 
 
 if __name__ == "__main__":
