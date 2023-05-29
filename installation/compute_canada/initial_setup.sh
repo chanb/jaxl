@@ -1,7 +1,7 @@
 # Install MuJoCo binary
-mkdir ~/mujocodwn && cd ~/mujocodwn
-wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz 
+mkdir ~/mujocodwn
 mkdir ~/.mujoco
+wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz -P ~/mujocodwn
 tar -xvzf ~/mujocodwn/mujoco210-linux-x86_64.tar.gz -C ~/.mujoco/
 rm -rf ~/mujocodwn
 
