@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --account=def-schuurma
-#SBATCH --time=01:00:00
+#SBATCH --time=00:10:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=3G
-#SBATCH --array=1-1000
-#SBATCH --output=/home/chanb/scratch/cleanrl/scripts/reports/%j.out
+#SBATCH --array=1-100
+#SBATCH --output=/home/chanb/scratch/jaxl/run_reports/%j.out
 
 module load python/3.9
 module load mujoco
