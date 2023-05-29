@@ -1,3 +1,4 @@
+from gymnasium.envs.registration import register
 from types import SimpleNamespace
 
 from jaxl.constants import *
@@ -28,3 +29,12 @@ def get_environment(env_config: SimpleNamespace) -> DefaultGymWrapper:
     env = DefaultGymWrapper(env)
 
     return env
+
+
+register(
+    id="ParameterizedInvertedPendulum-v0",
+    entry_point='jaxl.envs.mujoco.parameterized_inverted_pendulum:ParameterizedInvertedPendulumEnv',
+    max_episode_steps=1000,
+    reward_threshold=950.0,
+    kwargs={'gravity': -9.81}
+)

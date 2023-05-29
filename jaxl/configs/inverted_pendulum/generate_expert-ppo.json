@@ -50,20 +50,20 @@
         "normalize_advantage": true,
         "eps": 1e-5,
         "obs_rms": true,
-        "value_rms": true,
+        "value_rms": false,
         "policy_distribution": "gaussian",
         "min_std": 1e-7,
         "opt_batch_size": 32,
         "opt_epochs": 5,
         "vf_loss_setting": {
-            "coefficient": 1.0,
-            "reduction": "mean",
-            "clip_param": 0.2
-        },
-        "pi_loss_setting": {
             "coefficient": 0.2,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": 0.4
+        },
+        "pi_loss_setting": {
+            "coefficient": 1.0,
+            "reduction": "mean",
+            "clip_param": 0.4
         }
     },
     "train_config": {
