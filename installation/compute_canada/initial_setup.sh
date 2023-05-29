@@ -12,5 +12,6 @@ python -m venv ~/jaxl_env
 source ~/jaxl_env/bin/activate
 
 cd ~/scratch/jaxl
+pip install absl-py
 pip install -e .
 pip install mujoco_py
