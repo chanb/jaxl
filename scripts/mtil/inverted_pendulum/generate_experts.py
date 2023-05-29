@@ -13,7 +13,7 @@ python generate_experts.py \
     --max_gravity=-9.0
 
 
-Then, to generate the data, run the generated script run_all-*.sh
+Then, to generate the data, run the generated script run_all-*.sh ${run_seed}
 """
 
 from absl import app, flags
