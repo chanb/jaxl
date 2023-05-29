@@ -63,4 +63,5 @@ make html​
 
 ## TODO:
 - Update README as more implementation comes
+- Implement code to load and generate expert demonstrations
 - Implement behavioural cloning

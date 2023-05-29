@@ -20,6 +20,6 @@ setup(
         "pyment>=0.3.3",
     ],
     extras_requires={},
-    packages=find_packages(),
+    packages=find_packages(include=["jaxl"]),
     include_package_data=True,
 )
