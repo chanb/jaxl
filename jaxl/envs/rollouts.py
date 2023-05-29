@@ -100,17 +100,17 @@ class Rollout:
 
     @property
     def episodic_returns(self):
-        """ """
+        """All episodic returns."""
         return self._episodic_returns
 
     @property
     def episode_lengths(self):
-        """ """
+        """All episode lengths."""
         return self._episode_lengths
 
     @property
     def latest_return(self):
-        """ """
+        """Latest episodic return."""
         if self._done:
             return self._episodic_returns[-1]
         if len(self._episodic_returns) > 2:
@@ -119,9 +119,35 @@ class Rollout:
 
     @property
     def latest_episode_length(self):
-        """ """
+        """Latest episode length."""
         if self._done:
             return self._episode_lengths[-1]
         if len(self._episode_lengths) > 2:
             return self._episode_lengths[-2]
         return 0
+
+    def latest_average_return(self, num_episodes: int) -> chex.Array:
+        """
+        Gets the average return of the last few episodes
+
+        :param num_episodes: the number of episodes to smooth over.
+        :type params: int
+        :return: the average return over the last `num_episodes` episodes
+        :rtype: chex.Array
+
+        """
+        latest_returns = self.episodic_returns[-num_episodes:]
+        return np.mean(latest_returns)
+
+    def latest_average_episode_length(self, num_episodes: int) -> chex.Array:
+        """
+        Gets the average episode length of the last few episodes
+
+        :param num_episodes: the number of episodes to smooth over.
+        :type params: int
+        :return: the average episode length over the last `num_episodes` episodes
+        :rtype: chex.Array
+
+        """
+        latest_episode_lengths = self.episode_lengths[-num_episodes:]
+        return np.mean(latest_episode_lengths)

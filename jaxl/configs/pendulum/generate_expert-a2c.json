@@ -18,11 +18,11 @@
     "optimizer_config": {
         "policy": {
             "optimizer": "adam",
-            "lr": 3e-4
+            "lr": 1e-3
         },
         "vf": {
             "optimizer": "adam",
-            "lr": 3e-4
+            "lr": 1e-3
         }
     },
     "learner_config": {
@@ -39,7 +39,7 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 2048
+            "buffer_size": 512
         },
         "learner": "a2c",
         "gamma": 0.99,

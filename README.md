@@ -53,6 +53,14 @@ By default, the `Learner` class enforces all learners have a way to perform chec
 ## Styling
 - We use [`black`](https://github.com/psf/black/blob/main/README.md) to format code and [`pyment`](https://github.com/dadadel/pyment/blob/master/README.rst) to generate docstrings with `reST` style.
 
+### Generating Docstrings
+To generate the docstrings in HTML format, we use [`sphinx`](https://github.com/sphinx-doc/sphinx).
+```
+cd docs
+sphinx-apidoc -f -o . ..
+make html​
+```
+
 ## TODO:
 - Update README as more implementation comes
 - Implement environments that can be sampled from a distribution

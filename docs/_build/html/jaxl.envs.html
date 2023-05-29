@@ -64,22 +64,60 @@ This executes the provided policy in the specified environment.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="jaxl.envs.rollouts.Rollout.episode_lengths">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">episode_lengths</span></span><a class="headerlink" href="#jaxl.envs.rollouts.Rollout.episode_lengths" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>All episode lengths.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="jaxl.envs.rollouts.Rollout.episodic_returns">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">episodic_returns</span></span><a class="headerlink" href="#jaxl.envs.rollouts.Rollout.episodic_returns" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>All episodic returns.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.envs.rollouts.Rollout.latest_average_episode_length">
+<span class="sig-name descname"><span class="pre">latest_average_episode_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span></span></span><a class="headerlink" href="#jaxl.envs.rollouts.Rollout.latest_average_episode_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the average episode length of the last few episodes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num_episodes</strong> – the number of episodes to smooth over.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the average episode length over the last <cite>num_episodes</cite> episodes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>chex.Array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.envs.rollouts.Rollout.latest_average_return">
+<span class="sig-name descname"><span class="pre">latest_average_return</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span></span></span><a class="headerlink" href="#jaxl.envs.rollouts.Rollout.latest_average_return" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the average return of the last few episodes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num_episodes</strong> – the number of episodes to smooth over.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the average return over the last <cite>num_episodes</cite> episodes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>chex.Array</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="jaxl.envs.rollouts.Rollout.latest_episode_length">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">latest_episode_length</span></span><a class="headerlink" href="#jaxl.envs.rollouts.Rollout.latest_episode_length" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Latest episode length.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="jaxl.envs.rollouts.Rollout.latest_return">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">latest_return</span></span><a class="headerlink" href="#jaxl.envs.rollouts.Rollout.latest_return" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Latest episodic return.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="jaxl.envs.rollouts.Rollout.rollout">

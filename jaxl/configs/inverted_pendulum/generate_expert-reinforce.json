@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/pendulum",
+        "save_path": "./logs/inverted_pendulum",
         "experiment_name": "reinforce",
         "log_interval": 1,
         "checkpoint_interval": 10
@@ -17,7 +17,7 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "Pendulum-v1",
+            "env_name": "InvertedPendulum-v4",
             "env_kwargs": {}
         },
         "seeds": {
