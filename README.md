@@ -26,6 +26,26 @@ We also need to change PyTorch to purely CPU:
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 ```
 
+### Compute Canada
+You may install this code on Compute Canada by simply running `jaxl/installation/compute_canada/initial_setup.sh`.
+
+## Experiments
+### Locally
+To run a single experiment, you may execute:
+```
+python jaxl/main.py --config_path=${config_path} --run_seed=${run_seed}
+```
+Examples of configuration file (i.e. `config_path`) are located under `jaxl/configs`.
+
+To run multiple experiments, you may refer to `scripts/mtil/local/inverted_pendulum`.
+In particular, we first run `generate_experts.py` to construct a bash script, say `run_all-inverted_pendulum.sh`.
+Then, running said bash script will execute mutliple experiments.
+
+### Compute Canada
+To run on Compute Canada, you may refer to `scripts/mtil/compute_canada`.
+In partciular, first run `generate_expert_variants.py` to construct `dat` file, consisting of different hyperparameters.
+Then, run `sbatch generate_experts.sh` to run each variant in paralllel.
+
 ## Design Pattern
 This codebase aims to combine both imitation learning and reinforcement learning into a single design pattern.
 To this end, we note that imitation learning consists of supervised learning, which is purely offline, whereas other approaches are more online.
