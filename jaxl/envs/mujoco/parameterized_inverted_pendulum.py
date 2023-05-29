@@ -115,11 +115,13 @@ class ParameterizedInvertedPendulumEnv(MujocoEnv, utils.EzPickle):
             observation_space=observation_space,
             default_camera_config=DEFAULT_CAMERA_CONFIG,
         )
-        reference_path = os.path.join(os.path.dirname(mujoco_env.__file__), "assets/inverted_pendulum.xml")
+        reference_path = os.path.join(
+            os.path.dirname(mujoco_env.__file__), "assets/inverted_pendulum.xml"
+        )
         reference_xml = et.parse(reference_path)
         root = reference_xml.getroot()
         root.find(".//option[@gravity]").set("gravity", "0 0 {}".format(gravity))
-        new_xml = et.tostring(root, encoding='unicode', method='xml')
+        new_xml = et.tostring(root, encoding="unicode", method="xml")
         self.model = mujoco.MjModel.from_xml_string(new_xml)
         self.data = mujoco.MjData(self.model)
 
