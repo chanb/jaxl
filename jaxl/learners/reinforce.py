@@ -175,8 +175,6 @@ class REINFORCE(OnPolicyLearner):
             total_update_time += timeit.default_timer() - tic
             assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
 
-            auxes[-1][CONST_ROLLOUT_TIME] = rollout_time
-            auxes[-1][CONST_UPDATE_TIME] = update_time
             auxes[-1][CONST_AUX] = aux
 
         auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
