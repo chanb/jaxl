@@ -283,6 +283,8 @@ class PPO(OnPolicyLearner):
         """
 
         auxes = []
+        total_rollout_time = 0
+        total_update_time = 0
         for _ in range(self._num_update_steps):
             auxes.append({})
             tic = timeit.default_timer()
@@ -293,7 +295,7 @@ class PPO(OnPolicyLearner):
                 self._buffer,
                 self._update_frequency,
             )
-            rollout_time = timeit.default_timer() - tic
+            total_rollout_time += timeit.default_timer() - tic
 
             tic = timeit.default_timer()
             (
@@ -357,10 +359,8 @@ class PPO(OnPolicyLearner):
                 )
                 assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
                 auxes_per_epoch.append(aux)
-            update_time = timeit.default_timer() - tic
+            total_update_time += timeit.default_timer() - tic
 
-            auxes[-1][CONST_ROLLOUT_TIME] = rollout_time
-            auxes[-1][CONST_UPDATE_TIME] = update_time
             auxes[-1][CONST_RETURNS] = rets.mean().item()
             auxes[-1][CONST_VALUES] = vals.mean().item()
             auxes[-1][CONST_ADVANTAGES] = advs.mean().item()
@@ -399,8 +399,8 @@ class PPO(OnPolicyLearner):
             ).item(),
             f"interaction/{CONST_AVERAGE_RETURN}": self._rollout.latest_average_return(),
             f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}": self._rollout.latest_average_episode_length(),
-            f"time/{CONST_ROLLOUT_TIME}": auxes[CONST_ROLLOUT_TIME].item(),
-            f"time/{CONST_UPDATE_TIME}": auxes[CONST_UPDATE_TIME].item(),
+            f"time/{CONST_ROLLOUT_TIME}": total_rollout_time,
+            f"time/{CONST_UPDATE_TIME}": total_update_time,
         }
 
         self.gather_rms(aux)

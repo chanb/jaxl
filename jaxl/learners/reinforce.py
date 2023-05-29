@@ -134,6 +134,8 @@ class REINFORCE(OnPolicyLearner):
         """
 
         auxes = []
+        total_rollout_time = 0
+        total_update_time = 0
         for _ in range(self._num_update_steps):
             auxes.append({})
             tic = timeit.default_timer()
@@ -144,7 +146,7 @@ class REINFORCE(OnPolicyLearner):
                 self._buffer,
                 self._update_frequency,
             )
-            rollout_time = timeit.default_timer() - tic
+            total_rollout_time += timeit.default_timer() - tic
 
             tic = timeit.default_timer()
             (
@@ -170,7 +172,7 @@ class REINFORCE(OnPolicyLearner):
             self.model_dict, aux = self.policy_step(
                 self._model_dict, obss, h_states, acts, rets
             )
-            update_time = timeit.default_timer() - tic
+            total_update_time += timeit.default_timer() - tic
             assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
 
             auxes[-1][CONST_ROLLOUT_TIME] = rollout_time
@@ -188,8 +190,8 @@ class REINFORCE(OnPolicyLearner):
             ).item(),
             f"interaction/{CONST_AVERAGE_RETURN}": self._rollout.latest_average_return(),
             f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}": self._rollout.latest_average_episode_length(),
-            f"time/{CONST_ROLLOUT_TIME}": auxes[CONST_ROLLOUT_TIME].item(),
-            f"time/{CONST_UPDATE_TIME}": auxes[CONST_UPDATE_TIME].item(),
+            f"time/{CONST_ROLLOUT_TIME}": total_rollout_time,
+            f"time/{CONST_UPDATE_TIME}": total_update_time,
         }
 
         self.gather_rms(aux)
