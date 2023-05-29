@@ -124,11 +124,7 @@ def train(
             learner.checkpoint(os.path.join(save_path, "models", f"model-{true_epoch}"))
     # finally:
     if save_path:
-        termination_save_path = os.path.join(
-            save_path, f"termination_model-epoch_{true_epoch}"
-        )
-        learner.checkpoint(termination_save_path)
-        learner.save_buffer(f"{termination_save_path}.gzip")
-
+        learner.checkpoint(os.path.join(save_path, "termination_model"))
+        learner.save_buffer(os.path.join(save_path, "termination_buffer.gzip"))
 
 # TODO: Evaluation

@@ -140,9 +140,7 @@ def main(config):
         with open(f"{out_path}.json", "w+") as f:
             json.dump(template, f)
 
-        dat_content += "export config_path={}.json \n".format(
-            out_path
-        )
+        dat_content += "export config_path={}.json \n".format(out_path)
     with open(os.path.join(f"./export-{config.exp_name}.dat"), "w+") as f:
         f.writelines(dat_content)
 
