@@ -12,7 +12,7 @@
     "optimizer_config": {
         "optimizer": "adam",
         "lr": 1e-3,
-        "max_grad_norm": false
+        "max_grad_norm": 10.0
     },
     "learner_config": {
         "task": "reinforcement_learning",
