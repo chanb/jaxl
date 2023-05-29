@@ -283,7 +283,7 @@ class A2C(OnPolicyLearner):
             f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
             f"losses/pi": auxes[CONST_AUX][CONST_POLICY].item(),
             f"losses/vf": auxes[CONST_AUX][CONST_VF].item(),
-            f"losses/{CONST_ADVANTAGE}": auxes[CONST_AUX][CONST_ADVANTAGE].item(),
+            f"losses_info/{CONST_ADVANTAGE}": auxes[CONST_AUX][CONST_ADVANTAGE].item(),
             f"{CONST_GRAD_NORM}/pi": auxes[CONST_AUX][CONST_GRAD_NORM][
                 CONST_POLICY
             ].item(),

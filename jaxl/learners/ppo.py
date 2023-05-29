@@ -375,16 +375,16 @@ class PPO(OnPolicyLearner):
             f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
             f"losses/pi": auxes[CONST_AUX][CONST_POLICY][CONST_LOSS].item(),
             f"losses/vf": auxes[CONST_AUX][CONST_VF][CONST_LOSS].item(),
-            f"losses/{CONST_RETURN}": auxes[CONST_RETURNS].item(),
-            f"losses/{CONST_ADVANTAGE}": auxes[CONST_ADVANTAGES].item(),
-            f"losses/{CONST_VALUE}": auxes[CONST_VALUES].item(),
-            f"losses/pi_num_clipped": auxes[CONST_AUX][CONST_POLICY][
+            f"losses_info/{CONST_RETURN}": auxes[CONST_RETURNS].item(),
+            f"losses_info/{CONST_ADVANTAGE}": auxes[CONST_ADVANTAGES].item(),
+            f"losses_info/{CONST_VALUE}": auxes[CONST_VALUES].item(),
+            f"losses_info/pi_num_clipped": auxes[CONST_AUX][CONST_POLICY][
                 CONST_NUM_CLIPPED
             ].item(),
-            f"losses/vf_num_clipped": auxes[CONST_AUX][CONST_VF][
+            f"losses_info/vf_num_clipped": auxes[CONST_AUX][CONST_VF][
                 CONST_NUM_CLIPPED
             ].item(),
-            f"losses/is_ratio": auxes[CONST_AUX][CONST_POLICY][CONST_IS_RATIO]
+            f"losses_info/is_ratio": auxes[CONST_AUX][CONST_POLICY][CONST_IS_RATIO]
             .mean()
             .item(),
             f"{CONST_GRAD_NORM}/pi": auxes[CONST_AUX][CONST_GRAD_NORM][
