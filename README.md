@@ -85,3 +85,4 @@ make html​
 - Update README as more implementation comes
 - Implement code to load and generate expert demonstrations
 - Implement behavioural cloning
+- Implement multitask behavioural cloning
