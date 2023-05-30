@@ -209,7 +209,7 @@ class OnPolicyLearner(ReinforcementLearner):
         )
         self._num_update_steps = self._num_steps_per_epoch // self._update_frequency
         self._sample_idxes = np.arange(self._update_frequency)
-        self._rollout = StandardRollout(self._env)
+        self._rollout = StandardRollout(self._env, self._config.seeds.env_seed)
 
     def checkpoint(self, checkpoint_path: str, exist_ok: bool = False):
         """
