@@ -1,5 +1,6 @@
+from abc import ABC, abstractclassmethod
 from flax.core.scope import FrozenVariableDict
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Iterable, Tuple, Union
 
 import chex
 import jax.random as jrandom
@@ -11,19 +12,104 @@ from jaxl.models import Policy
 from jaxl.utils import RunningMeanStd
 
 
-class EvaluationRollout:
+class Rollout(ABC):
     """
     Interconnection between policy and environment.
-    This executes the provided policy in the specified environment without any exploration.
-    That is, it uses the most-likely action.
+    This executes the provided policy in the specified environment.
     """
 
-    def __init__(self, env: DefaultGymWrapper, seed: int = 0):
+    _env: DefaultGymWrapper
+    _curr_obs: chex.Array
+    _curr_h_state: chex.Array
+    _episode_lengths: Iterable
+    _episodic_returns: Iterable
+    _done: bool
+
+    def __init__(self, env: DefaultGymWrapper):
         self._env = env
         self._curr_obs = None
         self._curr_h_state = None
         self._episodic_returns = []
         self._episode_lengths = []
+        self._done = True
+
+    @abstractclassmethod
+    def rollout(self, *args, **kwargs) -> Any:
+        raise NotImplementedError
+
+    @property
+    def episodic_returns(self):
+        """All episodic returns."""
+        return self._episodic_returns
+
+    @property
+    def episode_lengths(self):
+        """All episode lengths."""
+        return self._episode_lengths
+
+    @property
+    def latest_return(self):
+        """Latest episodic return."""
+        if self._done:
+            return self._episodic_returns[-1]
+        if len(self._episodic_returns) > 2:
+            return self._episodic_returns[-2]
+        return 0
+
+    @property
+    def latest_episode_length(self):
+        """Latest episode length."""
+        if self._done:
+            return self._episode_lengths[-1]
+        if len(self._episode_lengths) > 2:
+            return self._episode_lengths[-2]
+        return 0
+
+    def latest_average_return(self, num_episodes: int = 5) -> chex.Array:
+        """
+        Gets the average return of the last few episodes
+
+        :param num_episodes: the number of episodes to smooth over.
+        :type params: int:  (Default Value = 5)
+        :return: the average return over the last `num_episodes` episodes
+        :rtype: chex.Array
+
+        """
+        latest_returns = self.episodic_returns[-num_episodes - 1 :]
+        if self._done:
+            latest_returns = latest_returns[1:]
+        else:
+            latest_returns = latest_returns[:-1]
+        return np.mean(latest_returns)
+
+    def latest_average_episode_length(self, num_episodes: int = 5) -> chex.Array:
+        """
+        Gets the average episode length of the last few episodes
+
+        :param num_episodes: the number of episodes to smooth over.
+        :type params: int int:  (Default Value = 5)
+        :return: the average episode length over the last `num_episodes` episodes
+        :rtype: chex.Array
+
+        """
+        latest_episode_lengths = self.episode_lengths[-num_episodes - 1 :]
+        if self._done:
+            latest_episode_lengths = latest_episode_lengths[1:]
+        else:
+            latest_episode_lengths = latest_episode_lengths[:-1]
+        return np.mean(latest_episode_lengths)
+
+
+class EvaluationRollout(Rollout):
+    """
+    Interconnection between policy and environment.
+    This executes the provided policy in the specified environment 
+    without any exploration. That is, it uses `deterministic_action`, 
+    which is usually implemented as the most-likely action.
+    """
+
+    def __init__(self, env: DefaultGymWrapper, seed: int = 0):
+        super().__init__(env)
         self._reset_key = jrandom.split(jrandom.PRNGKey(seed), 1)[0]
 
     def rollout(
@@ -78,31 +164,16 @@ class EvaluationRollout:
                 self._curr_obs = next_obs
                 self._curr_h_state = next_h_state
 
-    @property
-    def episodic_returns(self):
-        """All episodic returns."""
-        return self._episodic_returns
 
-    @property
-    def episode_lengths(self):
-        """All episode lengths."""
-        return self._episode_lengths
-
-
-class Rollout:
+class StandardRollout(Rollout):
     """
     Interconnection between policy and environment.
-    This executes the provided policy in the specified environment.
+    This executes the provided policy in the specified environment
+    using `compute_action`.
     """
 
     def __init__(self, env: DefaultGymWrapper, seed: int = 0):
-        self._env = env
-        self._curr_obs = None
-        self._curr_h_state = None
-        self._curr_info = None
-        self._done = True
-        self._episodic_returns = []
-        self._episode_lengths = []
+        super().__init__(env)
         self._reset_key, self._exploration_key = jrandom.split(jrandom.PRNGKey(seed))
 
     def rollout(
@@ -175,65 +246,3 @@ class Rollout:
             self._curr_obs = next_obs
             self._curr_h_state = next_h_state
         return self._curr_obs, self._curr_h_state
-
-    @property
-    def episodic_returns(self):
-        """All episodic returns."""
-        return self._episodic_returns
-
-    @property
-    def episode_lengths(self):
-        """All episode lengths."""
-        return self._episode_lengths
-
-    @property
-    def latest_return(self):
-        """Latest episodic return."""
-        if self._done:
-            return self._episodic_returns[-1]
-        if len(self._episodic_returns) > 2:
-            return self._episodic_returns[-2]
-        return 0
-
-    @property
-    def latest_episode_length(self):
-        """Latest episode length."""
-        if self._done:
-            return self._episode_lengths[-1]
-        if len(self._episode_lengths) > 2:
-            return self._episode_lengths[-2]
-        return 0
-
-    def latest_average_return(self, num_episodes: int = 5) -> chex.Array:
-        """
-        Gets the average return of the last few episodes
-
-        :param num_episodes: the number of episodes to smooth over.
-        :type params: int:  (Default Value = 5)
-        :return: the average return over the last `num_episodes` episodes
-        :rtype: chex.Array
-
-        """
-        latest_returns = self.episodic_returns[-num_episodes - 1 :]
-        if self._done:
-            latest_returns = latest_returns[1:]
-        else:
-            latest_returns = latest_returns[:-1]
-        return np.mean(latest_returns)
-
-    def latest_average_episode_length(self, num_episodes: int = 5) -> chex.Array:
-        """
-        Gets the average episode length of the last few episodes
-
-        :param num_episodes: the number of episodes to smooth over.
-        :type params: int int:  (Default Value = 5)
-        :return: the average episode length over the last `num_episodes` episodes
-        :rtype: chex.Array
-
-        """
-        latest_episode_lengths = self.episode_lengths[-num_episodes - 1 :]
-        if self._done:
-            latest_episode_lengths = latest_episode_lengths[1:]
-        else:
-            latest_episode_lengths = latest_episode_lengths[:-1]
-        return np.mean(latest_episode_lengths)

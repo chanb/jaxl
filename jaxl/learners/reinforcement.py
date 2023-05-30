@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, Union
 
 from jaxl.constants import *
-from jaxl.envs.rollouts import Rollout
+from jaxl.envs.rollouts import Rollout, StandardRollout
 from jaxl.learners.learner import OnlineLearner
 from jaxl.utils import RunningMeanStd
 
@@ -23,6 +23,7 @@ class ReinforcementLearner(OnlineLearner):
     _gamma: float
     _value_rms: Union[bool, RunningMeanStd]
     _obs_rms: Union[bool, RunningMeanStd]
+    _rollout: Rollout
 
     def __init__(
         self,
@@ -194,7 +195,6 @@ class OnPolicyLearner(ReinforcementLearner):
 
     _num_update_steps: int
     _sample_idxes: chex.Array
-    _rollout: Rollout
 
     def __init__(
         self,
@@ -210,7 +210,7 @@ class OnPolicyLearner(ReinforcementLearner):
         )
         self._num_update_steps = self._num_steps_per_epoch // self._update_frequency
         self._sample_idxes = np.arange(self._update_frequency)
-        self._rollout = Rollout(self._env)
+        self._rollout = StandardRollout(self._env)
 
     def checkpoint(self, checkpoint_path: str, exist_ok: bool = False):
         """
