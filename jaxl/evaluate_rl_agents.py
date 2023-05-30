@@ -109,6 +109,7 @@ def main(
     rollout = EvaluationRollout(env, seed=config.learner_config.seeds.env_seed)
     rollout.rollout(policy_params, policy, obs_rms, num_episodes, buffer)
     if save_path:
+        print("Saving buffer with {} transitions".format(len(buffer)))
         buffer.save(save_path)
 
     toc = timeit.default_timer()
