@@ -84,5 +84,6 @@ make html​
 ## TODO:
 - Update README as more implementation comes
 - Implement code to load and generate expert demonstrations
+  - Compute Canada Implementation
 - Implement behavioural cloning
 - Implement multitask behavioural cloning
