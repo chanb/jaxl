@@ -106,7 +106,7 @@ def main(
         learner_dict = pickle.load(f)
         obs_rms = learner_dict[CONST_OBS_RMS]
 
-    rollout = EvaluationRollout(env, seed=run_seed)
+    rollout = EvaluationRollout(env, seed=config.learner_config.seeds.env_seed)
     rollout.rollout(policy_params, policy, obs_rms, num_episodes, buffer)
     if save_path:
         buffer.save(save_path)
