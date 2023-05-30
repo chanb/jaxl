@@ -98,26 +98,25 @@ def train(
         true_epoch = epoch + 1
 
         if (
-            logging_config.log_interval
+            save_path
+            and logging_config.log_interval
             and true_epoch % logging_config.log_interval == 0
         ):
-            if save_path:
-                with open(
-                    os.path.join(save_path, "auxes", f"auxes-{true_epoch}.pkl"),
-                    "wb",
-                ) as f:
-                    pickle.dump(train_aux, f)
-
-                if CONST_LOG in train_aux:
-                    # NOTE: we expect the user to properly define the logging scalars in the learner
-                    for key, val in train_aux[CONST_LOG].items():
-                        summary_writer.add_scalar(key, val, true_epoch)
+            if CONST_LOG in train_aux:
+                # NOTE: we expect the user to properly define the logging scalars in the learner
+                for key, val in train_aux[CONST_LOG].items():
+                    summary_writer.add_scalar(key, val, true_epoch)
 
         if (
             save_path
             and logging_config.checkpoint_interval
             and true_epoch % logging_config.checkpoint_interval == 0
         ):
+            with open(
+                os.path.join(save_path, "auxes", f"auxes-{true_epoch}.pkl"),
+                "wb",
+            ) as f:
+                pickle.dump(train_aux, f)
             learner.checkpoint(os.path.join(save_path, "models", f"model-{true_epoch}"))
     # finally:
     if save_path:

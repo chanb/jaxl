@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --account=def-schuurma
-#SBATCH --time=03:00:00
+#SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=3G
 #SBATCH --array=1-100
