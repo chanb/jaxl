@@ -152,6 +152,8 @@ class EvaluationRollout(Rollout):
                     normalize_obs,
                     np.array([self._curr_h_state]),
                 )
+                act = act[0]
+                next_h_state = next_h_state[0]
 
                 env_act = np.clip(
                     act, self._env.action_space.low, self._env.action_space.high
@@ -162,7 +164,7 @@ class EvaluationRollout(Rollout):
 
                 done = terminated or truncated
 
-                if buffer:
+                if buffer is not None:
                     buffer.push(
                         self._curr_obs,
                         self._curr_h_state,
@@ -235,6 +237,8 @@ class StandardRollout(Rollout):
                 np.array([self._curr_h_state]),
                 self._exploration_key,
             )
+            act = act[0]
+            next_h_state = next_h_state[0]
             self._exploration_key = jrandom.split(self._exploration_key, 1)[0]
 
             env_act = np.clip(

@@ -74,7 +74,7 @@ class GaussianPolicy(StochasticPolicy):
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = jax.nn.softplus(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
-            return act[0], h_state[0]
+            return act, h_state
 
         return compute_action
 

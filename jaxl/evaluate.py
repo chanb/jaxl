@@ -3,15 +3,22 @@ This script is the entrypoint for evaluating policies.
 XXX: Try not to modify this.
 """
 from absl import app, flags
+from orbax.checkpoint import PyTreeCheckpointer
 
 import _pickle as pickle
 import jax
+import json
 import logging
 import os
 import timeit
 
-from jaxl.constants import CONST_DEFAULT
-from jaxl.learning_utils import get_learner
+from jaxl.buffers import get_buffer
+from jaxl.constants import CONST_DEFAULT, CONST_MODEL, CONST_OBS_RMS, CONST_POLICY
+from jaxl.models import (
+    get_model,
+    get_policy,
+    policy_output_dim,
+)
 from jaxl.envs import get_environment
 from jaxl.envs.rollouts import EvaluationRollout
 from jaxl.utils import set_seed, parse_dict
@@ -68,25 +75,36 @@ def main(
     set_seed(run_seed)
     assert os.path.isdir(run_path), f"{run_path} is not a directory"
 
-    # TODO: Load model and evaluation
-    config_path = os.path.join(run_path, "config.pkl")
-    with open(config_path, "rb") as f:
-        config = pickle.load(f)
+    config_path = os.path.join(run_path, "config.json")
+    with open(config_path, "r") as f:
+        config_dict = json.load(f)
 
-    config_dict = vars(config)
     config_dict["learner_config"]["buffer_config"]["buffer_size"] = buffer_size
     config_dict["learner_config"]["buffer_config"]["buffer_type"] = CONST_DEFAULT
     config = parse_dict(config_dict)
-    learner = get_learner(
-        config.learner_config, config.model_config, config.optimizer_config
+
+    h_state_dim = (1,)
+    if hasattr(config.model_config, "h_state_dim"):
+        h_state_dim = config.model_config.h_state_dim
+    env = get_environment(config.learner_config.env_config)
+    buffer = get_buffer(
+        config.learner_config.buffer_config,
+        config.learner_config.seeds.buffer_seed,
+        env,
+        h_state_dim,
     )
-    learner.load_checkpoint(os.path.join(run_path, "termination_model"))
-    policy = learner.policy
-    policy_params = learner.policy_params
-    obs_rms = learner.obs_rms
-    env = learner.env
-    buffer = learner.buffer
-    del learner
+    input_dim = buffer.input_dim
+    output_dim = policy_output_dim(buffer.output_dim, config.learner_config)
+    model = get_model(input_dim, output_dim, config.model_config)
+    policy = get_policy(model, config.learner_config)
+
+    run_path = os.path.join(run_path, "termination_model")
+    checkpointer = PyTreeCheckpointer()
+    model_dict = checkpointer.restore(run_path)
+    policy_params = model_dict[CONST_MODEL][CONST_POLICY]
+    with open(os.path.join(run_path, "learner_dict.pkl"), "rb") as f:
+        learner_dict = pickle.load(f)
+        obs_rms = learner_dict[CONST_OBS_RMS]
 
     rollout = EvaluationRollout(env, seed=run_seed)
     rollout.rollout(policy_params, policy, obs_rms, num_episodes, buffer)
