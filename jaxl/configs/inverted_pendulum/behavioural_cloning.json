@@ -35,7 +35,7 @@
                 "reduction": "mean"
             },
             {
-                "coefficient": 0.02
+                "coefficient": 0.0002
             }
         ]
     },

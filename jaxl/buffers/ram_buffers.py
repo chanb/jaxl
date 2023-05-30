@@ -582,19 +582,23 @@ class AbstractNumPyBuffer(ReplayBuffer):
         pointer = self._pointer
         count = self._count
 
-        if end_with_done:
+        if end_with_done and not self.dones[self._pointer - 1]:
             done_idxes = np.where(self.dones == 1)[0]
             if len(done_idxes) == 0:
                 print("No completed episodes. Nothing to save.")
                 return
 
-            wraparound_idxes = done_idxes[done_idxes < self._pointer]
-            if len(wraparound_idxes) > 0:
-                pointer = (wraparound_idxes[-1] + 1) % self._buffer_size
+            done_before_pointer = done_idxes[done_idxes < self._pointer]
+            if len(done_before_pointer) > 0:
+                pointer = (done_before_pointer[-1] + 1) % self._buffer_size
                 count -= self._pointer - pointer
             else:
                 pointer = (done_idxes[-1] + 1) % self._buffer_size
-                count -= self._pointer + self._buffer_size - pointer
+                count -= (
+                    self._pointer
+                    + (self._buffer_size * int(self._count <= self._buffer_size))
+                    - pointer
+                )
 
         buffer_dict = self.get_buffer_dict()
         buffer_dict[c.POINTER] = pointer
