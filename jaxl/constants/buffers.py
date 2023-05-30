@@ -32,8 +32,8 @@ VALID_BUFFER = [CONST_DEFAULT, CONST_MEMORY_EFFICIENT, CONST_TRAJECTORY]
 
 DEFAULT_LOAD_BUFFER_KWARGS = {
     "buffer_size": 0,
-    "obs_dim": 0,
-    "h_state_dim": 0,
-    "act_dim": 0,
-    "rew_dim": 0,
+    "obs_dim": (0,),
+    "h_state_dim": (0,),
+    "act_dim": (0,),
+    "rew_dim": (0,),
 }

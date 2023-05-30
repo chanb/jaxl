@@ -60,8 +60,8 @@ def get_il_learner(
 
     """
     assert (
-        learner_config.learner in VALID_RL_LEARNER
-    ), f"{learner_config.learner} is not supported (one of {VALID_RL_LEARNER})"
+        learner_config.learner in VALID_IL_LEARNER
+    ), f"{learner_config.learner} is not supported (one of {VALID_IL_LEARNER})"
     if learner_config.learner == CONST_BC:
         learner_constructor = BC
     else:

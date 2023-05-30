@@ -19,7 +19,6 @@ class ReinforcementLearner(OnlineLearner):
     """
 
     _update_frequency: int
-    _num_steps_per_epoch: int
     _gamma: float
     _value_rms: Union[bool, RunningMeanStd]
     _obs_rms: Union[bool, RunningMeanStd]
@@ -33,7 +32,6 @@ class ReinforcementLearner(OnlineLearner):
     ):
         super().__init__(config, model_config, optimizer_config)
         self._update_frequency = config.buffer_config.buffer_size
-        self._num_steps_per_epoch = config.num_steps_per_epoch
         self._gamma = config.gamma
 
         self._obs_rms = False

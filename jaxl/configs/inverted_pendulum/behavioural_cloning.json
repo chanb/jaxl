@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs",
-        "experiment_name": "debug",
+        "experiment_name": "inverted_pendulum",
         "log_interval": 5000,
         "checkpoint_interval": 5000
     },
@@ -11,19 +11,21 @@
     },
     "optimizer_config": {
         "optimizer": "sgd",
-        "lr": 3e-4
+        "lr": 3e-4,
+        "max_grad_norm": 10.0
     },
     "learner_config": {
         "task": "imitation_learning",
         "buffer_config": {
-            "load_buffer": "<TO_FIX>",
-            "buffer_type": "NextStateNumPyBuffer"
+            "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/expert_data/100_episodes.gzip",
+            "buffer_type": "default"
         },
         "seeds": {
             "model_seed": 42,
             "buffer_seed": 42
         },
-        "learner": "mle",
+        "learner": "bc",
+        "num_updates_per_epoch": 2048,
         "batch_size": 128,
         "losses": ["gaussian", "l2"],
         "loss_settings": [
@@ -32,7 +34,7 @@
                 "reduction": "mean"
             },
             {
-                "coefficient": 0.0
+                "coefficient": 0.02
             }
         ]
     },

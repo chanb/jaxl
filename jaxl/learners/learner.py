@@ -157,6 +157,7 @@ class OfflineLearner(Learner):
     """
 
     _loss: Callable[..., Tuple[chex.Array, Dict]]
+    _num_updates_per_epoch: int
 
     def __init__(
         self,
@@ -168,6 +169,7 @@ class OfflineLearner(Learner):
 
         self._initialize_buffer()
         self._initialize_model_and_opt(self._buffer.input_dim, self._buffer.output_dim)
+        self._num_updates_per_epoch = self._config.num_updates_per_epoch
 
     def _initialize_buffer(self):
         """
@@ -185,6 +187,7 @@ class OnlineLearner(Learner):
     """
 
     _env: DefaultGymWrapper
+    _num_steps_per_epoch: int
 
     def __init__(
         self,
@@ -197,6 +200,7 @@ class OnlineLearner(Learner):
         self._initialize_env()
         self._initialize_buffer()
         self._initialize_model_and_opt(self._buffer.input_dim, self._buffer.output_dim)
+        self._num_steps_per_epoch = config.num_steps_per_epoch
 
     def _initialize_env(self):
         """
