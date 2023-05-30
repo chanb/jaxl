@@ -90,9 +90,40 @@
 <dd><p>Bases: <a class="reference internal" href="#jaxl.learners.supervised.SupervisedLearner" title="jaxl.learners.supervised.SupervisedLearner"><code class="xref py py-class docutils literal notranslate"><span class="pre">SupervisedLearner</span></code></a></p>
 <p>Behavioural Cloning (BC) algorithm. This extends <cite>SupervisedLearner</cite>.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.bc.BC.checkpoint">
+<span class="sig-name descname"><span class="pre">checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.bc.BC.checkpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the current model state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>checkpoint_path</strong> (<em>str</em>) – directory path to store the checkpoint to</p></li>
+<li><p><strong>exist_ok</strong> (<em>bool</em><em> (</em><em>Default value = False</em><em>)</em>) – whether to overwrite the existing checkpoint path</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.bc.BC.load_checkpoint">
+<span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.bc.BC.load_checkpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a model state from a saved checkpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>checkpoint_path</strong> (<em>str</em>) – directory path to load the checkpoint from</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="jaxl.learners.bc.BC.make_train_step">
 <span class="sig-name descname"><span class="pre">make_train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.bc.BC.make_train_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes the training step for model update.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.bc.BC.obs_rms">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obs_rms</span></span><a class="headerlink" href="#jaxl.learners.bc.BC.obs_rms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Running statistics for observations.</p>
 </dd></dl>
 
 <dl class="py method">

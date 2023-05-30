@@ -27,6 +27,7 @@
         "learner": "bc",
         "num_updates_per_epoch": 2048,
         "batch_size": 128,
+        "obs_rms": false,
         "losses": ["gaussian", "l2"],
         "loss_settings": [
             {

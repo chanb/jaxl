@@ -6,12 +6,13 @@ import jax
 import jax.numpy as jnp
 import jax.random as jrandom
 
+from jaxl.constants import DEFAULT_MIN_STD
 from jaxl.distributions import Normal
 from jaxl.models.common import Model, Policy, StochasticPolicy
 
 
 class DeterministicPolicy(Policy):
-    """ Deterministic Policy. """
+    """Deterministic Policy."""
 
     def __init__(self, policy: Model):
         self.compute_action = jax.jit(self.make_compute_action(policy))
@@ -262,7 +263,7 @@ class GaussianPolicy(StochasticPolicy):
     def __init__(
         self,
         policy: Model,
-        min_std: float = 1e-7,
+        min_std: float = DEFAULT_MIN_STD,
     ):
         self._min_std = min_std
         self.deterministic_action = jax.jit(self.make_deterministic_action(policy))

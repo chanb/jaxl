@@ -1,14 +1,18 @@
-from typing import Any, Dict, Tuple
+from types import SimpleNamespace
+from typing import Any, Dict, Tuple, Union
 
+import _pickle as pickle
 import chex
 import jax
+import math
 import numpy as np
 import optax
+import os
 import timeit
 
 from jaxl.constants import *
 from jaxl.learners.supervised import SupervisedLearner
-from jaxl.utils import l2_norm
+from jaxl.utils import l2_norm, RunningMeanStd
 
 
 """
@@ -20,6 +24,41 @@ class BC(SupervisedLearner):
     """
     Behavioural Cloning (BC) algorithm. This extends `SupervisedLearner`.
     """
+
+    _obs_rms: Union[bool, RunningMeanStd]
+
+    def __init__(
+        self,
+        config: SimpleNamespace,
+        model_config: SimpleNamespace,
+        optimizer_config: SimpleNamespace,
+    ):
+        super().__init__(config, model_config, optimizer_config)
+
+        self._obs_rms = False
+        if getattr(config, CONST_OBS_RMS, False):
+            self._obs_rms = RunningMeanStd(shape=self._buffer.input_dim)
+
+            # We compute the statistics offline by iterating through the whole buffer once
+            num_batches = math.ceil(len(self._buffer) / self._config.batch_size)
+            last_batch_remainder = len(self._buffer) % self._config.batch_size
+            for batch_i in range(num_batches):
+                if batch_i + 1 == num_batches:
+                    batch_size = last_batch_remainder
+                    sample_idxes = np.arange(
+                        batch_i * self._config.batch_size,
+                        batch_i * self._config.batch_size + last_batch_remainder,
+                    )
+                else:
+                    batch_size = self._config.batch_size
+                    sample_idxes = np.arange(
+                        batch_i * self._config.batch_size,
+                        (batch_i + 1) * self._config.batch_size,
+                    )
+                obss, _, _, _, _, _, _, _, _, _ = self._buffer.sample(
+                    batch_size, sample_idxes
+                )
+                self._obs_rms.update(obss)
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
         """
@@ -131,3 +170,42 @@ class BC(SupervisedLearner):
             ].item()
 
         return aux
+
+    @property
+    def obs_rms(self):
+        """
+        Running statistics for observations.
+        """
+        return self._obs_rms
+
+    def checkpoint(self, checkpoint_path: str, exist_ok: bool = False):
+        """
+        Saves the current model state.
+
+        :param checkpoint_path: directory path to store the checkpoint to
+        :param exist_ok: whether to overwrite the existing checkpoint path
+        :type checkpoint_path: str
+        :type exist_ok: bool (Default value = False)
+
+        """
+        super().checkpoint(checkpoint_path, exist_ok)
+        learner_dict = {
+            CONST_OBS_RMS: self.obs_rms,
+        }
+
+        with open(os.path.join(checkpoint_path, "learner_dict.pkl"), "wb") as f:
+            pickle.dump(learner_dict, f)
+
+    def load_checkpoint(self, checkpoint_path: str):
+        """
+        Loads a model state from a saved checkpoint.
+
+        :param checkpoint_path: directory path to load the checkpoint from
+        :type checkpoint_path: str
+
+        """
+        super().load_checkpoint(checkpoint_path)
+
+        with open(os.path.join(checkpoint_path, "learner_dict.pkl"), "rb") as f:
+            learner_dict = pickle.load(f)
+            self._obs_rms = learner_dict[CONST_OBS_RMS]

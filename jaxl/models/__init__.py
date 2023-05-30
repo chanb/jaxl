@@ -6,7 +6,7 @@ import optax
 
 from jaxl.constants import *
 from jaxl.models.common import MLP, Model, Policy
-from jaxl.models.policies import GaussianPolicy
+from jaxl.models.policies import DeterministicPolicy, GaussianPolicy
 
 
 """
@@ -80,7 +80,9 @@ def get_policy(policy: Model, config: SimpleNamespace) -> Policy:
         config.policy_distribution in VALID_POLICY_DISTRIBUTION
     ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
     if config.policy_distribution == CONST_GAUSSIAN:
-        return GaussianPolicy(policy, hasattr(config, CONST_MIN_STD))
+        return GaussianPolicy(policy, getattr(config, CONST_MIN_STD, DEFAULT_MIN_STD))
+    elif config.policy_distribution == CONST_DETERMINISTIC:
+        return DeterministicPolicy(policy)
     else:
         raise NotImplementedError
 
