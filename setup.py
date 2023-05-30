@@ -28,7 +28,7 @@ setup(
         "analysis": [
             "matplotlib>=3.7.1",
             "jupyter>=1.0.0",
-        ]
+        ],
     },
     packages=find_packages(include=["jaxl"]),
     include_package_data=True,

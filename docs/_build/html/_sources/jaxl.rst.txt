@@ -18,10 +18,10 @@ Subpackages
 Submodules
 ----------
 
-jaxl.evaluate module
---------------------
+jaxl.evaluate\_rl\_agents module
+--------------------------------
 
-.. automodule:: jaxl.evaluate
+.. automodule:: jaxl.evaluate_rl_agents
    :members:
    :undoc-members:
    :show-inheritance:

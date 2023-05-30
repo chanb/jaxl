@@ -1,5 +1,5 @@
 """
-This script is the entrypoint for evaluating policies.
+This script is the entrypoint for evaluating RL-trained policies.
 XXX: Try not to modify this.
 """
 from absl import app, flags
