@@ -1,8 +1,8 @@
 {
     "logging_config": {
-        "save_path": "./logs",
-        "experiment_name": "inverted_pendulum",
-        "log_interval": 5000,
+        "save_path": "./logs/inverted_pendulum",
+        "experiment_name": "behavioural_cloning",
+        "log_interval": 1,
         "checkpoint_interval": 5000
     },
     "model_config": {
