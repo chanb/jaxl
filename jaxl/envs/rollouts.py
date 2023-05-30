@@ -11,6 +11,84 @@ from jaxl.models import Policy
 from jaxl.utils import RunningMeanStd
 
 
+class EvaluationRollout:
+    """
+    Interconnection between policy and environment.
+    This executes the provided policy in the specified environment without any exploration.
+    That is, it uses the most-likely action.
+    """
+
+    def __init__(self, env: DefaultGymWrapper, seed: int = 0):
+        self._env = env
+        self._curr_obs = None
+        self._curr_h_state = None
+        self._episodic_returns = []
+        self._episode_lengths = []
+        self._reset_key = jrandom.split(jrandom.PRNGKey(seed), 1)[0]
+
+    def rollout(
+        self,
+        params: Union[FrozenVariableDict, Dict[str, Any]],
+        policy: Policy,
+        obs_rms: Union[bool, RunningMeanStd],
+        num_episodes: int,
+    ):
+        """
+        Executes the policy in the environment.
+
+        :param params: the model parameters
+        :param policy: the policy
+        :param obs_rms: the running statistics for observations
+        :param num_episodes: the number of interaction episodes with the environment
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type policy: Policy
+        :type obs_rms: Union[bool, RunningMeanStd]
+        :type num_episodes: int
+
+        """
+        for _ in range(num_episodes):
+            self._episodic_returns.append(0)
+            self._episode_lengths.append(0)
+            seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
+            self._reset_key = jrandom.split(self._reset_key, 1)[0]
+            self._curr_obs, self._curr_info = self._env.reset(seed=seed)
+            self._curr_h_state = policy.reset()
+
+            done = False
+            while not done:
+                normalize_obs = np.array([self._curr_obs])
+                if obs_rms:
+                    normalize_obs = obs_rms.normalize(normalize_obs)
+
+                act, next_h_state = policy.deterministic_action(
+                    params,
+                    normalize_obs,
+                    np.array([self._curr_h_state]),
+                )
+
+                env_act = np.clip(
+                    act, self._env.action_space.low, self._env.action_space.high
+                )
+                next_obs, rew, terminated, truncated, _ = self._env.step(env_act)
+                self._episodic_returns[-1] += float(rew)
+                self._episode_lengths[-1] += 1
+
+                done = terminated or truncated
+
+                self._curr_obs = next_obs
+                self._curr_h_state = next_h_state
+
+    @property
+    def episodic_returns(self):
+        """All episodic returns."""
+        return self._episodic_returns
+
+    @property
+    def episode_lengths(self):
+        """All episode lengths."""
+        return self._episode_lengths
+
+
 class Rollout:
     """
     Interconnection between policy and environment.

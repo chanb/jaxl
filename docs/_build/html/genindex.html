@@ -100,19 +100,17 @@
       </ul></li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.buffers.CheckpointIndexError">CheckpointIndexError</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer.clear">clear() (jaxl.buffers.buffers.ReplayBuffer method)</a>
 
       <ul>
         <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.clear">(jaxl.buffers.ram_buffers.AbstractNumPyBuffer method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.models.html#jaxl.models.common.Policy.compute_action">compute_action (jaxl.models.common.Policy attribute)</a>
 
       <ul>
-        <li><a href="jaxl.models.html#jaxl.models.common.StochasticPolicy.compute_action">(jaxl.models.common.StochasticPolicy attribute)</a>
-</li>
         <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.compute_action">(jaxl.models.policies.GaussianPolicy attribute)</a>
 </li>
       </ul></li>
@@ -126,6 +124,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.envs.wrappers.html#jaxl.envs.wrappers.wrapper.DefaultGymWrapper">DefaultGymWrapper (class in jaxl.envs.wrappers.wrapper)</a>
 </li>
+      <li><a href="jaxl.models.html#jaxl.models.common.Policy.deterministic_action">deterministic_action (jaxl.models.common.Policy attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.deterministic_action">(jaxl.models.policies.GaussianPolicy attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.distributions.html#jaxl.distributions.distributions.Distribution">Distribution (class in jaxl.distributions.distributions)</a>
@@ -138,11 +142,21 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="jaxl.envs.html#jaxl.envs.rollouts.Rollout.episode_lengths">episode_lengths (jaxl.envs.rollouts.Rollout property)</a>
+      <li><a href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.episode_lengths">episode_lengths (jaxl.envs.rollouts.EvaluationRollout property)</a>
+
+      <ul>
+        <li><a href="jaxl.envs.html#jaxl.envs.rollouts.Rollout.episode_lengths">(jaxl.envs.rollouts.Rollout property)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="jaxl.envs.html#jaxl.envs.rollouts.Rollout.episodic_returns">episodic_returns (jaxl.envs.rollouts.Rollout property)</a>
+      <li><a href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.episodic_returns">episodic_returns (jaxl.envs.rollouts.EvaluationRollout property)</a>
+
+      <ul>
+        <li><a href="jaxl.envs.html#jaxl.envs.rollouts.Rollout.episodic_returns">(jaxl.envs.rollouts.Rollout property)</a>
+</li>
+      </ul></li>
+      <li><a href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout">EvaluationRollout (class in jaxl.envs.rollouts)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -759,10 +773,30 @@
 </li>
       <li><a href="jaxl.models.html#jaxl.models.common.Policy">Policy (class in jaxl.models.common)</a>
 </li>
+      <li><a href="jaxl.learners.html#jaxl.learners.a2c.A2C.policy">policy (jaxl.learners.a2c.A2C property)</a>
+
+      <ul>
+        <li><a href="jaxl.learners.html#jaxl.learners.ppo.PPO.policy">(jaxl.learners.ppo.PPO property)</a>
+</li>
+        <li><a href="jaxl.learners.html#jaxl.learners.reinforce.REINFORCE.policy">(jaxl.learners.reinforce.REINFORCE property)</a>
+</li>
+        <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.policy">(jaxl.learners.reinforcement.ReinforcementLearner property)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.models.html#jaxl.models.policy_output_dim">policy_output_dim() (in module jaxl.models)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="jaxl.learners.html#jaxl.learners.a2c.A2C.policy_params">policy_params (jaxl.learners.a2c.A2C property)</a>
+
+      <ul>
+        <li><a href="jaxl.learners.html#jaxl.learners.ppo.PPO.policy_params">(jaxl.learners.ppo.PPO property)</a>
+</li>
+        <li><a href="jaxl.learners.html#jaxl.learners.reinforce.REINFORCE.policy_params">(jaxl.learners.reinforce.REINFORCE property)</a>
+</li>
+        <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.policy_params">(jaxl.learners.reinforcement.ReinforcementLearner property)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.learners.html#jaxl.learners.ppo.PPO">PPO (class in jaxl.learners.ppo)</a>
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer.push">push() (jaxl.buffers.buffers.ReplayBuffer method)</a>
@@ -783,22 +817,32 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="jaxl.models.html#jaxl.models.common.StochasticPolicy.random_action">random_action (jaxl.models.common.StochasticPolicy attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.random_action">(jaxl.models.policies.GaussianPolicy attribute)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.learners.html#jaxl.learners.reinforce.REINFORCE">REINFORCE (class in jaxl.learners.reinforce)</a>
 </li>
       <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner">ReinforcementLearner (class in jaxl.learners.reinforcement)</a>
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer">ReplayBuffer (class in jaxl.buffers.buffers)</a>
 </li>
-      <li><a href="jaxl.models.html#jaxl.models.common.Policy.reset">reset() (jaxl.models.common.Policy method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="jaxl.models.html#jaxl.models.common.Policy.reset">reset() (jaxl.models.common.Policy method)</a>
+</li>
       <li><a href="jaxl.envs.wrappers.html#jaxl.envs.wrappers.wrapper.DefaultGymWrapper.reward_dim">reward_dim (jaxl.envs.wrappers.wrapper.DefaultGymWrapper property)</a>
 </li>
       <li><a href="jaxl.envs.html#jaxl.envs.rollouts.Rollout">Rollout (class in jaxl.envs.rollouts)</a>
 </li>
-      <li><a href="jaxl.envs.html#jaxl.envs.rollouts.Rollout.rollout">rollout() (jaxl.envs.rollouts.Rollout method)</a>
+      <li><a href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.rollout">rollout() (jaxl.envs.rollouts.EvaluationRollout method)</a>
+
+      <ul>
+        <li><a href="jaxl.envs.html#jaxl.envs.rollouts.Rollout.rollout">(jaxl.envs.rollouts.Rollout method)</a>
 </li>
+      </ul></li>
       <li><a href="jaxl.html#jaxl.utils.RunningMeanStd">RunningMeanStd (class in jaxl.utils)</a>
 </li>
   </ul></td>

@@ -105,6 +105,20 @@ class A2C(OnPolicyLearner):
         self._joint_loss = joint_loss
         self.joint_step = jax.jit(self.make_joint_step())
 
+    @property
+    def policy(self):
+        """
+        Policy.
+        """
+        return self._pi
+
+    @property
+    def policy_params(self):
+        """
+        Policy parameters.
+        """
+        return self._model_dict[CONST_MODEL][CONST_POLICY]
+
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
         """
         Construct the actor and critic, and their corresponding optimizers.

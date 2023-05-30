@@ -54,9 +54,12 @@ def main(run_path: str, run_seed: int = None):
         config.learner_config, config.model_config, config.optimizer_config
     )
     learner.load_checkpoint(os.path.join(run_path, "termination_model"))
+    policy = learner.policy
+    policy_params = learner.policy_params
+    obs_rms = learner.obs_rms
 
     toc = timeit.default_timer()
-    print(f"Experiment Time: {toc - tic}s")
+    print(f"Evaluation Time: {toc - tic}s")
 
 
 if __name__ == "__main__":
@@ -64,7 +67,7 @@ if __name__ == "__main__":
 
     def _main(argv):
         """
-        Runs the experiment.
+        Runs the evaluation.
 
         :param argv: the arguments provided by the user
 

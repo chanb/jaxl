@@ -11,7 +11,7 @@ from jaxl.models.common import Model, StochasticPolicy
 
 
 class GaussianPolicy(StochasticPolicy):
-    """ """
+    """Gaussian Policy."""
 
     def __init__(
         self,

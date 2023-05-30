@@ -18,6 +18,14 @@ Subpackages
 Submodules
 ----------
 
+jaxl.evaluate module
+--------------------
+
+.. automodule:: jaxl.evaluate
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jaxl.learning\_utils module
 ---------------------------
 

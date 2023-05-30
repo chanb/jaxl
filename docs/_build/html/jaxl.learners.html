@@ -47,6 +47,18 @@
 <dd><p>Makes the training step for both actor update and critic update.</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.a2c.A2C.policy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy</span></span><a class="headerlink" href="#jaxl.learners.a2c.A2C.policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.a2c.A2C.policy_params">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy_params</span></span><a class="headerlink" href="#jaxl.learners.a2c.A2C.policy_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy parameters.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="jaxl.learners.a2c.A2C.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learners.a2c.A2C.update" title="Permalink to this definition">¶</a></dt>
@@ -213,6 +225,18 @@ Online learner assumes the buffer to be changing and interacts with an environme
 <dd><p>Makes the training step for both actor update and critic update.</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.ppo.PPO.policy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy</span></span><a class="headerlink" href="#jaxl.learners.ppo.PPO.policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.ppo.PPO.policy_params">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy_params</span></span><a class="headerlink" href="#jaxl.learners.ppo.PPO.policy_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy parameters.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="jaxl.learners.ppo.PPO.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learners.ppo.PPO.update" title="Permalink to this definition">¶</a></dt>
@@ -247,6 +271,18 @@ Online learner assumes the buffer to be changing and interacts with an environme
 <dt class="sig sig-object py" id="jaxl.learners.reinforce.REINFORCE.make_policy_step">
 <span class="sig-name descname"><span class="pre">make_policy_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.reinforce.REINFORCE.make_policy_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes the training step for policy update.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.reinforce.REINFORCE.policy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy</span></span><a class="headerlink" href="#jaxl.learners.reinforce.REINFORCE.policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.reinforce.REINFORCE.policy_params">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy_params</span></span><a class="headerlink" href="#jaxl.learners.reinforce.REINFORCE.policy_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy parameters.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -348,6 +384,18 @@ This is the general learner for reinforcement learning agents.</p>
 <dt class="sig sig-object py" id="jaxl.learners.reinforcement.ReinforcementLearner.obs_rms">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obs_rms</span></span><a class="headerlink" href="#jaxl.learners.reinforcement.ReinforcementLearner.obs_rms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Running statistics for observations.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.reinforcement.ReinforcementLearner.policy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy</span></span><a class="headerlink" href="#jaxl.learners.reinforcement.ReinforcementLearner.policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.reinforcement.ReinforcementLearner.policy_params">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy_params</span></span><a class="headerlink" href="#jaxl.learners.reinforcement.ReinforcementLearner.policy_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy parameters.</p>
 </dd></dl>
 
 <dl class="py property">

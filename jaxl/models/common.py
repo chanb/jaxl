@@ -117,6 +117,10 @@ class Policy(ABC):
         ],
         Tuple[chex.Array, chex.Array],
     ]
+    deterministic_action: Callable[
+        [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array],
+    ]
 
     @abstractmethod
     def make_deterministic_action(
@@ -151,6 +155,16 @@ class Policy(ABC):
 
 class StochasticPolicy(Policy):
     """Abstract stochastic policy class that extends ``Policy``."""
+
+    random_action: Callable[
+        [
+            Union[FrozenVariableDict, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            jrandom.PRNGKey,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]
 
     @abstractmethod
     def make_random_action(

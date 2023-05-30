@@ -44,6 +44,20 @@ class ReinforcementLearner(OnlineLearner):
             self._val_rms = RunningMeanStd(shape=self._env.reward_dim)
 
     @property
+    def policy(self):
+        """
+        Policy.
+        """
+        raise NotImplementedError
+
+    @property
+    def policy_params(self):
+        """
+        Policy parameters.
+        """
+        raise NotImplementedError
+
+    @property
     def obs_rms(self):
         """
         Running statistics for observations.

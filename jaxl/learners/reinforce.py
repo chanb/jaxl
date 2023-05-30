@@ -66,6 +66,20 @@ class REINFORCE(OnPolicyLearner):
             CONST_OPT_STATE: {CONST_POLICY: opt_state},
         }
 
+    @property
+    def policy(self):
+        """
+        Policy.
+        """
+        return self._policy
+
+    @property
+    def policy_params(self):
+        """
+        Policy parameters.
+        """
+        return self._model_dict[CONST_MODEL][CONST_POLICY]
+
     def make_policy_step(self):
         """
         Makes the training step for policy update.
