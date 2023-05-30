@@ -13,7 +13,7 @@ import os
 import timeit
 import uuid
 
-from learning_utils import get_learner, train
+from jaxl.learning_utils import get_learner, train
 from jaxl.utils import flatten_dict, parse_dict, set_seed
 
 
@@ -69,6 +69,9 @@ def main(config_path: str, run_seed: int = None):
         save_path = os.path.join(
             config.logging_config.save_path, f"{optional_prefix}{time_tag}-{run_id}"
         )
+        os.makedirs(save_path, exist_ok=True)
+        with open(os.path.join(save_path, "config.json"), "w+") as f:
+            json.dump(config_dict, f)
 
     learner = get_learner(
         config.learner_config, config.model_config, config.optimizer_config

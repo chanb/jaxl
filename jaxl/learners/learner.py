@@ -45,7 +45,7 @@ class Learner(ABC):
     @property
     def model_dict(self):
         """
-        Getter for model_dict
+        Model dictionary
         """
         return self._model_dict
 
@@ -59,6 +59,13 @@ class Learner(ABC):
 
         """
         self._model_dict = model_dict
+
+    @property
+    def buffer(self):
+        """
+        Buffer
+        """
+        return self._buffer
 
     def checkpoint(self, checkpoint_path: str, exist_ok: bool = False):
         """
@@ -220,3 +227,8 @@ class OnlineLearner(Learner):
 
         """
         self._buffer.save(checkpoint_path)
+
+    @property
+    def env(self):
+        """Environment."""
+        return self._env

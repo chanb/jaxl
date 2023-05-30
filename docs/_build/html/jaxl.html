@@ -211,6 +211,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.learner">jaxl.learners.learner module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.Learner"><code class="docutils literal notranslate"><span class="pre">Learner</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.Learner.buffer"><code class="docutils literal notranslate"><span class="pre">Learner.buffer</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.Learner.checkpoint"><code class="docutils literal notranslate"><span class="pre">Learner.checkpoint()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.Learner.load_checkpoint"><code class="docutils literal notranslate"><span class="pre">Learner.load_checkpoint()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.Learner.model_dict"><code class="docutils literal notranslate"><span class="pre">Learner.model_dict</span></code></a></li>
@@ -220,6 +221,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.OfflineLearner"><code class="docutils literal notranslate"><span class="pre">OfflineLearner</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.OnlineLearner"><code class="docutils literal notranslate"><span class="pre">OnlineLearner</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.OnlineLearner.env"><code class="docutils literal notranslate"><span class="pre">OnlineLearner.env</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.OnlineLearner.save_buffer"><code class="docutils literal notranslate"><span class="pre">OnlineLearner.save_buffer()</span></code></a></li>
 </ul>
 </li>
@@ -378,8 +380,27 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
 </section>
-<section id="jaxl-evaluate-module">
-<h2>jaxl.evaluate module<a class="headerlink" href="#jaxl-evaluate-module" title="Permalink to this heading">¶</a></h2>
+<section id="module-jaxl.evaluate">
+<span id="jaxl-evaluate-module"></span><h2>jaxl.evaluate module<a class="headerlink" href="#module-jaxl.evaluate" title="Permalink to this heading">¶</a></h2>
+<p>This script is the entrypoint for evaluating policies.
+XXX: Try not to modify this.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.evaluate.main">
+<span class="sig-prename descclassname"><span class="pre">jaxl.evaluate.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.evaluate.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Orchestrates the evaluation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run_path</strong> (<em>str</em>) – the saved run path</p></li>
+<li><p><strong>num_episodes</strong> (<em>int</em>) – number of evaluation episodes</p></li>
+<li><p><strong>run_seed</strong> (<em>int:</em><em> (</em><em>Default value = None</em><em>)</em>) – the seed to initialize the random number generators</p></li>
+<li><p><strong>save_path</strong> (<em>str:</em><em> (</em><em>Default value = None</em><em>)</em>) – the path to store the buffer</p></li>
+<li><p><strong>buffer_size</strong> (<em>int:</em><em> (</em><em>Default value = 1000</em><em>)</em>) – the buffer size</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-jaxl.learning_utils">
 <span id="jaxl-learning-utils-module"></span><h2>jaxl.learning_utils module<a class="headerlink" href="#module-jaxl.learning_utils" title="Permalink to this heading">¶</a></h2>

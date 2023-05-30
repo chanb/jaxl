@@ -80,13 +80,10 @@ def train(
 
     summary_writer = DummySummaryWriter()
     if save_path:
-        os.makedirs(save_path, exist_ok=True)
         if logging_config.checkpoint_interval:
             os.makedirs(os.path.join(save_path, "models"), exist_ok=True)
         if logging_config.log_interval:
             os.makedirs(os.path.join(save_path, "auxes"), exist_ok=True)
-        with open(os.path.join(save_path, "config.pkl"), "wb") as f:
-            pickle.dump(config, f)
         summary_writer = SummaryWriter(log_dir=f"{save_path}/tensorboard")
         summary_writer = SummaryWriter(log_dir=f"{save_path}/tensorboard")
         summary_writer.add_text(
@@ -126,6 +123,3 @@ def train(
     if save_path:
         learner.checkpoint(os.path.join(save_path, "termination_model"))
         learner.save_buffer(os.path.join(save_path, "termination_buffer.gzip"))
-
-
-# TODO: Evaluation

@@ -118,6 +118,7 @@ class EvaluationRollout(Rollout):
         policy: Policy,
         obs_rms: Union[bool, RunningMeanStd],
         num_episodes: int,
+        buffer: ReplayBuffer = None,
     ):
         """
         Executes the policy in the environment.
@@ -155,11 +156,24 @@ class EvaluationRollout(Rollout):
                 env_act = np.clip(
                     act, self._env.action_space.low, self._env.action_space.high
                 )
-                next_obs, rew, terminated, truncated, _ = self._env.step(env_act)
+                next_obs, rew, terminated, truncated, info = self._env.step(env_act)
                 self._episodic_returns[-1] += float(rew)
                 self._episode_lengths[-1] += 1
 
                 done = terminated or truncated
+
+                if buffer:
+                    buffer.push(
+                        self._curr_obs,
+                        self._curr_h_state,
+                        act,
+                        rew,
+                        terminated,
+                        truncated,
+                        info,
+                        next_obs,
+                        next_h_state,
+                    )
 
                 self._curr_obs = next_obs
                 self._curr_h_state = next_h_state
