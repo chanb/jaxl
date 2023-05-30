@@ -195,6 +195,7 @@ class OnPolicyLearner(ReinforcementLearner):
 
     _num_update_steps: int
     _sample_idxes: chex.Array
+    _rollout: StandardRollout
 
     def __init__(
         self,

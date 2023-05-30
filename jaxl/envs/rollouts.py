@@ -103,8 +103,8 @@ class Rollout(ABC):
 class EvaluationRollout(Rollout):
     """
     Interconnection between policy and environment.
-    This executes the provided policy in the specified environment 
-    without any exploration. That is, it uses `deterministic_action`, 
+    This executes the provided policy in the specified environment
+    without any exploration. That is, it uses `deterministic_action`,
     which is usually implemented as the most-likely action.
     """
 
