@@ -30,7 +30,7 @@ flags.DEFINE_string(
     help="Experiment name",
     required=True,
 )
-flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=False)
+flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=True)
 flags.DEFINE_string(
     "runs_dir",
     default=None,
@@ -79,11 +79,14 @@ def main(config: FlagValues):
             num_runs += 1
             run_path = os.path.join(root, filename)
             save_path = os.path.join(curr_run_dir, os.path.basename(root))
-            dat_content += "export buffer_size={} num_episodes={} env_seed={} ".format(
-                config.buffer_size, config.num_episodes, config.env_seed
+            dat_content += (
+                "export buffer_size={} num_episodes={} env_seed={} run_seed={} ".format(
+                    config.buffer_size,
+                    config.num_episodes,
+                    config.env_seed,
+                    config.run_seed,
+                )
             )
-            if config.run_seed is not None:
-                dat_content += "run_seed={} ".format(config.run_seed)
             dat_content += "save_path={} run_path={}\n".format(save_path, run_path)
     with open(
         os.path.join(f"./export-generate_expert_data-{config.exp_name}.dat"), "w+"

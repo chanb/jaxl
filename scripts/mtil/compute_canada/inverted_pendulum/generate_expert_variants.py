@@ -39,7 +39,7 @@ flags.DEFINE_string(
     help="Experiment name",
     required=True,
 )
-flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=False)
+flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=True)
 flags.DEFINE_string(
     "out_dir",
     default=None,
@@ -143,9 +143,7 @@ def main(config: FlagValues):
         with open(f"{out_path}.json", "w+") as f:
             json.dump(template, f)
 
-        dat_content += "export "
-        if config.run_seed is not None:
-            dat_content += "run_seed={} ".format(config.run_seed)
+        dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
     with open(
         os.path.join(f"./export-generate_expert_variants-{config.exp_name}.dat"), "w+"

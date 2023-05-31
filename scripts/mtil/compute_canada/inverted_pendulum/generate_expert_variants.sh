@@ -16,5 +16,7 @@ echo "Current working directory is `pwd`"
 echo "Running on hostname `hostname`"
 
 echo "Starting run at: `date`"
-python3 /home/chanb/scratch/jaxl/jaxl/main.py --config_path=${config_path} --run_seed=${run_seed}
+python3 /home/chanb/scratch/jaxl/jaxl/main.py \
+  --config_path=${config_path} \
+  --run_seed=${run_seed}
 echo "Program test finished with exit code $? at: `date`"
