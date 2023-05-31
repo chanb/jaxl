@@ -3,7 +3,7 @@
         "save_path": "./logs/inverted_pendulum",
         "experiment_name": "behavioural_cloning",
         "log_interval": 1,
-        "checkpoint_interval": 5000
+        "checkpoint_interval": 500
     },
     "model_config": {
         "architecture": "mlp",
@@ -40,6 +40,6 @@
         ]
     },
     "train_config": {
-        "num_epochs": 1000
+        "num_epochs": 10000
     }
 }
