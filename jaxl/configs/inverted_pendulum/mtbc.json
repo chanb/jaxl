@@ -1,0 +1,52 @@
+{
+    "logging_config": {
+        "save_path": "./logs/inverted_pendulum",
+        "experiment_name": "behavioural_cloning",
+        "log_interval": 1,
+        "checkpoint_interval": 500
+    },
+    "model_config": {
+        "policy": {
+            "architecture": "mlp",
+            "layers": []
+        },
+        "representation": {
+            "architecture": "mlp",
+            "layers": [128]
+        },
+        "representation_dim": [128]
+    },
+    "optimizer_config": {
+        "optimizer": "sgd",
+        "lr": 3e-4,
+        "max_grad_norm": 10.0
+    },
+    "learner_config": {
+        "task": "imitation_learning",
+        "buffer_config": {
+            "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/expert_data/100_episodes.gzip",
+            "buffer_type": "default"
+        },
+        "seeds": {
+            "model_seed": 42,
+            "buffer_seed": 42
+        },
+        "learner": "bc",
+        "num_updates_per_epoch": 2048,
+        "batch_size": 128,
+        "obs_rms": false,
+        "losses": ["gaussian", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean"
+            },
+            {
+                "coefficient": 0.0002
+            }
+        ]
+    },
+    "train_config": {
+        "num_epochs": 10000
+    }
+}

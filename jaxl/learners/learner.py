@@ -108,16 +108,18 @@ class Learner(ABC):
         """
         pass
 
-    def _generate_dummy_x(self) -> chex.Array:
+    def _generate_dummy_x(self, input_dim: chex.Array) -> chex.Array:
         """
-        Generates an arbitrary input based on the buffer's input space.
+        Generates an arbitrary input based on the input space.
         This is mainly for initializing the model.
 
+        :param input_dim: the input dimension
+        :type input_dim: chex.Array
         :return: an arbitrary input
         :rtype: chex.Array
 
         """
-        return np.zeros((1, 1, *self._buffer.input_dim))
+        return np.zeros((1, 1, *input_dim))
 
     def update(self, *args, **kwargs) -> Dict[str, Any]:
         """

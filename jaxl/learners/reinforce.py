@@ -58,7 +58,7 @@ class REINFORCE(OnPolicyLearner):
         self._optimizer = get_optimizer(self._optimizer_config)
 
         model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
-        dummy_x = self._generate_dummy_x()
+        dummy_x = self._generate_dummy_x(input_dim)
         params = self._model.init(model_key, dummy_x)
         opt_state = self._optimizer.init(params)
         self._model_dict = {

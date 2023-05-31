@@ -87,3 +87,8 @@ make html​
   - Check cosine similarity between policies' mean action
   - Check state-conditioned KL divergence between two policies
 - Implement multitask behavioural cloning
+
+## Experiments
+- Generate train and test sets
+  - Generate expert for test set
+  - Generate BC policy for test set

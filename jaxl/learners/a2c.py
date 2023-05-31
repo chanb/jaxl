@@ -140,12 +140,12 @@ class A2C(OnPolicyLearner):
             CONST_VF: get_optimizer(self._optimizer_config.vf),
         }
 
-        model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
-        dummy_x = self._generate_dummy_x()
-        pi_params = self._model[CONST_POLICY].init(model_key, dummy_x)
+        model_keys = jrandom.split(jrandom.PRNGKey(self._config.seeds.model_seed))
+        dummy_x = self._generate_dummy_x(input_dim)
+        pi_params = self._model[CONST_POLICY].init(model_keys[0], dummy_x)
         pi_opt_state = self._optimizer[CONST_POLICY].init(pi_params)
 
-        vf_params = self._model[CONST_VF].init(model_key, dummy_x)
+        vf_params = self._model[CONST_VF].init(model_keys[1], dummy_x)
         vf_opt_state = self._optimizer[CONST_VF].init(vf_params)
         self._model_dict = {
             CONST_MODEL: {

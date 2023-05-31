@@ -79,21 +79,33 @@ class MTBC(OfflineLearner):
             for buffer_config in self._config.buffer_configs
         ]
         input_dims = [buffer.input_dim for buffer in self._buffer]
+        output_dims = [buffer.output_dim for buffer in self._buffer]
         assert all(
             input_dims[:-1] == input_dims[1:]
         ), "We assume the observation space to be the same for all tasks."
 
-    # TODO: Generate dummy for both input and representation
-    def _generate_dummy_x(self) -> chex.Array:
+        # XXX: We should be able to relax this in the future.
+        assert all(
+            output_dims[:-1] == output_dims[1:]
+        ), "We assume the action space to be the same for all tasks."
+
+    def _generate_dummy_x(
+        self, input_dim: chex.Array, representation_dim: chex.Array
+    ) -> Tuple[chex.Array, chex.Array]:
         """
-        Generates an arbitrary input based on the buffer's input space.
+        Generates an arbitrary input based on the input space and
+        an arbitrary input based on the representation space.
         This is mainly for initializing the model.
 
-        :return: an arbitrary input
-        :rtype: chex.Array
+        :param input_dim: the input dimension
+        :param representation_dim: the representation dimension
+        :type input_dim: chex.Array
+        :type representation_dim: chex.Array
+        :return: arbitrary inputs for representation and policy
+        :rtype: Tuple[chex.Array, chex.Array]
 
         """
-        return np.zeros((1, 1, *self._buffer.input_dim))
+        return np.zeros((1, 1, *input_dim)), np.zeros((1, 1, *representation_dim))
 
     # TODO: Shared representation
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
@@ -122,13 +134,20 @@ class MTBC(OfflineLearner):
             CONST_REPRESENTATION: get_optimizer(self._optimizer_config.representation),
         }
 
-        model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
-        dummy_x = self._generate_dummy_x()
-        pi_params = self._model[CONST_POLICY].init(model_key, dummy_x)
+        model_keys = jrandom.split(
+            jrandom.PRNGKey(self._config.seeds.model_seed), num=len(self._buffer) + 1
+        )
+        dummy_input, dummy_representation = self._generate_dummy_x(
+            input_dim, representation_dim
+        )
+        pi_params = [
+            self._model[CONST_POLICY].init(model_keys[task_i], dummy_representation)
+            for task_i in range(len(self._buffer))
+        ]
         pi_opt_state = self._optimizer[CONST_POLICY].init(pi_params)
 
         representation_params = self._model[CONST_REPRESENTATION].init(
-            model_key, dummy_x
+            model_key[-1], dummy_input
         )
         representation_opt_state = self._optimizer[CONST_REPRESENTATION].init(
             representation_params
