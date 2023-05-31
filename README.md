@@ -86,6 +86,4 @@ make html​
 - Implement visualization code to compare policies
   - Check cosine similarity between policies' mean action
   - Check state-conditioned KL divergence between two policies
-- Implement code to load and generate expert demonstrations
-  - Compute Canada Implementation
 - Implement multitask behavioural cloning
