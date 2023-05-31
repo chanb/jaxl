@@ -14,6 +14,7 @@ VALID_POLICY_DISTRIBUTION = [
 
 CONST_MODEL = "model"
 CONST_POLICY = "policy"
+CONST_REPRESENTATION = "representation"
 CONST_VF = "vf"
 
 CONST_MIN_STD = "min_std"

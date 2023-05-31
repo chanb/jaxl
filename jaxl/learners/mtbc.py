@@ -14,7 +14,12 @@ import timeit
 from jaxl.buffers import get_buffer
 from jaxl.constants import *
 from jaxl.learners.learner import OfflineLearner
-from jaxl.models import get_model, get_optimizer
+from jaxl.models import (
+    get_model,
+    get_optimizer,
+    get_policy,
+    policy_output_dim,
+)
 from jaxl.utils import l2_norm, RunningMeanStd
 
 
@@ -40,30 +45,30 @@ class MTBC(OfflineLearner):
 
         self._obs_rms = False
 
-        # TODO: Do this for all buffers
         if getattr(config, CONST_OBS_RMS, False):
-            self._obs_rms = RunningMeanStd(shape=self._buffer.input_dim)
+            self._obs_rms = RunningMeanStd(shape=self._buffer[0].input_dim)
 
-            # We compute the statistics offline by iterating through the whole buffer once
-            num_batches = math.ceil(len(self._buffer) / self._config.batch_size)
-            last_batch_remainder = len(self._buffer) % self._config.batch_size
-            for batch_i in range(num_batches):
-                if batch_i + 1 == num_batches:
-                    batch_size = last_batch_remainder
-                    sample_idxes = np.arange(
-                        batch_i * self._config.batch_size,
-                        batch_i * self._config.batch_size + last_batch_remainder,
+            for buffer in self._buffer:
+                # We compute the statistics offline by iterating through the whole buffer once
+                num_batches = math.ceil(len(buffer) / self._config.batch_size)
+                last_batch_remainder = len(buffer) % self._config.batch_size
+                for batch_i in range(num_batches):
+                    if batch_i + 1 == num_batches:
+                        batch_size = last_batch_remainder
+                        sample_idxes = np.arange(
+                            batch_i * self._config.batch_size,
+                            batch_i * self._config.batch_size + last_batch_remainder,
+                        )
+                    else:
+                        batch_size = self._config.batch_size
+                        sample_idxes = np.arange(
+                            batch_i * self._config.batch_size,
+                            (batch_i + 1) * self._config.batch_size,
+                        )
+                    obss, _, _, _, _, _, _, _, _, _ = buffer.sample(
+                        batch_size, sample_idxes
                     )
-                else:
-                    batch_size = self._config.batch_size
-                    sample_idxes = np.arange(
-                        batch_i * self._config.batch_size,
-                        (batch_i + 1) * self._config.batch_size,
-                    )
-                obss, _, _, _, _, _, _, _, _, _ = self._buffer.sample(
-                    batch_size, sample_idxes
-                )
-                self._obs_rms.update(obss)
+                    self._obs_rms.update(obss)
 
     def _initialize_buffer(self):
         """
@@ -78,6 +83,18 @@ class MTBC(OfflineLearner):
             input_dims[:-1] == input_dims[1:]
         ), "We assume the observation space to be the same for all tasks."
 
+    # TODO: Generate dummy for both input and representation
+    def _generate_dummy_x(self) -> chex.Array:
+        """
+        Generates an arbitrary input based on the buffer's input space.
+        This is mainly for initializing the model.
+
+        :return: an arbitrary input
+        :rtype: chex.Array
+
+        """
+        return np.zeros((1, 1, *self._buffer.input_dim))
+
     # TODO: Shared representation
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
         """
@@ -89,14 +106,43 @@ class MTBC(OfflineLearner):
         :type output_dim: chex.Array
 
         """
-        self._model = get_model(input_dim, output_dim, self._model_config)
-        self._optimizer = get_optimizer(self._optimizer_config)
+        act_dim = policy_output_dim(output_dim, self._config)
+        representation_dim = self._model_config.representation_dim
+        self._model = {
+            CONST_POLICY: get_model(
+                representation_dim, act_dim, self._model_config.policy
+            ),
+            CONST_REPRESENTATION: get_model(
+                input_dim, representation_dim, self._model_config.representation
+            ),
+        }
+
+        self._optimizer = {
+            CONST_POLICY: get_optimizer(self._optimizer_config.policy),
+            CONST_REPRESENTATION: get_optimizer(self._optimizer_config.representation),
+        }
 
         model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
         dummy_x = self._generate_dummy_x()
-        params = self._model.init(model_key, dummy_x)
-        opt_state = self._optimizer.init(params)
-        self._model_dict = {CONST_MODEL: params, CONST_OPT_STATE: opt_state}
+        pi_params = self._model[CONST_POLICY].init(model_key, dummy_x)
+        pi_opt_state = self._optimizer[CONST_POLICY].init(pi_params)
+
+        representation_params = self._model[CONST_REPRESENTATION].init(
+            model_key, dummy_x
+        )
+        representation_opt_state = self._optimizer[CONST_REPRESENTATION].init(
+            representation_params
+        )
+        self._model_dict = {
+            CONST_MODEL: {
+                CONST_POLICY: pi_params,
+                CONST_REPRESENTATION: representation_params,
+            },
+            CONST_OPT_STATE: {
+                CONST_POLICY: pi_opt_state,
+                CONST_REPRESENTATION: representation_opt_state,
+            },
+        }
 
     def make_train_step(self):
         """
