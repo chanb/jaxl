@@ -84,7 +84,6 @@ make html​
 ## TODO:
 - Update README as more implementation comes
 - Implement visualization code to compare policies
-  - Check expected returns
   - Check cosine similarity between policies' mean action
   - Check state-conditioned KL divergence between two policies
 - Implement code to load and generate expert demonstrations

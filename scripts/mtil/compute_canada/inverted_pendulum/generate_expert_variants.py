@@ -4,6 +4,7 @@ Example command:
 python generate_expert_variants.py \
     --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-generate_expert-reinforce.json \
     --exp_name=inverted_pendulum \
+    --run_seed=0 \
     --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum \
     --num_model_seeds=1 \
     --num_env_seeds=1 \
@@ -16,6 +17,7 @@ This will generate a dat file that consists of various runs.
 """
 
 from absl import app, flags
+from absl.flags import FlagValues
 
 import itertools
 import jax
@@ -37,6 +39,7 @@ flags.DEFINE_string(
     help="Experiment name",
     required=True,
 )
+flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=False)
 flags.DEFINE_string(
     "out_dir",
     default=None,
@@ -75,7 +78,7 @@ flags.DEFINE_float(
 NUM_FILES_PER_DIRECTORY = 100
 
 
-def main(config):
+def main(config: FlagValues):
     assert os.path.isfile(
         config.config_template
     ), f"{config.config_template} is not a file"
@@ -140,8 +143,13 @@ def main(config):
         with open(f"{out_path}.json", "w+") as f:
             json.dump(template, f)
 
-        dat_content += "export config_path={}.json \n".format(out_path)
-    with open(os.path.join(f"./export-{config.exp_name}.dat"), "w+") as f:
+        dat_content += "export "
+        if config.run_seed is not None:
+            dat_content += "run_seed={} ".format(config.run_seed)
+        dat_content += "config_path={}.json \n".format(out_path)
+    with open(
+        os.path.join(f"./export-generate_expert_variants-{config.exp_name}.dat"), "w+"
+    ) as f:
         f.writelines(dat_content)
 
 
@@ -149,6 +157,12 @@ if __name__ == "__main__":
     jax.config.config_with_absl()
 
     def _main(argv):
+        """
+        Generates experimental scripts for creating experts with different hyperparameters.
+
+        :param argv: the arguments provided by the user
+
+        """
         del argv
         main(FLAGS)
 

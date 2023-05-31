@@ -3,6 +3,7 @@ This script is the entrypoint for evaluating RL-trained policies.
 XXX: Try not to modify this.
 """
 from absl import app, flags
+from absl.flags import FlagValues
 from orbax.checkpoint import PyTreeCheckpointer
 
 import _pickle as pickle
@@ -39,6 +40,12 @@ flags.DEFINE_string(
 flags.DEFINE_integer(
     "buffer_size", default=1000, help="Number of transitions to store", required=False
 )
+flags.DEFINE_integer(
+    "env_seed",
+    default=None,
+    help="Environment seed for resetting episodes",
+    required=False,
+)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -50,53 +57,37 @@ This function constructs the model and executes evaluation.
 
 
 def main(
-    run_path: str,
-    num_episodes: int,
-    run_seed: int = None,
-    save_path: str = None,
-    buffer_size: int = 1000,
+    config: FlagValues,
 ):
-    """
-    Orchestrates the evaluation.
-
-    :param run_path: the saved run path
-    :param num_episodes: number of evaluation episodes
-    :param run_seed: the seed to initialize the random number generators
-    :param save_path: the path to store the buffer
-    :param buffer_size: the buffer size
-    :type run_path: str
-    :type num_episodes: int
-    :type run_seed: int: (Default value = None)
-    :type save_path: str: (Default value = None)
-    :type buffer_size: int: (Default value = 1000)
-
-    """
+    """Orchestrates the evaluation."""
     tic = timeit.default_timer()
-    set_seed(run_seed)
-    assert os.path.isdir(run_path), f"{run_path} is not a directory"
+    set_seed(config.run_seed)
+    assert os.path.isdir(config.run_path), f"{config.run_path} is not a directory"
 
-    config_path = os.path.join(run_path, "config.json")
-    with open(config_path, "r") as f:
-        config_dict = json.load(f)
+    agent_config_path = os.path.join(config.run_path, "config.json")
+    with open(agent_config_path, "r") as f:
+        agent_config_dict = json.load(f)
 
-    config_dict["learner_config"]["buffer_config"]["buffer_size"] = buffer_size
-    config_dict["learner_config"]["buffer_config"]["buffer_type"] = CONST_DEFAULT
-    config = parse_dict(config_dict)
+    agent_config_dict["learner_config"]["buffer_config"][
+        "buffer_size"
+    ] = config.buffer_size
+    agent_config_dict["learner_config"]["buffer_config"]["buffer_type"] = CONST_DEFAULT
+    agent_config = parse_dict(agent_config_dict)
 
     h_state_dim = (1,)
-    if hasattr(config.model_config, "h_state_dim"):
-        h_state_dim = config.model_config.h_state_dim
-    env = get_environment(config.learner_config.env_config)
+    if hasattr(agent_config.model_config, "h_state_dim"):
+        h_state_dim = agent_config.model_config.h_state_dim
+    env = get_environment(agent_config.learner_config.env_config)
     buffer = get_buffer(
-        config.learner_config.buffer_config,
-        config.learner_config.seeds.buffer_seed,
+        agent_config.learner_config.buffer_config,
+        agent_config.learner_config.seeds.buffer_seed,
         env,
         h_state_dim,
     )
     input_dim = buffer.input_dim
-    output_dim = policy_output_dim(buffer.output_dim, config.learner_config)
-    model = get_model(input_dim, output_dim, config.model_config)
-    policy = get_policy(model, config.learner_config)
+    output_dim = policy_output_dim(buffer.output_dim, agent_config.learner_config)
+    model = get_model(input_dim, output_dim, agent_config.model_config)
+    policy = get_policy(model, agent_config.learner_config)
 
     run_path = os.path.join(run_path, "termination_model")
     checkpointer = PyTreeCheckpointer()
@@ -106,11 +97,13 @@ def main(
         learner_dict = pickle.load(f)
         obs_rms = learner_dict[CONST_OBS_RMS]
 
-    rollout = EvaluationRollout(env, seed=config.learner_config.seeds.env_seed)
-    rollout.rollout(policy_params, policy, obs_rms, num_episodes, buffer)
-    if save_path:
+    if env_seed is None:
+        env_seed = agent_config.learner_config.seeds.env_seed
+    rollout = EvaluationRollout(env, seed=env_seed)
+    rollout.rollout(policy_params, policy, obs_rms, config.num_episodes, buffer)
+    if config.save_path:
         print("Saving buffer with {} transitions".format(len(buffer)))
-        buffer.save(save_path)
+        buffer.save(config.save_path)
 
     toc = timeit.default_timer()
     print(f"Evaluation Time: {toc - tic}s")
@@ -127,11 +120,6 @@ if __name__ == "__main__":
 
         """
         del argv
-        run_path = FLAGS.run_path
-        run_seed = FLAGS.run_seed
-        num_episodes = FLAGS.num_episodes
-        save_path = FLAGS.save_path
-        buffer_size = FLAGS.buffer_size
-        main(run_path, num_episodes, run_seed, save_path, buffer_size)
+        main(FLAGS)
 
     app.run(_main)
