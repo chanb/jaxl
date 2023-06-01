@@ -6,15 +6,23 @@
         "checkpoint_interval": 500
     },
     "model_config": {
-        "policy": {
-            "architecture": "mlp",
-            "layers": []
+        "architecture": "encoder_predictor",
+        "predictor": {
+            "architecture": "ensemble",
+            "model": {
+                "architecture": "mlp",
+                "layers": []
+            },
+            "num_models": 2,
+            "input_dim": 128
         },
-        "representation": {
+        "encoder": {
             "architecture": "mlp",
             "layers": [128]
         },
-        "representation_dim": [128]
+        "encoder_dim": [128],
+        "encoder_name": "representation",
+        "predictor_name": "policy"
     },
     "optimizer_config": {
         "policy": {

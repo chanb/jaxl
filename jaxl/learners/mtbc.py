@@ -19,6 +19,8 @@ from jaxl.losses import get_loss_function, make_aggregate_loss
 from jaxl.models import (
     get_model,
     get_optimizer,
+    EncoderPredictorModel,
+    EnsembleModel,
 )
 from jaxl.utils import l2_norm, parse_dict, RunningMeanStd
 
@@ -97,9 +99,10 @@ class MTBC(OfflineLearner):
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
-            reps, _ = jax.vmap(
-                self._model[CONST_REPRESENTATION].forward, in_axes=[None, 0, 0]
-            )(model_dicts[CONST_REPRESENTATION], obss, h_states)
+
+            reps, _ = jax.vmap(self._model.encode, in_axes=[None, 0, 0])(
+                model_dicts[CONST_REPRESENTATION], obss, h_states
+            )
 
             bc_loss, bc_aux = jax.vmap(self._pi_loss)(
                 model_dicts[CONST_POLICY],
@@ -134,7 +137,7 @@ class MTBC(OfflineLearner):
         for loss, loss_setting in zip(self._config.losses, self._config.loss_settings):
             loss_setting_ns = parse_dict(loss_setting)
             losses[loss] = (
-                get_loss_function(self._model[CONST_POLICY], loss, loss_setting_ns),
+                get_loss_function(self._model.predictor.model, loss, loss_setting_ns),
                 loss_setting_ns.coefficient,
             )
         self._pi_loss = jax.jit(make_aggregate_loss(losses))
@@ -159,28 +162,9 @@ class MTBC(OfflineLearner):
         ), "We assume the action space to be the same for all tasks."
         self._num_tasks = len(self._buffers)
         self._buffer = self._buffers[0]
-
-    def _generate_dummy_x(
-        self, num_tasks: int, input_dim: chex.Array, representation_dim: chex.Array
-    ) -> Tuple[chex.Array, chex.Array]:
-        """
-        Generates an arbitrary input based on the input space and
-        an arbitrary input based on the representation space.
-        This is mainly for initializing the model.
-
-        :param num_tasks: number of tasks
-        :param input_dim: the input dimension
-        :param representation_dim: the representation dimension
-        :type num_tasks: int
-        :type input_dim: chex.Array
-        :type representation_dim: chex.Array
-        :return: arbitrary inputs for representation and policy
-        :rtype: Tuple[chex.Array, chex.Array]
-
-        """
-        return np.zeros((1, 1, *input_dim)), np.zeros(
-            (num_tasks, 1, *representation_dim)
-        )
+        assert (
+            self._num_tasks == self._model_config.predictor.num_models
+        ), "Number of policies should be identical to number of tasks (i.e. buffers)."
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
         """
@@ -192,43 +176,30 @@ class MTBC(OfflineLearner):
         :type output_dim: chex.Array
 
         """
-        representation_dim = self._model_config.representation_dim
-        self._model = {
-            CONST_POLICY: get_model(
-                representation_dim, output_dim, self._model_config.policy
-            ),
-            CONST_REPRESENTATION: get_model(
-                input_dim, representation_dim, self._model_config.representation
-            ),
-        }
+        self._model = get_model(input_dim, output_dim, self._model_config)
+        assert isinstance(
+            self._model, EncoderPredictorModel
+        ), "We expect the model to be a EncoderPredictorModel"
+        assert isinstance(
+            self._model.predictor, EnsembleModel
+        ), "We expect the predictor to be an EnsembleModel"
 
         self._optimizer = {
             CONST_POLICY: get_optimizer(self._optimizer_config.policy),
             CONST_REPRESENTATION: get_optimizer(self._optimizer_config.representation),
         }
 
-        model_keys = jrandom.split(
-            jrandom.PRNGKey(self._config.seeds.model_seed), num=len(self._buffers) + 1
+        dummy_input = self._generate_dummy_x(input_dim)
+        params = self._model.init(
+            jrandom.PRNGKey(self._config.seeds.model_seed), dummy_input
         )
-        dummy_input, dummy_representation = self._generate_dummy_x(
-            self.num_tasks, input_dim, representation_dim
-        )
-        pi_params = jax.vmap(self._model[CONST_POLICY].init)(
-            model_keys[:-1], dummy_representation
-        )
-        pi_opt_state = self._optimizer[CONST_POLICY].init(pi_params)
 
-        representation_params = self._model[CONST_REPRESENTATION].init(
-            model_keys[-1], dummy_input
-        )
+        pi_opt_state = self._optimizer[CONST_POLICY].init(params[CONST_POLICY])
         representation_opt_state = self._optimizer[CONST_REPRESENTATION].init(
-            representation_params
+            params[CONST_REPRESENTATION]
         )
         self._model_dict = {
-            CONST_MODEL: {
-                CONST_POLICY: pi_params,
-                CONST_REPRESENTATION: representation_params,
-            },
+            CONST_MODEL: params,
             CONST_OPT_STATE: {
                 CONST_POLICY: pi_opt_state,
                 CONST_REPRESENTATION: representation_opt_state,

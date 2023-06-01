@@ -5,7 +5,7 @@ import chex
 import optax
 
 from jaxl.constants import *
-from jaxl.models.common import MLP, Model, Policy
+from jaxl.models.common import MLP, Model, Policy, EnsembleModel, EncoderPredictorModel
 from jaxl.models.policies import DeterministicPolicy, GaussianPolicy
 
 
@@ -60,6 +60,24 @@ def get_model(
     ), f"{model_config.architecture} is not supported (one of {VALID_ARCHITECTURE})"
     if model_config.architecture == CONST_MLP:
         return MLP(model_config.layers + list(output_dim))
+    elif model_config.architecture == CONST_ENCODER_PREDICTOR:
+        encoder = get_model(input_dim, model_config.encoder_dim, model_config.encoder)
+        predictor = get_model(
+            model_config.encoder_dim, output_dim, model_config.predictor
+        )
+        return EncoderPredictorModel(
+            encoder,
+            predictor,
+            model_config.encoder_name,
+            model_config.predictor_name,
+        )
+    elif model_config.architecture == CONST_ENSEMBLE:
+        model = get_model(
+            getattr(model_config, "input_dim", input_dim),
+            getattr(model_config, "output_dim", output_dim),
+            model_config.model,
+        )
+        return EnsembleModel(model, model_config.num_models)
     else:
         raise NotImplementedError
 

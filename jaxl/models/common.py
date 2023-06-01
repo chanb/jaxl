@@ -32,6 +32,305 @@ class Model(ABC):
         Union[FrozenVariableDict, Dict[str, Any]],
     ]
 
+    def reset_h_state(self) -> chex.Array:
+        """
+        Resets hidden state.
+
+        :return: a hidden state
+        :rtype: chex.Array
+        """
+        return np.zeros((1,), dtype=np.float32)
+
+
+class EncoderPredictorModel(Model):
+    """
+    Model with two components: encoder and prediction function.
+    The encoder can be seen as a model that embeds observation into a representation space.
+    The prediction function makes prediction after taking an input from the representation space.
+    """
+
+    encode: Callable[
+        [
+            Union[FrozenVariableDict, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]
+
+    def __init__(
+        self,
+        encoder: Model,
+        predictor: Model,
+        encoder_name: str = CONST_ENCODER,
+        predictor_name: str = CONST_PREDICTOR,
+    ) -> None:
+        self.encoder_name = encoder_name
+        self.predictor_name = predictor_name
+        self.encoder = encoder
+        self.predictor = predictor
+        self._h_state_shapes = (
+            self.encoder.reset_h_state().shape,
+            self.predictor.reset_h_state().shape,
+        )
+        self._flattened_h_states_shape = (
+            self.encoder.reset_h_state().size,
+            self.predictor.reset_h_state().size,
+        )
+        self.forward = jax.jit(self.make_forward())
+        self.encode = jax.jit(self.make_encode())
+
+    def init(self, model_key: jrandom.PRNGKey, dummy_x: chex.Array) -> Dict[str, Any]:
+        """
+        Initialize model parameters.
+
+        :param model_key: the random number generation key for initializing parameters
+        :param dummy_x: the input data
+        :type model_key: jrandom.PRNGKey
+        :type dummy_x: chex.Array
+        :return: the initialized parameters for both the encoder and the predictor
+        :rtype: Dict[str, Any]
+
+        """
+        encoder_key, predictor_key = jrandom.split(model_key)
+        encoder_params = self.encoder.init(encoder_key, dummy_x)
+        dummy_carry = self.encoder.reset_h_state()
+        dummy_repr, _ = self.encoder.forward(encoder_params, dummy_x, dummy_carry)
+        predictor_params = self.predictor.init(predictor_key, dummy_repr)
+        return {
+            self.encoder_name: encoder_params,
+            self.predictor_name: predictor_params,
+        }
+
+    def reset_h_state(self) -> chex.Array:
+        """
+        Resets hidden state.
+
+        :return: a hidden state
+        :rtype: chex.Array
+        """
+        return np.array(
+            [
+                self.encoder.reset_h_state().reshape(-1),
+                self.predictor.reset_h_state().reshape(-1),
+            ],
+            dtype=np.float32,
+        )
+
+    def make_forward(
+        self,
+    ) -> Callable[
+        [
+            Union[FrozenVariableDict, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the forward call of the encoder-predictor model.
+
+        :return: the forward call.
+        :rtype: Callable[
+            [
+                Union[FrozenVariableDict, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+            ],
+            Tuple[chex.Array, chex.Array],
+        ]
+        """
+
+        def forward(
+            params: Union[FrozenVariableDict, Dict[str, Any]],
+            input: chex.Array,
+            carry: chex.Array,
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Forward call of the encoder-predictor.
+
+            :param params: the model parameters
+            :param input: the input
+            :param carry: the hidden state (not used)
+            :type params: Union[FrozenVariableDict
+            :type input: chex.Array
+            :type carry: chex.Array
+            :return: the output and a pass-through carry
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            carry_shape = carry.shape[:-1]
+            repr, repr_carry = self.encoder.forward(
+                params[self.encoder_name],
+                input,
+                carry[..., : self._flattened_h_states_shape[0]].reshape(
+                    (*carry_shape, *self._h_state_shapes[0])
+                ),
+            )
+            pred, pred_carry = self.predictor.forward(
+                params[self.predictor_name],
+                repr,
+                carry[..., self._flattened_h_states_shape[0] :].reshape(
+                    (*carry_shape, *self._h_state_shapes[1])
+                ),
+            )
+            carry = np.concatenate(
+                (
+                    repr_carry.reshape((*carry_shape, -1)),
+                    pred_carry.reshape((*carry_shape, -1)),
+                ),
+                axis=-1,
+            )
+
+            return pred, carry
+
+        return forward
+
+    def make_encode(
+        self,
+    ) -> Callable[
+        [
+            Union[FrozenVariableDict, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the forward call of the encoder model.
+
+        :return: the forward call.
+        :rtype: Callable[
+            [
+                Union[FrozenVariableDict, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+            ],
+            Tuple[chex.Array, chex.Array],
+        ]
+        """
+
+        def encode(
+            params: Union[FrozenVariableDict, Dict[str, Any]],
+            input: chex.Array,
+            carry: chex.Array,
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Forward call of the encoder.
+
+            :param params: the model parameters
+            :param input: the input
+            :param carry: the hidden state (not used)
+            :type params: Union[FrozenVariableDict
+            :type input: chex.Array
+            :type carry: chex.Array
+            :return: the encoded input and next carry
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            carry_shape = carry.shape[:-1]
+            repr, repr_carry = self.encoder.forward(
+                params,
+                input,
+                carry[..., : self._flattened_h_states_shape[0]].reshape(
+                    (*carry_shape, *self._h_state_shapes[0])
+                ),
+            )
+            return repr, repr_carry
+
+        return encode
+
+
+class EnsembleModel(Model):
+    """
+    Ensemble Model.
+    We assume all models are identical.
+    """
+
+    def __init__(self, model: Model, num_models: int) -> None:
+        self.model = model
+        self.num_models = num_models
+        self.forward = jax.jit(self.make_forward())
+
+    def init(
+        self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
+    ) -> Union[FrozenVariableDict, Dict[str, Any]]:
+        """
+        Initialize model parameters.
+
+        :param model_key: the random number generation key for initializing parameters
+        :param dummy_x: the input data
+        :type model_key: jrandom.PRNGKey
+        :type dummy_x: chex.Array
+        :return: the initialized parameters for all of the models
+        :rtype: Union[FrozenVariableDict, Dict[str, Any]]
+
+        """
+        model_keys = jrandom.split(model_key, num=self.num_models)
+        model_params = jax.vmap(self.model.init)(
+            model_keys,
+            np.tile(
+                dummy_x, (self.num_models, *([1 for _ in range(dummy_x.ndim - 1)]))
+            ),
+        )
+        return model_params
+
+    def make_forward(
+        self,
+    ) -> Callable[
+        [
+            Union[FrozenVariableDict, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the forward call of the ensemble model.
+
+        :return: the forward call.
+        :rtype: Callable[
+            [
+                Union[FrozenVariableDict, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+            ],
+            Tuple[chex.Array, chex.Array],
+        ]
+        """
+
+        def forward(
+            params: Union[FrozenVariableDict, Dict[str, Any]],
+            input: chex.Array,
+            carry: chex.Array,
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Forward call of the ensemble.
+
+            :param params: the model parameters
+            :param input: the input
+            :param carry: the hidden state (not used)
+            :type params: Union[FrozenVariableDict
+            :type input: chex.Array
+            :type carry: chex.Array
+            :return: the output and a pass-through carry
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            pred, carry = jax.vmap(self.model.forward)(params, input, carry)
+            return pred, carry
+
+        return forward
+
+    def reset_h_state(self) -> chex.Array:
+        """
+        Resets hidden state.
+
+        :return: a hidden state
+        :rtype: chex.Array
+        """
+        return np.zeros((self.num_models, 1), dtype=np.float32)
+
 
 class MLP(Model):
     """A multilayer perceptron."""
@@ -122,6 +421,9 @@ class Policy(ABC):
         Tuple[chex.Array, chex.Array],
     ]
 
+    def __init__(self) -> None:
+        self.reset = jax.jit(self.make_reset())
+
     @abstractmethod
     def make_deterministic_action(
         self, policy: Model
@@ -143,14 +445,25 @@ class Policy(ABC):
         """
         raise NotImplementedError
 
-    def reset(self) -> chex.Array:
+    def make_reset(self, policy: Model) -> Callable[..., chex.Array]:
         """
-        Resets hidden state.
+        Makes the function that resets the policy.
+        This is often used for resetting the hidden state.
 
-        :return: a hidden state
+        :return: a function for initializing the hidden state
         :rtype: chex.Array
         """
-        return np.array([0.0], dtype=np.float32)
+
+        def _reset() -> chex.Array:
+            """
+            Resets hidden state.
+
+            :return: a hidden state
+            :rtype: chex.Array
+            """
+            return self.policy.reset_h_state()
+
+        return _reset
 
 
 class StochasticPolicy(Policy):
