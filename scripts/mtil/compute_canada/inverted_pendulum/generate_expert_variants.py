@@ -139,6 +139,7 @@ def main(config: FlagValues):
         template["learner_config"]["seeds"]["env_seed"] = int(env_seed)
         template["learner_config"]["env_config"]["env_kwargs"]["gravity"] = gravity
         template["logging_config"]["save_path"] = curr_run_dir
+        template["logging_config"]["experiment_name"] = f"gravity_{gravity}"
 
         out_path = os.path.join(curr_script_dir, variant)
         with open(f"{out_path}.json", "w+") as f:

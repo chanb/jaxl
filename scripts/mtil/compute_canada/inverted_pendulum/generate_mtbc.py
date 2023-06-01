@@ -1,14 +1,14 @@
 """ Script for generating (number of tasks) experiment for multitask BC
 
 Example command:
-python generate_mtbc_num_tasks_variants.py \
+python generate_mtbc.py \
     --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-mtbc.json \
-    --exp_name=mtbc_num_tasks \
+    --exp_name=num_tasks_variants \
     --run_seed=0 \
     --datasets_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data \
     --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum \
     --num_model_seeds=1 \
-    --num_tasks_variants=2,4,8,16
+    --num_tasks_variants=2,4,8,16,32
 
 
 This will generate a dat file that consists of various runs.
@@ -73,7 +73,9 @@ def main(config: FlagValues):
     with open(config.config_template, "r") as f:
         template = json.load(f)
 
-    os.makedirs(config.out_dir, exist_ok=True)
+    out_dir = os.path.join(config.out_dir, config.exp_name)
+    os.makedirs(out_dir, exist_ok=True)
+
     datasets_path = [
         os.path.join(config.dataasets_dir, dataset_path)
         for dataset_path in os.listdir(config.datasets_dir)
@@ -98,10 +100,10 @@ def main(config: FlagValues):
     assert np.all(num_tasks_variants > 1), f"need at least two tasks for MTBC"
 
     # Standard template
-    template["logging_config"]["experiment_name"] = config.exp_name
+    template["logging_config"]["experiment_name"] = ""
 
-    base_script_dir = os.path.join(config.out_dir, "scripts")
-    base_run_dir = os.path.join(config.out_dir, "runs")
+    base_script_dir = os.path.join(out_dir, "scripts")
+    base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
     for idx, (model_seed, num_tasks) in enumerate(
         itertools.product(model_seeds, num_tasks_variants)
@@ -124,6 +126,7 @@ def main(config: FlagValues):
         ]
         template["model_config"]["predictor"]["num_models"] = num_tasks
         template["logging_config"]["save_path"] = curr_run_dir
+        template["logging_config"]["experiment_name"] = f"num_tasks_{num_tasks}"
 
         out_path = os.path.join(curr_script_dir, variant)
         with open(f"{out_path}.json", "w+") as f:
