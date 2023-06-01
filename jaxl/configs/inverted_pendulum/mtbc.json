@@ -26,12 +26,12 @@
     },
     "optimizer_config": {
         "policy": {
-            "optimizer": "sgd",
+            "optimizer": "adam",
             "lr": 3e-4,
             "max_grad_norm": 10.0
         },
         "representation": {
-            "optimizer": "sgd",
+            "optimizer": "adam",
             "lr": 3e-4,
             "max_grad_norm": 10.0
         }
@@ -53,7 +53,7 @@
             "buffer_seed": 42
         },
         "learner": "mtbc",
-        "num_updates_per_epoch": 2048,
+        "num_updates_per_epoch": 100,
         "batch_size": 64,
         "obs_rms": false,
         "losses": ["gaussian", "l2"],

@@ -10,7 +10,7 @@
         "layers": [128, 128]
     },
     "optimizer_config": {
-        "optimizer": "sgd",
+        "optimizer": "adam",
         "lr": 3e-4,
         "max_grad_norm": 10.0
     },
@@ -25,7 +25,7 @@
             "buffer_seed": 42
         },
         "learner": "bc",
-        "num_updates_per_epoch": 2048,
+        "num_updates_per_epoch": 100,
         "batch_size": 128,
         "obs_rms": false,
         "losses": ["gaussian", "l2"],

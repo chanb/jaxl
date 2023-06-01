@@ -26,12 +26,12 @@
     },
     "optimizer_config": {
         "policy": {
-            "optimizer": "sgd",
+            "optimizer": "adam",
             "lr": 3e-4,
             "max_grad_norm": 10.0
         },
         "representation": {
-            "optimizer": "sgd",
+            "optimizer": "adam",
             "lr": 3e-4,
             "max_grad_norm": 10.0
         }
