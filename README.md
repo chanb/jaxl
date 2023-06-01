@@ -87,6 +87,7 @@ make html​
   - Check cosine similarity between policies' mean action
   - Check state-conditioned KL divergence between two policies
 - Implement multitask behavioural cloning
+  - Script for Compute Canada
 
 ## Long-term Modification
 - JAX implementation of the replay buffers
