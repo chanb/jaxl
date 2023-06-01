@@ -15,6 +15,7 @@ from jaxl.models.modules import MLPModule
 class Model(ABC):
     """Abstract model class."""
 
+    #: Model forward call.
     forward: Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -24,6 +25,7 @@ class Model(ABC):
         Tuple[chex.Array, chex.Array],
     ]
 
+    #: Initialize model parameters.
     init: Callable[
         [
             jrandom.PRNGKey,
@@ -49,6 +51,7 @@ class EncoderPredictorModel(Model):
     The prediction function makes prediction after taking an input from the representation space.
     """
 
+    #: Encode input to representation space.
     encode: Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -247,6 +250,9 @@ class EnsembleModel(Model):
     We assume all models are identical.
     """
 
+    #: Number of models in the ensemble.
+    num_models: int
+
     def __init__(self, model: Model, num_models: int) -> None:
         self.model = model
         self.num_models = num_models
@@ -407,6 +413,7 @@ class MLP(Model):
 class Policy(ABC):
     """Abstract policy class."""
 
+    #: Compute action for interacting with the environment.
     compute_action: Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -416,6 +423,8 @@ class Policy(ABC):
         ],
         Tuple[chex.Array, chex.Array],
     ]
+
+    #: Compute deterministic action.
     deterministic_action: Callable[
         [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
@@ -469,6 +478,7 @@ class Policy(ABC):
 class StochasticPolicy(Policy):
     """Abstract stochastic policy class that extends ``Policy``."""
 
+    #: Compute random action.
     random_action: Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],

@@ -18,11 +18,22 @@ class Rollout(ABC):
     This executes the provided policy in the specified environment.
     """
 
+    #: The environment.
     _env: DefaultGymWrapper
+
+    #: The current observation.
     _curr_obs: chex.Array
+
+    #: The current hidden state.
     _curr_h_state: chex.Array
+
+    #: Episode lengths.
     _episode_lengths: Iterable
+
+    #: Episodic returns
     _episodic_returns: Iterable
+
+    #: Whether or not the current trajectory is done (terminated or truncated).
     _done: bool
 
     def __init__(self, env: DefaultGymWrapper):

@@ -149,6 +149,12 @@ class RunningMeanStd:
     Assumes shape to be (number of inputs, input_shape).
     """
 
+    #: The running mean
+    mean: chex.Array
+
+    #: The running variance
+    var: chex.Array
+
     def __init__(
         self,
         epsilon: float = 1e-4,

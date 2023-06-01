@@ -39,6 +39,7 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#J"><strong>J</strong></a>
  | <a href="#L"><strong>L</strong></a>
@@ -60,6 +61,14 @@
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer">AbstractNumPyBuffer (class in jaxl.buffers.ram_buffers)</a>
 </li>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.actions">actions (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer.actions">(jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer attribute)</a>
+</li>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer.actions">(jaxl.buffers.ram_buffers.TransitionNumPyBuffer attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.html#jaxl.utils.DummySummaryWriter.add_scalar">add_scalar() (jaxl.utils.DummySummaryWriter method)</a>
@@ -142,12 +151,20 @@
         <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.deterministic_action">(jaxl.models.policies.GaussianPolicy attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.models.html#jaxl.models.policies.DeterministicPolicy">DeterministicPolicy (class in jaxl.models.policies)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.distributions.html#jaxl.distributions.distributions.Distribution">Distribution (class in jaxl.distributions.distributions)</a>
 </li>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.dones">dones (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer.dones">(jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer attribute)</a>
+</li>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer.dones">(jaxl.buffers.ram_buffers.TransitionNumPyBuffer attribute)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.html#jaxl.utils.DummySummaryWriter">DummySummaryWriter (class in jaxl.utils)</a>
 </li>
   </ul></td>
@@ -180,11 +197,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.html#jaxl.utils.flatten_dict">flatten_dict() (in module jaxl.utils)</a>
 </li>
-      <li><a href="jaxl.models.html#jaxl.models.common.EnsembleModel.forward">forward (jaxl.models.common.EnsembleModel attribute)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="jaxl.models.html#jaxl.models.common.MLP.forward">forward (jaxl.models.common.MLP attribute)</a>
 
       <ul>
-        <li><a href="jaxl.models.html#jaxl.models.common.MLP.forward">(jaxl.models.common.MLP attribute)</a>
-</li>
         <li><a href="jaxl.models.html#jaxl.models.common.Model.forward">(jaxl.models.common.Model attribute)</a>
 </li>
       </ul></li>
@@ -245,9 +262,31 @@
   </ul></td>
 </tr></table>
 
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.hidden_states">hidden_states (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer.hidden_states">(jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer attribute)</a>
+</li>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer.hidden_states">(jaxl.buffers.ram_buffers.TransitionNumPyBuffer attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.infos">infos (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer.infos">(jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer attribute)</a>
+</li>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer.infos">(jaxl.buffers.ram_buffers.TransitionNumPyBuffer attribute)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.models.html#jaxl.models.common.Model.init">init (jaxl.models.common.Model attribute)</a>
 </li>
       <li><a href="jaxl.models.html#jaxl.models.common.EncoderPredictorModel.init">init() (jaxl.models.common.EncoderPredictorModel method)</a>
@@ -690,6 +729,8 @@
       </ul></li>
       <li><a href="jaxl.losses.html#jaxl.losses.regularization.make_weight_decay">make_weight_decay() (in module jaxl.losses.regularization)</a>
 </li>
+      <li><a href="jaxl.html#jaxl.utils.RunningMeanStd.mean">mean (jaxl.utils.RunningMeanStd attribute)</a>
+</li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.MemoryEfficientNumPyBuffer">MemoryEfficientNumPyBuffer (class in jaxl.buffers.ram_buffers)</a>
 </li>
       <li><a href="jaxl.models.html#jaxl.models.common.MLP">MLP (class in jaxl.models.common)</a>
@@ -795,15 +836,25 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.models.html#jaxl.models.modules.MLPModule.name">name (jaxl.models.modules.MLPModule attribute)</a>
 </li>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.MemoryEfficientNumPyBuffer.next_hidden_state">next_hidden_state (jaxl.buffers.ram_buffers.MemoryEfficientNumPyBuffer attribute)</a>
+</li>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.NextStateNumPyBuffer.next_hidden_states">next_hidden_states (jaxl.buffers.ram_buffers.NextStateNumPyBuffer attribute)</a>
+</li>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.MemoryEfficientNumPyBuffer.next_observation">next_observation (jaxl.buffers.ram_buffers.MemoryEfficientNumPyBuffer attribute)</a>
+</li>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.NextStateNumPyBuffer.next_observations">next_observations (jaxl.buffers.ram_buffers.NextStateNumPyBuffer attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.NextStateNumPyBuffer">NextStateNumPyBuffer (class in jaxl.buffers.ram_buffers)</a>
 </li>
       <li><a href="jaxl.distributions.html#jaxl.distributions.distributions.Normal">Normal (class in jaxl.distributions.distributions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.html#jaxl.utils.RunningMeanStd.normalize">normalize() (jaxl.utils.RunningMeanStd method)</a>
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.buffers.NoSampleError">NoSampleError</a>
+</li>
+      <li><a href="jaxl.models.html#jaxl.models.common.EnsembleModel.num_models">num_models (jaxl.models.common.EnsembleModel attribute)</a>
 </li>
       <li><a href="jaxl.learners.html#jaxl.learners.mtbc.MTBC.num_tasks">num_tasks (jaxl.learners.mtbc.MTBC property)</a>
 </li>
@@ -821,10 +872,18 @@
         <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.obs_rms">(jaxl.learners.reinforcement.ReinforcementLearner property)</a>
 </li>
       </ul></li>
-      <li><a href="jaxl.learners.html#jaxl.learners.learner.OfflineLearner">OfflineLearner (class in jaxl.learners.learner)</a>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.observations">observations (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer.observations">(jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer attribute)</a>
 </li>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer.observations">(jaxl.buffers.ram_buffers.TransitionNumPyBuffer attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="jaxl.learners.html#jaxl.learners.learner.OfflineLearner">OfflineLearner (class in jaxl.learners.learner)</a>
+</li>
       <li><a href="jaxl.learners.html#jaxl.learners.learner.OnlineLearner">OnlineLearner (class in jaxl.learners.learner)</a>
 </li>
       <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.OnPolicyLearner">OnPolicyLearner (class in jaxl.learners.reinforcement)</a>
@@ -917,6 +976,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.envs.wrappers.html#jaxl.envs.wrappers.wrapper.DefaultGymWrapper.reward_dim">reward_dim (jaxl.envs.wrappers.wrapper.DefaultGymWrapper property)</a>
 </li>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.rewards">rewards (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer.rewards">(jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer attribute)</a>
+</li>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer.rewards">(jaxl.buffers.ram_buffers.TransitionNumPyBuffer attribute)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.envs.html#jaxl.envs.rollouts.Rollout">Rollout (class in jaxl.envs.rollouts)</a>
 </li>
       <li><a href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.rollout">rollout() (jaxl.envs.rollouts.EvaluationRollout method)</a>
@@ -995,6 +1062,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.distributions.html#jaxl.distributions.transforms.TanhTransform">TanhTransform (class in jaxl.distributions.transforms)</a>
 </li>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.terminateds">terminateds (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer.terminateds">(jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer attribute)</a>
+</li>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer.terminateds">(jaxl.buffers.ram_buffers.TransitionNumPyBuffer attribute)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.html#jaxl.utils.to_jnp">to_jnp() (in module jaxl.utils)</a>
 </li>
       <li><a href="jaxl.html#jaxl.learning_utils.train">train() (in module jaxl.learning_utils)</a>
@@ -1013,6 +1088,14 @@
       </ul></li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer">TransitionNumPyBuffer (class in jaxl.buffers.ram_buffers)</a>
 </li>
+      <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.truncateds">truncateds (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer.truncateds">(jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer attribute)</a>
+</li>
+        <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer.truncateds">(jaxl.buffers.ram_buffers.TransitionNumPyBuffer attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1056,6 +1139,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.val_rms">val_rms (jaxl.learners.reinforcement.ReinforcementLearner property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="jaxl.html#jaxl.utils.RunningMeanStd.var">var (jaxl.utils.RunningMeanStd attribute)</a>
 </li>
   </ul></td>
 </tr></table>

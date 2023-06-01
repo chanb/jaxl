@@ -33,6 +33,15 @@ XXX: Extensions such as prioritized experience replay and hindsight experience r
 class AbstractNumPyBuffer(ReplayBuffer):
     """Abstract NumPy Buffer that extends the ``ReplayBuffer`` class."""
 
+    observations: chex.Array
+    hidden_states: chex.Array
+    actions: chex.Array
+    rewards: chex.Array
+    dones: chex.Array
+    terminateds: chex.Array
+    truncateds: chex.Array
+    infos: Dict
+
     def __init__(
         self,
         buffer_size: int,
@@ -774,6 +783,9 @@ class TransitionNumPyBuffer(AbstractNumPyBuffer):
 class MemoryEfficientNumPyBuffer(TransitionNumPyBuffer):
     """A memory efficient version of a ``TransitionNumPyBuffer``."""
 
+    next_observation: chex.Array
+    next_hidden_state: chex.Array
+
     def __init__(
         self,
         buffer_size: int,
@@ -911,6 +923,9 @@ class MemoryEfficientNumPyBuffer(TransitionNumPyBuffer):
 
 class NextStateNumPyBuffer(TransitionNumPyBuffer):
     """A version of a ``TransitionNumPyBuffer`` that explicitly keeps track of next states."""
+
+    next_observations: chex.Array
+    next_hidden_states: chex.Array
 
     def __init__(
         self,

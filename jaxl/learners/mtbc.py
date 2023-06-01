@@ -35,7 +35,10 @@ class MTBC(OfflineLearner):
     Naive Multitask Behavioural Cloning (BC) algorithm. This extends `OfflineLearner`.
     """
 
+    #: The running statistics for the observations.
     _obs_rms: Union[bool, RunningMeanStd]
+
+    #: Number of tasks
     _num_tasks: int
 
     def __init__(

@@ -7,6 +7,7 @@ import chex
 class MLPModule(nn.Module):
     """Multilayer Perceptron."""
 
+    # The number of hidden units in each hidden layer.
     layers: Sequence[int]
 
     @nn.compact

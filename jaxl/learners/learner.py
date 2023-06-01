@@ -25,11 +25,18 @@ class Learner(ABC):
     Abstract learner class.
     """
 
+    #: Replay buffer.
     _buffer: ReplayBuffer
+
+    #: The model to train.
     _model: Union[Model, Dict[str, Model]]
+
+    #: The optimizer to use.
     _optimizer: Union[
         optax.GradientTransformation, Dict[str, optax.GradientTransformation]
     ]
+
+    #: The model and optimizer states.
     _model_dict: Dict[str, Any]
 
     def __init__(
@@ -158,7 +165,10 @@ class OfflineLearner(Learner):
     Offline learner assumes the buffer to be fixed and has no interaction with any environments.
     """
 
+    #: The loss function to use.
     _loss: Callable[..., Tuple[chex.Array, Dict]]
+
+    #: The number of gradient steps per update call.
     _num_updates_per_epoch: int
 
     def __init__(
@@ -188,7 +198,10 @@ class OnlineLearner(Learner):
     Online learner assumes the buffer to be changing and interacts with an environment.
     """
 
+    #: The environment to interact with.
     _env: DefaultGymWrapper
+
+    #: The number of environment interactions per update call.
     _num_steps_per_epoch: int
 
     def __init__(

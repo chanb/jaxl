@@ -18,10 +18,19 @@ class ReinforcementLearner(OnlineLearner):
     This is the general learner for reinforcement learning agents.
     """
 
+    #: The frequency to perform model update.
     _update_frequency: int
+
+    #: Discount factor.
     _gamma: float
+
+    #: The running statistics for the value estimates (PopArt).
     _value_rms: Union[bool, RunningMeanStd]
+
+    #: The running statistics for the observations.
     _obs_rms: Union[bool, RunningMeanStd]
+
+    #: Strategy for interacting with the environment.
     _rollout: Rollout
 
     def __init__(
@@ -191,8 +200,14 @@ class OnPolicyLearner(ReinforcementLearner):
     This is the general learner for on-policy reinforcement learning agents.
     """
 
+    #: The number of model updates within an update call.
     _num_update_steps: int
+
+    #: The sampling indices when sampling from the buffer.
+    #: Often assumes consecutive indices.
     _sample_idxes: chex.Array
+
+    #: Uses purely the policy to interact with the environment.
     _rollout: StandardRollout
 
     def __init__(

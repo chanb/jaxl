@@ -25,6 +25,7 @@ class BC(SupervisedLearner):
     Behavioural Cloning (BC) algorithm. This extends `SupervisedLearner`.
     """
 
+    #: The running statistics for the observations.
     _obs_rms: Union[bool, RunningMeanStd]
 
     def __init__(
