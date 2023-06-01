@@ -40,11 +40,11 @@
         "task": "imitation_learning",
         "buffer_configs": [
             {
-                "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/10_episodes-env_seed_1.gzip",
+                "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/expert_data/10_episodes-env_seed_1.gzip",
                 "buffer_type": "default"
             },
             {
-                "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/10_episodes-env_seed_2.gzip",
+                "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/expert_data/10_episodes-env_seed_2.gzip",
                 "buffer_type": "default"
             }
         ],

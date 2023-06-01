@@ -86,8 +86,6 @@ make html​
 - Implement visualization code to compare policies
   - Check cosine similarity between policies' mean action
   - Check state-conditioned KL divergence between two policies
-- Implement multitask behavioural cloning (MTBC)
-  - Script for Compute Canada
 - Code to train MTBC on test set
 
 ## Long-term Modification
