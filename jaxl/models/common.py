@@ -430,12 +430,12 @@ class Policy(ABC):
         Tuple[chex.Array, chex.Array],
     ]
 
-    def __init__(self) -> None:
-        self.reset = jax.jit(self.make_reset())
+    def __init__(self, model: Model) -> None:
+        self.reset = jax.jit(self.make_reset(model))
 
     @abstractmethod
     def make_deterministic_action(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
@@ -443,8 +443,8 @@ class Policy(ABC):
         """
         Makes the function for taking deterministic action.
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the model
+        :type model: Model
         :return: a function for taking deterministic action
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
@@ -454,11 +454,13 @@ class Policy(ABC):
         """
         raise NotImplementedError
 
-    def make_reset(self, policy: Model) -> Callable[..., chex.Array]:
+    def make_reset(self, model: Model) -> Callable[..., chex.Array]:
         """
         Makes the function that resets the policy.
         This is often used for resetting the hidden state.
 
+        :param model: the model
+        :type model: Model
         :return: a function for initializing the hidden state
         :rtype: chex.Array
         """
@@ -470,7 +472,7 @@ class Policy(ABC):
             :return: a hidden state
             :rtype: chex.Array
             """
-            return self.policy.reset_h_state()
+            return model.reset_h_state()
 
         return _reset
 
@@ -491,7 +493,7 @@ class StochasticPolicy(Policy):
 
     @abstractmethod
     def make_random_action(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -504,8 +506,8 @@ class StochasticPolicy(Policy):
         """
         Makes the function for taking random action.
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the policy
+        :type model: Model
         :return: a function for taking random action
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
@@ -517,7 +519,7 @@ class StochasticPolicy(Policy):
 
     @abstractmethod
     def make_act_lprob(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -530,8 +532,8 @@ class StochasticPolicy(Policy):
         """
         Makes the function for taking random action and computing its log probability.
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the policy
+        :type model: Model
         :return: a function for taking random action and computing its log probability
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
@@ -543,7 +545,7 @@ class StochasticPolicy(Policy):
 
     @abstractmethod
     def make_lprob(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
@@ -551,8 +553,8 @@ class StochasticPolicy(Policy):
         """
         Makes the function for computing action log probability.
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the policy
+        :type model: Model
         :return: a function for computing action log probability
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],

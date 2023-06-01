@@ -132,7 +132,10 @@ def main(config: FlagValues):
         dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
     with open(
-        os.path.join(f"./export-generate_mtbc_num_tasks_variants-{config.exp_name}.dat"), "w+"
+        os.path.join(
+            f"./export-generate_mtbc_num_tasks_variants-{config.exp_name}.dat"
+        ),
+        "w+",
     ) as f:
         f.writelines(dat_content)
 

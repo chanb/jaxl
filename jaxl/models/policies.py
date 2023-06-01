@@ -11,15 +11,109 @@ from jaxl.distributions import Normal
 from jaxl.models.common import Model, Policy, StochasticPolicy
 
 
+class MultitaskPolicy(StochasticPolicy):
+    """Multitask Policy."""
+
+    # . The policy to use for interactions
+    policy_head: int
+
+    def __init__(self, policy: Policy, model: Model):
+        super().__init__(model)
+        self.policy = policy
+        self.policy_head = 0
+
+    def set_policy_head(self, task_idx: int):
+        """
+        Sets the policy to use.
+
+        :param task_int: the policy head index
+        :type task_int: int
+        """
+        self.policy_head = task_idx
+
+    def compute_action(
+        self,
+        params: Union[FrozenVariableDict, Dict[str, Any]],
+        obs: chex.Array,
+        h_state: chex.Array,
+        key: jrandom.PRNGKey,
+    ) -> Tuple[chex.Array, chex.Array]:
+        """
+        Compute action to take in environment.
+
+        :param params: the model parameters
+        :param obs: the observation
+        :param h_state: the hidden state
+        :param key: the random number generator key for sampling
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type obs: chex.Array
+        :type h_state: chex.Array
+        :type key: jrandom.PRNGKey
+        :return: an action and the next hidden state
+        :rtype: Tuple[chex.Array, chex.Array]
+
+        """
+        acts, h_states = self.policy.compute_action(params, obs, h_state, key)
+        return acts[:, self.policy_head], h_states[:, self.policy_head]
+
+    def deterministic_action(
+        self,
+        params: Union[FrozenVariableDict, Dict[str, Any]],
+        obs: chex.Array,
+        h_state: chex.Array,
+    ) -> Tuple[chex.Array, chex.Array]:
+        """
+        Compute deterministic action.
+
+        :param params: the model parameters
+        :param obs: the observation
+        :param h_state: the hidden state
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type obs: chex.Array
+        :type h_state: chex.Array
+        :return: an action and the next hidden state
+        :rtype: Tuple[chex.Array, chex.Array]
+
+        """
+        acts, h_states = self.policy.deterministic_action(params, obs, h_state)
+        return acts[:, self.policy_head], h_states[:, self.policy_head]
+
+    def random_action(
+        self,
+        params: Union[FrozenVariableDict, Dict[str, Any]],
+        obs: chex.Array,
+        h_state: chex.Array,
+        key: jrandom.PRNGKey,
+    ) -> Tuple[chex.Array, chex.Array]:
+        """
+        Compute random action.
+
+        :param params: the model parameters
+        :param obs: the observation
+        :param h_state: the hidden state
+        :param key: the random number generator key for sampling
+        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type obs: chex.Array
+        :type h_state: chex.Array
+        :type key: jrandom.PRNGKey
+        :return: an action and the next hidden state
+        :rtype: Tuple[chex.Array, chex.Array]
+
+        """
+        acts, h_states = self.policy.random_action(params, obs, h_state, key)
+        return acts[:, self.policy_head], h_states[:, self.policy_head]
+
+
 class DeterministicPolicy(Policy):
     """Deterministic Policy."""
 
-    def __init__(self, policy: Model):
-        self.compute_action = jax.jit(self.make_compute_action(policy))
-        self.deterministic_action = jax.jit(self.make_deterministic_action(policy))
+    def __init__(self, model: Model):
+        super().__init__(model)
+        self.compute_action = jax.jit(self.make_compute_action(model))
+        self.deterministic_action = jax.jit(self.make_deterministic_action(model))
 
     def make_compute_action(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -32,8 +126,8 @@ class DeterministicPolicy(Policy):
         """
         Makes the function for taking action during interaction
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the model
+        :type model: Model
         :return: a function for taking action during interaction
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
@@ -63,13 +157,13 @@ class DeterministicPolicy(Policy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act, h_state = policy.forward(params, obs, h_state)
+            act, h_state = model.forward(params, obs, h_state)
             return act, h_state
 
         return compute_action
 
     def make_deterministic_action(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
@@ -77,8 +171,8 @@ class DeterministicPolicy(Policy):
         """
         Makes the function for taking deterministic action.
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the model
+        :type model: Model
         :return: a function for taking deterministic action
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
@@ -93,7 +187,7 @@ class DeterministicPolicy(Policy):
             h_state: chex.Array,
         ) -> Tuple[chex.Array, chex.Array]:
             """
-            Compute action to take in environment.
+            Compute deterministic action.
 
             :param params: the model parameters
             :param obs: the observation
@@ -105,7 +199,7 @@ class DeterministicPolicy(Policy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act, h_state = policy.forward(params, obs, h_state)
+            act, h_state = model.forward(params, obs, h_state)
             return act, h_state
 
         return deterministic_action
@@ -116,18 +210,19 @@ class GaussianPolicy(StochasticPolicy):
 
     def __init__(
         self,
-        policy: Model,
+        model: Model,
         min_std: float = DEFAULT_MIN_STD,
     ):
+        super().__init__(model)
         self._min_std = min_std
-        self.deterministic_action = jax.jit(self.make_deterministic_action(policy))
-        self.random_action = jax.jit(self.make_random_action(policy))
-        self.compute_action = jax.jit(self.make_compute_action(policy))
-        self.act_lprob = jax.jit(self.make_act_lprob(policy))
-        self.lprob = jax.jit(self.make_lprob(policy))
+        self.deterministic_action = jax.jit(self.make_deterministic_action(model))
+        self.random_action = jax.jit(self.make_random_action(model))
+        self.compute_action = jax.jit(self.make_compute_action(model))
+        self.act_lprob = jax.jit(self.make_act_lprob(model))
+        self.lprob = jax.jit(self.make_lprob(model))
 
     def make_compute_action(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -140,8 +235,8 @@ class GaussianPolicy(StochasticPolicy):
         """
         Makes the function for taking action during interaction
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the model
+        :type model: Model
         :return: a function for taking action during interaction
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
@@ -171,7 +266,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = policy.forward(params, obs, h_state)
+            act_params, h_state = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = jax.nn.softplus(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -180,7 +275,7 @@ class GaussianPolicy(StochasticPolicy):
         return compute_action
 
     def make_deterministic_action(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
@@ -188,8 +283,8 @@ class GaussianPolicy(StochasticPolicy):
         """
         Makes the function for taking deterministic action.
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the model
+        :type model: Model
         :return: a function for taking deterministic action
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
@@ -204,7 +299,7 @@ class GaussianPolicy(StochasticPolicy):
             h_state: chex.Array,
         ) -> Tuple[chex.Array, chex.Array]:
             """
-            Compute action to take in environment.
+            Compute deterministic action.
 
             :param params: the model parameters
             :param obs: the observation
@@ -216,14 +311,14 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = policy.forward(params, obs, h_state)
+            act_params, h_state = model.forward(params, obs, h_state)
             act_mean, _ = jnp.split(act_params, 2, axis=-1)
             return act_mean, h_state
 
         return deterministic_action
 
     def make_random_action(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -236,8 +331,8 @@ class GaussianPolicy(StochasticPolicy):
         """
         Makes the function for taking random action.
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the model
+        :type model: Model
         :return: a function for taking random action
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
@@ -267,7 +362,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = policy.forward(params, obs, h_state)
+            act_params, h_state = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = jax.nn.softplus(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -276,7 +371,7 @@ class GaussianPolicy(StochasticPolicy):
         return random_action
 
     def make_act_lprob(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -289,8 +384,8 @@ class GaussianPolicy(StochasticPolicy):
         """
         Makes the function for taking random action and computing its log probability.
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the model
+        :type model: Model
         :return: a function for taking random action and computing its log probability
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
@@ -320,7 +415,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array, chex.Array]
 
             """
-            act_params, h_state = policy.forward(params, obs, h_state)
+            act_params, h_state = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = jax.nn.softplus(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -330,7 +425,7 @@ class GaussianPolicy(StochasticPolicy):
         return act_lprob
 
     def make_lprob(
-        self, policy: Model
+        self, model: Model
     ) -> Callable[
         [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
@@ -338,8 +433,8 @@ class GaussianPolicy(StochasticPolicy):
         """
         Makes the function for computing action log probability.
 
-        :param policy: the policy
-        :type policy: Model
+        :param model: the model
+        :type model: Model
         :return: a function for computing action log probability
         :rtype: Callable[
             [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
@@ -369,7 +464,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: chex.Array
 
             """
-            act_params, _ = policy.forward(params, obs, h_state)
+            act_params, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = jax.nn.softplus(act_raw_std) + self._min_std
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
