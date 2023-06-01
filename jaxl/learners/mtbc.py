@@ -369,7 +369,7 @@ class MTBC(OfflineLearner):
             aux[CONST_LOG][f"{CONST_PARAM_NORM}/pi_{task_i}"] = policy_param_norms[
                 task_i
             ].item()
-            aux[CONST_LOG][f"{CONST_PARAM_NORM}/pi_{task_i}"] = auxes[CONST_AUX][
+            aux[CONST_LOG][f"{CONST_GRAD_NORM}/pi_{task_i}"] = auxes[CONST_AUX][
                 CONST_GRAD_NORM
             ][CONST_POLICY][task_i].item()
 
