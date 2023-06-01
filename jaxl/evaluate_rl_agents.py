@@ -89,7 +89,7 @@ def main(
     model = get_model(input_dim, output_dim, agent_config.model_config)
     policy = get_policy(model, agent_config.learner_config)
 
-    run_path = os.path.join(run_path, "termination_model")
+    run_path = os.path.join(config.run_path, "termination_model")
     checkpointer = PyTreeCheckpointer()
     model_dict = checkpointer.restore(run_path)
     policy_params = model_dict[CONST_MODEL][CONST_POLICY]
@@ -97,6 +97,7 @@ def main(
         learner_dict = pickle.load(f)
         obs_rms = learner_dict[CONST_OBS_RMS]
 
+    env_seed = config.env_seed
     if env_seed is None:
         env_seed = agent_config.learner_config.seeds.env_seed
     rollout = EvaluationRollout(env, seed=env_seed)
