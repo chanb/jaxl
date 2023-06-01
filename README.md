@@ -81,12 +81,17 @@ sphinx-apidoc -f -o . ..
 make html​
 ```
 
-## TODO:
+## TODO
 - Update README as more implementation comes
 - Implement visualization code to compare policies
   - Check cosine similarity between policies' mean action
   - Check state-conditioned KL divergence between two policies
 - Implement multitask behavioural cloning
+
+## Long-term Modification
+- JAX implementation of the replay buffers
+- Revisit A2C, PPO, and MTBC for better loss construction.
+It seems to be using a different design pattern.
 
 ## Experiments
 - Generate train and test sets

@@ -193,10 +193,7 @@ class A2C(OnPolicyLearner):
 
             """
             (agg_loss, aux), grads = jax.value_and_grad(self._joint_loss, has_aux=True)(
-                {
-                    CONST_POLICY: model_dict[CONST_MODEL][CONST_POLICY],
-                    CONST_VF: model_dict[CONST_MODEL][CONST_VF],
-                },
+                model_dict[CONST_MODEL],
                 obss,
                 h_states,
                 acts,

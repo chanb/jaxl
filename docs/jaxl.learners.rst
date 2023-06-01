@@ -28,6 +28,14 @@ jaxl.learners.learner module
    :undoc-members:
    :show-inheritance:
 
+jaxl.learners.mtbc module
+-------------------------
+
+.. automodule:: jaxl.learners.mtbc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jaxl.learners.ppo module
 ------------------------
 

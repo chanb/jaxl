@@ -97,6 +97,8 @@
       <ul>
         <li><a href="jaxl.learners.html#jaxl.learners.learner.Learner.checkpoint">(jaxl.learners.learner.Learner method)</a>
 </li>
+        <li><a href="jaxl.learners.html#jaxl.learners.mtbc.MTBC.checkpoint">(jaxl.learners.mtbc.MTBC method)</a>
+</li>
         <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.OnPolicyLearner.checkpoint">(jaxl.learners.reinforcement.OnPolicyLearner method)</a>
 </li>
         <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.checkpoint">(jaxl.learners.reinforcement.ReinforcementLearner method)</a>
@@ -426,6 +428,13 @@
 </li>
       </ul></li>
       <li>
+    jaxl.learners.mtbc
+
+      <ul>
+        <li><a href="jaxl.learners.html#module-jaxl.learners.mtbc">module</a>
+</li>
+      </ul></li>
+      <li>
     jaxl.learners.ppo
 
       <ul>
@@ -551,16 +560,18 @@
         <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.load">(jaxl.buffers.ram_buffers.AbstractNumPyBuffer method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.learners.html#jaxl.learners.bc.BC.load_checkpoint">load_checkpoint() (jaxl.learners.bc.BC method)</a>
 
       <ul>
         <li><a href="jaxl.learners.html#jaxl.learners.learner.Learner.load_checkpoint">(jaxl.learners.learner.Learner method)</a>
 </li>
+        <li><a href="jaxl.learners.html#jaxl.learners.mtbc.MTBC.load_checkpoint">(jaxl.learners.mtbc.MTBC method)</a>
+</li>
         <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.load_checkpoint">(jaxl.learners.reinforcement.ReinforcementLearner method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.load_from_buffer_dict">load_from_buffer_dict() (jaxl.buffers.ram_buffers.AbstractNumPyBuffer method)</a>
 
       <ul>
@@ -648,6 +659,8 @@
       <li><a href="jaxl.learners.html#jaxl.learners.bc.BC.make_train_step">make_train_step() (jaxl.learners.bc.BC method)</a>
 
       <ul>
+        <li><a href="jaxl.learners.html#jaxl.learners.mtbc.MTBC.make_train_step">(jaxl.learners.mtbc.MTBC method)</a>
+</li>
         <li><a href="jaxl.learners.html#jaxl.learners.supervised.SupervisedLearner.make_train_step">(jaxl.learners.supervised.SupervisedLearner method)</a>
 </li>
       </ul></li>
@@ -713,6 +726,8 @@
 </li>
         <li><a href="jaxl.learners.html#module-jaxl.learners.learner">jaxl.learners.learner</a>
 </li>
+        <li><a href="jaxl.learners.html#module-jaxl.learners.mtbc">jaxl.learners.mtbc</a>
+</li>
         <li><a href="jaxl.learners.html#module-jaxl.learners.ppo">jaxl.learners.ppo</a>
 </li>
         <li><a href="jaxl.learners.html#module-jaxl.learners.reinforce">jaxl.learners.reinforce</a>
@@ -746,6 +761,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.losses.html#jaxl.losses.reinforcement.monte_carlo_returns">monte_carlo_returns() (in module jaxl.losses.reinforcement)</a>
 </li>
+      <li><a href="jaxl.learners.html#jaxl.learners.mtbc.MTBC">MTBC (class in jaxl.learners.mtbc)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -756,13 +773,15 @@
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.NextStateNumPyBuffer">NextStateNumPyBuffer (class in jaxl.buffers.ram_buffers)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.distributions.html#jaxl.distributions.distributions.Normal">Normal (class in jaxl.distributions.distributions)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.html#jaxl.utils.RunningMeanStd.normalize">normalize() (jaxl.utils.RunningMeanStd method)</a>
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.buffers.NoSampleError">NoSampleError</a>
+</li>
+      <li><a href="jaxl.learners.html#jaxl.learners.mtbc.MTBC.num_tasks">num_tasks (jaxl.learners.mtbc.MTBC property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -773,6 +792,8 @@
       <li><a href="jaxl.learners.html#jaxl.learners.bc.BC.obs_rms">obs_rms (jaxl.learners.bc.BC property)</a>
 
       <ul>
+        <li><a href="jaxl.learners.html#jaxl.learners.mtbc.MTBC.obs_rms">(jaxl.learners.mtbc.MTBC property)</a>
+</li>
         <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.obs_rms">(jaxl.learners.reinforcement.ReinforcementLearner property)</a>
 </li>
       </ul></li>
@@ -976,6 +997,8 @@
         <li><a href="jaxl.learners.html#jaxl.learners.bc.BC.update">(jaxl.learners.bc.BC method)</a>
 </li>
         <li><a href="jaxl.learners.html#jaxl.learners.learner.Learner.update">(jaxl.learners.learner.Learner method)</a>
+</li>
+        <li><a href="jaxl.learners.html#jaxl.learners.mtbc.MTBC.update">(jaxl.learners.mtbc.MTBC method)</a>
 </li>
         <li><a href="jaxl.learners.html#jaxl.learners.ppo.PPO.update">(jaxl.learners.ppo.PPO method)</a>
 </li>

@@ -261,6 +261,79 @@ Online learner assumes the buffer to be changing and interacts with an environme
 </dd></dl>
 
 </section>
+<section id="module-jaxl.learners.mtbc">
+<span id="jaxl-learners-mtbc-module"></span><h2>jaxl.learners.mtbc module<a class="headerlink" href="#module-jaxl.learners.mtbc" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxl.learners.mtbc.MTBC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.learners.mtbc.</span></span><span class="sig-name descname"><span class="pre">MTBC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.mtbc.MTBC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#jaxl.learners.learner.OfflineLearner" title="jaxl.learners.learner.OfflineLearner"><code class="xref py py-class docutils literal notranslate"><span class="pre">OfflineLearner</span></code></a></p>
+<p>Naive Multitask Behavioural Cloning (BC) algorithm. This extends <cite>OfflineLearner</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.mtbc.MTBC.checkpoint">
+<span class="sig-name descname"><span class="pre">checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.mtbc.MTBC.checkpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the current model state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>checkpoint_path</strong> (<em>str</em>) – directory path to store the checkpoint to</p></li>
+<li><p><strong>exist_ok</strong> (<em>bool</em><em> (</em><em>Default value = False</em><em>)</em>) – whether to overwrite the existing checkpoint path</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.mtbc.MTBC.load_checkpoint">
+<span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.mtbc.MTBC.load_checkpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a model state from a saved checkpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>checkpoint_path</strong> (<em>str</em>) – directory path to load the checkpoint from</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.mtbc.MTBC.make_train_step">
+<span class="sig-name descname"><span class="pre">make_train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.mtbc.MTBC.make_train_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the training step for model update.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.mtbc.MTBC.num_tasks">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_tasks</span></span><a class="headerlink" href="#jaxl.learners.mtbc.MTBC.num_tasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of tasks.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.mtbc.MTBC.obs_rms">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obs_rms</span></span><a class="headerlink" href="#jaxl.learners.mtbc.MTBC.obs_rms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Running statistics for observations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.mtbc.MTBC.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learners.mtbc.MTBC.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the policy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – </p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the update information</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-jaxl.learners.ppo">
 <span id="jaxl-learners-ppo-module"></span><h2>jaxl.learners.ppo module<a class="headerlink" href="#module-jaxl.learners.ppo" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
