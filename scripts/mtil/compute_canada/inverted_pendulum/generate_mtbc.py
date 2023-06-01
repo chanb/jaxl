@@ -5,8 +5,8 @@ python generate_mtbc.py \
     --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-mtbc.json \
     --exp_name=gravity-num_tasks_analysis \
     --run_seed=0 \
-    --datasets_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data \
-    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum \
+    --datasets_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data/gravity \
+    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/mtbc/ \
     --num_model_seeds=1 \
     --num_tasks_variants=2,4,8,16,32
 

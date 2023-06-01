@@ -7,8 +7,8 @@ python generate_expert_data.py \
     --exp_name=gravity \
     --run_seed=0 \
     --env_seed=42 \
-    --num_episodes=100 \
-    --buffer_size=1000
+    --num_episodes=10 \
+    --buffer_size=10000
 
 
 This will generate a dat file that consists of various runs.
@@ -59,8 +59,6 @@ flags.DEFINE_integer(
     "buffer_size", default=1000, help="Number of transitions to store", required=False
 )
 
-NUM_FILES_PER_DIRECTORY = 100
-
 
 def main(config: FlagValues):
     out_dir = os.path.join(config.out_dir, config.exp_name)
@@ -72,14 +70,10 @@ def main(config: FlagValues):
         for filename in filenames:
             if filename != "config.json":
                 continue
-            dir_i = str(num_runs // NUM_FILES_PER_DIRECTORY)
-            curr_run_dir = os.path.join(out_dir, dir_i)
-            if num_runs % NUM_FILES_PER_DIRECTORY:
-                os.makedirs(curr_run_dir, exist_ok=True)
 
             num_runs += 1
             run_path = os.path.join(root, filename)
-            save_path = os.path.join(curr_run_dir, os.path.basename(root))
+            save_path = os.path.join(out_dir, f"{os.path.basename(root)}.gzip")
             dat_content += (
                 "export buffer_size={} num_episodes={} env_seed={} run_seed={} ".format(
                     config.buffer_size,
