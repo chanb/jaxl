@@ -21,16 +21,16 @@
             "layers": [128]
         },
         "encoder_dim": [128],
-        "encoder_name": "representation",
-        "predictor_name": "policy"
+        "encoder_name": "encoder",
+        "predictor_name": "predictor"
     },
     "optimizer_config": {
-        "policy": {
+        "predictor": {
             "optimizer": "adam",
             "lr": 3e-4,
             "max_grad_norm": 10.0
         },
-        "representation": {
+        "encoder": {
             "optimizer": "adam",
             "lr": 3e-4,
             "max_grad_norm": 10.0

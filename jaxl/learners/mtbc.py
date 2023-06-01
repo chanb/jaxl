@@ -104,11 +104,11 @@ class MTBC(OfflineLearner):
             """
 
             reps, _ = jax.vmap(self._model.encode, in_axes=[None, 0, 0])(
-                model_dicts[CONST_REPRESENTATION], obss, h_states
+                model_dicts[CONST_ENCODER], obss, h_states
             )
 
             bc_loss, bc_aux = jax.vmap(self._pi_loss)(
-                model_dicts[CONST_POLICY],
+                model_dicts[CONST_PREDICTOR],
                 reps,
                 h_states,
                 acts,
@@ -188,24 +188,32 @@ class MTBC(OfflineLearner):
         ), "We expect the predictor to be an EnsembleModel"
 
         self._optimizer = {
-            CONST_POLICY: get_optimizer(self._optimizer_config.policy),
-            CONST_REPRESENTATION: get_optimizer(self._optimizer_config.representation),
+            CONST_POLICY: {
+                CONST_PREDICTOR: get_optimizer(self._optimizer_config.predictor),
+                CONST_ENCODER: get_optimizer(self._optimizer_config.encoder),
+            }
         }
 
         dummy_input = self._generate_dummy_x(input_dim)
-        params = self._model.init(
-            jrandom.PRNGKey(self._config.seeds.model_seed), dummy_input
-        )
+        params = {
+            CONST_POLICY: self._model.init(
+                jrandom.PRNGKey(self._config.seeds.model_seed), dummy_input
+            )
+        }
 
-        pi_opt_state = self._optimizer[CONST_POLICY].init(params[CONST_POLICY])
-        representation_opt_state = self._optimizer[CONST_REPRESENTATION].init(
-            params[CONST_REPRESENTATION]
+        predictor_opt_state = self._optimizer[CONST_POLICY][CONST_PREDICTOR].init(
+            params[CONST_POLICY][CONST_PREDICTOR]
+        )
+        encoder_opt_state = self._optimizer[CONST_POLICY][CONST_ENCODER].init(
+            params[CONST_POLICY][CONST_ENCODER]
         )
         self._model_dict = {
             CONST_MODEL: params,
             CONST_OPT_STATE: {
-                CONST_POLICY: pi_opt_state,
-                CONST_REPRESENTATION: representation_opt_state,
+                CONST_POLICY: {
+                    CONST_PREDICTOR: predictor_opt_state,
+                    CONST_ENCODER: encoder_opt_state,
+                }
             },
         }
 
@@ -239,45 +247,51 @@ class MTBC(OfflineLearner):
             :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
             """
             (agg_loss, aux), grads = jax.value_and_grad(self._loss, has_aux=True)(
-                model_dict[CONST_MODEL],
+                model_dict[CONST_MODEL][CONST_POLICY],
                 train_x,
                 train_carry,
                 train_y,
             )
             aux[CONST_AGG_LOSS] = agg_loss
             aux[CONST_GRAD_NORM] = {
-                CONST_POLICY: jax.vmap(l2_norm)(grads[CONST_POLICY]),
-                CONST_REPRESENTATION: l2_norm(grads[CONST_REPRESENTATION]),
+                CONST_PREDICTOR: jax.vmap(l2_norm)(grads[CONST_PREDICTOR]),
+                CONST_ENCODER: l2_norm(grads[CONST_ENCODER]),
             }
 
-            updates, pi_opt_state = self._optimizer[CONST_POLICY].update(
-                grads[CONST_POLICY],
-                model_dict[CONST_OPT_STATE][CONST_POLICY],
-                model_dict[CONST_MODEL][CONST_POLICY],
+            updates, predictor_opt_state = self._optimizer[CONST_POLICY][
+                CONST_PREDICTOR
+            ].update(
+                grads[CONST_PREDICTOR],
+                model_dict[CONST_OPT_STATE][CONST_POLICY][CONST_PREDICTOR],
+                model_dict[CONST_MODEL][CONST_POLICY][CONST_PREDICTOR],
             )
-            pi_params = optax.apply_updates(
-                model_dict[CONST_MODEL][CONST_POLICY], updates
+            predictor_params = optax.apply_updates(
+                model_dict[CONST_MODEL][CONST_POLICY][CONST_PREDICTOR], updates
             )
 
-            updates, representation_opt_state = self._optimizer[
-                CONST_REPRESENTATION
+            updates, encoder_opt_state = self._optimizer[CONST_POLICY][
+                CONST_ENCODER
             ].update(
-                grads[CONST_REPRESENTATION],
-                model_dict[CONST_OPT_STATE][CONST_REPRESENTATION],
-                model_dict[CONST_MODEL][CONST_REPRESENTATION],
+                grads[CONST_ENCODER],
+                model_dict[CONST_OPT_STATE][CONST_POLICY][CONST_ENCODER],
+                model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER],
             )
-            representation_params = optax.apply_updates(
-                model_dict[CONST_MODEL][CONST_REPRESENTATION], updates
+            encoder_params = optax.apply_updates(
+                model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER], updates
             )
 
             return {
                 CONST_MODEL: {
-                    CONST_POLICY: pi_params,
-                    CONST_REPRESENTATION: representation_params,
+                    CONST_POLICY: {
+                        CONST_PREDICTOR: predictor_params,
+                        CONST_ENCODER: encoder_params,
+                    }
                 },
                 CONST_OPT_STATE: {
-                    CONST_POLICY: pi_opt_state,
-                    CONST_REPRESENTATION: representation_opt_state,
+                    CONST_POLICY: {
+                        CONST_PREDICTOR: predictor_opt_state,
+                        CONST_ENCODER: encoder_opt_state,
+                    }
                 },
             }, aux
 
@@ -327,25 +341,25 @@ class MTBC(OfflineLearner):
         aux[CONST_LOG] = {
             f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
             f"time/{CONST_UPDATE_TIME}": total_update_time,
-            f"{CONST_PARAM_NORM}/representation": l2_norm(
-                self.model_dict[CONST_MODEL][CONST_REPRESENTATION]
+            f"{CONST_PARAM_NORM}/encoder": l2_norm(
+                self.model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER]
             ).item(),
-            f"{CONST_GRAD_NORM}/representation": auxes[CONST_AUX][CONST_GRAD_NORM][
-                CONST_REPRESENTATION
+            f"{CONST_GRAD_NORM}/encoder": auxes[CONST_AUX][CONST_GRAD_NORM][
+                CONST_ENCODER
             ].item(),
         }
 
-        policy_param_norms = jax.vmap(l2_norm)(
-            self.model_dict[CONST_MODEL][CONST_POLICY]
+        predictors_param_norm = jax.vmap(l2_norm)(
+            self.model_dict[CONST_MODEL][CONST_POLICY][CONST_PREDICTOR]
         )
 
         for task_i in range(self.num_tasks):
-            aux[CONST_LOG][f"{CONST_PARAM_NORM}/pi_{task_i}"] = policy_param_norms[
-                task_i
-            ].item()
-            aux[CONST_LOG][f"{CONST_GRAD_NORM}/pi_{task_i}"] = auxes[CONST_AUX][
+            aux[CONST_LOG][
+                f"{CONST_PARAM_NORM}/predictor_{task_i}"
+            ] = predictors_param_norm[task_i].item()
+            aux[CONST_LOG][f"{CONST_GRAD_NORM}/predictor_{task_i}"] = auxes[CONST_AUX][
                 CONST_GRAD_NORM
-            ][CONST_POLICY][task_i].item()
+            ][CONST_PREDICTOR][task_i].item()
 
             for loss_key in self._config.losses:
                 aux[CONST_LOG][f"losses/{loss_key}_{task_i}"] = auxes[CONST_AUX][

@@ -112,12 +112,12 @@ class EncoderPredictorModel(Model):
         :return: a hidden state
         :rtype: chex.Array
         """
-        return np.array(
+        return np.concatenate(
             [
                 self.encoder.reset_h_state().reshape(-1),
                 self.predictor.reset_h_state().reshape(-1),
             ],
-            dtype=np.float32,
+            axis=-1,
         )
 
     def make_forward(
