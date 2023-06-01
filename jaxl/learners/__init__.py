@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from jaxl.constants import *
 from jaxl.learners.learner import Learner
 from jaxl.learners.bc import BC
+from jaxl.learners.mtbc import MTBC
 from jaxl.learners.a2c import A2C
 from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE
@@ -64,6 +65,8 @@ def get_il_learner(
     ), f"{learner_config.learner} is not supported (one of {VALID_IL_LEARNER})"
     if learner_config.learner == CONST_BC:
         learner_constructor = BC
+    elif learner_config.learner == CONST_MTBC:
+        learner_constructor = MTBC
     else:
         raise NotImplementedError
 

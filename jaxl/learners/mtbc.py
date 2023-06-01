@@ -19,7 +19,6 @@ from jaxl.losses import get_loss_function, make_aggregate_loss
 from jaxl.models import (
     get_model,
     get_optimizer,
-    policy_output_dim,
 )
 from jaxl.utils import l2_norm, parse_dict, RunningMeanStd
 
@@ -49,9 +48,9 @@ class MTBC(OfflineLearner):
         self._obs_rms = False
 
         if getattr(config, CONST_OBS_RMS, False):
-            self._obs_rms = RunningMeanStd(shape=self._buffer[0].input_dim)
+            self._obs_rms = RunningMeanStd(shape=self._buffers[0].input_dim)
 
-            for buffer in self._buffer:
+            for buffer in self._buffers:
                 # We compute the statistics offline by iterating through the whole buffer once
                 num_batches = math.ceil(len(buffer) / self._config.batch_size)
                 last_batch_remainder = len(buffer) % self._config.batch_size
@@ -121,6 +120,11 @@ class MTBC(OfflineLearner):
         """Number of tasks."""
         return self._num_tasks
 
+    @property
+    def buffers(self):
+        """Per-task buffer."""
+        return self._buffers
+
     def _initialize_losses(self):
         """
         Construct the policy losses.
@@ -130,7 +134,7 @@ class MTBC(OfflineLearner):
         for loss, loss_setting in zip(self._config.losses, self._config.loss_settings):
             loss_setting_ns = parse_dict(loss_setting)
             losses[loss] = (
-                get_loss_function(self._model, loss, loss_setting_ns),
+                get_loss_function(self._model[CONST_POLICY], loss, loss_setting_ns),
                 loss_setting_ns.coefficient,
             )
         self._pi_loss = jax.jit(make_aggregate_loss(losses))
@@ -139,21 +143,22 @@ class MTBC(OfflineLearner):
         """
         Construct the buffers
         """
-        self._buffer = [
-            get_buffer(buffer_config, self._config.seeds.buffer_seed)
+        self._buffers = [
+            get_buffer(parse_dict(buffer_config), self._config.seeds.buffer_seed)
             for buffer_config in self._config.buffer_configs
         ]
-        input_dims = [buffer.input_dim for buffer in self._buffer]
-        output_dims = [buffer.output_dim for buffer in self._buffer]
-        assert all(
+        input_dims = [buffer.input_dim for buffer in self._buffers]
+        output_dims = [buffer.output_dim for buffer in self._buffers]
+        assert (
             input_dims[:-1] == input_dims[1:]
         ), "We assume the observation space to be the same for all tasks."
 
         # XXX: We should be able to relax this in the future.
-        assert all(
+        assert (
             output_dims[:-1] == output_dims[1:]
         ), "We assume the action space to be the same for all tasks."
-        self._num_tasks = len(self._buffer)
+        self._num_tasks = len(self._buffers)
+        self._buffer = self._buffers[0]
 
     def _generate_dummy_x(
         self, num_tasks: int, input_dim: chex.Array, representation_dim: chex.Array
@@ -187,11 +192,10 @@ class MTBC(OfflineLearner):
         :type output_dim: chex.Array
 
         """
-        act_dim = policy_output_dim(output_dim, self._config)
         representation_dim = self._model_config.representation_dim
         self._model = {
             CONST_POLICY: get_model(
-                representation_dim, act_dim, self._model_config.policy
+                representation_dim, output_dim, self._model_config.policy
             ),
             CONST_REPRESENTATION: get_model(
                 input_dim, representation_dim, self._model_config.representation
@@ -204,7 +208,7 @@ class MTBC(OfflineLearner):
         }
 
         model_keys = jrandom.split(
-            jrandom.PRNGKey(self._config.seeds.model_seed), num=len(self._buffer) + 1
+            jrandom.PRNGKey(self._config.seeds.model_seed), num=len(self._buffers) + 1
         )
         dummy_input, dummy_representation = self._generate_dummy_x(
             self.num_tasks, input_dim, representation_dim
@@ -325,7 +329,7 @@ class MTBC(OfflineLearner):
             all_h_states = []
             all_acts = []
 
-            for buffer in self.buffer:
+            for buffer in self._buffers:
                 obss, h_states, acts, _, _, _, _, _, _, _ = buffer.sample(
                     self._config.batch_size
                 )
@@ -345,7 +349,7 @@ class MTBC(OfflineLearner):
 
             auxes[-1][CONST_AUX] = aux
 
-        auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
+        auxes = jax.tree_util.tree_map(lambda *args: np.mean(args, axis=0), *auxes)
         aux[CONST_LOG] = {
             f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
             f"time/{CONST_UPDATE_TIME}": total_update_time,
@@ -360,6 +364,7 @@ class MTBC(OfflineLearner):
         policy_param_norms = jax.vmap(l2_norm)(
             self.model_dict[CONST_MODEL][CONST_POLICY]
         )
+
         for task_i in range(self.num_tasks):
             aux[CONST_LOG][f"{CONST_PARAM_NORM}/pi_{task_i}"] = policy_param_norms[
                 task_i

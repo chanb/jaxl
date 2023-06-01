@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/inverted_pendulum",
-        "experiment_name": "behavioural_cloning",
+        "experiment_name": "mtbc",
         "log_interval": 1,
         "checkpoint_interval": 500
     },
@@ -17,23 +17,36 @@
         "representation_dim": [128]
     },
     "optimizer_config": {
-        "optimizer": "sgd",
-        "lr": 3e-4,
-        "max_grad_norm": 10.0
+        "policy": {
+            "optimizer": "sgd",
+            "lr": 3e-4,
+            "max_grad_norm": 10.0
+        },
+        "representation": {
+            "optimizer": "sgd",
+            "lr": 3e-4,
+            "max_grad_norm": 10.0
+        }
     },
     "learner_config": {
         "task": "imitation_learning",
-        "buffer_config": {
-            "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/expert_data/100_episodes.gzip",
-            "buffer_type": "default"
-        },
+        "buffer_configs": [
+            {
+                "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/10_episodes-env_seed_1.gzip",
+                "buffer_type": "default"
+            },
+            {
+                "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/10_episodes-env_seed_2.gzip",
+                "buffer_type": "default"
+            }
+        ],
         "seeds": {
             "model_seed": 42,
             "buffer_seed": 42
         },
-        "learner": "bc",
+        "learner": "mtbc",
         "num_updates_per_epoch": 2048,
-        "batch_size": 128,
+        "batch_size": 64,
         "obs_rms": false,
         "losses": ["gaussian", "l2"],
         "loss_settings": [
