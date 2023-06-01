@@ -2,9 +2,9 @@
 
 Example command:
 python generate_expert_data.py \
-    --runs_dir=/Users/chanb/research/personal/jaxl/jaxl/logs/inverted_pendulum \
-    --out_dir=./test_code \
-    --exp_name=test_code \
+    --runs_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_models/gravity/runs \
+    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data \
+    --exp_name=gravity \
     --run_seed=0 \
     --env_seed=42 \
     --num_episodes=100 \
@@ -63,7 +63,8 @@ NUM_FILES_PER_DIRECTORY = 100
 
 
 def main(config: FlagValues):
-    os.makedirs(config.out_dir, exist_ok=True)
+    out_dir = os.path.join(config.out_dir, config.exp_name)
+    os.makedirs(out_dir, exist_ok=True)
 
     num_runs = 0
     dat_content = ""
@@ -72,7 +73,7 @@ def main(config: FlagValues):
             if filename != "config.json":
                 continue
             dir_i = str(num_runs // NUM_FILES_PER_DIRECTORY)
-            curr_run_dir = os.path.join(config.out_dir, dir_i)
+            curr_run_dir = os.path.join(out_dir, dir_i)
             if num_runs % NUM_FILES_PER_DIRECTORY:
                 os.makedirs(curr_run_dir, exist_ok=True)
 

@@ -3,7 +3,7 @@
 Example command:
 python generate_mtbc.py \
     --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-mtbc.json \
-    --exp_name=num_tasks_variants \
+    --exp_name=gravity-num_tasks_analysis \
     --run_seed=0 \
     --datasets_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data \
     --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum \
@@ -136,7 +136,7 @@ def main(config: FlagValues):
         dat_content += "config_path={}.json \n".format(out_path)
     with open(
         os.path.join(
-            f"./export-generate_mtbc_num_tasks_variants-{config.exp_name}.dat"
+            f"./export-generate_mtbc-{config.exp_name}.dat"
         ),
         "w+",
     ) as f:

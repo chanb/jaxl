@@ -1,11 +1,11 @@
 """ Script for generating experiment for multitask imitation learning
 
 Example command:
-python generate_expert_variants.py \
+python generate_experts.py \
     --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-generate_expert-reinforce.json \
-    --exp_name=expert_models \
+    --exp_name=gravity \
     --run_seed=0 \
-    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum \
+    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_models \
     --num_model_seeds=1 \
     --num_env_seeds=1 \
     --num_envs=100 \
@@ -148,7 +148,7 @@ def main(config: FlagValues):
         dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
     with open(
-        os.path.join(f"./export-generate_expert_variants-{config.exp_name}.dat"), "w+"
+        os.path.join(f"./export-generate_experts-{config.exp_name}.dat"), "w+"
     ) as f:
         f.writelines(dat_content)
 

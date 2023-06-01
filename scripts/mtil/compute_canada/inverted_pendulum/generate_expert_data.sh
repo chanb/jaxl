@@ -9,7 +9,7 @@
 module load python/3.9
 module load mujoco
 source ~/jaxl_env/bin/activate
-`sed -n "${SLURM_ARRAY_TASK_ID}p" < export-generate_expert_data-inverted_pendulum.dat`
+`sed -n "${SLURM_ARRAY_TASK_ID}p" < export-generate_expert_data-gravity.dat`
 echo ${SLURM_ARRAY_TASK_ID}
 
 echo "Current working directory is `pwd`"
