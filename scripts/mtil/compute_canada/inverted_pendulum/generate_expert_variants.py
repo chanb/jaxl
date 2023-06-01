@@ -3,12 +3,12 @@
 Example command:
 python generate_expert_variants.py \
     --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-generate_expert-reinforce.json \
-    --exp_name=inverted_pendulum \
+    --exp_name=expert_models \
     --run_seed=0 \
     --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum \
     --num_model_seeds=1 \
     --num_env_seeds=1 \
-    --num_envs=1000 \
+    --num_envs=100 \
     --min_gravity=-11.0 \
     --max_gravity=-9.0
 
@@ -85,7 +85,8 @@ def main(config: FlagValues):
     with open(config.config_template, "r") as f:
         template = json.load(f)
 
-    os.makedirs(config.out_dir, exist_ok=True)
+    out_dir = os.path.join(config.out_dir, config.exp_name)
+    os.makedirs(out_dir, exist_ok=True)
 
     assert (
         config.num_model_seeds > 0
@@ -116,10 +117,10 @@ def main(config: FlagValues):
         )
 
     # Standard template
-    template["logging_config"]["experiment_name"] = config.exp_name
+    template["logging_config"]["experiment_name"] = ""
 
-    base_script_dir = os.path.join(config.out_dir, "scripts")
-    base_run_dir = os.path.join(config.out_dir, "runs")
+    base_script_dir = os.path.join(out_dir, "scripts")
+    base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
     for idx, (env_seed, model_seed, gravity) in enumerate(
         itertools.product(env_seeds, model_seeds, gravities)
