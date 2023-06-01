@@ -61,6 +61,14 @@
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer">AbstractNumPyBuffer (class in jaxl.buffers.ram_buffers)</a>
 </li>
+      <li><a href="jaxl.models.html#jaxl.models.common.StochasticPolicy.act_lprob">act_lprob (jaxl.models.common.StochasticPolicy attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.act_lprob">(jaxl.models.policies.GaussianPolicy attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.actions">actions (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
 
       <ul>
@@ -69,8 +77,6 @@
         <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TransitionNumPyBuffer.actions">(jaxl.buffers.ram_buffers.TransitionNumPyBuffer attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.html#jaxl.utils.DummySummaryWriter.add_scalar">add_scalar() (jaxl.utils.DummySummaryWriter method)</a>
 </li>
       <li><a href="jaxl.html#jaxl.utils.DummySummaryWriter.add_scalars">add_scalars() (jaxl.utils.DummySummaryWriter method)</a>
@@ -645,6 +651,12 @@
         <li><a href="jaxl.distributions.html#jaxl.distributions.transforms.Transform.log_abs_det_jacobian">(jaxl.distributions.transforms.Transform static method)</a>
 </li>
       </ul></li>
+      <li><a href="jaxl.models.html#jaxl.models.common.StochasticPolicy.lprob">lprob (jaxl.models.common.StochasticPolicy attribute)</a>
+
+      <ul>
+        <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.lprob">(jaxl.models.policies.GaussianPolicy attribute)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.distributions.html#jaxl.distributions.distributions.Distribution.lprob">lprob() (jaxl.distributions.distributions.Distribution static method)</a>
 
       <ul>
@@ -659,12 +671,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.html#jaxl.evaluate_rl_agents.main">main() (in module jaxl.evaluate_rl_agents)</a>
 </li>
-      <li><a href="jaxl.models.html#jaxl.models.common.StochasticPolicy.make_act_lprob">make_act_lprob() (jaxl.models.common.StochasticPolicy method)</a>
-
-      <ul>
-        <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.make_act_lprob">(jaxl.models.policies.GaussianPolicy method)</a>
+      <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.make_act_lprob">make_act_lprob() (jaxl.models.policies.GaussianPolicy method)</a>
 </li>
-      </ul></li>
       <li><a href="jaxl.losses.html#jaxl.losses.make_aggregate_loss">make_aggregate_loss() (in module jaxl.losses)</a>
 </li>
       <li><a href="jaxl.models.html#jaxl.models.policies.DeterministicPolicy.make_compute_action">make_compute_action() (jaxl.models.policies.DeterministicPolicy method)</a>
@@ -675,11 +683,9 @@
       </ul></li>
       <li><a href="jaxl.losses.html#jaxl.losses.supervised.make_cross_entropy_loss">make_cross_entropy_loss() (in module jaxl.losses.supervised)</a>
 </li>
-      <li><a href="jaxl.models.html#jaxl.models.common.Policy.make_deterministic_action">make_deterministic_action() (jaxl.models.common.Policy method)</a>
+      <li><a href="jaxl.models.html#jaxl.models.policies.DeterministicPolicy.make_deterministic_action">make_deterministic_action() (jaxl.models.policies.DeterministicPolicy method)</a>
 
       <ul>
-        <li><a href="jaxl.models.html#jaxl.models.policies.DeterministicPolicy.make_deterministic_action">(jaxl.models.policies.DeterministicPolicy method)</a>
-</li>
         <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.make_deterministic_action">(jaxl.models.policies.GaussianPolicy method)</a>
 </li>
       </ul></li>
@@ -699,24 +705,16 @@
         <li><a href="jaxl.learners.html#jaxl.learners.ppo.PPO.make_joint_step">(jaxl.learners.ppo.PPO method)</a>
 </li>
       </ul></li>
-      <li><a href="jaxl.models.html#jaxl.models.common.StochasticPolicy.make_lprob">make_lprob() (jaxl.models.common.StochasticPolicy method)</a>
-
-      <ul>
-        <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.make_lprob">(jaxl.models.policies.GaussianPolicy method)</a>
+      <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.make_lprob">make_lprob() (jaxl.models.policies.GaussianPolicy method)</a>
 </li>
-      </ul></li>
       <li><a href="jaxl.learners.html#jaxl.learners.reinforce.REINFORCE.make_policy_step">make_policy_step() (jaxl.learners.reinforce.REINFORCE method)</a>
 </li>
       <li><a href="jaxl.losses.html#jaxl.losses.reinforcement.make_ppo_pi_loss">make_ppo_pi_loss() (in module jaxl.losses.reinforcement)</a>
 </li>
       <li><a href="jaxl.losses.html#jaxl.losses.reinforcement.make_ppo_vf_loss">make_ppo_vf_loss() (in module jaxl.losses.reinforcement)</a>
 </li>
-      <li><a href="jaxl.models.html#jaxl.models.common.StochasticPolicy.make_random_action">make_random_action() (jaxl.models.common.StochasticPolicy method)</a>
-
-      <ul>
-        <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.make_random_action">(jaxl.models.policies.GaussianPolicy method)</a>
+      <li><a href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.make_random_action">make_random_action() (jaxl.models.policies.GaussianPolicy method)</a>
 </li>
-      </ul></li>
       <li><a href="jaxl.losses.html#jaxl.losses.reinforcement.make_reinforce_loss">make_reinforce_loss() (in module jaxl.losses.reinforcement)</a>
 </li>
       <li><a href="jaxl.models.html#jaxl.models.common.Policy.make_reset">make_reset() (jaxl.models.common.Policy method)</a>

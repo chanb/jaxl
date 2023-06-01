@@ -11,16 +11,17 @@ from jaxl.distributions import Normal
 from jaxl.models.common import Model, Policy, StochasticPolicy
 
 
-class MultitaskPolicy(StochasticPolicy):
+class MultitaskPolicy(Policy):
     """Multitask Policy."""
 
     # . The policy to use for interactions
     policy_head: int
 
-    def __init__(self, policy: Policy, model: Model):
+    def __init__(self, policy: Policy, model: Model, num_tasks: int):
         super().__init__(model)
         self.policy = policy
         self.policy_head = 0
+        self.num_tasks = num_tasks
 
     def set_policy_head(self, task_idx: int):
         """
@@ -29,6 +30,9 @@ class MultitaskPolicy(StochasticPolicy):
         :param task_int: the policy head index
         :type task_int: int
         """
+        assert (
+            0 <= task_idx < self.num_tasks
+        ), f"task_idx {task_idx} needs to be from 0 to {self.num_tasks}"
         self.policy_head = task_idx
 
     def compute_action(
@@ -54,7 +58,7 @@ class MultitaskPolicy(StochasticPolicy):
 
         """
         acts, h_states = self.policy.compute_action(params, obs, h_state, key)
-        return acts[:, self.policy_head], h_states[:, self.policy_head]
+        return acts[self.policy_head], h_states[self.policy_head]
 
     def deterministic_action(
         self,
@@ -76,7 +80,7 @@ class MultitaskPolicy(StochasticPolicy):
 
         """
         acts, h_states = self.policy.deterministic_action(params, obs, h_state)
-        return acts[:, self.policy_head], h_states[:, self.policy_head]
+        return acts[self.policy_head], h_states[self.policy_head]
 
     def random_action(
         self,
@@ -101,7 +105,7 @@ class MultitaskPolicy(StochasticPolicy):
 
         """
         acts, h_states = self.policy.random_action(params, obs, h_state, key)
-        return acts[:, self.policy_head], h_states[:, self.policy_head]
+        return acts[self.policy_head], h_states[self.policy_head]
 
 
 class DeterministicPolicy(Policy):

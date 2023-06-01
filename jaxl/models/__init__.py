@@ -1,4 +1,3 @@
-from flax import linen as nn
 from types import SimpleNamespace
 
 import chex
@@ -6,7 +5,7 @@ import optax
 
 from jaxl.constants import *
 from jaxl.models.common import MLP, Model, Policy, EnsembleModel, EncoderPredictorModel
-from jaxl.models.policies import DeterministicPolicy, GaussianPolicy, MultitaskPolicy
+from jaxl.models.policies import DeterministicPolicy, GaussianPolicy
 
 
 """
@@ -77,7 +76,9 @@ def get_model(
             getattr(model_config, "output_dim", output_dim),
             model_config.model,
         )
-        return EnsembleModel(model, model_config.num_models)
+        return EnsembleModel(
+            model, model_config.num_models, getattr(model_config, "vmap_all", True)
+        )
     else:
         raise NotImplementedError
 
@@ -97,9 +98,6 @@ def get_policy(model: Model, config: SimpleNamespace) -> Policy:
     assert (
         config.policy_distribution in VALID_POLICY_DISTRIBUTION
     ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
-
-    if isinstance(model, EnsembleModel):
-        return MultitaskPolicy(get_policy(model, config), model)
 
     if config.policy_distribution == CONST_GAUSSIAN:
         return GaussianPolicy(model, getattr(config, CONST_MIN_STD, DEFAULT_MIN_STD))

@@ -72,14 +72,6 @@ class EncoderPredictorModel(Model):
         self.predictor_name = predictor_name
         self.encoder = encoder
         self.predictor = predictor
-        self._h_state_shapes = (
-            self.encoder.reset_h_state().shape,
-            self.predictor.reset_h_state().shape,
-        )
-        self._flattened_h_states_shape = (
-            self.encoder.reset_h_state().size,
-            self.predictor.reset_h_state().size,
-        )
         self.forward = jax.jit(self.make_forward())
         self.encode = jax.jit(self.make_encode())
 
@@ -112,13 +104,7 @@ class EncoderPredictorModel(Model):
         :return: a hidden state
         :rtype: chex.Array
         """
-        return np.concatenate(
-            [
-                self.encoder.reset_h_state().reshape(-1),
-                self.predictor.reset_h_state().reshape(-1),
-            ],
-            axis=-1,
-        )
+        return self.encoder.reset_h_state()
 
     def make_forward(
         self,
@@ -162,28 +148,17 @@ class EncoderPredictorModel(Model):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            carry_shape = carry.shape[:-1]
-            repr, repr_carry = self.encoder.forward(
+            repr, _ = self.encoder.forward(
                 params[self.encoder_name],
                 input,
-                carry[..., : self._flattened_h_states_shape[0]].reshape(
-                    (*carry_shape, *self._h_state_shapes[0])
-                ),
+                carry,
             )
             pred, pred_carry = self.predictor.forward(
                 params[self.predictor_name],
                 repr,
-                carry[..., self._flattened_h_states_shape[0] :].reshape(
-                    (*carry_shape, *self._h_state_shapes[1])
-                ),
+                carry,
             )
-            carry = np.concatenate(
-                (
-                    repr_carry.reshape((*carry_shape, -1)),
-                    pred_carry.reshape((*carry_shape, -1)),
-                ),
-                axis=-1,
-            )
+            carry = pred_carry
 
             return pred, carry
 
@@ -231,13 +206,10 @@ class EncoderPredictorModel(Model):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            carry_shape = carry.shape[:-1]
             repr, repr_carry = self.encoder.forward(
                 params,
                 input,
-                carry[..., : self._flattened_h_states_shape[0]].reshape(
-                    (*carry_shape, *self._h_state_shapes[0])
-                ),
+                carry,
             )
             return repr, repr_carry
 
@@ -253,10 +225,10 @@ class EnsembleModel(Model):
     #: Number of models in the ensemble.
     num_models: int
 
-    def __init__(self, model: Model, num_models: int) -> None:
+    def __init__(self, model: Model, num_models: int, vmap_all: bool = True) -> None:
         self.model = model
         self.num_models = num_models
-        self.forward = jax.jit(self.make_forward())
+        self.forward = jax.jit(self.make_forward(vmap_all))
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
@@ -283,6 +255,7 @@ class EnsembleModel(Model):
 
     def make_forward(
         self,
+        vmap_all: bool,
     ) -> Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
@@ -294,7 +267,9 @@ class EnsembleModel(Model):
         """
         Makes the forward call of the ensemble model.
 
-        :return: the forward call.
+        :param vmap_all: whether or not to vmap all inputs
+        :type vmap_all: bool
+        :return: the forward call
         :rtype: Callable[
             [
                 Union[FrozenVariableDict, Dict[str, Any]],
@@ -304,6 +279,8 @@ class EnsembleModel(Model):
             Tuple[chex.Array, chex.Array],
         ]
         """
+
+        in_axes = [0, 0, 0] if vmap_all else [0, None, None]
 
         def forward(
             params: Union[FrozenVariableDict, Dict[str, Any]],
@@ -323,7 +300,9 @@ class EnsembleModel(Model):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            pred, carry = jax.vmap(self.model.forward)(params, input, carry)
+            pred, carry = jax.vmap(self.model.forward, in_axes=in_axes)(
+                params, input, carry
+            )
             return pred, carry
 
         return forward
@@ -433,27 +412,6 @@ class Policy(ABC):
     def __init__(self, model: Model) -> None:
         self.reset = jax.jit(self.make_reset(model))
 
-    @abstractmethod
-    def make_deterministic_action(
-        self, model: Model
-    ) -> Callable[
-        [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
-        Tuple[chex.Array, chex.Array],
-    ]:
-        """
-        Makes the function for taking deterministic action.
-
-        :param model: the model
-        :type model: Model
-        :return: a function for taking deterministic action
-        :rtype: Callable[
-            [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
-            Tuple[chex.Array, chex.Array],
-        ]
-
-        """
-        raise NotImplementedError
-
     def make_reset(self, model: Model) -> Callable[..., chex.Array]:
         """
         Makes the function that resets the policy.
@@ -491,36 +449,8 @@ class StochasticPolicy(Policy):
         Tuple[chex.Array, chex.Array],
     ]
 
-    @abstractmethod
-    def make_random_action(
-        self, model: Model
-    ) -> Callable[
-        [
-            Union[FrozenVariableDict, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-            jrandom.PRNGKey,
-        ],
-        Tuple[chex.Array, chex.Array],
-    ]:
-        """
-        Makes the function for taking random action.
-
-        :param model: the policy
-        :type model: Model
-        :return: a function for taking random action
-        :rtype: Callable[
-            [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
-            Tuple[chex.Array, chex.Array],
-        ]
-
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def make_act_lprob(
-        self, model: Model
-    ) -> Callable[
+    # . Compute action and its log probability.
+    act_lprob: Callable[
         [
             Union[FrozenVariableDict, Dict[str, Any]],
             chex.Array,
@@ -528,38 +458,10 @@ class StochasticPolicy(Policy):
             jrandom.PRNGKey,
         ],
         Tuple[chex.Array, chex.Array, chex.Array],
-    ]:
-        """
-        Makes the function for taking random action and computing its log probability.
+    ]
 
-        :param model: the policy
-        :type model: Model
-        :return: a function for taking random action and computing its log probability
-        :rtype: Callable[
-            [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
-            Tuple[chex.Array, chex.Array, chex.Array],
-        ]
-
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def make_lprob(
-        self, model: Model
-    ) -> Callable[
+    # . Compute action log probability.
+    lprob: Callable[
         [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
-    ]:
-        """
-        Makes the function for computing action log probability.
-
-        :param model: the policy
-        :type model: Model
-        :return: a function for computing action log probability
-        :rtype: Callable[
-            [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
-            chex.Array,
-        ]
-
-        """
-        raise NotImplementedError
+    ]
