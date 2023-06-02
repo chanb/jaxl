@@ -1,7 +1,7 @@
 """ Script for generating (number of tasks) experiment for multitask BC
 
 Example command:
-python generate_mtbc.py \
+python generate_train_mtbc.py \
     --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-mtbc.json \
     --exp_name=gravity-num_tasks_analysis \
     --run_seed=0 \
@@ -135,7 +135,7 @@ def main(config: FlagValues):
         dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
     with open(
-        os.path.join(f"./export-generate_mtbc-{config.exp_name}.dat"),
+        os.path.join(f"./export-generate_train_mtbc-{config.exp_name}.dat"),
         "w+",
     ) as f:
         f.writelines(dat_content)
