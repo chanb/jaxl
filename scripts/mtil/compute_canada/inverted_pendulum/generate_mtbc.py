@@ -58,7 +58,7 @@ flags.DEFINE_integer(
 )
 flags.DEFINE_list(
     "num_tasks_variants",
-    default=[2],
+    default=None,
     help="A list of number of tasks",
     required=True,
 )
@@ -77,7 +77,7 @@ def main(config: FlagValues):
     os.makedirs(out_dir, exist_ok=True)
 
     datasets_path = [
-        os.path.join(config.dataasets_dir, dataset_path)
+        os.path.join(config.datasets_dir, dataset_path)
         for dataset_path in os.listdir(config.datasets_dir)
         if dataset_path.endswith(".gzip")
     ]
@@ -124,7 +124,7 @@ def main(config: FlagValues):
             }
             for task_i in range(num_tasks)
         ]
-        template["model_config"]["predictor"]["num_models"] = num_tasks
+        template["model_config"]["predictor"]["num_models"] = int(num_tasks)
         template["logging_config"]["save_path"] = curr_run_dir
         template["logging_config"]["experiment_name"] = f"num_tasks_{num_tasks}"
 
