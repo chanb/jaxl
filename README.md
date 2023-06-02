@@ -86,7 +86,6 @@ make html​
 - Implement visualization code to compare policies
   - Check cosine similarity between policies' mean action
   - Check state-conditioned KL divergence between two policies
-- Code to train MTBC on test set
 
 ## Long-term Modification
 - JAX implementation of the replay buffers
@@ -94,8 +93,3 @@ make html​
 It seems to be using a different design pattern.
 - Revisit how we construct models and optimizers.
 There should be a more elegant way.
-
-## Experiments
-- Generate train and test sets
-  - Generate expert for test set
-  - Generate BC policy for test set
