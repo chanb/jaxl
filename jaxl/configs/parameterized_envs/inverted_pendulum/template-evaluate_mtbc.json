@@ -64,7 +64,7 @@
             }
         ],
         "load_encoder": "/Users/chanb/research/personal/jaxl/jaxl/logs/inverted_pendulum/mtbc/06-01-23_14_07_35-341bb3c2-fa40-4922-a820-38534e6821af/termination_model",
-        "learn_encoder": true
+        "learn_encoder": false
     },
     "train_config": {
         "num_epochs": 10000
