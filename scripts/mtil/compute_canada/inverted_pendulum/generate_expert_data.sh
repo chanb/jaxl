@@ -17,7 +17,7 @@ echo "Running on hostname `hostname`"
 
 echo "Starting run at: `date`"
 python3 /home/chanb/scratch/jaxl/jaxl/evaluate_rl_agents.py \
-  --save_path=${save_path} \
+  --save_buffer=${save_buffer} \
   --run_path=${run_path} \
   --run_seed=${run_seed} \
   --env_seed=${env_seed} \

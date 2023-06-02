@@ -5,6 +5,7 @@ from jaxl.constants.losses import *
 from jaxl.constants.models import *
 from jaxl.constants.optimizers import *
 
+CONST_BUFFER_PATH = "buffer_path"
 CONST_CONFIG = "config"
 CONST_HYPERPARAMETERS = "hyperparameters"
 CONST_MODEL_DICT = "model_dict"
@@ -15,6 +16,7 @@ CONST_TRAIN = "train"
 CONST_VALIDATION = "validation"
 CONST_VAL_PREDS = "validation_predictions"
 CONST_LOG = "log"
+CONST_RUN_PATH = "run_path"
 CONST_SCALAR = "scalar"
 CONST_SCALARS = "scalars"
 

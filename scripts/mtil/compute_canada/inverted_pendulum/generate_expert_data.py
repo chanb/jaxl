@@ -74,7 +74,7 @@ def main(config: FlagValues):
             num_runs += 1
             run_path = root
             save_id = os.path.basename(os.path.abspath(os.path.join(root, os.pardir)))
-            save_path = os.path.join(
+            save_buffer = os.path.join(
                 out_dir, f"{save_id}-{os.path.basename(root)}.gzip"
             )
             dat_content += (
@@ -85,7 +85,7 @@ def main(config: FlagValues):
                     config.run_seed,
                 )
             )
-            dat_content += "save_path={} run_path={}\n".format(save_path, run_path)
+            dat_content += "save_buffer={} run_path={}\n".format(save_buffer, run_path)
     with open(
         os.path.join(f"./export-generate_expert_data-{config.exp_name}.dat"), "w+"
     ) as f:

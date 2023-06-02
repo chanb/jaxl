@@ -10,11 +10,21 @@ import _pickle as pickle
 import jax
 import json
 import logging
+import numpy as np
 import os
 import timeit
 
 from jaxl.buffers import get_buffer
-from jaxl.constants import CONST_DEFAULT, CONST_MODEL, CONST_OBS_RMS, CONST_POLICY
+from jaxl.constants import (
+    CONST_DEFAULT,
+    CONST_MODEL,
+    CONST_OBS_RMS,
+    CONST_POLICY,
+    CONST_EPISODE_LENGTHS,
+    CONST_EPISODIC_RETURNS,
+    CONST_RUN_PATH,
+    CONST_BUFFER_PATH,
+)
 from jaxl.models import (
     get_model,
     get_policy,
@@ -32,7 +42,13 @@ flags.DEFINE_integer(
     "num_episodes", default=None, help="Number of evaluation episodes", required=True
 )
 flags.DEFINE_string(
-    "save_path",
+    "save_stats",
+    default=None,
+    help="Where to save the episodic statistics",
+    required=False,
+)
+flags.DEFINE_string(
+    "save_buffer",
     default=None,
     help="Where to save the evaluation episodes",
     required=False,
@@ -102,11 +118,29 @@ def main(
         env_seed = agent_config.learner_config.seeds.env_seed
     rollout = EvaluationRollout(env, seed=env_seed)
     rollout.rollout(policy_params, policy, obs_rms, config.num_episodes, buffer)
-    if config.save_path:
+    if config.save_buffer:
         print("Saving buffer with {} transitions".format(len(buffer)))
-        buffer.save(config.save_path)
+        buffer.save(config.save_buffer)
+
+    if config.save_stats:
+        print("Saving episodic statistics")
+        with open(config.save_stats, "wb") as f:
+            pickle.dump(
+                {
+                    CONST_EPISODIC_RETURNS: rollout.episodic_returns,
+                    CONST_EPISODE_LENGTHS: rollout.episode_lengths,
+                    CONST_RUN_PATH: config.run_path,
+                    CONST_BUFFER_PATH: config.save_buffer,
+                },
+                f,
+            )
 
     toc = timeit.default_timer()
+    print(
+        "Expected return: {} -- Expected episode length: {}".format(
+            np.mean(rollout.episodic_returns), np.mean(rollout.episode_lengths)
+        )
+    )
     print(f"Evaluation Time: {toc - tic}s")
 
 

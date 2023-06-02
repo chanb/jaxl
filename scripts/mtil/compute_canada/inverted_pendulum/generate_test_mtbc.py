@@ -123,7 +123,9 @@ def main(config: FlagValues):
         template["learner_config"]["load_encoder"] = os.path.join(
             run_path, "termination_model"
         )
-        template["learner_config"]["buffer_configs"][0]["load_buffer"] = config.test_data_path
+        template["learner_config"]["buffer_configs"][0][
+            "load_buffer"
+        ] = config.test_data_path
         template["logging_config"]["save_path"] = curr_run_dir
         template["logging_config"]["experiment_name"] = f"num_tasks_{num_tasks}"
 
