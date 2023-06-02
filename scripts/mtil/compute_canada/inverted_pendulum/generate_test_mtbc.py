@@ -1,14 +1,14 @@
 """ Script for generating (number of tasks) experiment for multitask BC
 
 Example command:
-python generate_train_mtbc.py \
-    --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-train_mtbc.json \
+python generate_test_mtbc.py \
+    --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-test_mtbc.json \
     --exp_name=gravity-num_tasks_analysis \
     --run_seed=0 \
-    --datasets_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data/gravity \
+    --test_data_path=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data/gravity/gravity_-10.988583914280802-06-01-23_21_01_11-262882ac-38ca-4f20-8fe5-a7351d7ef595.gzip \
+    --runs_path=/home/chanb/scratch/jaxl/data/inverted_pendulum/train_mtbc/gravity-num_tasks_analysis/runs \
     --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/train_mtbc/ \
-    --num_model_seeds=1 \
-    --num_tasks_variants=1,2,4,8,16,32,64
+    --num_model_seeds=1
 
 
 This will generate a dat file that consists of various runs.
@@ -39,9 +39,15 @@ flags.DEFINE_string(
 )
 flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=True)
 flags.DEFINE_string(
-    "datasets_dir",
+    "test_data_path",
     default=None,
-    help="The directory to load the expert data from (not recursively)",
+    help="Path to load the expert data from",
+    required=True,
+)
+flags.DEFINE_string(
+    "runs_dir",
+    default=None,
+    help="Directory to load the saved representations from (recursively)",
     required=True,
 )
 flags.DEFINE_string(
@@ -54,12 +60,6 @@ flags.DEFINE_integer(
     "num_model_seeds",
     default=None,
     help="The number of seeds for initializing model parameters",
-    required=True,
-)
-flags.DEFINE_list(
-    "num_tasks_variants",
-    default=None,
-    help="A list of number of tasks",
     required=True,
 )
 
@@ -76,15 +76,9 @@ def main(config: FlagValues):
     out_dir = os.path.join(config.out_dir, config.exp_name)
     os.makedirs(out_dir, exist_ok=True)
 
-    datasets_path = [
-        os.path.join(config.datasets_dir, dataset_path)
-        for dataset_path in os.listdir(config.datasets_dir)
-        if dataset_path.endswith(".gzip")
-    ]
-
-    assert (
-        len(datasets_path) > 0
-    ), f"need at least one dataset, got {len(datasets_path)}"
+    assert os.path.isfile(
+        config.test_data_path
+    ), f"expert dataset path {config.test_data_path} not found"
 
     assert (
         config.num_model_seeds > 0
@@ -94,10 +88,18 @@ def main(config: FlagValues):
         if len(model_seeds) == len(np.unique(model_seeds)):
             break
 
-    num_tasks_variants = np.array(
-        [int(num_tasks) for num_tasks in config.num_tasks_variants]
-    )
-    assert np.all(num_tasks_variants > 0), f"need at least one task for MTBC"
+    runs_info = []
+    for root, _, filenames in os.walk(config.runs_dir):
+        for filename in filenames:
+            if filename != "config.json":
+                continue
+
+            num_runs += 1
+            run_path = root
+            with open(os.path.join(root, filename), "r") as f:
+                curr_run_config = json.load(f)
+                num_tasks = len(curr_run_config["learner_config"]["buffer_configs"])
+            runs_info.append((run_path, num_tasks))
 
     # Standard template
     template["logging_config"]["experiment_name"] = ""
@@ -105,9 +107,10 @@ def main(config: FlagValues):
     base_script_dir = os.path.join(out_dir, "scripts")
     base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
-    for idx, (model_seed, num_tasks) in enumerate(
-        itertools.product(model_seeds, num_tasks_variants)
+    for idx, (model_seed, run_info) in enumerate(
+        itertools.product(model_seeds, runs_info)
     ):
+        (run_path, num_tasks) = run_info
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
         curr_run_dir = os.path.join(base_run_dir, dir_i)
@@ -117,14 +120,9 @@ def main(config: FlagValues):
 
         variant = f"variant-model_seed_{model_seed}-num_tasks_{num_tasks}"
         template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
-        template["learner_config"]["buffer_configs"] = [
-            {
-                "load_buffer": datasets_path[task_i],
-                "buffer_type": "default",
-            }
-            for task_i in range(num_tasks)
-        ]
-        template["model_config"]["predictor"]["num_models"] = int(num_tasks)
+        template["learner_config"]["load_encoder"] = os.path.join(
+            run_path, "termination_model"
+        )
         template["logging_config"]["save_path"] = curr_run_dir
         template["logging_config"]["experiment_name"] = f"num_tasks_{num_tasks}"
 
@@ -135,7 +133,7 @@ def main(config: FlagValues):
         dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
     with open(
-        os.path.join(f"./export-generate_train_mtbc-{config.exp_name}.dat"),
+        os.path.join(f"./export-generate_test_mtbc-{config.exp_name}.dat"),
         "w+",
     ) as f:
         f.writelines(dat_content)
