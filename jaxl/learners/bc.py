@@ -210,13 +210,3 @@ class BC(SupervisedLearner):
         with open(os.path.join(checkpoint_path, "learner_dict.pkl"), "rb") as f:
             learner_dict = pickle.load(f)
             self._obs_rms = learner_dict[CONST_OBS_RMS]
-
-
-class BCFrozenRepresentation(BC):
-    def __init__(
-        self,
-        config: SimpleNamespace,
-        model_config: SimpleNamespace,
-        optimizer_config: SimpleNamespace,
-    ):
-        super().__init__(config, model_config, optimizer_config)

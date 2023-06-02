@@ -155,19 +155,21 @@ class MTBC(OfflineLearner):
         ]
         input_dims = [buffer.input_dim for buffer in self._buffers]
         output_dims = [buffer.output_dim for buffer in self._buffers]
-        assert (
-            input_dims[:-1] == input_dims[1:]
-        ), "We assume the observation space to be the same for all tasks."
 
-        # XXX: We should be able to relax this in the future.
-        assert (
-            output_dims[:-1] == output_dims[1:]
-        ), "We assume the action space to be the same for all tasks."
         self._num_tasks = len(self._buffers)
         self._buffer = self._buffers[0]
         assert (
             self._num_tasks == self._model_config.predictor.num_models
         ), "Number of policies should be identical to number of tasks (i.e. buffers)."
+        if len(self._buffers) > 1:
+            assert (
+                input_dims[:-1] == input_dims[1:]
+            ), "We assume the observation space to be the same for all tasks."
+
+            # XXX: We should be able to relax this in the future.
+            assert (
+                output_dims[:-1] == output_dims[1:]
+            ), "We assume the action space to be the same for all tasks."
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
         """
