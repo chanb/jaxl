@@ -73,7 +73,8 @@ def main(config: FlagValues):
 
             num_runs += 1
             run_path = root
-            save_path = os.path.join(out_dir, f"{os.path.basename(root)}.gzip")
+            save_id = os.path.basename(os.path.abspath(os.path.join(root, os.pardir)))
+            save_path = os.path.join(out_dir, f"{save_id}-{os.path.basename(root)}.gzip")
             dat_content += (
                 "export buffer_size={} num_episodes={} env_seed={} run_seed={} ".format(
                     config.buffer_size,

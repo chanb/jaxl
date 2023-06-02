@@ -45,7 +45,7 @@
             "buffer_seed": 42
         },
         "learner": "mtbc",
-        "num_updates_per_epoch": 2048,
+        "num_updates_per_epoch": 100,
         "batch_size": 64,
         "obs_rms": false,
         "losses": ["gaussian", "l2"],

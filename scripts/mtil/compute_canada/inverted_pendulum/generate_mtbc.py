@@ -8,7 +8,7 @@ python generate_mtbc.py \
     --datasets_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data/gravity \
     --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/mtbc/ \
     --num_model_seeds=1 \
-    --num_tasks_variants=2,4,8,16,32
+    --num_tasks_variants=2,4,8,16,32,64
 
 
 This will generate a dat file that consists of various runs.
