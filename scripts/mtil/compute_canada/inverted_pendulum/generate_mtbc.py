@@ -8,7 +8,7 @@ python generate_mtbc.py \
     --datasets_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data/gravity \
     --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/mtbc/ \
     --num_model_seeds=1 \
-    --num_tasks_variants=2,4,8,16,32,64
+    --num_tasks_variants=1,2,4,8,16,32,64
 
 
 This will generate a dat file that consists of various runs.
@@ -83,8 +83,8 @@ def main(config: FlagValues):
     ]
 
     assert (
-        len(datasets_path) > 1
-    ), f"need at least two datasets, got {len(datasets_path)}"
+        len(datasets_path) > 0
+    ), f"need at least one dataset, got {len(datasets_path)}"
 
     assert (
         config.num_model_seeds > 0
@@ -97,7 +97,7 @@ def main(config: FlagValues):
     num_tasks_variants = np.array(
         [int(num_tasks) for num_tasks in config.num_tasks_variants]
     )
-    assert np.all(num_tasks_variants > 1), f"need at least two tasks for MTBC"
+    assert np.all(num_tasks_variants > 0), f"need at least one task for MTBC"
 
     # Standard template
     template["logging_config"]["experiment_name"] = ""
