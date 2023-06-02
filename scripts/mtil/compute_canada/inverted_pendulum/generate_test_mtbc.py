@@ -6,7 +6,7 @@ python generate_test_mtbc.py \
     --exp_name=gravity-num_tasks_analysis \
     --run_seed=0 \
     --test_data_path=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data/gravity/gravity_-10.988583914280802-06-01-23_21_01_11-262882ac-38ca-4f20-8fe5-a7351d7ef595.gzip \
-    --runs_path=/home/chanb/scratch/jaxl/data/inverted_pendulum/train_mtbc/gravity-num_tasks_analysis/runs \
+    --runs_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/train_mtbc/gravity-num_tasks_analysis/runs \
     --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/train_mtbc/ \
     --num_model_seeds=1
 
