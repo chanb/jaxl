@@ -41,7 +41,7 @@
         "task": "imitation_learning",
         "buffer_configs": [
             {
-                "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/expert_data/10_episodes-env_seed_1.gzip",
+                "load_buffer": "<TO_MODIFY>",
                 "buffer_type": "default"
             }
         ],
@@ -63,7 +63,7 @@
                 "coefficient": 0.0002
             }
         ],
-        "load_encoder": "/Users/chanb/research/personal/jaxl/jaxl/logs/inverted_pendulum/mtbc/06-01-23_14_07_35-341bb3c2-fa40-4922-a820-38534e6821af/termination_model",
+        "load_encoder": "<TO_MODIFY>",
         "learn_encoder": false
     },
     "train_config": {

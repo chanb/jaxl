@@ -13,7 +13,7 @@
                 "architecture": "mlp",
                 "layers": []
             },
-            "num_models": 0,
+            "num_models": "<TO_MODIFY>",
             "input_dim": 128,
             "vmap_all": true
         },
@@ -39,7 +39,7 @@
     },
     "learner_config": {
         "task": "imitation_learning",
-        "buffer_configs": [],
+        "buffer_configs": "<TO_MODIFY>",
         "seeds": {
             "model_seed": 42,
             "buffer_seed": 42
