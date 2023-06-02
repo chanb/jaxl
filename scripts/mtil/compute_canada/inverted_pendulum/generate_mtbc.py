@@ -6,7 +6,7 @@ python generate_mtbc.py \
     --exp_name=gravity-num_tasks_analysis \
     --run_seed=0 \
     --datasets_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data/gravity \
-    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/mtbc/ \
+    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/train_mtbc/ \
     --num_model_seeds=1 \
     --num_tasks_variants=1,2,4,8,16,32,64
 
