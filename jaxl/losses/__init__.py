@@ -1,8 +1,8 @@
-from flax.core.scope import FrozenVariableDict
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Union, Tuple
 
 import chex
+import optax
 
 from jaxl.constants import *
 from jaxl.losses.regularization import *
@@ -43,7 +43,7 @@ def get_loss_function(
 def make_aggregate_loss(
     losses: Dict[str, Tuple[Callable[..., chex.Array], float]]
 ) -> Callable[
-    [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+    [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
     Tuple[chex.Array, Dict],
 ]:
     """
@@ -53,21 +53,21 @@ def make_aggregate_loss(
     :type losses: Dict[str, Tuple[Callable[..., chex.Array], float]]
     :return: the aggregated loss function
     :type: Callable[
-        [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         Tuple[chex.Array, Dict],
     ]
 
     """
 
     def compute_aggregate_loss(
-        params: Union[FrozenVariableDict, Dict[str, Any]],
+        params: Union[optax.Params, Dict[str, Any]],
         x: chex.Array,
         carry: chex.Array,
         y: chex.Array,
     ):
         """
 
-        :param params: Union[FrozenVariableDict:
+        :param params: Union[optax.Params:
         :param Dict[str:
         :param Any]]:
         :param x: chex.Array:

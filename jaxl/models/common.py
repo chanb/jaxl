@@ -1,12 +1,11 @@
-from abc import ABC, abstractmethod
-from flax import linen as nn
-from flax.core.scope import FrozenVariableDict
+from abc import ABC
 from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
 import chex
 import jax
 import jax.random as jrandom
 import numpy as np
+import optax
 
 from jaxl.constants import *
 from jaxl.models.modules import MLPModule
@@ -18,7 +17,7 @@ class Model(ABC):
     #: Model forward call.
     forward: Callable[
         [
-            Union[FrozenVariableDict, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
         ],
@@ -31,7 +30,7 @@ class Model(ABC):
             jrandom.PRNGKey,
             chex.Array,
         ],
-        Union[FrozenVariableDict, Dict[str, Any]],
+        Union[optax.Params, Dict[str, Any]],
     ]
 
     def reset_h_state(self) -> chex.Array:
@@ -54,7 +53,7 @@ class EncoderPredictorModel(Model):
     #: Encode input to representation space.
     encode: Callable[
         [
-            Union[FrozenVariableDict, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
         ],
@@ -110,7 +109,7 @@ class EncoderPredictorModel(Model):
         self,
     ) -> Callable[
         [
-            Union[FrozenVariableDict, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
         ],
@@ -122,7 +121,7 @@ class EncoderPredictorModel(Model):
         :return: the forward call.
         :rtype: Callable[
             [
-                Union[FrozenVariableDict, Dict[str, Any]],
+                Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
             ],
@@ -131,7 +130,7 @@ class EncoderPredictorModel(Model):
         """
 
         def forward(
-            params: Union[FrozenVariableDict, Dict[str, Any]],
+            params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
         ) -> Tuple[chex.Array, chex.Array]:
@@ -141,7 +140,7 @@ class EncoderPredictorModel(Model):
             :param params: the model parameters
             :param input: the input
             :param carry: the hidden state (not used)
-            :type params: Union[FrozenVariableDict
+            :type params: Union[optax.Params
             :type input: chex.Array
             :type carry: chex.Array
             :return: the output and a pass-through carry
@@ -168,7 +167,7 @@ class EncoderPredictorModel(Model):
         self,
     ) -> Callable[
         [
-            Union[FrozenVariableDict, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
         ],
@@ -180,7 +179,7 @@ class EncoderPredictorModel(Model):
         :return: the forward call.
         :rtype: Callable[
             [
-                Union[FrozenVariableDict, Dict[str, Any]],
+                Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
             ],
@@ -189,7 +188,7 @@ class EncoderPredictorModel(Model):
         """
 
         def encode(
-            params: Union[FrozenVariableDict, Dict[str, Any]],
+            params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
         ) -> Tuple[chex.Array, chex.Array]:
@@ -199,7 +198,7 @@ class EncoderPredictorModel(Model):
             :param params: the model parameters
             :param input: the input
             :param carry: the hidden state (not used)
-            :type params: Union[FrozenVariableDict
+            :type params: Union[optax.Params
             :type input: chex.Array
             :type carry: chex.Array
             :return: the encoded input and next carry
@@ -232,7 +231,7 @@ class EnsembleModel(Model):
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
-    ) -> Union[FrozenVariableDict, Dict[str, Any]]:
+    ) -> Union[optax.Params, Dict[str, Any]]:
         """
         Initialize model parameters.
 
@@ -241,7 +240,7 @@ class EnsembleModel(Model):
         :type model_key: jrandom.PRNGKey
         :type dummy_x: chex.Array
         :return: the initialized parameters for all of the models
-        :rtype: Union[FrozenVariableDict, Dict[str, Any]]
+        :rtype: Union[optax.Params, Dict[str, Any]]
 
         """
         model_keys = jrandom.split(model_key, num=self.num_models)
@@ -258,7 +257,7 @@ class EnsembleModel(Model):
         vmap_all: bool,
     ) -> Callable[
         [
-            Union[FrozenVariableDict, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
         ],
@@ -272,7 +271,7 @@ class EnsembleModel(Model):
         :return: the forward call
         :rtype: Callable[
             [
-                Union[FrozenVariableDict, Dict[str, Any]],
+                Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
             ],
@@ -283,7 +282,7 @@ class EnsembleModel(Model):
         in_axes = [0, 0, 0] if vmap_all else [0, None, None]
 
         def forward(
-            params: Union[FrozenVariableDict, Dict[str, Any]],
+            params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
         ) -> Tuple[chex.Array, chex.Array]:
@@ -293,7 +292,7 @@ class EnsembleModel(Model):
             :param params: the model parameters
             :param input: the input
             :param carry: the hidden state (not used)
-            :type params: Union[FrozenVariableDict
+            :type params: Union[optax.Params
             :type input: chex.Array
             :type carry: chex.Array
             :return: the output and a pass-through carry
@@ -326,7 +325,7 @@ class MLP(Model):
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
-    ) -> Union[FrozenVariableDict, Dict[str, Any]]:
+    ) -> Union[optax.Params, Dict[str, Any]]:
         """
         Initialize model parameters.
 
@@ -335,7 +334,7 @@ class MLP(Model):
         :type model_key: jrandom.PRNGKey
         :type dummy_x: chex.Array
         :return: the initialized parameters
-        :rtype: Union[FrozenVariableDict, Dict[str, Any]]
+        :rtype: Union[optax.Params, Dict[str, Any]]
 
         """
         return self.model.init(model_key, dummy_x)
@@ -344,7 +343,7 @@ class MLP(Model):
         self,
     ) -> Callable[
         [
-            Union[FrozenVariableDict, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
         ],
@@ -356,7 +355,7 @@ class MLP(Model):
         :return: the forward call.
         :rtype: Callable[
             [
-                Union[FrozenVariableDict, Dict[str, Any]],
+                Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
             ],
@@ -365,7 +364,7 @@ class MLP(Model):
         """
 
         def forward(
-            params: Union[FrozenVariableDict, Dict[str, Any]],
+            params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
         ) -> Tuple[chex.Array, chex.Array]:
@@ -375,7 +374,7 @@ class MLP(Model):
             :param params: the model parameters
             :param input: the input
             :param carry: the hidden state (not used)
-            :type params: Union[FrozenVariableDict
+            :type params: Union[optax.Params
             :type input: chex.Array
             :type carry: chex.Array
             :return: the output and a pass-through carry
@@ -395,7 +394,7 @@ class Policy(ABC):
     #: Compute action for interacting with the environment.
     compute_action: Callable[
         [
-            Union[FrozenVariableDict, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
             jrandom.PRNGKey,
@@ -405,7 +404,7 @@ class Policy(ABC):
 
     #: Compute deterministic action.
     deterministic_action: Callable[
-        [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
+        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]
 
@@ -441,7 +440,7 @@ class StochasticPolicy(Policy):
     #: Compute random action.
     random_action: Callable[
         [
-            Union[FrozenVariableDict, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
             jrandom.PRNGKey,
@@ -452,7 +451,7 @@ class StochasticPolicy(Policy):
     # . Compute action and its log probability.
     act_lprob: Callable[
         [
-            Union[FrozenVariableDict, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
             jrandom.PRNGKey,
@@ -462,6 +461,6 @@ class StochasticPolicy(Policy):
 
     # . Compute action log probability.
     lprob: Callable[
-        [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]

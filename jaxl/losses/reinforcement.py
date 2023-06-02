@@ -1,4 +1,3 @@
-from flax.core.scope import FrozenVariableDict
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Union, Tuple
 
@@ -6,6 +5,7 @@ import chex
 import jax
 import jax.numpy as jnp
 import numpy as np
+import optax
 
 from jaxl.constants import *
 from jaxl.models.common import Model
@@ -166,7 +166,7 @@ def make_reinforce_loss(
     loss_setting: SimpleNamespace,
 ) -> Callable[
     [
-        Union[FrozenVariableDict, Dict[str, Any]],
+        Union[optax.Params, Dict[str, Any]],
         chex.Array,
         chex.Array,
         chex.Array,
@@ -186,7 +186,7 @@ def make_reinforce_loss(
     reduction = get_reduction(loss_setting.reduction)
 
     def reinforce_loss(
-        params: Union[FrozenVariableDict, Dict[str, Any]],
+        params: Union[optax.Params, Dict[str, Any]],
         obss: chex.Array,
         h_states: chex.Array,
         acts: chex.Array,
@@ -202,7 +202,7 @@ def make_reinforce_loss(
         :param acts: the actions taken
         :param rets: the returns
         :param baselines: the baselines
-        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type params: Union[optax.Params, Dict[str, Any]]
         :type obss: chex.Array
         :type h_states: chex.Array
         :type acts: chex.Array
@@ -225,7 +225,7 @@ def make_ppo_pi_loss(
     loss_setting: SimpleNamespace,
 ) -> Callable[
     [
-        Union[FrozenVariableDict, Dict[str, Any]],
+        Union[optax.Params, Dict[str, Any]],
         chex.Array,
         chex.Array,
         chex.Array,
@@ -246,7 +246,7 @@ def make_ppo_pi_loss(
     reduction = get_reduction(loss_setting.reduction)
 
     def pi_loss(
-        params: Union[FrozenVariableDict, Dict[str, Any]],
+        params: Union[optax.Params, Dict[str, Any]],
         obss: chex.Array,
         h_states: chex.Array,
         acts: chex.Array,
@@ -262,7 +262,7 @@ def make_ppo_pi_loss(
         :param acts: the actions taken
         :param advs: the advantages
         :param old_lprobs: the action log probabilities for importance sampling
-        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type params: Union[optax.Params, Dict[str, Any]]
         :type obss: chex.Array
         :type h_states: chex.Array
         :type acts: chex.Array
@@ -300,7 +300,7 @@ def make_ppo_vf_loss(
     loss_setting: SimpleNamespace,
 ) -> Callable[
     [
-        Union[FrozenVariableDict, Dict[str, Any]],
+        Union[optax.Params, Dict[str, Any]],
         chex.Array,
         chex.Array,
         chex.Array,
@@ -320,7 +320,7 @@ def make_ppo_vf_loss(
     reduction = get_reduction(loss_setting.reduction)
 
     def vf_loss(
-        params: Union[FrozenVariableDict, Dict[str, Any]],
+        params: Union[optax.Params, Dict[str, Any]],
         obss: chex.Array,
         h_states: chex.Array,
         rets: chex.Array,
@@ -334,7 +334,7 @@ def make_ppo_vf_loss(
         :param h_states: the hidden states
         :param rets: the estimated returns
         :param vals: the old value estimate to clip from
-        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type params: Union[optax.Params, Dict[str, Any]]
         :type obss: chex.Array
         :type h_states: chex.Array
         :type rets: chex.Array

@@ -1,3 +1,4 @@
+from orbax.checkpoint import PyTreeCheckpointer
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union
 
@@ -219,10 +220,56 @@ class MTBC(OfflineLearner):
             },
         }
 
+        encoder_path = getattr(self._config, "load_encoder", False)
+        if encoder_path:
+            assert os.path.isdir(encoder_path), f"{encoder_path} does not exist"
+
+            checkpointer = PyTreeCheckpointer()
+            loaded_model_dict = checkpointer.restore(encoder_path)
+            self._model_dict[CONST_MODEL][CONST_POLICY][
+                CONST_ENCODER
+            ] = loaded_model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER]
+            self._model_dict[CONST_OPT_STATE][CONST_POLICY][
+                CONST_ENCODER
+            ] = self._optimizer[CONST_POLICY][CONST_ENCODER].init(
+                self._model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER]
+            )
+
     def make_train_step(self):
         """
         Makes the training step for model update.
         """
+
+        # Option to learn encoder.
+        if getattr(self._config, "learn_encoder", True):
+
+            def update_encoder(
+                model_dict: Dict[str, Any], grads: Dict[str, Any]
+            ) -> Tuple[optax.Params, optax.OptState]:
+                updates, encoder_opt_state = self._optimizer[CONST_POLICY][
+                    CONST_ENCODER
+                ].update(
+                    grads[CONST_ENCODER],
+                    model_dict[CONST_OPT_STATE][CONST_POLICY][CONST_ENCODER],
+                    model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER],
+                )
+                encoder_params = optax.apply_updates(
+                    model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER], updates
+                )
+                return (
+                    encoder_params,
+                    encoder_opt_state,
+                )
+
+        else:
+
+            def update_encoder(
+                model_dict: Dict[str, Any], grads: Dict[str, Any]
+            ) -> Tuple[optax.Params, optax.OptState]:
+                return (
+                    model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER],
+                    model_dict[CONST_OPT_STATE][CONST_POLICY][CONST_ENCODER],
+                )
 
         def _train_step(
             model_dict: Dict[str, Any],
@@ -271,16 +318,7 @@ class MTBC(OfflineLearner):
                 model_dict[CONST_MODEL][CONST_POLICY][CONST_PREDICTOR], updates
             )
 
-            updates, encoder_opt_state = self._optimizer[CONST_POLICY][
-                CONST_ENCODER
-            ].update(
-                grads[CONST_ENCODER],
-                model_dict[CONST_OPT_STATE][CONST_POLICY][CONST_ENCODER],
-                model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER],
-            )
-            encoder_params = optax.apply_updates(
-                model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER], updates
-            )
+            encoder_params, encoder_opt_state = update_encoder(model_dict, grads)
 
             return {
                 CONST_MODEL: {

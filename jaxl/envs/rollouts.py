@@ -1,10 +1,10 @@
 from abc import ABC, abstractclassmethod
-from flax.core.scope import FrozenVariableDict
 from typing import Any, Dict, Iterable, Tuple, Union
 
 import chex
 import jax.random as jrandom
 import numpy as np
+import optax
 
 from jaxl.buffers import ReplayBuffer
 from jaxl.envs.wrappers.wrapper import DefaultGymWrapper
@@ -125,7 +125,7 @@ class EvaluationRollout(Rollout):
 
     def rollout(
         self,
-        params: Union[FrozenVariableDict, Dict[str, Any]],
+        params: Union[optax.Params, Dict[str, Any]],
         policy: Policy,
         obs_rms: Union[bool, RunningMeanStd],
         num_episodes: int,
@@ -138,7 +138,7 @@ class EvaluationRollout(Rollout):
         :param policy: the policy
         :param obs_rms: the running statistics for observations
         :param num_episodes: the number of interaction episodes with the environment
-        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type params: Union[optax.Params, Dict[str, Any]]
         :type policy: Policy
         :type obs_rms: Union[bool, RunningMeanStd]
         :type num_episodes: int
@@ -205,7 +205,7 @@ class StandardRollout(Rollout):
 
     def rollout(
         self,
-        params: Union[FrozenVariableDict, Dict[str, Any]],
+        params: Union[optax.Params, Dict[str, Any]],
         policy: Policy,
         obs_rms: Union[bool, RunningMeanStd],
         buffer: ReplayBuffer,
@@ -219,7 +219,7 @@ class StandardRollout(Rollout):
         :param obs_rms: the running statistics for observations
         :param buffer: the buffer
         :param num_steps: the number of interactions to have with the environment
-        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type params: Union[optax.Params, Dict[str, Any]]
         :type policy: Policy
         :type obs_rms: Union[bool, RunningMeanStd]
         :type buffer: ReplayBuffer

@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/inverted_pendulum",
-        "experiment_name": "mtbc",
+        "experiment_name": "evaluate_mtbc",
         "log_interval": 1,
         "checkpoint_interval": 500
     },
@@ -62,7 +62,9 @@
             {
                 "coefficient": 0.0002
             }
-        ]
+        ],
+        "load_encoder": "/Users/chanb/research/personal/jaxl/jaxl/logs/inverted_pendulum/mtbc/06-01-23_14_07_35-341bb3c2-fa40-4922-a820-38534e6821af/termination_model",
+        "learn_encoder": true
     },
     "train_config": {
         "num_epochs": 10000

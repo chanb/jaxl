@@ -1,10 +1,10 @@
-from flax.core.scope import FrozenVariableDict
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Union, Tuple
 
 import chex
 import jax
 import jax.numpy as jnp
+import optax
 
 from jaxl.models.common import Model
 
@@ -13,7 +13,7 @@ def make_weight_decay(
     model: Model,
     loss_setting: SimpleNamespace,
 ) -> Callable[
-    [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array],
+    [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
     Tuple[chex.Array, Dict],
 ]:
     """
@@ -29,7 +29,7 @@ def make_weight_decay(
     """
 
     def weight_decay(
-        params: Union[FrozenVariableDict, Dict[str, Any]], *args, **kwargs
+        params: Union[optax.Params, Dict[str, Any]], *args, **kwargs
     ) -> Tuple[chex.Array, Dict]:
         """
         Weight decay.
@@ -37,7 +37,7 @@ def make_weight_decay(
         :param params: the model parameters
         :param *args:
         :param **kwargs:
-        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type params: Union[optax.Params, Dict[str, Any]]
         :return: the loss and auxiliary information
         :rtype: Tuple[chex.Array, Dict]
 

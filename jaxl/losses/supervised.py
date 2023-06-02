@@ -1,4 +1,3 @@
-from flax.core.scope import FrozenVariableDict
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Union, Tuple
 
@@ -16,7 +15,7 @@ def make_squared_loss(
     model: Model,
     loss_setting: SimpleNamespace,
 ) -> Callable[
-    [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+    [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
     Tuple[chex.Array, Dict],
 ]:
     """
@@ -33,7 +32,7 @@ def make_squared_loss(
     reduction = get_reduction(loss_setting.reduction)
 
     def squared_loss(
-        params: Union[FrozenVariableDict, Dict[str, Any]],
+        params: Union[optax.Params, Dict[str, Any]],
         x: chex.Array,
         carry: chex.Array,
         y: chex.Array,
@@ -47,7 +46,7 @@ def make_squared_loss(
         :param y: the output
         :param *args:
         :param **kwargs:
-        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type params: Union[optax.Params, Dict[str, Any]]
         :return: the loss and auxiliary information
         :rtype: Tuple[chex.Array, Dict]
 
@@ -62,7 +61,7 @@ def make_cross_entropy_loss(
     model: Model,
     loss_setting: SimpleNamespace,
 ) -> Callable[
-    [Union[FrozenVariableDict, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+    [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
     Tuple[chex.Array, Dict],
 ]:
     """
@@ -79,7 +78,7 @@ def make_cross_entropy_loss(
     reduction = get_reduction(loss_setting.reduction)
 
     def cross_entropy_loss(
-        params: Union[FrozenVariableDict, Dict[str, Any]],
+        params: Union[optax.Params, Dict[str, Any]],
         x: chex.Array,
         carry: chex.Array,
         y: chex.Array,
@@ -93,7 +92,7 @@ def make_cross_entropy_loss(
         :param y: the output
         :param *args:
         :param **kwargs:
-        :type params: Union[FrozenVariableDict, Dict[str, Any]]
+        :type params: Union[optax.Params, Dict[str, Any]]
         :return: the loss and auxiliary information
         :rtype: Tuple[chex.Array, Dict]
 

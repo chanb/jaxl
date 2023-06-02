@@ -1,55 +1,57 @@
 {
     "logging_config": {
         "save_path": "./logs/inverted_pendulum",
-        "experiment_name": "bc",
+        "experiment_name": "evaluate_mtbc",
         "log_interval": 1,
         "checkpoint_interval": 500
     },
     "model_config": {
-        "models": ["policy"],
-        "policy": {
-            "architecture": "encoder_predictor",
-            "predictor": {
+        "architecture": "encoder_predictor",
+        "predictor": {
+            "architecture": "ensemble",
+            "model": {
                 "architecture": "mlp",
                 "layers": []
             },
-            "encoder": {
-                "architecture": "mlp",
-                "layers": [128]
-            },
-            "encoder_dim": [128],
-            "encoder_name": "encoder",
-            "predictor_name": "predictor"
-        }
+            "num_models": 1,
+            "input_dim": 128,
+            "vmap_all": true
+        },
+        "encoder": {
+            "architecture": "mlp",
+            "layers": [128]
+        },
+        "encoder_dim": [128],
+        "encoder_name": "encoder",
+        "predictor_name": "predictor"
     },
     "optimizer_config": {
-        "optimizers": ["policy"],
-        "policy": {
-            "predictor": {
-                "optimizer": "adam",
-                "lr": 3e-4,
-                "max_grad_norm": 10.0
-            },
-            "encoder": {
-                "optimizer": "adam",
-                "lr": 3e-4,
-                "max_grad_norm": 10.0
-            }
+        "predictor": {
+            "optimizer": "adam",
+            "lr": 3e-4,
+            "max_grad_norm": 10.0
+        },
+        "encoder": {
+            "optimizer": "adam",
+            "lr": 3e-4,
+            "max_grad_norm": 10.0
         }
     },
     "learner_config": {
         "task": "imitation_learning",
-        "buffer_config": {
-            "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/expert_data/10_episodes-env_seed_1.gzip",
-            "buffer_type": "default"
-        },
+        "buffer_configs": [
+            {
+                "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/expert_data/10_episodes-env_seed_1.gzip",
+                "buffer_type": "default"
+            }
+        ],
         "seeds": {
             "model_seed": 42,
             "buffer_seed": 42
         },
-        "learner": "bc",
+        "learner": "mtbc",
         "num_updates_per_epoch": 100,
-        "batch_size": 128,
+        "batch_size": 64,
         "obs_rms": false,
         "losses": ["gaussian", "l2"],
         "loss_settings": [
@@ -60,7 +62,9 @@
             {
                 "coefficient": 0.0002
             }
-        ]
+        ],
+        "load_encoder": "/Users/chanb/research/personal/jaxl/jaxl/logs/inverted_pendulum/mtbc/06-01-23_14_07_35-341bb3c2-fa40-4922-a820-38534e6821af/termination_model",
+        "learn_encoder": true
     },
     "train_config": {
         "num_epochs": 10000
