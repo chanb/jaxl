@@ -85,7 +85,6 @@ def train(
         if logging_config.log_interval:
             os.makedirs(os.path.join(save_path, "auxes"), exist_ok=True)
         summary_writer = SummaryWriter(log_dir=f"{save_path}/tensorboard")
-        summary_writer = SummaryWriter(log_dir=f"{save_path}/tensorboard")
         summary_writer.add_text(
             CONST_HYPERPARAMETERS,
             hyperparameter_str,
