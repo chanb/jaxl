@@ -92,6 +92,8 @@ make html​
 - JAX implementation of the replay buffers
 - Revisit A2C, PPO, and MTBC for better loss construction.
 It seems to be using a different design pattern.
+- Revisit how we construct models and optimizers.
+There should be a more elegant way.
 
 ## Experiments
 - Generate train and test sets

@@ -1,0 +1,68 @@
+{
+    "logging_config": {
+        "save_path": "./logs/inverted_pendulum",
+        "experiment_name": "bc",
+        "log_interval": 1,
+        "checkpoint_interval": 500
+    },
+    "model_config": {
+        "models": ["policy"],
+        "policy": {
+            "architecture": "encoder_predictor",
+            "predictor": {
+                "architecture": "mlp",
+                "layers": []
+            },
+            "encoder": {
+                "architecture": "mlp",
+                "layers": [128]
+            },
+            "encoder_dim": [128],
+            "encoder_name": "encoder",
+            "predictor_name": "predictor"
+        }
+    },
+    "optimizer_config": {
+        "optimizers": ["policy"],
+        "policy": {
+            "predictor": {
+                "optimizer": "adam",
+                "lr": 3e-4,
+                "max_grad_norm": 10.0
+            },
+            "encoder": {
+                "optimizer": "adam",
+                "lr": 3e-4,
+                "max_grad_norm": 10.0
+            }
+        }
+    },
+    "learner_config": {
+        "task": "imitation_learning",
+        "buffer_config": {
+            "load_buffer": "/Users/chanb/research/personal/jaxl/data/inverted_pendulum/expert_data/10_episodes-env_seed_1.gzip",
+            "buffer_type": "default"
+        },
+        "seeds": {
+            "model_seed": 42,
+            "buffer_seed": 42
+        },
+        "learner": "bc",
+        "num_updates_per_epoch": 100,
+        "batch_size": 128,
+        "obs_rms": false,
+        "losses": ["gaussian", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean"
+            },
+            {
+                "coefficient": 0.0002
+            }
+        ]
+    },
+    "train_config": {
+        "num_epochs": 10000
+    }
+}
