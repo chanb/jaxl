@@ -8,6 +8,7 @@
 ## Installation:
 You may simply `pip install`:
 ```
+pip install -r requirements/all.txt
 pip install -e .
 ```
 
