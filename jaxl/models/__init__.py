@@ -106,8 +106,6 @@ def get_model(
         return EncoderPredictorModel(
             encoder,
             predictor,
-            model_config.encoder_name,
-            model_config.predictor_name,
         )
     elif model_config.architecture == CONST_ENSEMBLE:
         model = get_model(

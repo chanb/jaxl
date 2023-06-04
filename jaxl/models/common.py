@@ -64,11 +64,7 @@ class EncoderPredictorModel(Model):
         self,
         encoder: Model,
         predictor: Model,
-        encoder_name: str = CONST_ENCODER,
-        predictor_name: str = CONST_PREDICTOR,
     ) -> None:
-        self.encoder_name = encoder_name
-        self.predictor_name = predictor_name
         self.encoder = encoder
         self.predictor = predictor
         self.forward = jax.jit(self.make_forward())
@@ -92,8 +88,8 @@ class EncoderPredictorModel(Model):
         dummy_repr, _ = self.encoder.forward(encoder_params, dummy_x, dummy_carry)
         predictor_params = self.predictor.init(predictor_key, dummy_repr)
         return {
-            self.encoder_name: encoder_params,
-            self.predictor_name: predictor_params,
+            CONST_ENCODER: encoder_params,
+            CONST_PREDICTOR: predictor_params,
         }
 
     def reset_h_state(self) -> chex.Array:
@@ -148,12 +144,12 @@ class EncoderPredictorModel(Model):
 
             """
             repr, _ = self.encoder.forward(
-                params[self.encoder_name],
+                params[CONST_ENCODER],
                 input,
                 carry,
             )
             pred, pred_carry = self.predictor.forward(
-                params[self.predictor_name],
+                params[CONST_PREDICTOR],
                 repr,
                 carry,
             )

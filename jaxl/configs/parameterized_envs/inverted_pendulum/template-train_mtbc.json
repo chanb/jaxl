@@ -21,9 +21,7 @@
             "architecture": "mlp",
             "layers": [128]
         },
-        "encoder_dim": [128],
-        "encoder_name": "encoder",
-        "predictor_name": "predictor"
+        "encoder_dim": [128]
     },
     "optimizer_config": {
         "predictor": {
