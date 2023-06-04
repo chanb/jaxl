@@ -172,18 +172,23 @@ class PPO(OnPolicyLearner):
             CONST_VF: get_model(input_dim, output_dim, self._model_config.vf),
         }
 
-        self._optimizer = {
-            CONST_POLICY: get_optimizer(self._optimizer_config.policy),
-            CONST_VF: get_optimizer(self._optimizer_config.vf),
-        }
-
         model_keys = jrandom.split(jrandom.PRNGKey(self._config.seeds.model_seed))
         dummy_x = self._generate_dummy_x(input_dim)
         pi_params = self._model[CONST_POLICY].init(model_keys[0], dummy_x)
-        pi_opt_state = self._optimizer[CONST_POLICY].init(pi_params)
-
         vf_params = self._model[CONST_VF].init(model_keys[1], dummy_x)
-        vf_opt_state = self._optimizer[CONST_VF].init(vf_params)
+
+        pi_opt, pi_opt_state = get_optimizer(
+            self._optimizer_config.policy, self._model[CONST_POLICY], pi_params
+        )
+        vf_opt, vf_opt_state = get_optimizer(
+            self._optimizer_config.vf, self._model[CONST_VF], vf_params
+        )
+
+        self._optimizer = {
+            CONST_POLICY: pi_opt,
+            CONST_VF: vf_opt,
+        }
+
         self._model_dict = {
             CONST_MODEL: {
                 CONST_POLICY: pi_params,

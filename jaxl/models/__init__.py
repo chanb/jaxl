@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Any, Dict, Tuple, Union
 
 import chex
 import optax
@@ -14,16 +15,45 @@ XXX: Feel free to add new components as needed.
 """
 
 
-def get_optimizer(opt_config: SimpleNamespace) -> optax.GradientTransformation:
+def get_optimizer(
+    opt_config: SimpleNamespace,
+    model: Model,
+    params: Union[optax.Params, Dict[str, Any]],
+) -> Union[
+    Tuple[Dict[str, Any], Dict[str, Any]],
+    Tuple[optax.GradientTransformation, optax.OptState],
+]:
     """
-    Gets an optimizer.
+    Gets an optimizer and its optimizer state.
 
     :param opt_config: the optimizer configuration
+    :param model: the model
+    :param params: the model parameters
     :type opt_config: SimpleNamespace
-    :return: an optimizer
-    :rtype: optax.GradientTransformation
+    :type model: Model
+    :type params: Union[optax.Params, Dict[str, Any]]
+    :return: an optimizer and its optimizer state
+    :rtype: Union[
+        Tuple[Dict[str, Any], Dict[str, Any]],
+        Tuple[optax.GradientTransformation, optax.OptState]
+    ]
 
     """
+    if isinstance(model, EncoderPredictorModel):
+        encoder_opt, encoder_opt_state = get_optimizer(
+            opt_config.encoder, model.encoder, params[CONST_ENCODER]
+        )
+        predictor_opt, predictor_opt_state = get_optimizer(
+            opt_config.predictor, model.predictor, params[CONST_PREDICTOR]
+        )
+        return {
+            CONST_ENCODER: encoder_opt,
+            CONST_PREDICTOR: predictor_opt,
+        }, {
+            CONST_ENCODER: encoder_opt_state,
+            CONST_PREDICTOR: predictor_opt_state,
+        }
+
     assert (
         opt_config.optimizer in VALID_OPTIMIZER
     ), f"{opt_config.optimizer} is not supported (one of {VALID_OPTIMIZER})"
@@ -42,7 +72,9 @@ def get_optimizer(opt_config: SimpleNamespace) -> optax.GradientTransformation:
         raise NotImplementedError
 
     opt_transforms.append(optax.scale(-opt_config.lr))
-    return optax.chain(*opt_transforms)
+    opt = optax.chain(*opt_transforms)
+    opt_state = opt.init(params)
+    return opt, opt_state
 
 
 def get_model(

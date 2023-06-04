@@ -190,13 +190,6 @@ class MTBC(OfflineLearner):
             self._model.predictor, EnsembleModel
         ), "We expect the predictor to be an EnsembleModel"
 
-        self._optimizer = {
-            CONST_POLICY: {
-                CONST_PREDICTOR: get_optimizer(self._optimizer_config.predictor),
-                CONST_ENCODER: get_optimizer(self._optimizer_config.encoder),
-            }
-        }
-
         dummy_input = self._generate_dummy_x(input_dim)
         params = {
             CONST_POLICY: self._model.init(
@@ -204,19 +197,16 @@ class MTBC(OfflineLearner):
             )
         }
 
-        predictor_opt_state = self._optimizer[CONST_POLICY][CONST_PREDICTOR].init(
-            params[CONST_POLICY][CONST_PREDICTOR]
+        opt, opt_state = get_optimizer(
+            self._optimizer_config, self._model, params[CONST_POLICY]
         )
-        encoder_opt_state = self._optimizer[CONST_POLICY][CONST_ENCODER].init(
-            params[CONST_POLICY][CONST_ENCODER]
-        )
+        self._optimizer = {
+            CONST_POLICY: opt,
+        }
         self._model_dict = {
             CONST_MODEL: params,
             CONST_OPT_STATE: {
-                CONST_POLICY: {
-                    CONST_PREDICTOR: predictor_opt_state,
-                    CONST_ENCODER: encoder_opt_state,
-                }
+                CONST_POLICY: opt_state,
             },
         }
 
