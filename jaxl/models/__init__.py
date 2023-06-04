@@ -24,6 +24,13 @@ def get_optimizer(opt_config: SimpleNamespace) -> optax.GradientTransformation:
     :rtype: optax.GradientTransformation
 
     """
+    assert (
+        opt_config.optimizer in VALID_OPTIMIZER
+    ), f"{opt_config.optimizer} is not supported (one of {VALID_OPTIMIZER})"
+
+    if opt_config.optimizer == CONST_FROZEN:
+        return optax.set_to_zero()
+
     opt_transforms = []
     if opt_config.max_grad_norm:
         opt_transforms.append(optax.clip_by_global_norm(opt_config.max_grad_norm))

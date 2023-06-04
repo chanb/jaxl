@@ -132,7 +132,7 @@ def main(config):
     base_script_dir = os.path.join(config.out_dir, "scripts")
     base_log_dir = os.path.join(config.out_dir, "logs")
     base_run_dir = os.path.join(config.out_dir, "runs")
-    shell_script = "run_seed=$1\n"
+    shell_script = ""
     for idx, (env_seed, model_seed, gravity) in enumerate(
         itertools.product(env_seeds, model_seeds, gravities)
     ):

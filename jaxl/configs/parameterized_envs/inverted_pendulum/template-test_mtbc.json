@@ -32,7 +32,7 @@
             "max_grad_norm": 10.0
         },
         "encoder": {
-            "optimizer": "adam",
+            "optimizer": "frozen",
             "lr": 3e-4,
             "max_grad_norm": 10.0
         }
@@ -63,8 +63,7 @@
                 "coefficient": 0.0002
             }
         ],
-        "load_encoder": "<TO_MODIFY>",
-        "learn_encoder": false
+        "load_encoder": "<TO_MODIFY>"
     },
     "train_config": {
         "num_epochs": 10000
