@@ -25,12 +25,6 @@ pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-re
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 ```
 
-TODO: Do we need this?
-We also need to change PyTorch to purely CPU:
-```
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-```
-
 ### Compute Canada
 You may install this code on Compute Canada by simply running `jaxl/installation/compute_canada/initial_setup.sh`.
 

@@ -16,12 +16,20 @@ import uuid
 from jaxl.learning_utils import get_learner, train
 from jaxl.utils import flatten_dict, parse_dict, set_seed
 
+CONST_CPU = "cpu"
+CONST_GPU = "gpu"
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
     "config_path", default=None, help="Training configuration", required=True
 )
 flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=False)
+flags.DEFINE_string(
+    "device",
+    default=CONST_CPU,
+    help="JAX device to use. To specify specific GPU device, do gpu:<gpu_devices>",
+    required=False,
+)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -32,7 +40,7 @@ This function constructs the model, optimizer, and learner and executes training
 """
 
 
-def main(config_path: str, run_seed: int = None):
+def main(config_path: str, run_seed: int = None, device: str = CONST_CPU):
     """
     Orchestrates the experiment.
 
@@ -43,6 +51,18 @@ def main(config_path: str, run_seed: int = None):
 
     """
     tic = timeit.default_timer()
+
+    (device_name, *device_ids) = device.split(":")
+    if device_name == CONST_CPU:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+    elif device_name == CONST_GPU:
+        assert (
+            len(device_ids) > 0
+        ), f"at least one device_id is needed, got {device_ids}"
+        os.environ["CUDA_VISIBLE_DEVICES"] = device_ids[0]
+    else:
+        raise ValueError(f"{device_name} is not a supported device.")
+
     set_seed(run_seed)
     assert os.path.isfile(config_path), f"{config_path} is not a file"
     with open(config_path, "r") as f:
@@ -94,6 +114,7 @@ if __name__ == "__main__":
         del argv
         config_path = FLAGS.config_path
         seed = FLAGS.run_seed
-        main(config_path, seed)
+        device = FLAGS.device
+        main(config_path, seed, device)
 
     app.run(_main)
