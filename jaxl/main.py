@@ -27,7 +27,7 @@ flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required
 flags.DEFINE_string(
     "device",
     default=CONST_CPU,
-    help="JAX device to use. To specify specific GPU device, do gpu:<gpu_devices>",
+    help="JAX device to use. To specify specific GPU device, do gpu:<device_ids>",
     required=False,
 )
 
@@ -46,8 +46,10 @@ def main(config_path: str, run_seed: int = None, device: str = CONST_CPU):
 
     :param config_path: the experiment configuration file path
     :param run_seed: the seed to initialize the random number generators
+    :param device: the JAX device to use, supports [`cpu`, `gpu:<device_ids>`]
     :type config_path: str
     :type run_seed: int: (Default value = None)
+    :type device: str: (Default value = cpu)
 
     """
     tic = timeit.default_timer()
