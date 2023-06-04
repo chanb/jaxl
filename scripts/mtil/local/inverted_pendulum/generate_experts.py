@@ -6,6 +6,7 @@ python generate_experts.py \
     --config_template=/Users/chanb/research/personal/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-generate_expert-reinforce.json \
     --exp_name=inverted_pendulum \
     --out_dir=/Users/chanb/research/personal/jaxl/data/inverted_pendulum \
+    --run_seed=0 \
     --num_model_seeds=1 \
     --num_env_seeds=1 \
     --num_envs=1000 \
@@ -49,6 +50,12 @@ flags.DEFINE_string(
     default=None,
     help="Directory for storing the experiment files",
     required=True,
+)
+flags.DEFINE_integer(
+    "run_seed",
+    default=0,
+    help="The run seed",
+    required=False,
 )
 flags.DEFINE_integer(
     "num_model_seeds",
@@ -151,8 +158,8 @@ def main(config):
         with open(f"{out_path}.json", "w+") as f:
             json.dump(template, f)
 
-        shell_script += "python {} --config_path={}.json --run_seed=${{run_seed}} > {}.logs 2>&1 \n".format(
-            config.main_path, out_path, os.path.join(curr_log_dir, variant)
+        shell_script += "python {} --config_path={}.json --run_seed={} > {}.logs 2>&1 \n".format(
+            config.main_path, out_path, config.run_seed, os.path.join(curr_log_dir, variant)
         )
     with open(os.path.join(f"./run_all-{config.exp_name}.sh"), "w+") as f:
         f.writelines(shell_script)
