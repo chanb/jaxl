@@ -34,7 +34,7 @@
         "num_steps_per_epoch": 2048,
         "gamma": 0.99,
         "obs_rms": true,
-        "value_rms": true,
+        "value_rms": false,
         "policy_distribution": "gaussian",
         "min_std": 1e-7,
         "pi_loss_setting": {

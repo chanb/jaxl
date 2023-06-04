@@ -21,7 +21,11 @@ pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-re
 # CUDA 11 installation
 # Note: wheels only available on linux.
 pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 ```
+
+TODO: Do we need this?
 We also need to change PyTorch to purely CPU:
 ```
 pip install torch --index-url https://download.pytorch.org/whl/cpu
