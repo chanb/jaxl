@@ -141,6 +141,7 @@ def main(config):
         variant = (
             f"variant-env_seed_{env_seed}-model_seed_{model_seed}-gravity_{gravity}"
         )
+        template["logging_config"]["experiment_name"] = f"gravity_{gravity}"
         template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
         template["learner_config"]["seeds"]["env_seed"] = int(env_seed)
         template["learner_config"]["env_config"]["env_kwargs"]["gravity"] = gravity
