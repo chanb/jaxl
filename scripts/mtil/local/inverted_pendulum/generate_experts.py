@@ -158,8 +158,13 @@ def main(config):
         with open(f"{out_path}.json", "w+") as f:
             json.dump(template, f)
 
-        shell_script += "python {} --config_path={}.json --run_seed={} > {}.logs 2>&1 \n".format(
-            config.main_path, out_path, config.run_seed, os.path.join(curr_log_dir, variant)
+        shell_script += (
+            "python {} --config_path={}.json --run_seed={} > {}.logs 2>&1 \n".format(
+                config.main_path,
+                out_path,
+                config.run_seed,
+                os.path.join(curr_log_dir, variant),
+            )
         )
     with open(os.path.join(f"./run_all-{config.exp_name}.sh"), "w+") as f:
         f.writelines(shell_script)

@@ -239,6 +239,7 @@ class MTBC(OfflineLearner):
         """
         Makes the training step for model update.
         """
+
         def _train_step(
             model_dict: Dict[str, Any],
             train_x: chex.Array,
