@@ -5,9 +5,9 @@ python generate_test_mtbc.py \
     --config_template=/home/chanb/scratch/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-test_mtbc.json \
     --exp_name=gravity-num_tasks_analysis \
     --run_seed=0 \
-    --test_data_path=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data/gravity/gravity_-10.988583914280802-06-01-23_21_01_11-262882ac-38ca-4f20-8fe5-a7351d7ef595.gzip \
+    --test_data_path=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data/gravity/gravity_-10.788581730190907-06-03-23_22_40_06-e516828d-4848-4fd1-bce8-18d3f297d2c5.gzip \
     --runs_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/train_mtbc/gravity-num_tasks_analysis/runs \
-    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/train_mtbc/ \
+    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/test_mtbc/ \
     --num_model_seeds=1
 
 
@@ -94,7 +94,6 @@ def main(config: FlagValues):
             if filename != "config.json":
                 continue
 
-            num_runs += 1
             run_path = root
             with open(os.path.join(root, filename), "r") as f:
                 curr_run_config = json.load(f)
