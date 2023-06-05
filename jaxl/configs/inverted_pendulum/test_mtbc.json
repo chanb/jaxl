@@ -61,7 +61,7 @@
                 "coefficient": 0.0002
             }
         ],
-        "load_encoder": "/Users/chanb/research/personal/jaxl/jaxl/logs/inverted_pendulum/mtbc/06-01-23_14_07_35-341bb3c2-fa40-4922-a820-38534e6821af/termination_model"
+        "load_encoder": "/Users/chanb/research/personal/jaxl/jaxl/logs/inverted_pendulum/train_mtbc/06-05-23_09_24_12-70c223cd-0665-4d4f-b24c-19baaa4813d0/termination_model"
     },
     "train_config": {
         "num_epochs": 10000

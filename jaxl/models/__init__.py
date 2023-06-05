@@ -58,20 +58,20 @@ def get_optimizer(
         opt_config.optimizer in VALID_OPTIMIZER
     ), f"{opt_config.optimizer} is not supported (one of {VALID_OPTIMIZER})"
 
-    if opt_config.optimizer == CONST_FROZEN:
-        return optax.set_to_zero()
-
     opt_transforms = []
-    if opt_config.max_grad_norm:
-        opt_transforms.append(optax.clip_by_global_norm(opt_config.max_grad_norm))
-    if opt_config.optimizer == CONST_ADAM:
-        opt_transforms.append(optax.scale_by_adam())
-    elif opt_config.optimizer == CONST_SGD:
-        pass
+    if opt_config.optimizer == CONST_FROZEN:
+        opt_transforms.append(optax.set_to_zero())
     else:
-        raise NotImplementedError
+        if opt_config.max_grad_norm:
+            opt_transforms.append(optax.clip_by_global_norm(opt_config.max_grad_norm))
+        if opt_config.optimizer == CONST_ADAM:
+            opt_transforms.append(optax.scale_by_adam())
+        elif opt_config.optimizer == CONST_SGD:
+            pass
+        else:
+            raise NotImplementedError
 
-    opt_transforms.append(optax.scale(-opt_config.lr))
+        opt_transforms.append(optax.scale(-opt_config.lr))
     opt = optax.chain(*opt_transforms)
     opt_state = opt.init(params)
     return opt, opt_state
