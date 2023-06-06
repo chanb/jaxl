@@ -97,7 +97,9 @@ def main(config: FlagValues):
 
         variant = f"variant-model_seed_{model_seed}"
         template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
-        template["learner_config"]["buffer_config"]["load_buffer"] = config.test_data_path
+        template["learner_config"]["buffer_config"][
+            "load_buffer"
+        ] = config.test_data_path
         template["logging_config"]["save_path"] = curr_run_dir
 
         out_path = os.path.join(curr_script_dir, variant)
