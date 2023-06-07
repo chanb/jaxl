@@ -1,6 +1,6 @@
-import mujoco
 import numpy as np
 import os
+import tempfile
 import xml.etree.ElementTree as et
 
 from gymnasium import utils
@@ -138,24 +138,29 @@ class ParameterizedInvertedDoublePendulumEnv(MujocoEnv, utils.EzPickle):
 
     def __init__(self, gravity: float = -9.81, **kwargs):
         observation_space = Box(low=-np.inf, high=np.inf, shape=(11,), dtype=np.float64)
-        MujocoEnv.__init__(
-            self,
-            "inverted_double_pendulum.xml",
-            5,
-            observation_space=observation_space,
-            default_camera_config=DEFAULT_CAMERA_CONFIG,
-            **kwargs,
-        )
-        utils.EzPickle.__init__(self, **kwargs)
-        reference_path = os.path.join(
-            os.path.dirname(mujoco_env.__file__), "assets/inverted_double_pendulum.xml"
-        )
-        reference_xml = et.parse(reference_path)
-        root = reference_xml.getroot()
-        root.find(".//option[@gravity]").set("gravity", "0 0 {}".format(gravity))
-        new_xml = et.tostring(root, encoding="unicode", method="xml")
-        self.model = mujoco.MjModel.from_xml_string(new_xml)
-        self.data = mujoco.MjData(self.model)
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            reference_path = os.path.join(
+                os.path.dirname(mujoco_env.__file__),
+                "assets/inverted_double_pendulum.xml",
+            )
+            reference_xml = et.parse(reference_path)
+            root = reference_xml.getroot()
+            root.find(".//option[@gravity]").set("gravity", "0 0 {}".format(gravity))
+            new_xml = et.tostring(root, encoding="unicode", method="xml")
+            f.write(new_xml)
+            f.flush()
+
+            print(f.name)
+
+            MujocoEnv.__init__(
+                self,
+                f.name,
+                5,
+                observation_space=observation_space,
+                default_camera_config=DEFAULT_CAMERA_CONFIG,
+                **kwargs,
+            )
+            utils.EzPickle.__init__(self, **kwargs)
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
