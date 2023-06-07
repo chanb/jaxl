@@ -41,24 +41,24 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 128
+            "buffer_size": 2048
         },
         "num_steps_per_epoch": 2048,
         "learner": "ppo",
         "gamma": 0.99,
-        "gae_lambda": 0.9,
+        "gae_lambda": 0.95,
         "normalize_advantage": true,
         "eps": 1e-5,
         "obs_rms": true,
         "value_rms": true,
         "policy_distribution": "gaussian",
-        "min_std": 1.0,
-        "opt_batch_size": 64,
-        "opt_epochs": 2,
+        "min_std": 1e-5,
+        "opt_batch_size": 256,
+        "opt_epochs": 5,
         "vf_loss_setting": {
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": false
         },
         "pi_loss_setting": {
             "coefficient": 1.0,

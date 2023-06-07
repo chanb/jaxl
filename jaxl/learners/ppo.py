@@ -368,7 +368,7 @@ class PPO(OnPolicyLearner):
                 advs = (advs - advs.mean()) / (advs.std() + self._eps)
 
             # Get action log probabilities for importance sampling
-            old_lprobs = self._pi.lprob(
+            old_lprobs, old_act_params = self._pi.lprob(
                 self._model_dict[CONST_MODEL][CONST_POLICY], obss, h_states, acts
             )
 
@@ -400,6 +400,20 @@ class PPO(OnPolicyLearner):
                 lambda *args: np.mean(args), *auxes_per_epoch
             )
             auxes[-1][CONST_AUX] = auxes_per_epoch
+            auxes[-1][CONST_ACTION] = {
+                i: {
+                    CONST_SATURATION: np.abs(acts[..., i]).max(),
+                    CONST_MEAN: np.abs(acts[..., i]).mean(),
+                }
+                for i in range(acts.shape[-1])
+            }
+            auxes[-1][CONST_POLICY] = {
+                i: {
+                    CONST_MEAN: np.abs(old_act_params[CONST_MEAN][..., i]).mean(),
+                    CONST_STD: np.abs(old_act_params[CONST_STD][..., i]).mean(),
+                }
+                for i in range(acts.shape[-1])
+            }
 
         auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
         aux[CONST_LOG] = {
@@ -436,6 +450,20 @@ class PPO(OnPolicyLearner):
             f"time/{CONST_ROLLOUT_TIME}": total_rollout_time,
             f"time/{CONST_UPDATE_TIME}": total_update_time,
         }
+
+        for act_i in range(acts.shape[-1]):
+            aux[CONST_LOG][
+                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_SATURATION}"
+            ] = auxes[CONST_ACTION][act_i][CONST_SATURATION]
+            aux[CONST_LOG][
+                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
+            ] = auxes[CONST_ACTION][act_i][CONST_MEAN]
+            aux[CONST_LOG][
+                f"{CONST_POLICY}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
+            ] = auxes[CONST_POLICY][act_i][CONST_MEAN]
+            aux[CONST_LOG][
+                f"{CONST_POLICY}/{CONST_ACTION}_{act_i}_{CONST_STD}"
+            ] = auxes[CONST_POLICY][act_i][CONST_STD]
 
         self.gather_rms(aux)
         return aux

@@ -20,17 +20,20 @@ CONST_LOG_PROB = "log_probs"
 CONST_RUN_PATH = "run_path"
 CONST_SCALAR = "scalar"
 CONST_SCALARS = "scalars"
+CONST_STD = "std"
 
 CONST_IL = "imitation_learning"
 CONST_RL = "reinforcement_learning"
 
 VALID_TASK = [CONST_IL, CONST_RL]
 
+CONST_ACTION = "action"
 CONST_ADVANTAGE = "advantage"
 CONST_RETURN = "return"
 CONST_VALUE = "value"
 CONST_ADVANTAGES = "advantages"
 CONST_RETURNS = "returns"
+CONST_SATURATION = "saturation"
 CONST_VALUES = "values"
 CONST_LATEST_RETURN = "latest_return"
 CONST_LATEST_EPISODE_LENGTH = "latest_episode_length"

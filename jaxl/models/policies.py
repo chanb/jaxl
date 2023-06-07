@@ -6,7 +6,7 @@ import jax.numpy as jnp
 import jax.random as jrandom
 import optax
 
-from jaxl.constants import DEFAULT_MIN_STD
+from jaxl.constants import DEFAULT_MIN_STD, CONST_MEAN, CONST_STD
 from jaxl.distributions import Normal
 from jaxl.models.common import Model, Policy, StochasticPolicy
 
@@ -452,7 +452,7 @@ class GaussianPolicy(StochasticPolicy):
             obs: chex.Array,
             h_state: chex.Array,
             act: chex.Array,
-        ) -> chex.Array:
+        ) -> Tuple[chex.Array, Dict[str, Any]]:
             """
             Compute action log probability.
 
@@ -464,14 +464,14 @@ class GaussianPolicy(StochasticPolicy):
             :type obs: chex.Array
             :type h_state: chex.Array
             :type act: chex.Array
-            :return: an action log probability
-            :rtype: chex.Array
+            :return: an action log probability and distribution parameters
+            :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
             act_params, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = jax.nn.softplus(act_raw_std) + self._min_std
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
-            return lprob
+            return lprob, {CONST_MEAN: act_mean, CONST_STD: act_std}
 
         return lprob

@@ -212,10 +212,12 @@ def make_reinforce_loss(
         :rtype: Tuple[chex.Array, Dict]
 
         """
-        lprobs = policy.lprob(params, obss, h_states, acts)
+        lprobs, _ = policy.lprob(params, obss, h_states, acts)
 
         # TODO: Logging of action lprobs
-        return reduction(-lprobs * (rets - baselines)), {}
+        return reduction(-lprobs * (rets - baselines)), {
+            CONST_LOG_PROB: lprobs,
+        }
 
     return reinforce_loss
 
@@ -272,7 +274,7 @@ def make_ppo_pi_loss(
         :rtype: Tuple[chex.Array, Dict]
 
         """
-        lprobs = policy.lprob(params, obss, h_states, acts)
+        lprobs, _ = policy.lprob(params, obss, h_states, acts)
         is_ratio = jnp.exp(lprobs - old_lprobs)
         clipped_is_ratio = jnp.clip(
             is_ratio,
