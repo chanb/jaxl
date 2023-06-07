@@ -8,11 +8,13 @@
     "model_config": {
         "policy": {
             "architecture": "mlp",
-            "layers": [128, 128]
+            "layers": [64, 64],
+            "activation": "tanh"
         },
         "vf": {
             "architecture": "mlp",
-            "layers": [128, 128]
+            "layers": [64, 64],
+            "activation": "tanh"
         }
     },
     "optimizer_config": {

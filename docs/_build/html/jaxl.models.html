@@ -210,7 +210,7 @@ Tuple[chex.Array, chex.Array],</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="jaxl.models.common.MLP">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.models.common.</span></span><span class="sig-name descname"><span class="pre">MLP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.common.MLP" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.models.common.</span></span><span class="sig-name descname"><span class="pre">MLP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'relu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.common.MLP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#jaxl.models.common.Model" title="jaxl.models.common.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a></p>
 <p>A multilayer perceptron.</p>
 <dl class="py attribute">
@@ -358,14 +358,36 @@ This is often used for resetting the hidden state.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.models.common.get_activation">
+<span class="sig-prename descclassname"><span class="pre">jaxl.models.common.</span></span><span class="sig-name descname"><span class="pre">get_activation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="headerlink" href="#jaxl.models.common.get_activation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets an activation function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>activation</strong> (<em>str</em>) – the activation function name</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an activation function</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-jaxl.models.modules">
 <span id="jaxl-models-modules-module"></span><h2>jaxl.models.modules module<a class="headerlink" href="#module-jaxl.models.modules" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="jaxl.models.modules.MLPModule">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.models.modules.</span></span><span class="sig-name descname"><span class="pre">MLPModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">layers:</span> <span class="pre">~typing.Sequence[int],</span> <span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.core.scope.Scope]</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.modules.MLPModule" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.models.modules.</span></span><span class="sig-name descname"><span class="pre">MLPModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">layers:</span> <span class="pre">~typing.Sequence[int],</span> <span class="pre">activation:</span> <span class="pre">~typing.Callable,</span> <span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.core.scope.Scope]</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.modules.MLPModule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>Multilayer Perceptron.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxl.models.modules.MLPModule.activation">
+<span class="sig-name descname"><span class="pre">activation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span></em><a class="headerlink" href="#jaxl.models.modules.MLPModule.activation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="jaxl.models.modules.MLPModule.layers">
 <span class="sig-name descname"><span class="pre">layers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#jaxl.models.modules.MLPModule.layers" title="Permalink to this definition">¶</a></dt>

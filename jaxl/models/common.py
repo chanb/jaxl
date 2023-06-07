@@ -1,4 +1,5 @@
 from abc import ABC
+from flax import linen as nn
 from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
 import chex
@@ -9,6 +10,28 @@ import optax
 
 from jaxl.constants import *
 from jaxl.models.modules import MLPModule
+
+
+def get_activation(activation: str) -> Callable:
+    """
+    Gets an activation function
+
+    :param activation: the activation function name
+    :type activation: str
+    :return: an activation function
+    :rtype: Callable
+
+    """
+    assert (
+        activation in VALID_ACTIVATION
+    ), f"{activation} is not supported (one of {VALID_ACTIVATION})"
+
+    if activation == CONST_RELU:
+        return nn.relu
+    elif activation == CONST_TANH:
+        return nn.tanh
+    else:
+        raise NotImplementedError
 
 
 class Model(ABC):
@@ -315,8 +338,8 @@ class EnsembleModel(Model):
 class MLP(Model):
     """A multilayer perceptron."""
 
-    def __init__(self, layers: Sequence[int]) -> None:
-        self.model = MLPModule(layers)
+    def __init__(self, layers: Sequence[int], activation: str = CONST_RELU) -> None:
+        self.model = MLPModule(layers, get_activation(activation))
         self.forward = jax.jit(self.make_forward())
 
     def init(
