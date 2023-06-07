@@ -130,6 +130,7 @@ class EvaluationRollout(Rollout):
         obs_rms: Union[bool, RunningMeanStd],
         num_episodes: int,
         buffer: ReplayBuffer = None,
+        render: bool = False,
     ):
         """
         Executes the policy in the environment.
@@ -138,10 +139,14 @@ class EvaluationRollout(Rollout):
         :param policy: the policy
         :param obs_rms: the running statistics for observations
         :param num_episodes: the number of interaction episodes with the environment
+        :param buffer: the buffer to store the transitions with
+        :param render: to render environment
         :type params: Union[optax.Params, Dict[str, Any]]
         :type policy: Policy
         :type obs_rms: Union[bool, RunningMeanStd]
         :type num_episodes: int
+        :type buffer: ReplayBuffer (DefaultValue = None)
+        :type render: bool (DefaultValue = False)
 
         """
         for _ in range(num_episodes):
@@ -154,6 +159,8 @@ class EvaluationRollout(Rollout):
 
             done = False
             while not done:
+                if render:
+                    self._env.render()
                 normalize_obs = np.array([self._curr_obs])
                 if obs_rms:
                     normalize_obs = obs_rms.normalize(normalize_obs)
