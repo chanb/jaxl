@@ -11,7 +11,7 @@
     },
     "optimizer_config": {
         "optimizer": "adam",
-        "lr": 1e-3,
+        "lr": 3e-4,
         "max_grad_norm": false
     },
     "learner_config": {

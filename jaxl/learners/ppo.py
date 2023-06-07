@@ -15,6 +15,7 @@ from jaxl.losses.reinforcement import (
     make_ppo_pi_loss,
     make_ppo_vf_loss,
 )
+from jaxl.losses.supervised import make_squared_loss
 from jaxl.models import (
     get_model,
     get_optimizer,
@@ -66,7 +67,20 @@ class PPO(OnPolicyLearner):
         self._vf = self._model[CONST_VF]
 
         self._pi_loss = make_ppo_pi_loss(self._pi, self._config.pi_loss_setting)
-        self._vf_loss = make_ppo_vf_loss(self._vf, self._config.vf_loss_setting)
+
+        if self._config.vf_loss_setting.clip_param:
+            _vf_loss = make_ppo_vf_loss(self._vf, self._config.vf_loss_setting)
+
+            def vf_loss(params, obss, h_states, rets, vals):
+                return _vf_loss(params, obss, h_states, rets, vals)
+
+        else:
+            _vf_loss = make_squared_loss(self._vf, self._config.vf_loss_setting)
+
+            def vf_loss(params, obss, h_states, rets, vals):
+                return _vf_loss(params, obss, h_states, rets)
+
+        self._vf_loss = vf_loss
 
         def joint_loss(
             model_dicts: Dict[str, Any],
@@ -134,7 +148,7 @@ class PPO(OnPolicyLearner):
                 },
                 CONST_VF: {
                     CONST_LOSS: vf_loss,
-                    CONST_NUM_CLIPPED: vf_aux[CONST_NUM_CLIPPED],
+                    CONST_NUM_CLIPPED: vf_aux.get(CONST_NUM_CLIPPED, 0),
                 },
             }
             return agg_loss, aux

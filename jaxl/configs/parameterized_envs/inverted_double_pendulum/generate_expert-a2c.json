@@ -18,13 +18,13 @@
     "optimizer_config": {
         "policy": {
             "optimizer": "adam",
-            "lr": 1e-3,
-            "max_grad_norm": false
+            "lr": 3e-4,
+            "max_grad_norm": 0.5
         },
         "vf": {
             "optimizer": "adam",
-            "lr": 1e-3,
-            "max_grad_norm": false
+            "lr": 3e-4,
+            "max_grad_norm": 0.5
         }
     },
     "learner_config": {
@@ -49,11 +49,11 @@
         "num_steps_per_epoch": 2048,
         "gamma": 0.99,
         "obs_rms": true,
-        "value_rms": true,
+        "value_rms": false,
         "policy_distribution": "gaussian",
         "min_std": 1e-7,
         "vf_loss_setting": {
-            "coefficient": 1.0,
+            "coefficient": 0.5,
             "reduction": "mean"
         },
         "pi_loss_setting": {
