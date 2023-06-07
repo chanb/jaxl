@@ -1,0 +1,74 @@
+{
+    "logging_config": {
+        "save_path": "./logs/inverted_double_pendulum",
+        "experiment_name": "ppo",
+        "log_interval": 1,
+        "checkpoint_interval": 10
+    },
+    "model_config": {
+        "policy": {
+            "architecture": "mlp",
+            "layers": [128, 128]
+        },
+        "vf": {
+            "architecture": "mlp",
+            "layers": [128, 128]
+        }
+    },
+    "optimizer_config": {
+        "policy": {
+            "optimizer": "adam",
+            "lr": 3e-4,
+            "max_grad_norm": 1.0
+        },
+        "vf": {
+            "optimizer": "adam",
+            "lr": 3e-4,
+            "max_grad_norm": 1.0
+        }
+    },
+    "learner_config": {
+        "task": "reinforcement_learning",
+        "env_config": {
+            "env_type": "gym",
+            "env_name": "ParameterizedInvertedDoublePendulum-v0",
+            "env_kwargs": {
+                "gravity": -9.81
+            }
+        },
+        "seeds": {
+            "model_seed": 42,
+            "buffer_seed": 42,
+            "env_seed": 42
+        },
+        "buffer_config": {
+            "buffer_type": "default",
+            "buffer_size": 64
+        },
+        "num_steps_per_epoch": 2048,
+        "learner": "ppo",
+        "gamma": 0.99,
+        "gae_lambda": 0.9,
+        "normalize_advantage": true,
+        "eps": 1e-5,
+        "obs_rms": true,
+        "value_rms": false,
+        "policy_distribution": "gaussian",
+        "min_std": 1e-7,
+        "opt_batch_size": 32,
+        "opt_epochs": 5,
+        "vf_loss_setting": {
+            "coefficient": 0.2,
+            "reduction": "mean",
+            "clip_param": 0.4
+        },
+        "pi_loss_setting": {
+            "coefficient": 1.0,
+            "reduction": "mean",
+            "clip_param": 0.4
+        }
+    },
+    "train_config": {
+        "num_epochs": 1000
+    }
+}
