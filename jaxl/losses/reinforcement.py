@@ -274,20 +274,18 @@ def make_ppo_pi_loss(
         """
         lprobs = policy.lprob(params, obss, h_states, acts)
         is_ratio = jnp.exp(lprobs - old_lprobs)
+        clipped_is_ratio = jnp.clip(
+            is_ratio,
+            a_min=1 - loss_setting.clip_param,
+            a_max=1 + loss_setting.clip_param,
+        )
 
         surrogate_1 = is_ratio * advs
-        surrogate_2 = (
-            jnp.clip(
-                is_ratio,
-                a_min=1 - loss_setting.clip_param,
-                a_max=1 + loss_setting.clip_param,
-            )
-            * advs
-        )
+        surrogate_2 = clipped_is_ratio * advs
         pi_surrogate = jnp.minimum(surrogate_1, surrogate_2)
 
         return reduction(-pi_surrogate), {
-            CONST_NUM_CLIPPED: (pi_surrogate == surrogate_2).sum(),
+            CONST_NUM_CLIPPED: (clipped_is_ratio == is_ratio).sum(),
             CONST_IS_RATIO: is_ratio,
             CONST_LOG_PROB: lprobs,
         }
@@ -353,7 +351,7 @@ def make_ppo_vf_loss(
         vf_surrogate = jnp.maximum(surrogate_1, surrogate_2)
 
         return reduction(vf_surrogate), {
-            CONST_NUM_CLIPPED: (vf_surrogate == surrogate_2).sum()
+            CONST_NUM_CLIPPED: (preds == clipped_preds).sum()
         }
 
     return vf_loss
