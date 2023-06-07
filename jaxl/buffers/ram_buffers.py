@@ -147,7 +147,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
             if self.is_full:
                 self._pointer = self._buffer_size
             self._buffer_size = size
-        self._count = self._pointer
+            self._count = self._pointer
 
     def __getitem__(self, index: int) -> tuple:
         return (
