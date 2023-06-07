@@ -58,7 +58,7 @@
         "vf_loss_setting": {
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": false
+            "clip_param": true
         },
         "pi_loss_setting": {
             "coefficient": 1.0,

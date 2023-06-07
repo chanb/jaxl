@@ -193,6 +193,13 @@ class REINFORCE(OnPolicyLearner):
             assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
 
             auxes[-1][CONST_AUX] = aux
+            auxes[-1][CONST_ACTION] = {
+                i: {
+                    CONST_SATURATION: np.abs(acts[..., i]).max(),
+                    CONST_MEAN: np.abs(acts[..., i]).mean(),
+                }
+                for i in range(acts.shape[-1])
+            }
 
         auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
         aux[CONST_LOG] = {
@@ -200,6 +207,7 @@ class REINFORCE(OnPolicyLearner):
             f"{CONST_GRAD_NORM}/pi": auxes[CONST_AUX][CONST_GRAD_NORM][
                 CONST_POLICY
             ].item(),
+            f"losses_info/pi_log_prob": auxes[CONST_AUX][CONST_LOG_PROB].item(),
             f"{CONST_PARAM_NORM}/pi": l2_norm(
                 self.model_dict[CONST_MODEL][CONST_POLICY]
             ).item(),
@@ -208,6 +216,14 @@ class REINFORCE(OnPolicyLearner):
             f"time/{CONST_ROLLOUT_TIME}": total_rollout_time,
             f"time/{CONST_UPDATE_TIME}": total_update_time,
         }
+
+        for act_i in range(acts.shape[-1]):
+            aux[CONST_LOG][
+                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_SATURATION}"
+            ] = auxes[CONST_ACTION][act_i][CONST_SATURATION]
+            aux[CONST_LOG][
+                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
+            ] = auxes[CONST_ACTION][act_i][CONST_MEAN]
 
         self.gather_rms(aux)
         return aux
