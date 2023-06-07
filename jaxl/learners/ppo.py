@@ -374,8 +374,11 @@ class PPO(OnPolicyLearner):
 
             auxes_per_epoch = []
             curr_sample_keys = jrandom.split(self._sample_key, num=self._opt_epochs + 1)
+
             self._sample_key = curr_sample_keys[0]
             permutation_keys = curr_sample_keys[1:]
+            # XXX: We need to sample with minimal repeat for the algorithm to work better.
+            #      A very obvious performance gain with this implementation
             sample_idxes = jax.vmap(jrandom.permutation, in_axes=[0, None])(
                 permutation_keys, self._sample_idxes
             ).flatten()
