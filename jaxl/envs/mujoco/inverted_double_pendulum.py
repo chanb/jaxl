@@ -136,9 +136,11 @@ class ParameterizedInvertedDoublePendulumEnv(MujocoEnv, utils.EzPickle):
         "render_fps": 20,
     }
 
-    def __init__(self, gravity: float = -9.81, **kwargs):
+    def __init__(self, gravity: float = -9.81, tmp_dir: str = "./tmp", **kwargs):
         observation_space = Box(low=-np.inf, high=np.inf, shape=(11,), dtype=np.float64)
-        with tempfile.NamedTemporaryFile(mode="w") as f:
+        if tmp_dir:
+            os.makedirs(tmp_dir, exist_ok=True)
+        with tempfile.NamedTemporaryFile(mode="w", dir=tmp_dir) as f:
             reference_path = os.path.join(
                 os.path.dirname(mujoco_env.__file__),
                 "assets/inverted_double_pendulum.xml",
