@@ -12,4 +12,5 @@ black>=23.3.0
 mujoco>=2.3.5
 mujoco-py>=2.1.2.14
 matplotlib>=3.7.1
+moviepy>=1.0.3
 jupyter>=1.0.0

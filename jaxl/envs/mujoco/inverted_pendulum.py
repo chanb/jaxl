@@ -105,7 +105,7 @@ class ParameterizedInvertedPendulumEnv(MujocoEnv, utils.EzPickle):
         "render_fps": 25,
     }
 
-    def __init__(self, gravity=-9.81, **kwargs):
+    def __init__(self, gravity: float = -9.81, **kwargs):
         utils.EzPickle.__init__(self, **kwargs)
         observation_space = Box(low=-np.inf, high=np.inf, shape=(4,), dtype=np.float64)
         MujocoEnv.__init__(
@@ -114,6 +114,7 @@ class ParameterizedInvertedPendulumEnv(MujocoEnv, utils.EzPickle):
             2,
             observation_space=observation_space,
             default_camera_config=DEFAULT_CAMERA_CONFIG,
+            **kwargs,
         )
         reference_path = os.path.join(
             os.path.dirname(mujoco_env.__file__), "assets/inverted_pendulum.xml"
