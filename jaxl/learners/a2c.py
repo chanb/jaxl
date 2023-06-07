@@ -132,7 +132,7 @@ class A2C(OnPolicyLearner):
         act_dim = policy_output_dim(output_dim, self._config)
         self._model = {
             CONST_POLICY: get_model(input_dim, act_dim, self._model_config.policy),
-            CONST_VF: get_model(input_dim, output_dim, self._model_config.vf),
+            CONST_VF: get_model(input_dim, (1,), self._model_config.vf),
         }
 
         model_keys = jrandom.split(jrandom.PRNGKey(self._config.seeds.model_seed))
