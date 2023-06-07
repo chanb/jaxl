@@ -31,7 +31,7 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "Hopper-v3",
+            "env_name": "Hopper-v2",
             "env_kwargs": {}
         },
         "seeds": {
@@ -52,7 +52,7 @@
         "obs_rms": true,
         "value_rms": true,
         "policy_distribution": "gaussian",
-        "min_std": 1e-4,
+        "min_std": 1.0,
         "opt_batch_size": 64,
         "opt_epochs": 2,
         "vf_loss_setting": {

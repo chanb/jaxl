@@ -97,7 +97,10 @@ def get_model(
         model_config.architecture in VALID_ARCHITECTURE
     ), f"{model_config.architecture} is not supported (one of {VALID_ARCHITECTURE})"
     if model_config.architecture == CONST_MLP:
-        return MLP(model_config.layers + list(output_dim), getattr(model_config, "activation", CONST_RELU))
+        return MLP(
+            model_config.layers + list(output_dim),
+            getattr(model_config, "activation", CONST_RELU),
+        )
     elif model_config.architecture == CONST_ENCODER_PREDICTOR:
         encoder = get_model(input_dim, model_config.encoder_dim, model_config.encoder)
         predictor = get_model(

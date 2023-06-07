@@ -54,13 +54,13 @@
         "normalize_advantage": true,
         "eps": 1e-5,
         "obs_rms": true,
-        "value_rms": true,
+        "value_rms": false,
         "policy_distribution": "gaussian",
         "min_std": 1e-7,
         "opt_batch_size": 64,
         "opt_epochs": 10,
         "vf_loss_setting": {
-            "coefficient": 0.5,
+            "coefficient": 1.0,
             "reduction": "mean",
             "clip_param": false
         },
