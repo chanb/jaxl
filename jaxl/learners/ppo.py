@@ -373,11 +373,16 @@ class PPO(OnPolicyLearner):
             )
 
             auxes_per_epoch = []
-            for _ in range(self._opt_epochs):
-                minibatch_idxes = jrandom.permutation(
-                    self._sample_key, self._sample_idxes
-                )[self._opt_batch_size]
-                self._sample_key = jrandom.split(self._sample_key, num=1)[0]
+            curr_sample_keys = jrandom.split(self._sample_key, num=self._opt_epochs + 1)
+            self._sample_key = curr_sample_keys[0]
+            permutation_keys = curr_sample_keys[1:]
+            sample_idxes = jax.vmap(jrandom.permutation, in_axes=[0, None])(
+                permutation_keys, self._sample_idxes
+            ).flatten()
+            for opt_i in range(self._opt_epochs):
+                minibatch_idxes = sample_idxes[
+                    opt_i * self._opt_batch_size : (opt_i + 1) * self._opt_batch_size
+                ]
                 self.model_dict, aux = self.joint_step(
                     self._model_dict,
                     obss[minibatch_idxes],
