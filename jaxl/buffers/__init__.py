@@ -63,4 +63,10 @@ def get_buffer(
     else:
         raise NotImplementedError
 
-    return buffer_constructor(**buffer_kwargs)
+    buffer = buffer_constructor(**buffer_kwargs)
+
+    buffer_size = getattr(buffer_config, "set_size", False)
+    if buffer_size:
+        buffer.set_size(buffer_size)
+
+    return buffer
