@@ -192,6 +192,7 @@ class EvaluationRollout(Rollout):
 
                 self._curr_obs = next_obs
                 self._curr_h_state = next_h_state
+        self._env.reset()
 
 
 class StandardRollout(Rollout):
