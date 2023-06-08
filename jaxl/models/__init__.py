@@ -62,6 +62,7 @@ def get_optimizer(
     if opt_config.optimizer == CONST_FROZEN:
         opt_transforms.append(optax.set_to_zero())
     else:
+        opt_transforms.append(optax.zero_nans())
         if opt_config.max_grad_norm:
             opt_transforms.append(optax.clip_by_global_norm(opt_config.max_grad_norm))
         if opt_config.optimizer == CONST_ADAM:

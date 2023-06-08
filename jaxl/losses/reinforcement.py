@@ -276,6 +276,9 @@ def make_ppo_pi_loss(
         """
         lprobs, _ = policy.lprob(params, obss, h_states, acts)
         is_ratio = jnp.exp(lprobs - old_lprobs)
+        # XXX: Deal with inf values
+        is_ratio = jnp.nan_to_num(is_ratio, posinf=0.0, neginf=0.0)
+
         clipped_is_ratio = jnp.clip(
             is_ratio,
             a_min=1 - loss_setting.clip_param,
@@ -344,10 +347,13 @@ def make_ppo_vf_loss(
 
         """
         preds, _ = model.forward(params, obss, h_states)
+        # XXX: Deal with inf values
+        preds = jnp.nan_to_num(preds, posinf=0.0, neginf=0.0)
 
         clipped_preds = vals + jnp.clip(
             preds - vals, a_min=-loss_setting.clip_param, a_max=loss_setting.clip_param
         )
+
         surrogate_1 = (rets - preds) ** 2
         surrogate_2 = (rets - clipped_preds) ** 2
         vf_surrogate = jnp.maximum(surrogate_1, surrogate_2)
