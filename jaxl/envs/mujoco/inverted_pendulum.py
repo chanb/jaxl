@@ -120,8 +120,6 @@ class ParameterizedInvertedPendulumEnv(MujocoEnv, utils.EzPickle):
             f.write(new_xml)
             f.flush()
 
-            print(f.name)
-
             MujocoEnv.__init__(
                 self,
                 f.name,
