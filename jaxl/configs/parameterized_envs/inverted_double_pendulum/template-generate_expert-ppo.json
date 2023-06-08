@@ -1,18 +1,31 @@
 {
     "logging_config": {
         "save_path": "./logs/inverted_double_pendulum",
-        "experiment_name": "reinforce",
+        "experiment_name": "ppo",
         "log_interval": 1,
         "checkpoint_interval": 10
     },
     "model_config": {
-        "architecture": "mlp",
-        "layers": [128, 128]
+        "policy": {
+            "architecture": "mlp",
+            "layers": [128, 128]
+        },
+        "vf": {
+            "architecture": "mlp",
+            "layers": [128, 128]
+        }
     },
     "optimizer_config": {
-        "optimizer": "adam",
-        "lr": 3e-4,
-        "max_grad_norm": false
+        "policy": {
+            "optimizer": "adam",
+            "lr": 3e-4,
+            "max_grad_norm": 0.5
+        },
+        "vf": {
+            "optimizer": "adam",
+            "lr": 3e-4,
+            "max_grad_norm": 0.5
+        }
     },
     "learner_config": {
         "task": "reinforcement_learning",
@@ -32,15 +45,27 @@
             "buffer_type": "default",
             "buffer_size": 2048
         },
-        "learner": "reinforce",
         "num_steps_per_epoch": 2048,
+        "learner": "ppo",
         "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "normalize_advantage": true,
+        "eps": 1e-5,
         "obs_rms": true,
         "value_rms": true,
         "policy_distribution": "gaussian",
-        "min_std": 1.0,
+        "min_std": 1e-7,
+        "opt_batch_size": 64,
+        "opt_epochs": 10,
+        "vf_loss_setting": {
+            "coefficient": 1.0,
+            "reduction": "mean",
+            "clip_param": false
+        },
         "pi_loss_setting": {
-            "reduction": "mean"
+            "coefficient": 1.0,
+            "reduction": "mean",
+            "clip_param": 0.2
         }
     },
     "train_config": {
