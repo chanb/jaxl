@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
 #SBATCH --array=1-7
-#SBATCH --output=/home/chanb/scratch/jaxl/run_reports/%j.out
+#SBATCH --output=/home/chanb/scratch/jaxl/run_reports/inverted_pendulum/%j.out
 
 module load python/3.9
 module load mujoco
