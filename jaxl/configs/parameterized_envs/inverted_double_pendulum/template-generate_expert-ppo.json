@@ -3,7 +3,7 @@
         "save_path": "./logs/inverted_double_pendulum",
         "experiment_name": "ppo",
         "log_interval": 1,
-        "checkpoint_interval": 10
+        "checkpoint_interval": false
     },
     "model_config": {
         "policy": {
