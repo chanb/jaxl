@@ -105,7 +105,7 @@ def main(
     model = get_model(
         input_dim,
         output_dim,
-        getattr(agent_config.model_config, "policy", agent_config.model_config)
+        getattr(agent_config.model_config, "policy", agent_config.model_config),
     )
     policy = get_policy(model, agent_config.learner_config)
 
