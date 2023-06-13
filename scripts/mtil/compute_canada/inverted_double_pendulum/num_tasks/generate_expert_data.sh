@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --account=def-schuurma
-#SBATCH --time=00:30:00
+#SBATCH --time=01:00:00
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=3G
+#SBATCH --mem=4G
 #SBATCH --array=1-100
 #SBATCH --output=/home/chanb/scratch/jaxl/run_reports/inverted_double_pendulum/%j.out
 
