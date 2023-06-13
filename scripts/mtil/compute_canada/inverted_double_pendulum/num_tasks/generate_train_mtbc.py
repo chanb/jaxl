@@ -62,7 +62,9 @@ flags.DEFINE_list(
     help="A list of number of tasks",
     required=True,
 )
-flags.DEFINE_integer("num_data", default=None, help="Amount of data to use from each buffer")
+flags.DEFINE_integer(
+    "num_data", default=None, help="Amount of data to use from each buffer"
+)
 
 NUM_FILES_PER_DIRECTORY = 100
 
