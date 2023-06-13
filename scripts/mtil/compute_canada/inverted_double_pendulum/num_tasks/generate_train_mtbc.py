@@ -62,6 +62,7 @@ flags.DEFINE_list(
     help="A list of number of tasks",
     required=True,
 )
+flags.DEFINE_integer("num_data", default=None, help="Amount of data to use from each buffer")
 
 NUM_FILES_PER_DIRECTORY = 100
 
@@ -102,6 +103,11 @@ def main(config: FlagValues):
     # Standard template
     template["logging_config"]["experiment_name"] = ""
 
+    buffer_kwargs = {
+        "buffer_type": "default",
+    }
+    if config.num_data is not None:
+        buffer_kwargs["set_size"] = config.num_data
     base_script_dir = os.path.join(out_dir, "scripts")
     base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
@@ -120,7 +126,7 @@ def main(config: FlagValues):
         template["learner_config"]["buffer_configs"] = [
             {
                 "load_buffer": datasets_path[task_i],
-                "buffer_type": "default",
+                **buffer_kwargs,
             }
             for task_i in range(num_tasks)
         ]
