@@ -2,13 +2,13 @@
 
 Example command:
 python generate_expert_data.py \
-    --runs_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_models/gravity/runs \
-    --out_dir=/home/chanb/scratch/jaxl/data/inverted_pendulum/expert_data \
+    --runs_dir=/home/chanb/scratch/jaxl/data/inverted_double_pendulum/expert_models/gravity/runs \
+    --out_dir=/home/chanb/scratch/jaxl/data/inverted_double_pendulum/expert_data \
     --exp_name=gravity \
     --run_seed=0 \
     --env_seed=42 \
-    --num_episodes=10 \
-    --buffer_size=10000
+    --num_episodes=100 \
+    --buffer_size=100000
 
 
 This will generate a dat file that consists of various runs.
