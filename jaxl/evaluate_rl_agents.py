@@ -102,7 +102,11 @@ def main(
     )
     input_dim = buffer.input_dim
     output_dim = policy_output_dim(buffer.output_dim, agent_config.learner_config)
-    model = get_model(input_dim, output_dim, agent_config.model_config)
+    model = get_model(
+        input_dim,
+        output_dim,
+        getattr(agent_config.model_config, "policy", agent_config.model_config)
+    )
     policy = get_policy(model, agent_config.learner_config)
 
     run_path = os.path.join(config.run_path, "termination_model")
