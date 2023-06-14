@@ -93,7 +93,9 @@ def main(config: FlagValues):
     base_script_dir = os.path.join(out_dir, "scripts")
     base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
-    for idx, (model_seed, dataset_path) in enumerate(itertools.product(model_seeds, datasets_path)):
+    for idx, (model_seed, dataset_path) in enumerate(
+        itertools.product(model_seeds, datasets_path)
+    ):
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
         curr_run_dir = os.path.join(base_run_dir, dir_i)
@@ -103,9 +105,7 @@ def main(config: FlagValues):
 
         variant = f"variant-model_seed_{model_seed}"
         template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
-        template["learner_config"]["buffer_config"][
-            "load_buffer"
-        ] = dataset_path
+        template["learner_config"]["buffer_config"]["load_buffer"] = dataset_path
         template["logging_config"]["save_path"] = curr_run_dir
 
         out_path = os.path.join(curr_script_dir, variant)

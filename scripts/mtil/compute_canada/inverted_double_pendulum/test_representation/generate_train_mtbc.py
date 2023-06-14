@@ -94,7 +94,9 @@ def main(config: FlagValues):
     os.makedirs(out_dir, exist_ok=True)
 
     num_layers_variants = [int(el) for el in config.num_layers]
-    assert len(num_layers_variants) > 0, f"Need at least 1 num_layers variant, got {len(num_layers_variants)}"
+    assert (
+        len(num_layers_variants) > 0
+    ), f"Need at least 1 num_layers variant, got {len(num_layers_variants)}"
 
     num_hidden_units_variants = [int(el) for el in config.num_hidden_units]
 
@@ -133,7 +135,12 @@ def main(config: FlagValues):
     base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
     for idx, (model_seed, num_layers, num_hidden_units, num_tasks) in enumerate(
-        itertools.product(model_seeds, num_layers_variants, num_hidden_units_variants, num_tasks_variants)
+        itertools.product(
+            model_seeds,
+            num_layers_variants,
+            num_hidden_units_variants,
+            num_tasks_variants,
+        )
     ):
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
@@ -154,7 +161,9 @@ def main(config: FlagValues):
         template["model_config"]["predictor"]["num_models"] = int(num_tasks)
         template["model_config"]["encoder"]["layers"] = [num_hidden_units] * num_layers
         template["logging_config"]["save_path"] = curr_run_dir
-        template["logging_config"]["experiment_name"] = f"num_tasks_{num_tasks}-num_layers_{num_layers}-num_hidden_units_{num_hidden_units}"
+        template["logging_config"][
+            "experiment_name"
+        ] = f"num_tasks_{num_tasks}-num_layers_{num_layers}-num_hidden_units_{num_hidden_units}"
 
         out_path = os.path.join(curr_script_dir, variant)
         with open(f"{out_path}.json", "w+") as f:
