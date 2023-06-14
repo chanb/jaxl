@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --account=def-schuurma
-#SBATCH --time=04:00:00
+#SBATCH --time=1:00:00
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=3G
-#SBATCH --array=1-100
-#SBATCH --output=/home/chanb/scratch/jaxl/run_reports/inverted_pendulum/%j.out
+#SBATCH --mem=8G
+#SBATCH --array=1-3
+#SBATCH --output=/home/chanb/scratch/jaxl/run_reports/inverted_double_pendulum/%j.out
 
 module load python/3.9
 module load mujoco
 source ~/jaxl_env/bin/activate
-`sed -n "${SLURM_ARRAY_TASK_ID}p" < export-generate_experts-gravity.dat`
+`sed -n "${SLURM_ARRAY_TASK_ID}p" < export-generate_test_bc-gravity-num_data_analysis.dat`
 echo ${SLURM_ARRAY_TASK_ID}
 
 echo "Current working directory is `pwd`"
