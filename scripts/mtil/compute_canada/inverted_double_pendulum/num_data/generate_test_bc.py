@@ -88,8 +88,6 @@ def main(config: FlagValues):
             break
 
     # Standard template
-    template["logging_config"]["experiment_name"] = ""
-
     base_script_dir = os.path.join(out_dir, "scripts")
     base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
@@ -110,6 +108,7 @@ def main(config: FlagValues):
         template["learner_config"]["buffer_config"]["load_buffer"] = dataset_path
         template["logging_config"]["save_path"] = curr_run_dir
 
+        template["logging_config"]["experiment_name"] = f"num_data_{num_data}"
         out_path = os.path.join(curr_script_dir, variant)
         with open(f"{out_path}.json", "w+") as f:
             json.dump(template, f)
