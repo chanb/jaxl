@@ -104,6 +104,7 @@ def main(config: FlagValues):
         num_data = dataset_path[:-5].split("num_episodes_")[-1]
 
         variant = f"variant-model_seed_{model_seed}-num_data_{num_data}"
+        template["train_config"]["num_epochs"] = 50000
         template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
         template["learner_config"]["buffer_config"]["load_buffer"] = dataset_path
         template["logging_config"]["save_path"] = curr_run_dir
