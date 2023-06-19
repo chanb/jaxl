@@ -100,7 +100,9 @@ def main(config: FlagValues):
                 num_tasks = len(curr_run_config["learner_config"]["buffer_configs"])
                 encoder_architecture = curr_run_config["model_config"]["encoder"]
                 experiment_name = curr_run_config["logging_config"]["experiment_name"]
-            runs_info.append((run_path, num_tasks, encoder_architecture, experiment_name))
+            runs_info.append(
+                (run_path, num_tasks, encoder_architecture, experiment_name)
+            )
 
     # Standard template
     template["logging_config"]["experiment_name"] = ""
@@ -120,7 +122,9 @@ def main(config: FlagValues):
             os.makedirs(curr_script_dir, exist_ok=True)
 
         num_layers = int(experiment_name.split("num_layers_")[1].split("-")[0])
-        num_hidden_units = int(experiment_name.split("num_hidden_units_")[1].split("-")[0])
+        num_hidden_units = int(
+            experiment_name.split("num_hidden_units_")[1].split("-")[0]
+        )
         variant = f"variant-model_seed_{model_seed}-num_tasks_{num_tasks}-num_layers_{num_layers}-num_hidden_units_{num_hidden_units}"
         template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
         template["learner_config"]["load_encoder"] = os.path.join(
