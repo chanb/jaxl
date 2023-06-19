@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --account=def-schuurma
-#SBATCH --time=01:00:00
+#SBATCH --time=05:00:00
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=6G
-#SBATCH --array=1-3
+#SBATCH --mem=12G
+#SBATCH --array=1
 #SBATCH --output=/home/chanb/scratch/jaxl/run_reports/inverted_double_pendulum/%j.out
 
 module load python/3.9
