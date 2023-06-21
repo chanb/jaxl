@@ -1,4 +1,5 @@
 from abc import ABC, abstractclassmethod
+from tqdm import tqdm
 from typing import Any, Dict, Iterable, Tuple, Union
 
 import chex
@@ -146,7 +147,7 @@ class EvaluationRollout(Rollout):
         :type buffer: ReplayBuffer (DefaultValue = None)
 
         """
-        for _ in range(num_episodes):
+        for _ in tqdm(range(num_episodes)):
             self._episodic_returns.append(0)
             self._episode_lengths.append(0)
             seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
@@ -231,7 +232,7 @@ class StandardRollout(Rollout):
         :rtype: Tuple[chex.Array, chex.Array]
 
         """
-        for _ in range(num_steps):
+        for _ in tqdm(range(num_steps)):
             if self._done:
                 self._done = False
                 self._episodic_returns.append(0)
