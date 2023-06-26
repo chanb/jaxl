@@ -1,3 +1,5 @@
+import os
+
 from gymnasium.envs.registration import register
 from types import SimpleNamespace
 
@@ -45,4 +47,27 @@ register(
     max_episode_steps=1000,
     reward_threshold=950.0,
     kwargs={"gravity": -9.81},
+)
+
+register(
+    id="ParameterizedHopper-v0",
+    entry_point="jaxl.envs.mujoco.hopper:HopperEnv",
+    max_episode_steps=1000,
+    reward_threshold=3800.0,
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "mujoco/configs/hopper.json"
+        )
+    },
+)
+register(
+    id="ParameterizedHalfCheetah-v0",
+    entry_point="jaxl.envs.mujoco.halfcheetah:HalfCheetahEnv",
+    max_episode_steps=1000,
+    reward_threshold=4800.0,
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "mujoco/configs/halfcheetah.json"
+        )
+    },
 )
