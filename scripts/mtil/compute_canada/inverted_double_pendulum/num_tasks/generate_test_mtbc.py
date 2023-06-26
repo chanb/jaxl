@@ -98,7 +98,8 @@ def main(config: FlagValues):
             with open(os.path.join(root, filename), "r") as f:
                 curr_run_config = json.load(f)
                 num_tasks = len(curr_run_config["learner_config"]["buffer_configs"])
-            runs_info.append((run_path, num_tasks))
+                encoder_model_seed = curr_run_config["learner_config"]["seeds"]["model_seed"]
+            runs_info.append((run_path, num_tasks, encoder_model_seed))
 
     # Standard template
     template["logging_config"]["experiment_name"] = ""
@@ -106,7 +107,7 @@ def main(config: FlagValues):
     base_script_dir = os.path.join(out_dir, "scripts")
     base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
-    for idx, (model_seed, run_info) in enumerate(
+    for idx, (model_seed, run_info, encoder_model_seed) in enumerate(
         itertools.product(model_seeds, runs_info)
     ):
         (run_path, num_tasks) = run_info
@@ -117,7 +118,7 @@ def main(config: FlagValues):
             os.makedirs(curr_run_dir, exist_ok=True)
             os.makedirs(curr_script_dir, exist_ok=True)
 
-        variant = f"variant-model_seed_{model_seed}-num_tasks_{num_tasks}"
+        variant = f"variant-model_seed_{model_seed}-num_tasks_{num_tasks}-encoder_model_seed_{encoder_model_seed}"
         template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
         template["learner_config"]["load_encoder"] = os.path.join(
             run_path, "termination_model"
@@ -126,7 +127,7 @@ def main(config: FlagValues):
             "load_buffer"
         ] = config.test_data_path
         template["logging_config"]["save_path"] = curr_run_dir
-        template["logging_config"]["experiment_name"] = f"num_tasks_{num_tasks}"
+        template["logging_config"]["experiment_name"] = f"num_tasks_{num_tasks}-encoder_model_seed_{encoder_model_seed}"
 
         out_path = os.path.join(curr_script_dir, variant)
         with open(f"{out_path}.json", "w+") as f:
