@@ -107,10 +107,10 @@ def main(config: FlagValues):
     base_script_dir = os.path.join(out_dir, "scripts")
     base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
-    for idx, (model_seed, run_info, encoder_model_seed) in enumerate(
+    for idx, (model_seed, run_info) in enumerate(
         itertools.product(model_seeds, runs_info)
     ):
-        (run_path, num_tasks) = run_info
+        (run_path, num_tasks, encoder_model_seed) = run_info
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
         curr_run_dir = os.path.join(base_run_dir, dir_i)

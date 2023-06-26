@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, Iterable, Iterator, Sequence
+from typing import Any, Callable, Dict, Iterable, Iterator, Sequence, Tuple
 
 import chex
 import jax
@@ -84,6 +84,50 @@ def flatten_dict(d: Dict, label: str = None) -> Iterator:
             yield from flatten_dict(v, k if label is None else f"{label}.{k}")
     else:
         yield (label, d)
+
+
+def set_dict_value(d: Dict, key: str, val: Any) -> None:
+    """
+    Set dictionary value by key (mutation).
+
+    :param d: the dictionary
+    :param key: the key to look for
+    :param value: the value to set
+    :type d: Dict
+    :type key: str
+    :type value: Any
+
+    """
+    if key in d:
+        d[key] = val
+
+    for k in d:
+        if isinstance(d[k], dict):
+            set_dict_value(d[k], key, val)
+
+
+def get_dict_value(d: Dict, key: str) -> Tuple[bool, Any]:
+    """
+    Get first occurence dictionary value by key.
+
+    :param d: the dictionary
+    :param key: the key to look for
+    :type d: Dict
+    :type key: str
+    :return: whether a value is retrieved, if so return the value based on the dictionary key as well
+    :rtype: Tuple[bool, Any]
+
+    """
+    if key in d:
+        return (d[key], True)
+
+    for k in d:
+        if isinstance(d[k], dict):
+            val = get_dict_value(d[k], key)
+            if val[1]:
+                return val
+
+    return (None, False)
 
 
 def get_reduction(reduction: str) -> Callable[..., chex.Array]:

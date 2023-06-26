@@ -136,7 +136,19 @@ class ParameterizedInvertedDoublePendulumEnv(MujocoEnv, utils.EzPickle):
         "render_fps": 20,
     }
 
-    def __init__(self, gravity: float = -9.81, tmp_dir: str = "./tmp", **kwargs):
+    def __init__(
+        self,
+        gravity: float = -9.81,
+        init_qpos_low: float = -0.1,
+        init_qpos_high: float = 0.1,
+        tmp_dir: str = "./tmp",
+        **kwargs
+    ):
+        assert (
+            -np.pi <= init_qpos_low <= init_qpos_high <= np.pi
+        ), "invalid qpos range ({}, {})".format(init_qpos_low, init_qpos_high)
+        self.init_qpos_low = init_qpos_low
+        self.init_qpos_high = init_qpos_high
         observation_space = Box(low=-np.inf, high=np.inf, shape=(11,), dtype=np.float64)
         if tmp_dir:
             os.makedirs(tmp_dir, exist_ok=True)
@@ -190,7 +202,9 @@ class ParameterizedInvertedDoublePendulumEnv(MujocoEnv, utils.EzPickle):
     def reset_model(self):
         self.set_state(
             self.init_qpos
-            + self.np_random.uniform(low=-0.1, high=0.1, size=self.model.nq),
+            + self.np_random.uniform(
+                low=self.init_qpos_low, high=self.init_qpos_high, size=self.model.nq
+            ),
             self.init_qvel + self.np_random.standard_normal(self.model.nv) * 0.1,
         )
         return self._get_obs()
