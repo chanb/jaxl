@@ -1,0 +1,41 @@
+{
+  "joint": {
+    "bthigh": {
+      "damping": {
+        "default": [6],
+        "min": [4],
+        "max": [8]
+      }
+    },
+    "fthigh": {
+      "damping": {
+        "default": [6],
+        "min": [4],
+        "max": [8]
+      }
+    }
+  },
+  "geom": {
+    "ffoot": {
+      "size": {
+        "default": [0.046, 0.07],
+        "min": [0.04, 0.065],
+        "max": [0.05, 0.075]
+      }
+    },
+    "bfoot": {
+      "size": {
+        "default": [0.046, 0.07],
+        "min": [0.04, 0.065],
+        "max": [0.05, 0.075]
+      }
+    }
+  },
+  "option": {
+    "gravity": {
+      "default": [0, 0, -9.81],
+      "min": [0, 0, -8.0],
+      "max": [0, 0, -11.0]
+    }
+  }
+}

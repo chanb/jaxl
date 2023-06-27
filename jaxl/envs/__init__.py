@@ -62,12 +62,12 @@ register(
 )
 register(
     id="ParameterizedHalfCheetah-v0",
-    entry_point="jaxl.envs.mujoco.halfcheetah:HalfCheetahEnv",
+    entry_point="jaxl.envs.mujoco.half_cheetah:HalfCheetahEnv",
     max_episode_steps=1000,
     reward_threshold=4800.0,
     kwargs={
         "parameter_config_path": os.path.join(
-            os.path.dirname(__file__), "mujoco/configs/halfcheetah.json"
+            os.path.dirname(__file__), "mujoco/configs/half_cheetah.json"
         )
     },
 )

@@ -232,7 +232,7 @@ class StandardRollout(Rollout):
         :rtype: Tuple[chex.Array, chex.Array]
 
         """
-        for _ in tqdm(range(num_steps)):
+        for _ in range(num_steps):
             if self._done:
                 self._done = False
                 self._episodic_returns.append(0)
