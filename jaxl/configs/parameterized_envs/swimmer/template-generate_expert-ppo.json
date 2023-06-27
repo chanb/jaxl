@@ -31,8 +31,8 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "Swimmer-v3",
-            "env_kwargs": {}
+            "env_name": "ParameterizedSwimmer-v0",
+            "env_kwargs": {"seed": 0}
         },
         "seeds": {
             "model_seed": 42,
