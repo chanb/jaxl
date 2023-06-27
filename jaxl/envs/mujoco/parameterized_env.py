@@ -90,3 +90,8 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
 
     def _reset_simulation(self):
         mujoco.mj_resetData(self.model, self.data)
+
+    def get_config(self):
+        return {
+            "xml": self.xml
+        }

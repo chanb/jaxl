@@ -6,6 +6,8 @@ import os
 from gymnasium.envs.mujoco import mujoco_env
 from gymnasium.spaces import Box
 
+from jaxl.envs.mujoco.parameterized_env import ParameterizedMujocoEnv
+
 
 class SwimmerEnv(ParameterizedMujocoEnv):
     """

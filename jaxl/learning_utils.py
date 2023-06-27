@@ -120,3 +120,4 @@ def train(
     if save_path:
         learner.checkpoint(os.path.join(save_path, "termination_model"))
         learner.save_buffer(os.path.join(save_path, "termination_buffer.gzip"))
+        learner.save_env_config(os.path.join(save_path, "env_config.pkl"))

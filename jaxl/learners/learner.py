@@ -3,6 +3,7 @@ from orbax.checkpoint import PyTreeCheckpointer
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Tuple, Union
 
+import _pickle as pickle
 import chex
 import numpy as np
 import optax
@@ -103,6 +104,16 @@ class Learner(ABC):
 
         checkpointer = PyTreeCheckpointer()
         self._model_dict = checkpointer.restore(checkpoint_path)
+
+    def save_env_config(self, checkpoint_path: str):
+        """
+        Saves the environment configuration.
+
+        :param checkpoint_path: directory path to store the environment configuration to
+        :type checkpoint_path: str
+
+        """
+        pass
 
     def save_buffer(self, checkpoint_path: str):
         """
@@ -246,6 +257,17 @@ class OnlineLearner(Learner):
 
         """
         self._buffer.save(checkpoint_path)
+
+    def save_env_config(self, checkpoint_path: str):
+        """
+        Saves the environment configuration.
+        :param checkpoint_path: directory path to store the environment configuration to
+        :type checkpoint_path: str
+
+        """
+        if hasattr(self._env, "get_config"):
+            with open(checkpoint_path, "wb") as f:
+                pickle.dump(self._env.get_config(), f)
 
     @property
     def env(self):
