@@ -88,8 +88,8 @@ def train(
             CONST_HYPERPARAMETERS,
             hyperparameter_str,
         )
+        learner.save_env_config(os.path.join(save_path, "env_config.pkl"))
 
-    # try:
     true_epoch = 0
     for epoch in tqdm.tqdm(range(train_config.num_epochs)):
         train_aux = learner.update()
@@ -116,8 +116,6 @@ def train(
             ) as f:
                 pickle.dump(train_aux, f)
             learner.checkpoint(os.path.join(save_path, "models", f"model-{true_epoch}"))
-    # finally:
     if save_path:
         learner.checkpoint(os.path.join(save_path, "termination_model"))
         learner.save_buffer(os.path.join(save_path, "termination_buffer.gzip"))
-        learner.save_env_config(os.path.join(save_path, "env_config.pkl"))
