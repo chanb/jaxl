@@ -71,3 +71,14 @@ register(
         )
     },
 )
+register(
+    id="ParameterizedSwimmer-v0",
+    entry_point="jaxl.envs.mujoco.swimmer:SwimmerEnv",
+    max_episode_steps=1000,
+    reward_threshold=360.0,
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "mujoco/configs/swimmer.json"
+        )
+    },
+)
