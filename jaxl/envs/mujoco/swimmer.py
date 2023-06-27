@@ -164,9 +164,7 @@ class SwimmerEnv(ParameterizedMujocoEnv):
             )
         super().__init__(
             parameter_config_path,
-            os.path.join(
-                os.path.dirname(mujoco_env.__file__), "assets/swimmer.xml"
-            ),
+            os.path.join(os.path.dirname(mujoco_env.__file__), "assets/swimmer.xml"),
             4,
             observation_space=observation_space,
             seed=seed,
