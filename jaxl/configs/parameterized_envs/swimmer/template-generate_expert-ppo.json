@@ -32,7 +32,7 @@
         "env_config": {
             "env_type": "gym",
             "env_name": "ParameterizedSwimmer-v0",
-            "env_kwargs": {"seed": 2}
+            "env_kwargs": {"seed": 5}
         },
         "seeds": {
             "model_seed": 42,
