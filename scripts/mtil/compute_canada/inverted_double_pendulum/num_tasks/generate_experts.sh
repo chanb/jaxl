@@ -3,7 +3,7 @@
 #SBATCH --time=06:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=3G
-#SBATCH --array=1-100
+#SBATCH --array=1
 #SBATCH --output=/home/chanb/scratch/jaxl/run_reports/inverted_double_pendulum/%j.out
 
 module load python/3.9

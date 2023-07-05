@@ -98,7 +98,9 @@ def main(config: FlagValues):
             with open(os.path.join(root, filename), "r") as f:
                 curr_run_config = json.load(f)
                 num_tasks = len(curr_run_config["learner_config"]["buffer_configs"])
-                encoder_model_seed = curr_run_config["learner_config"]["seeds"]["model_seed"]
+                encoder_model_seed = curr_run_config["learner_config"]["seeds"][
+                    "model_seed"
+                ]
             runs_info.append((run_path, num_tasks, encoder_model_seed))
 
     # Standard template
@@ -127,7 +129,9 @@ def main(config: FlagValues):
             "load_buffer"
         ] = config.test_data_path
         template["logging_config"]["save_path"] = curr_run_dir
-        template["logging_config"]["experiment_name"] = f"num_tasks_{num_tasks}-encoder_model_seed_{encoder_model_seed}"
+        template["logging_config"][
+            "experiment_name"
+        ] = f"num_tasks_{num_tasks}-encoder_model_seed_{encoder_model_seed}"
 
         out_path = os.path.join(curr_script_dir, variant)
         with open(f"{out_path}.json", "w+") as f:

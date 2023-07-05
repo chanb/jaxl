@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/inverted_pendulum",
-        "experiment_name": "a2c",
+        "save_path": "./logs/half_cheetah",
+        "experiment_name": "ppo",
         "log_interval": 1,
         "checkpoint_interval": 10
     },
@@ -18,21 +18,23 @@
     "optimizer_config": {
         "policy": {
             "optimizer": "adam",
-            "lr": 1e-3,
-            "max_grad_norm": false
+            "lr": 3e-4,
+            "max_grad_norm": 0.5
         },
         "vf": {
             "optimizer": "adam",
-            "lr": 1e-3,
-            "max_grad_norm": false
+            "lr": 3e-4,
+            "max_grad_norm": 0.5
         }
     },
     "learner_config": {
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "InvertedPendulum-v4",
-            "env_kwargs": {}
+            "env_name": "ParameterizedHalfCheetah-v0",
+            "env_kwargs": {
+                "seed": 36
+            }
         },
         "seeds": {
             "model_seed": 42,
@@ -43,20 +45,27 @@
             "buffer_type": "default",
             "buffer_size": 2048
         },
-        "learner": "a2c",
         "num_steps_per_epoch": 2048,
+        "learner": "ppo",
         "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "normalize_advantage": true,
+        "eps": 1e-5,
         "obs_rms": true,
-        "value_rms": true,
+        "value_rms": false,
         "policy_distribution": "gaussian",
-        "min_std": 1e-7,
+        "min_std": 1e-4,
+        "opt_batch_size": 32,
+        "opt_epochs": 10,
         "vf_loss_setting": {
-            "coefficient": 1.0,
-            "reduction": "mean"
+            "coefficient": 0.5,
+            "reduction": "mean",
+            "clip_param": 0.2
         },
         "pi_loss_setting": {
             "coefficient": 1.0,
-            "reduction": "mean"
+            "reduction": "mean",
+            "clip_param": 0.2
         }
     },
     "train_config": {

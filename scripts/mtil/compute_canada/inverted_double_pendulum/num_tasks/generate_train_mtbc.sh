@@ -3,13 +3,13 @@
 #SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
-#SBATCH --array=1-7
-#SBATCH --output=/home/chanb/scratch/jaxl/run_reports/inverted_double_pendulum/%j.out
+#SBATCH --array=1-35
+#SBATCH --output=/home/chanb/scratch/jaxl/run_reports/inverted_double_pendulum/representation_sensitivity/%j.out
 
 module load python/3.9
 module load mujoco
 source ~/jaxl_env/bin/activate
-`sed -n "${SLURM_ARRAY_TASK_ID}p" < export-generate_train_mtbc-gravity-num_tasks_analysis.dat`
+`sed -n "${SLURM_ARRAY_TASK_ID}p" < export-generate_train_mtbc-gravity-representation_sensitivity.dat`
 echo ${SLURM_ARRAY_TASK_ID}
 
 echo "Current working directory is `pwd`"

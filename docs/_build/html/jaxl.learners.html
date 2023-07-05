@@ -206,6 +206,17 @@ By default, we assume the buffer is fixed, thus nothing will be saved.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.learner.Learner.save_env_config">
+<span class="sig-name descname"><span class="pre">save_env_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.learner.Learner.save_env_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the environment configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>checkpoint_path</strong> (<em>str</em>) – directory path to store the environment configuration to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="jaxl.learners.learner.Learner.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learners.learner.Learner.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Updates the model</p>
@@ -256,6 +267,14 @@ Online learner assumes the buffer to be changing and interacts with an environme
 <dd class="field-odd"><p><strong>checkpoint_path</strong> (<em>str</em>) – directory path to store the buffer to</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.learner.OnlineLearner.save_env_config">
+<span class="sig-name descname"><span class="pre">save_env_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.learner.OnlineLearner.save_env_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the environment configuration.
+:param checkpoint_path: directory path to store the environment configuration to
+:type checkpoint_path: str</p>
 </dd></dl>
 
 </dd></dl>
