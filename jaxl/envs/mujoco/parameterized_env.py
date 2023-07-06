@@ -44,8 +44,7 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
         **kwargs
     ):
         self._rng = np.random.RandomState(seed)
-        if not use_default:
-            self._update_env_xml(model_path, parameter_config_path)
+        self._update_env_xml(model_path, parameter_config_path, use_default)
         super().__init__(
             model_path=model_path,
             frame_skip=frame_skip,
@@ -59,27 +58,28 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
             **kwargs,
         )
 
-    def _update_env_xml(self, model_path: Any, parameter_config_path: Any):
+    def _update_env_xml(self, model_path: Any, parameter_config_path: Any, use_default: bool):
         reference_xml = et.parse(model_path)
         root = reference_xml.getroot()
 
-        with open(parameter_config_path, "r") as f:
-            parameter_config = json.load(f)
+        if not use_default:
+            with open(parameter_config_path, "r") as f:
+                parameter_config = json.load(f)
 
-        for tag, configs in parameter_config.items():
-            if tag in [OPTION]:
-                for attr, attr_data in configs.items():
-                    sampled_vals = sample_data(attr_data, self._rng)
-                    root.find(".//{}[@{}]".format(tag, attr)).set(
-                        attr, " ".join(map(lambda x: str(x), sampled_vals))
-                    )
-            elif tag in [GEOM, JOINT]:
-                for name, attr_dict in configs.items():
-                    for attr, attr_data in attr_dict.items():
+            for tag, configs in parameter_config.items():
+                if tag in [OPTION]:
+                    for attr, attr_data in configs.items():
                         sampled_vals = sample_data(attr_data, self._rng)
-                        root.find(".//{}[@name='{}']".format(tag, name)).set(
+                        root.find(".//{}[@{}]".format(tag, attr)).set(
                             attr, " ".join(map(lambda x: str(x), sampled_vals))
                         )
+                elif tag in [GEOM, JOINT]:
+                    for name, attr_dict in configs.items():
+                        for attr, attr_data in attr_dict.items():
+                            sampled_vals = sample_data(attr_data, self._rng)
+                            root.find(".//{}[@name='{}']".format(tag, name)).set(
+                                attr, " ".join(map(lambda x: str(x), sampled_vals))
+                            )
 
         self.xml = et.tostring(root, encoding="unicode", method="xml")
 
