@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/hopper",
+        "save_path": "./logs/ant",
         "experiment_name": "ppo",
         "log_interval": 1,
         "checkpoint_interval": 10
@@ -31,7 +31,7 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "ParameterizedHopper-v0",
+            "env_name": "ParameterizedAnt-v0",
             "env_kwargs": {
                 "seed": 36
             }

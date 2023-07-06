@@ -82,3 +82,14 @@ register(
         )
     },
 )
+register(
+    id="ParameterizedAnt-v0",
+    entry_point="jaxl.envs.mujoco.ant:AntEnv",
+    max_episode_steps=1000,
+    reward_threshold=6000.0,
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "mujoco/configs/ant.json"
+        )
+    },
+)
