@@ -33,7 +33,8 @@
             "env_type": "gym",
             "env_name": "ParameterizedInvertedDoublePendulum-v0",
             "env_kwargs": {
-                "gravity": -9.81
+                "seed": 5,
+                "use_default": true
             }
         },
         "seeds": {
