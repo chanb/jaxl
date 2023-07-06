@@ -223,6 +223,7 @@ class AntEnv(ParameterizedMujocoEnv):
         exclude_current_positions_from_observation=True,
         seed=None,
         use_default=False,
+        bang_bang_control=False,
         **kwargs,
     ):
         self._ctrl_cost_weight = ctrl_cost_weight
@@ -260,6 +261,7 @@ class AntEnv(ParameterizedMujocoEnv):
             default_camera_config=DEFAULT_CAMERA_CONFIG,
             seed=seed,
             use_default=use_default,
+            bang_bang_control=bang_bang_control,
             **kwargs,
         )
 
@@ -301,6 +303,7 @@ class AntEnv(ParameterizedMujocoEnv):
         return terminated
 
     def step(self, action):
+        action = self.process_action(action)
         xy_position_before = self.get_body_com("torso")[:2].copy()
         self.do_simulation(action, self.frame_skip)
         xy_position_after = self.get_body_com("torso")[:2].copy()

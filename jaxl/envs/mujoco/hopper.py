@@ -165,6 +165,7 @@ class HopperEnv(ParameterizedMujocoEnv):
         exclude_current_positions_from_observation=True,
         seed=None,
         use_default=False,
+        bang_bang_control=False,
         **kwargs,
     ):
         self._forward_reward_weight = forward_reward_weight
@@ -192,6 +193,7 @@ class HopperEnv(ParameterizedMujocoEnv):
             default_camera_config=default_camera_config,
             seed=seed,
             use_default=use_default,
+            bang_bang_control=bang_bang_control,
             **kwargs,
         )
 
@@ -261,6 +263,7 @@ class HopperEnv(ParameterizedMujocoEnv):
         return observation
 
     def step(self, action):
+        action = self.process_action(action)
         x_position_before = self.data.qpos[0]
         self.do_simulation(action, self.frame_skip)
         x_position_after = self.data.qpos[0]

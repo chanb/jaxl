@@ -4,7 +4,7 @@ import mujoco
 import numpy as np
 import xml.etree.ElementTree as et
 
-from gymnasium import utils, Space
+from gymnasium import utils, Space, spaces
 from gymnasium.envs.mujoco import MujocoEnv, mujoco_env
 from gymnasium.envs.mujoco.mujoco_env import DEFAULT_SIZE
 from typing import Any, Union
@@ -41,6 +41,7 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
         default_camera_config: Union[dict, None] = None,
         seed: Union[int, None] = None,
         use_default: bool = False,
+        bang_bang_control: bool = False,
         **kwargs
     ):
         self._rng = np.random.RandomState(seed)
@@ -58,7 +59,18 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
             **kwargs,
         )
 
-    def _update_env_xml(self, model_path: Any, parameter_config_path: Any, use_default: bool):
+        if bang_bang_control:
+            self.action_space = spaces.MultiDiscrete(np.ones(self.action_space.shape) * 2)
+            def process_action(action):
+                return (-1) ** (action + 1)
+        else:
+            def process_action(action):
+                return action
+        self.process_action = process_action
+
+    def _update_env_xml(
+        self, model_path: Any, parameter_config_path: Any, use_default: bool
+    ):
         reference_xml = et.parse(model_path)
         root = reference_xml.getroot()
 

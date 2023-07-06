@@ -142,6 +142,7 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
         init_qpos_high: float = 0.1,
         seed=None,
         use_default=False,
+        bang_bang_control=False,
         **kwargs
     ):
         assert (
@@ -153,16 +154,21 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
 
         super().__init__(
             parameter_config_path,
-            os.path.join(os.path.dirname(mujoco_env.__file__), "assets/inverted_double_pendulum.xml"),
+            os.path.join(
+                os.path.dirname(mujoco_env.__file__),
+                "assets/inverted_double_pendulum.xml",
+            ),
             5,
             observation_space=observation_space,
             default_camera_config=DEFAULT_CAMERA_CONFIG,
             seed=seed,
             use_default=use_default,
+            bang_bang_control=bang_bang_control,
             **kwargs,
         )
 
     def step(self, action):
+        action = self.process_action(action)
         self.do_simulation(action, self.frame_skip)
         ob = self._get_obs()
         x, _, y = self.data.site_xpos[0]

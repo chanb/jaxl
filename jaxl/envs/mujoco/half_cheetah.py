@@ -154,6 +154,7 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
         exclude_current_positions_from_observation=True,
         seed=None,
         use_default=False,
+        bang_bang_control=False,
         **kwargs,
     ):
         self._forward_reward_weight = forward_reward_weight
@@ -185,6 +186,7 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
             default_camera_config=DEFAULT_CAMERA_CONFIG,
             seed=seed,
             use_default=use_default,
+            bang_bang_control=bang_bang_control,
             **kwargs,
         )
 
@@ -193,6 +195,7 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
         return control_cost
 
     def step(self, action):
+        action = self.process_action(action)
         x_position_before = self.data.qpos[0]
         self.do_simulation(action, self.frame_skip)
         x_position_after = self.data.qpos[0]
