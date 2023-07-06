@@ -1,5 +1,6 @@
 OBSERVATIONS = "observations"
 ACTIONS = "actions"
+ACT_DIM = "act_dim"
 HIDDEN_STATES = "hidden_states"
 REWARDS = "rewards"
 DONES = "dones"

@@ -534,6 +534,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
             c.BURN_IN_WINDOW: {
                 c.BURN_IN_WINDOW: self.burn_in_window,
             },
+            c.ACT_DIM: self.act_dim,
         }
         if self.burn_in_window > 0:
             buffer_dict[c.BURN_IN_WINDOW][c.OBSERVATIONS] = self.historic_observations
@@ -559,6 +560,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
         self.terminateds = buffer_dict[c.TERMINATEDS]
         self.truncateds = buffer_dict[c.TRUNCATEDS]
         self.infos = buffer_dict[c.INFOS]
+        self.act_dim = buffer_dict[c.ACT_DIM]
 
         self._pointer = buffer_dict[c.POINTER]
         self._count = buffer_dict[c.COUNT]
