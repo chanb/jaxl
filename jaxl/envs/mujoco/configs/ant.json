@@ -1,4 +1,60 @@
 {
   "geom": {
+    "first_ankle_geom": {
+      "size": {
+        "default": [0.08],
+        "min": [0.06],
+        "max": [0.1]
+      }
+    },
+    "second_ankle_geom": {
+      "size": {
+        "default": [0.08],
+        "min": [0.06],
+        "max": [0.1]
+      }
+    },
+    "third_ankle_geom": {
+      "size": {
+        "default": [0.08],
+        "min": [0.06],
+        "max": [0.1]
+      }
+    },
+    "fourth_ankle_geom": {
+      "size": {
+        "default": [0.08],
+        "min": [0.06],
+        "max": [0.1]
+      }
+    },
+    "left_leg_geom": {
+      "size": {
+        "default": [0.08],
+        "min": [0.06],
+        "max": [0.1]
+      }
+    },
+    "right_leg_geom": {
+      "size": {
+        "default": [0.08],
+        "min": [0.06],
+        "max": [0.1]
+      }
+    },
+    "back_leg_geom": {
+      "size": {
+        "default": [0.08],
+        "min": [0.06],
+        "max": [0.1]
+      }
+    },
+    "rightback_leg_geom": {
+      "size": {
+        "default": [0.08],
+        "min": [0.06],
+        "max": [0.1]
+      }
+    },
   }
 }
