@@ -68,7 +68,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
             self.hidden_states = np.zeros(
                 shape=(buffer_size, *h_state_dim), dtype=np.float32
             )
-            self.actions = np.zeros(shape=(buffer_size, *act_dim), dtype=np.float32)
+            self.actions = np.zeros(shape=(buffer_size, *act_dim[:-1]), dtype=np.float32)
             self.rewards = np.zeros(shape=(buffer_size, *rew_dim), dtype=np.float32)
             self.dones = np.zeros(shape=(buffer_size, 1), dtype=np.float32)
             self.terminateds = np.zeros(shape=(buffer_size, 1), dtype=np.float32)
@@ -94,6 +94,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
                 )
             self._pointer = 0
             self._count = 0
+            self.act_dim = act_dim
 
         self._checkpoint_interval = checkpoint_interval
         self._checkpoint_idxes = np.ones(shape=self._buffer_size, dtype=bool)
@@ -113,7 +114,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
     @property
     def output_dim(self):
         """The output data dimension."""
-        return self.actions.shape[1:]
+        return self.act_dim
 
     @property
     def buffer_size(self):
