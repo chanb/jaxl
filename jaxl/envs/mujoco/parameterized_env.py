@@ -68,7 +68,7 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
                 parameter_config = json.load(f)
 
             for tag, configs in parameter_config.items():
-                self.modified_attributes[tag].setdefault({})
+                self.modified_attributes.setdefault(tag, {})
                 if tag in [OPTION]:
                     for attr, attr_data in configs.items():
                         sampled_vals = sample_data(attr_data, self._rng)
@@ -83,7 +83,7 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
                             root.find(".//{}[@name='{}']".format(tag, name)).set(
                                 attr, " ".join(map(lambda x: str(x), sampled_vals))
                             )
-                        self.modified_attributes[tag][name].setdefault({})
+                        self.modified_attributes[tag].setdefault(name, {})
                         self.modified_attributes[tag][name][attr] = sampled_vals
 
         self.xml = et.tostring(root, encoding="unicode", method="xml")
