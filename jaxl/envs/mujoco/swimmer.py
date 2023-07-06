@@ -143,6 +143,7 @@ class SwimmerEnv(ParameterizedMujocoEnv):
         reset_noise_scale=0.1,
         exclude_current_positions_from_observation=True,
         seed=None,
+        use_default=False,
         **kwargs,
     ):
         self._forward_reward_weight = forward_reward_weight
@@ -167,6 +168,7 @@ class SwimmerEnv(ParameterizedMujocoEnv):
             4,
             observation_space=observation_space,
             seed=seed,
+            use_default=use_default,
             **kwargs,
         )
 

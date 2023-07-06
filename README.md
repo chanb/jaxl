@@ -64,11 +64,13 @@ If we wish to add functionality such as prioritized experience replay and hindsi
 In particular, there are two types of learners: `OfflineLearner` and `OnlineLearner`, that are realizations of the abstract `Learner` class.
 By default, the `Learner` class enforces all learners have a way to perform checkpointing, initializing the parameters, and performing learning updates (if any).
   - `OfflineLearner` assumes that a batch of **offline** data is given, as a `ReplayBuffer`.
-  The corresponding attribute is `_dataset`, following the standard offline learning vocabulary.
+  The attribute is `_buffer`, which corresponds the "dataset" in the standard offline learning vocabulary.
   - On the other hand, `OnlineLearner` assumes that it has access to a **buffer**, which is populated sample by sample.
   By varying the buffer size, we can obtain "streaming" online learners that assume to have no *memory*.
   The online learner can also interact with the environment, which is implemented via the `gymnasium` API.
 
+### Supported Custom Environments
+We provide customized MuJoCo environments that randomize the physical parameters at the initialization of the environment. This allows us to do some form of multi-task learning, or some form of domain randomization. We achieve this by modifying the XML before passing it to the MuJoCo environment wrapper provided by `mujoco_env`. For more details, the environments are located under `envs/mujoco`.
 
 ## Styling
 - We use [`black`](https://github.com/psf/black/blob/main/README.md) to format code and [`pyment`](https://github.com/dadadel/pyment/blob/master/README.rst) to generate docstrings with `reST` style.
@@ -80,12 +82,6 @@ cd docs
 sphinx-apidoc -f -o . ..
 make html​
 ```
-
-## TODO
-- Update README as more implementation comes
-- Implement visualization code to compare policies
-  - Check cosine similarity between policies' mean action
-  - Check state-conditioned KL divergence between two policies
 
 ## Long-term Modification
 - JAX implementation of the replay buffers

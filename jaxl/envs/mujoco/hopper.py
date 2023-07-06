@@ -164,6 +164,7 @@ class HopperEnv(ParameterizedMujocoEnv):
         reset_noise_scale=5e-3,
         exclude_current_positions_from_observation=True,
         seed=None,
+        use_default=False,
         **kwargs,
     ):
         self._forward_reward_weight = forward_reward_weight
@@ -190,6 +191,7 @@ class HopperEnv(ParameterizedMujocoEnv):
             observation_space=None,
             default_camera_config=default_camera_config,
             seed=seed,
+            use_default=use_default,
             **kwargs,
         )
 

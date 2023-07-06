@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/hopper",
-        "experiment_name": "ppo",
+        "experiment_name": "ppo-no_randomization",
         "log_interval": 1,
         "checkpoint_interval": 10
     },

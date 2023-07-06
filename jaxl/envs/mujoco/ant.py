@@ -222,6 +222,7 @@ class AntEnv(ParameterizedMujocoEnv):
         reset_noise_scale=0.1,
         exclude_current_positions_from_observation=True,
         seed=None,
+        use_default=False,
         **kwargs,
     ):
         self._ctrl_cost_weight = ctrl_cost_weight
@@ -253,13 +254,12 @@ class AntEnv(ParameterizedMujocoEnv):
 
         super().__init__(
             parameter_config_path,
-            os.path.join(
-                os.path.dirname(mujoco_env.__file__), "assets/ant.xml"
-            ),
+            os.path.join(os.path.dirname(mujoco_env.__file__), "assets/ant.xml"),
             5,
             observation_space=observation_space,
             default_camera_config=DEFAULT_CAMERA_CONFIG,
             seed=seed,
+            use_default=use_default,
             **kwargs,
         )
 

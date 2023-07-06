@@ -40,10 +40,12 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
         camera_name: Union[str, None] = None,
         default_camera_config: Union[dict, None] = None,
         seed: Union[int, None] = None,
+        use_default: bool = False,
         **kwargs
     ):
         self._rng = np.random.RandomState(seed)
-        self._update_env_xml(model_path, parameter_config_path)
+        if not use_default:
+            self._update_env_xml(model_path, parameter_config_path)
         super().__init__(
             model_path=model_path,
             frame_skip=frame_skip,
