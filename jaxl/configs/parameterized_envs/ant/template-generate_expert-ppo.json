@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/ant",
+        "save_path": "./logs/ant-default",
         "experiment_name": "ppo",
         "log_interval": 1,
         "checkpoint_interval": 10
