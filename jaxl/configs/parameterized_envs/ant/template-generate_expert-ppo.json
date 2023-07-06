@@ -33,7 +33,8 @@
             "env_type": "gym",
             "env_name": "ParameterizedAnt-v0",
             "env_kwargs": {
-                "seed": 36
+                "seed": 36,
+                "use_default": true
             }
         },
         "seeds": {
