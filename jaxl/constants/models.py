@@ -24,8 +24,10 @@ CONST_REPRESENTATION = "representation"
 CONST_VF = "vf"
 
 CONST_MIN_STD = "min_std"
+CONST_TEMPERATURE = "temperature"
 
 DEFAULT_MIN_STD = 1e-7
+DEFAULT_TEMPERATURE = 1.0
 
 CONST_RELU = "relu"
 CONST_TANH = "tanh"

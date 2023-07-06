@@ -39,7 +39,7 @@ class REINFORCE(OnPolicyLearner):
     ):
         super().__init__(config, model_config, optimizer_config)
 
-        self._policy = get_policy(self._model, config)
+        self._policy = get_policy(self._model, self._buffer.output_dim, config)
         self._loss = make_reinforce_loss(self._policy, self._config.pi_loss_setting)
         self.policy_step = jax.jit(self.make_policy_step())
 

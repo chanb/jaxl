@@ -68,7 +68,9 @@ class AbstractNumPyBuffer(ReplayBuffer):
             self.hidden_states = np.zeros(
                 shape=(buffer_size, *h_state_dim), dtype=np.float32
             )
-            self.actions = np.zeros(shape=(buffer_size, *act_dim[:-1]), dtype=np.float32)
+            self.actions = np.zeros(
+                shape=(buffer_size, *act_dim[:-1]), dtype=np.float32
+            )
             self.rewards = np.zeros(shape=(buffer_size, *rew_dim), dtype=np.float32)
             self.dones = np.zeros(shape=(buffer_size, 1), dtype=np.float32)
             self.terminateds = np.zeros(shape=(buffer_size, 1), dtype=np.float32)

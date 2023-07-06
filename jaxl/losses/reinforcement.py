@@ -277,7 +277,7 @@ def make_ppo_pi_loss(
         lprobs, _ = policy.lprob(params, obss, h_states, acts)
         is_ratio = jnp.exp(lprobs - old_lprobs)
         # XXX: Deal with inf values
-        is_ratio = jnp.nan_to_num(is_ratio, posinf=0.0, neginf=0.0)
+        # is_ratio = jnp.nan_to_num(is_ratio, posinf=0.0, neginf=0.0)
 
         clipped_is_ratio = jnp.clip(
             is_ratio,

@@ -63,7 +63,9 @@ class PPO(OnPolicyLearner):
             self._opt_batch_size, self._update_frequency
         )
 
-        self._pi = get_policy(self._model[CONST_POLICY], config)
+        self._pi = get_policy(
+            self._model[CONST_POLICY], self._buffer.output_dim, config
+        )
         self._vf = self._model[CONST_VF]
 
         self._pi_loss = make_ppo_pi_loss(self._pi, self._config.pi_loss_setting)

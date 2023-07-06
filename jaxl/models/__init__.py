@@ -1,7 +1,8 @@
 from types import SimpleNamespace
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Iterable, Tuple, Union
 
 import chex
+import numpy as np
 import optax
 
 from jaxl.constants import *
@@ -99,7 +100,7 @@ def get_model(
     ), f"{model_config.architecture} is not supported (one of {VALID_ARCHITECTURE})"
     if model_config.architecture == CONST_MLP:
         return MLP(
-            model_config.layers + list(output_dim),
+            model_config.layers + list(np.prod(output_dim, keepdims=True)),
             getattr(model_config, "activation", CONST_RELU),
         )
     elif model_config.architecture == CONST_ENCODER_PREDICTOR:
@@ -124,13 +125,15 @@ def get_model(
         raise NotImplementedError
 
 
-def get_policy(model: Model, config: SimpleNamespace) -> Policy:
+def get_policy(model: Model, act_dim: Iterable[int], config: SimpleNamespace) -> Policy:
     """
     Gets a policy
 
     :param model: a model
+    :param act_dim: the action dimensionality
     :param config: the policy configuration
     :type model: Model
+    :type act_dim: Iterable[int]
     :type config: SimpleNamespace
     :return: a policy
     :rtype: Policy
@@ -145,7 +148,9 @@ def get_policy(model: Model, config: SimpleNamespace) -> Policy:
     elif config.policy_distribution == CONST_DETERMINISTIC:
         return DeterministicPolicy(model)
     elif config.policy_distribution == CONST_SOFTMAX:
-        return SoftmaxPolicy(model)
+        return SoftmaxPolicy(
+            model, getattr(config, CONST_TEMPERATURE, DEFAULT_TEMPERATURE)
+        )
     else:
         raise NotImplementedError
 
@@ -166,5 +171,5 @@ def policy_output_dim(output_dim: chex.Array, config: SimpleNamespace) -> chex.A
         config.policy_distribution in VALID_POLICY_DISTRIBUTION
     ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
     if config.policy_distribution == CONST_GAUSSIAN:
-        return [dim * 2 for dim in output_dim]
+        return [*output_dim[:-1], output_dim[-1] * 2]
     return output_dim
