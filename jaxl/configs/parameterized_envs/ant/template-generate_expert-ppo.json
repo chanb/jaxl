@@ -23,7 +23,7 @@
         },
         "vf": {
             "optimizer": "adam",
-            "lr": 3e-4,
+            "lr": 1e-3,
             "max_grad_norm": 0.5
         }
     },
@@ -53,11 +53,11 @@
         "normalize_advantage": true,
         "eps": 1e-5,
         "obs_rms": true,
-        "value_rms": false,
+        "value_rms": true,
         "policy_distribution": "gaussian",
         "min_std": 1e-4,
-        "opt_batch_size": 32,
-        "opt_epochs": 10,
+        "opt_batch_size": 64,
+        "opt_epochs": 5,
         "vf_loss_setting": {
             "coefficient": 0.5,
             "reduction": "mean",

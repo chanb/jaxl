@@ -34,19 +34,15 @@ def get_environment(env_config: SimpleNamespace) -> DefaultGymWrapper:
 
 
 register(
-    id="ParameterizedInvertedPendulum-v0",
-    entry_point="jaxl.envs.mujoco.inverted_pendulum:ParameterizedInvertedPendulumEnv",
-    max_episode_steps=1000,
-    reward_threshold=950.0,
-    kwargs={"gravity": -9.81},
-)
-
-register(
     id="ParameterizedInvertedDoublePendulum-v0",
     entry_point="jaxl.envs.mujoco.inverted_double_pendulum:ParameterizedInvertedDoublePendulumEnv",
     max_episode_steps=1000,
     reward_threshold=950.0,
-    kwargs={"gravity": -9.81},
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "mujoco/configs/inverted_double_pendulum.json"
+        )
+    },
 )
 
 register(

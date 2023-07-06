@@ -1,11 +1,10 @@
 import numpy as np
 import os
-import tempfile
-import xml.etree.ElementTree as et
 
-from gymnasium import utils
-from gymnasium.envs.mujoco import MujocoEnv, mujoco_env
+from gymnasium.envs.mujoco import mujoco_env
 from gymnasium.spaces import Box
+
+from jaxl.envs.mujoco.parameterized_env import ParameterizedMujocoEnv
 
 
 DEFAULT_CAMERA_CONFIG = {
@@ -15,7 +14,7 @@ DEFAULT_CAMERA_CONFIG = {
 }
 
 
-class ParameterizedInvertedDoublePendulumEnv(MujocoEnv, utils.EzPickle):
+class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
     """
     ## Description
 
@@ -138,10 +137,11 @@ class ParameterizedInvertedDoublePendulumEnv(MujocoEnv, utils.EzPickle):
 
     def __init__(
         self,
-        gravity: float = -9.81,
+        parameter_config_path,
         init_qpos_low: float = -0.1,
         init_qpos_high: float = 0.1,
-        tmp_dir: str = "./tmp",
+        seed=None,
+        use_default=False,
         **kwargs
     ):
         assert (
@@ -150,29 +150,17 @@ class ParameterizedInvertedDoublePendulumEnv(MujocoEnv, utils.EzPickle):
         self.init_qpos_low = init_qpos_low
         self.init_qpos_high = init_qpos_high
         observation_space = Box(low=-np.inf, high=np.inf, shape=(11,), dtype=np.float64)
-        if tmp_dir:
-            os.makedirs(tmp_dir, exist_ok=True)
-        with tempfile.NamedTemporaryFile(mode="w", dir=tmp_dir) as f:
-            reference_path = os.path.join(
-                os.path.dirname(mujoco_env.__file__),
-                "assets/inverted_double_pendulum.xml",
-            )
-            reference_xml = et.parse(reference_path)
-            root = reference_xml.getroot()
-            root.find(".//option[@gravity]").set("gravity", "0 0 {}".format(gravity))
-            new_xml = et.tostring(root, encoding="unicode", method="xml")
-            f.write(new_xml)
-            f.flush()
 
-            MujocoEnv.__init__(
-                self,
-                f.name,
-                5,
-                observation_space=observation_space,
-                default_camera_config=DEFAULT_CAMERA_CONFIG,
-                **kwargs,
-            )
-            utils.EzPickle.__init__(self, **kwargs)
+        super().__init__(
+            parameter_config_path,
+            os.path.join(os.path.dirname(mujoco_env.__file__), "assets/inverted_double_pendulum.xml"),
+            5,
+            observation_space=observation_space,
+            default_camera_config=DEFAULT_CAMERA_CONFIG,
+            seed=seed,
+            use_default=use_default,
+            **kwargs,
+        )
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)

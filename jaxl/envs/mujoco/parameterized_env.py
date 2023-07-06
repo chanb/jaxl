@@ -62,17 +62,20 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
         reference_xml = et.parse(model_path)
         root = reference_xml.getroot()
 
+        self.modified_attributes = {}
         if not use_default:
             with open(parameter_config_path, "r") as f:
                 parameter_config = json.load(f)
 
             for tag, configs in parameter_config.items():
+                self.modified_attributes[tag].setdefault({})
                 if tag in [OPTION]:
                     for attr, attr_data in configs.items():
                         sampled_vals = sample_data(attr_data, self._rng)
                         root.find(".//{}[@{}]".format(tag, attr)).set(
                             attr, " ".join(map(lambda x: str(x), sampled_vals))
                         )
+                        self.modified_attributes[tag][attr] = sampled_vals
                 elif tag in [GEOM, JOINT]:
                     for name, attr_dict in configs.items():
                         for attr, attr_data in attr_dict.items():
@@ -80,6 +83,8 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
                             root.find(".//{}[@name='{}']".format(tag, name)).set(
                                 attr, " ".join(map(lambda x: str(x), sampled_vals))
                             )
+                        self.modified_attributes[tag][name].setdefault({})
+                        self.modified_attributes[tag][name][attr] = sampled_vals
 
         self.xml = et.tostring(root, encoding="unicode", method="xml")
 
@@ -94,4 +99,7 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
         mujoco.mj_resetData(self.model, self.data)
 
     def get_config(self):
-        return {"xml": self.xml}
+        return {
+            "xml": self.xml,
+            "modified_attributes": self.modified_attributes,
+        }
