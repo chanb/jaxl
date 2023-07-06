@@ -736,7 +736,7 @@ class SoftmaxPolicy(StochasticPolicy):
             """
             act_params, _ = model.forward(params, obs, h_state)
             act_params = act_params / self._temperature
-            lprob = Normal.lprob(act_params, act).sum(-1, keepdims=True)
+            lprob = Softmax.lprob(act_params, act).sum(-1, keepdims=True)
             return lprob, {CONST_LOGITS: act_params}
 
         return lprob

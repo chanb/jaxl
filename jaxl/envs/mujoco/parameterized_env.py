@@ -27,6 +27,13 @@ def sample_data(attr_data: dict, np_random: np.random.Generator) -> chex.Array:
 
 
 class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
+    """
+    MuJoCo environment with randomized physics.
+    This supports:
+    - Default physics
+    - Bang-bang control
+    """
+
     def __init__(
         self,
         parameter_config_path: Any,
@@ -60,12 +67,18 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
         )
 
         if bang_bang_control:
-            self.action_space = spaces.MultiDiscrete(np.ones(self.action_space.shape) * 2)
+            self.action_space = spaces.MultiDiscrete(
+                np.ones(self.action_space.shape) * 2
+            )
+
             def process_action(action):
                 return (-1) ** (action + 1)
+
         else:
+
             def process_action(action):
                 return action
+
         self.process_action = process_action
 
     def _update_env_xml(

@@ -1,1 +1,1 @@
-from jaxl.distributions.distributions import Normal
+from jaxl.distributions.distributions import Normal, Softmax

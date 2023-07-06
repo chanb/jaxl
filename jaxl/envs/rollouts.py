@@ -1,4 +1,5 @@
 from abc import ABC, abstractclassmethod
+from gymnasium import spaces
 from tqdm import tqdm
 from typing import Any, Dict, Iterable, Tuple, Union
 
@@ -169,9 +170,11 @@ class EvaluationRollout(Rollout):
                 act = act[0]
                 next_h_state = next_h_state[0]
 
-                env_act = np.clip(
-                    act, self._env.action_space.low, self._env.action_space.high
-                )
+                env_act = act
+                if isinstance(self._env.action_space, spaces.Box):
+                    env_act = np.clip(
+                        act, self._env.action_space.low, self._env.action_space.high
+                    )
                 next_obs, rew, terminated, truncated, info = self._env.step(env_act)
                 self._episodic_returns[-1] += float(rew)
                 self._episode_lengths[-1] += 1
@@ -256,9 +259,11 @@ class StandardRollout(Rollout):
             next_h_state = next_h_state[0]
             self._exploration_key = jrandom.split(self._exploration_key, 1)[0]
 
-            env_act = np.clip(
-                act, self._env.action_space.low, self._env.action_space.high
-            )
+            env_act = act
+            if isinstance(self._env.action_space, spaces.Box):
+                env_act = np.clip(
+                    act, self._env.action_space.low, self._env.action_space.high
+                )
             next_obs, rew, terminated, truncated, info = self._env.step(env_act)
             self._episodic_returns[-1] += float(rew)
             self._episode_lengths[-1] += 1

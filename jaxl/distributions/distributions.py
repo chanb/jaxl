@@ -125,9 +125,9 @@ class Softmax(Distribution):
 
         """
         if num_samples:
-            shape = (num_samples, *logits.shape[:-1])
+            shape = (num_samples, *logits.shape[:-1], 1)
         else:
-            shape = logits.shape[:-1]
+            shape = (*logits.shape[:-1], 1)
         return jrandom.categorical(key, logits, shape=shape)
 
     def lprob(logits: chex.Array, x: chex.Array) -> chex.Array:

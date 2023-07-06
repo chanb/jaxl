@@ -416,10 +416,7 @@ class PPO(OnPolicyLearner):
                 for i in range(acts.shape[-1])
             }
             auxes[-1][CONST_POLICY] = {
-                i: {
-                    CONST_MEAN: np.abs(old_act_params[CONST_MEAN][..., i]).mean(),
-                    CONST_STD: np.abs(old_act_params[CONST_STD][..., i]).mean(),
-                }
+                i: {k: np.abs(old_act_params[k][..., i]).mean() for k in old_act_params}
                 for i in range(acts.shape[-1])
             }
 
@@ -460,18 +457,10 @@ class PPO(OnPolicyLearner):
         }
 
         for act_i in range(acts.shape[-1]):
-            aux[CONST_LOG][
-                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_SATURATION}"
-            ] = auxes[CONST_ACTION][act_i][CONST_SATURATION]
-            aux[CONST_LOG][
-                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
-            ] = auxes[CONST_ACTION][act_i][CONST_MEAN]
-            aux[CONST_LOG][
-                f"{CONST_POLICY}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
-            ] = auxes[CONST_POLICY][act_i][CONST_MEAN]
-            aux[CONST_LOG][
-                f"{CONST_POLICY}/{CONST_ACTION}_{act_i}_{CONST_STD}"
-            ] = auxes[CONST_POLICY][act_i][CONST_STD]
+            for k in auxes[CONST_ACTION][act_i]:
+                aux[CONST_LOG][f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{k}"] = auxes[
+                    CONST_ACTION
+                ][act_i][k]
 
         self.gather_rms(aux)
         return aux
