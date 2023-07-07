@@ -45,6 +45,17 @@ class Distribution:
         """
         raise NotImplementedError
 
+    @abstractstaticmethod
+    def entropy(*args) -> chex.Array:
+        """
+        Computes the entropy of the distribution.
+
+        :return: the entropy of the distribution
+        :rtype: chex.Array
+
+        """
+        raise NotImplementedError
+
 
 class Normal(Distribution):
     """
@@ -79,6 +90,7 @@ class Normal(Distribution):
             shape = mean.shape
         return mean + jrandom.normal(key=key, shape=shape) * std
 
+    @staticmethod
     def lprob(mean: chex.Array, std: chex.Array, x: chex.Array) -> chex.Array:
         """
         Computes the log probabilities with normal distribution.
@@ -98,6 +110,21 @@ class Normal(Distribution):
         return (
             -((x - mean) ** 2) / (2 * var) - log_std - math.log(math.sqrt(2 * math.pi))
         )
+
+    @staticmethod
+    def entropy(mean: chex.Array, std: chex.Array) -> chex.Array:
+        """
+        Computes the entropy of the normal distribution.
+
+        :param mean: mean of the normal distribution
+        :param std: standard deviation of the normal distribution
+        :type mean: chex.Array
+        :type std: chex.Array
+        :return: the entropy
+        :rtype: chex.Array
+
+        """
+        return 0.5 + 0.5 * math.log(2 * math.pi) + jnp.log(std)
 
 
 class Softmax(Distribution):
@@ -130,6 +157,7 @@ class Softmax(Distribution):
             shape = (*logits.shape[:-1], 1)
         return jrandom.categorical(key, logits, shape=shape)
 
+    @staticmethod
     def lprob(logits: chex.Array, x: chex.Array) -> chex.Array:
         """
         Computes the log probabilities with softmax distribution.
@@ -145,6 +173,20 @@ class Softmax(Distribution):
         return jnp.sum(
             jnp.eye(logits.shape[-1])[x.astype(int)[..., 0]] * logits, axis=-1
         ) - nn.logsumexp(logits, axis=-1)
+
+    @staticmethod
+    def entropy(logits: chex.Array) -> chex.Array:
+        """
+        Computes the entropy with softmax distribution.
+
+        :param logits: logits of the softmax distribution
+        :type logits: chex.Array
+        :return: the entropy
+        :rtype: chex.Array
+
+        """
+        probs = nn.softmax(logits, axis=-1)
+        return -jnp.sum(jnp.log(probs) * probs, axis=-1)
 
 
 class Bernoulli(Distribution):
@@ -177,6 +219,7 @@ class Bernoulli(Distribution):
             shape = probs.shape
         return jrandom.bernoulli(key, probs, shape=shape)
 
+    @staticmethod
     def lprob(probs: chex.Array, x: chex.Array) -> chex.Array:
         """
         Computes the log probabilities with bernoulli distribution.
@@ -189,4 +232,17 @@ class Bernoulli(Distribution):
         :rtype: chex.Array
 
         """
-        return jnp.log(probs)
+        return jnp.log((probs**x) * ((1 - probs) ** (1 - x)))
+
+    @staticmethod
+    def entropy(probs: chex.Array) -> chex.Array:
+        """
+        Computes the entropy with bernoulli distribution.
+
+        :param probs: probability of the bernoulli distribution
+        :type probs: chex.Array
+        :return: the entropy of the given samples
+        :rtype: chex.Array
+
+        """
+        return -jnp.sum(probs * jnp.log(probs), axis=-1)

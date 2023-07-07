@@ -127,6 +127,9 @@ class PPO(OnPolicyLearner):
                 advs,
                 old_lprobs,
             )
+
+            entropy = np.mean(pi_aux[CONST_AUX].get(CONST_ENTROPY, 0.0))
+
             vf_loss, vf_aux = self._vf_loss(
                 model_dicts[CONST_VF],
                 obss,
@@ -138,6 +141,7 @@ class PPO(OnPolicyLearner):
             agg_loss = (
                 self._config.pi_loss_setting.coefficient * pi_loss
                 + self._config.vf_loss_setting.coefficient * vf_loss
+                + getattr(self._config, "entropy_coefficient", 0.0) * entropy
             )
 
             aux = {
@@ -146,6 +150,7 @@ class PPO(OnPolicyLearner):
                     CONST_NUM_CLIPPED: pi_aux[CONST_NUM_CLIPPED],
                     CONST_IS_RATIO: pi_aux[CONST_IS_RATIO],
                     CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
+                    CONST_ENTROPY: entropy,
                 },
                 CONST_VF: {
                     CONST_LOSS: vf_loss,
@@ -425,6 +430,9 @@ class PPO(OnPolicyLearner):
             f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
             f"losses/pi": auxes[CONST_AUX][CONST_POLICY][CONST_LOSS].item(),
             f"losses/vf": auxes[CONST_AUX][CONST_VF][CONST_LOSS].item(),
+            f"losses_info/{CONST_ENTROPY}": auxes[CONST_AUX][CONST_POLICY][
+                CONST_ENTROPY
+            ].item(),
             f"losses_info/{CONST_RETURN}": auxes[CONST_RETURNS].item(),
             f"losses_info/{CONST_ADVANTAGE}": auxes[CONST_ADVANTAGES].item(),
             f"losses_info/{CONST_VALUE}": auxes[CONST_VALUES].item(),

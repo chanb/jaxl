@@ -10,6 +10,7 @@ import optax
 from jaxl.constants import (
     DEFAULT_MIN_STD,
     DEFAULT_TEMPERATURE,
+    CONST_ENTROPY,
     CONST_LOGITS,
     CONST_MEAN,
     CONST_PROBS,
@@ -480,7 +481,11 @@ class GaussianPolicy(StochasticPolicy):
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = jax.nn.softplus(act_raw_std) + self._min_std
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
-            return lprob, {CONST_MEAN: act_mean, CONST_STD: act_std}
+            return lprob, {
+                CONST_MEAN: act_mean,
+                CONST_STD: act_std,
+                CONST_ENTROPY: Normal.entropy(act_mean, act_std),
+            }
 
         return lprob
 
@@ -745,7 +750,10 @@ class SoftmaxPolicy(StochasticPolicy):
             act_params, _ = model.forward(params, obs, h_state)
             act_params = act_params / self._temperature
             lprob = Softmax.lprob(act_params, act)
-            return lprob, {CONST_LOGITS: act_params}
+            return lprob, {
+                CONST_LOGITS: act_params,
+                CONST_ENTROPY: Softmax.entropy(act_params),
+            }
 
         return lprob
 
@@ -1010,6 +1018,9 @@ class BangBangPolicy(StochasticPolicy):
             act_params, _ = model.forward(params, obs, h_state)
             probs = nn.sigmoid(act_params / self._temperature)
             lprob = Bernoulli.lprob(probs, act).sum(-1, keepdims=True)
-            return lprob, {CONST_PROBS: probs}
+            return lprob, {
+                CONST_PROBS: probs,
+                CONST_ENTROPY: Bernoulli.entropy(probs),
+            }
 
         return lprob
