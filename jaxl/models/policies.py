@@ -962,7 +962,7 @@ class BangBangPolicy(StochasticPolicy):
             act_params, h_state = model.forward(params, obs, h_state)
             probs = nn.sigmoid(act_params / self._temperature)
             act = Bernoulli.sample(probs, key)
-            lprob = Softmax.lprob(probs, act)
+            lprob = Bernoulli.lprob(probs, act).sum(-1, keepdims=True)
             return act, lprob, h_state
 
         return act_lprob
@@ -1009,7 +1009,7 @@ class BangBangPolicy(StochasticPolicy):
             """
             act_params, _ = model.forward(params, obs, h_state)
             probs = nn.sigmoid(act_params / self._temperature)
-            lprob = Softmax.lprob(probs, act)
+            lprob = Bernoulli.lprob(probs, act).sum(-1, keepdims=True)
             return lprob, {CONST_PROBS: probs}
 
         return lprob
