@@ -290,7 +290,7 @@ def make_ppo_pi_loss(
         pi_surrogate = jnp.minimum(surrogate_1, surrogate_2)
 
         return reduction(-pi_surrogate), {
-            CONST_NUM_CLIPPED: (clipped_is_ratio == is_ratio).sum(),
+            CONST_NUM_CLIPPED: (clipped_is_ratio != is_ratio).sum(),
             CONST_IS_RATIO: is_ratio,
             CONST_LOG_PROB: lprobs,
         }
@@ -359,7 +359,7 @@ def make_ppo_vf_loss(
         vf_surrogate = jnp.maximum(surrogate_1, surrogate_2)
 
         return reduction(vf_surrogate), {
-            CONST_NUM_CLIPPED: (preds == clipped_preds).sum()
+            CONST_NUM_CLIPPED: (preds != clipped_preds).sum()
         }
 
     return vf_loss
