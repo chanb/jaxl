@@ -1,7 +1,7 @@
 import chex
 import gymnasium as gym
 
-from gymnasium import spaces
+from gymnasium import spaces, Space
 
 
 class DefaultGymWrapper(gym.Wrapper):
@@ -21,10 +21,13 @@ class DefaultGymWrapper(gym.Wrapper):
         """
         Gets the action dimension.
         """
-        action_space = getattr(
+        if isinstance(self.action_space, spaces.Discrete):
+            return (1, self.action_space.n)
+        else:
+            return (*self.action_space.shape, 1)
+
+    @property
+    def action_space(self) -> Space:
+        return getattr(
             self.unwrapped, "agent_action_space", self.unwrapped.action_space
         )
-        if isinstance(action_space, spaces.Discrete):
-            return (1, action_space.n)
-        else:
-            return (*action_space.shape, 1)

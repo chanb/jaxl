@@ -72,6 +72,7 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
             )
 
             def process_action(action):
+                print(action)
                 return [(-1) ** (int(bit) + 1) for bit in bin(int(action))[2:]]
 
         else:
