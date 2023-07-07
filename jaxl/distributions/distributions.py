@@ -171,7 +171,7 @@ class Softmax(Distribution):
 
         """
         return jnp.sum(
-            jnp.eye(logits.shape[-1])[x.astype(int)[..., 0]] * logits, axis=-1
+            nn.one_hot(x[..., 0], num_classes=logits.shape[-1]) * logits, axis=-1
         ) - nn.logsumexp(logits, axis=-1)
 
     @staticmethod
