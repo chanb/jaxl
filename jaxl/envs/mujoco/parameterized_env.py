@@ -67,14 +67,15 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
         )
 
         if bang_bang_control:
-            self.action_space = spaces.MultiDiscrete(
-                np.ones(self.action_space.shape) * 2
+            self.agent_action_space = spaces.Discrete(
+                int(np.prod(self.action_space.shape) * 2)
             )
 
             def process_action(action):
-                return (-1) ** (action + 1)
+                return [(-1) ** (int(bit) + 1) for bit in bin(int(action))[2:]]
 
         else:
+            self.agent_action_space = self.action_space
 
             def process_action(action):
                 return action

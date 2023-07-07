@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Iterable, Union, Tuple
+from typing import Any, Callable, Dict, Union, Tuple
 
 import chex
 import jax
@@ -489,7 +489,6 @@ class SoftmaxPolicy(StochasticPolicy):
     def __init__(
         self,
         model: Model,
-        act_dim: Iterable[int],
         temperature: float = DEFAULT_TEMPERATURE,
     ):
         super().__init__(model)
@@ -497,7 +496,6 @@ class SoftmaxPolicy(StochasticPolicy):
             temperature
         )
         self._temperature = temperature
-        self.act_dim = act_dim
         self.deterministic_action = jax.jit(self.make_deterministic_action(model))
         self.random_action = jax.jit(self.make_random_action(model))
         self.compute_action = jax.jit(self.make_compute_action(model))
@@ -550,7 +548,6 @@ class SoftmaxPolicy(StochasticPolicy):
 
             """
             act_params, h_state = model.forward(params, obs, h_state)
-            act_params = act_params.reshape(*act_params.shape[:-1], *self.act_dim)
             act = Softmax.sample(act_params / self._temperature, key)
             return act, h_state
 
@@ -594,7 +591,6 @@ class SoftmaxPolicy(StochasticPolicy):
 
             """
             act_params, h_state = model.forward(params, obs, h_state)
-            act_params = act_params.reshape(*act_params.shape[:-1], *self.act_dim)
             act_max, _ = jnp.argmax(act_params, axis=-1)
             return act_max, h_state
 
@@ -646,7 +642,6 @@ class SoftmaxPolicy(StochasticPolicy):
 
             """
             act_params, h_state = model.forward(params, obs, h_state)
-            act_params = act_params.reshape(*act_params.shape[:-1], *self.act_dim)
             act = Softmax.sample(act_params / self._temperature, key)
             return act, h_state
 
@@ -698,10 +693,9 @@ class SoftmaxPolicy(StochasticPolicy):
 
             """
             act_params, h_state = model.forward(params, obs, h_state)
-            act_params = act_params.reshape(*act_params.shape[:-1], *self.act_dim)
             act_params = act_params / self._temperature
             act = Softmax.sample(act_params, key)
-            lprob = Normal.lprob(act_params, act).sum(-1, keepdims=True)
+            lprob = Softmax.lprob(act_params, act)
             return act, lprob, h_state
 
         return act_lprob
@@ -747,9 +741,8 @@ class SoftmaxPolicy(StochasticPolicy):
 
             """
             act_params, _ = model.forward(params, obs, h_state)
-            act_params = act_params.reshape(*act_params.shape[:-1], *self.act_dim)
             act_params = act_params / self._temperature
-            lprob = Softmax.lprob(act_params, act).sum(-1, keepdims=True)
+            lprob = Softmax.lprob(act_params, act)
             return lprob, {CONST_LOGITS: act_params}
 
         return lprob

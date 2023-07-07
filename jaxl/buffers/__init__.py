@@ -2,7 +2,6 @@ import chex
 import numpy as np
 
 from copy import deepcopy
-from gymnasium import spaces
 from types import SimpleNamespace
 
 from jaxl.buffers.buffers import ReplayBuffer
@@ -47,11 +46,7 @@ def get_buffer(
         buffer_kwargs = deepcopy(DEFAULT_LOAD_BUFFER_KWARGS)
         buffer_kwargs["buffer_size"] = buffer_config.buffer_size
         buffer_kwargs["obs_dim"] = env.observation_space.shape
-
-        max_action = 1
-        if isinstance(env.action_space, spaces.MultiDiscrete):
-            max_action = np.max(env.action_space.nvec)
-        buffer_kwargs["act_dim"] = (*env.action_space.shape, max_action)
+        buffer_kwargs["act_dim"] = env.act_dim
         buffer_kwargs["rew_dim"] = env.reward_dim
         buffer_kwargs["h_state_dim"] = h_state_dim
         buffer_kwargs["rng"] = np.random.RandomState(buffer_seed)

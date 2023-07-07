@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from typing import Any, Dict, Iterable, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 import chex
 import numpy as np
@@ -125,15 +125,13 @@ def get_model(
         raise NotImplementedError
 
 
-def get_policy(model: Model, act_dim: Iterable[int], config: SimpleNamespace) -> Policy:
+def get_policy(model: Model, config: SimpleNamespace) -> Policy:
     """
     Gets a policy
 
     :param model: a model
-    :param act_dim: the action dimensionality
     :param config: the policy configuration
     :type model: Model
-    :type act_dim: Iterable[int]
     :type config: SimpleNamespace
     :return: a policy
     :rtype: Policy
@@ -172,4 +170,6 @@ def policy_output_dim(output_dim: chex.Array, config: SimpleNamespace) -> chex.A
     ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
     if config.policy_distribution == CONST_GAUSSIAN:
         return [*output_dim[:-1], output_dim[-1] * 2]
+    # print(output_dim)
+    # assert 0
     return output_dim

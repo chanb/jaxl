@@ -39,9 +39,7 @@ class A2C(OnPolicyLearner):
     ):
         super().__init__(config, model_config, optimizer_config)
 
-        self._pi = get_policy(
-            self._model[CONST_POLICY], self._buffer.output_dim, config
-        )
+        self._pi = get_policy(self._model[CONST_POLICY], config)
         self._vf = self._model[CONST_VF]
 
         self._pi_loss = make_reinforce_loss(self._pi, self._config.pi_loss_setting)

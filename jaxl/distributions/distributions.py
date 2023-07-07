@@ -143,5 +143,5 @@ class Softmax(Distribution):
 
         """
         return jnp.sum(
-            jnp.eye(logits.shape[-1])[x.astype(int)] * logits, axis=-1
+            jnp.eye(logits.shape[-1])[x.astype(int)[..., 0]] * logits, axis=-1
         ) - js.special.logsumexp(logits, axis=-1)
