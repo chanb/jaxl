@@ -223,7 +223,7 @@ class AntEnv(ParameterizedMujocoEnv):
         exclude_current_positions_from_observation=True,
         seed=None,
         use_default=False,
-        bang_bang_control=False,
+        control_mode="default",
         **kwargs,
     ):
         self._ctrl_cost_weight = ctrl_cost_weight
@@ -261,7 +261,7 @@ class AntEnv(ParameterizedMujocoEnv):
             default_camera_config=DEFAULT_CAMERA_CONFIG,
             seed=seed,
             use_default=use_default,
-            bang_bang_control=bang_bang_control,
+            control_mode=control_mode,
             **kwargs,
         )
 

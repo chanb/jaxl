@@ -145,7 +145,7 @@ class PPO(OnPolicyLearner):
                     CONST_LOSS: pi_loss,
                     CONST_NUM_CLIPPED: pi_aux[CONST_NUM_CLIPPED],
                     CONST_IS_RATIO: pi_aux[CONST_IS_RATIO],
-                    CONST_LOG_PROB: pi_aux[CONST_LOG_PROB],
+                    CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
                 },
                 CONST_VF: {
                     CONST_LOSS: vf_loss,
@@ -432,7 +432,7 @@ class PPO(OnPolicyLearner):
                 CONST_NUM_CLIPPED
             ].item(),
             f"losses_info/pi_log_prob": auxes[CONST_AUX][CONST_POLICY][
-                CONST_LOG_PROB
+                CONST_LOG_PROBS
             ].item(),
             f"losses_info/vf_num_clipped": auxes[CONST_AUX][CONST_VF][
                 CONST_NUM_CLIPPED

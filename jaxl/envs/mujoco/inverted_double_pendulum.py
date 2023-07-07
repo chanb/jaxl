@@ -142,7 +142,7 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
         init_qpos_high: float = 0.1,
         seed=None,
         use_default=False,
-        bang_bang_control=False,
+        control_mode="default",
         **kwargs
     ):
         assert (
@@ -163,7 +163,7 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
             default_camera_config=DEFAULT_CAMERA_CONFIG,
             seed=seed,
             use_default=use_default,
-            bang_bang_control=bang_bang_control,
+            control_mode=control_mode,
             **kwargs,
         )
 

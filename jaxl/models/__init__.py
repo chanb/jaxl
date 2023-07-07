@@ -7,7 +7,7 @@ import optax
 
 from jaxl.constants import *
 from jaxl.models.common import MLP, Model, Policy, EnsembleModel, EncoderPredictorModel
-from jaxl.models.policies import DeterministicPolicy, GaussianPolicy, SoftmaxPolicy
+from jaxl.models.policies import *
 
 
 """
@@ -147,6 +147,10 @@ def get_policy(model: Model, config: SimpleNamespace) -> Policy:
         return DeterministicPolicy(model)
     elif config.policy_distribution == CONST_SOFTMAX:
         return SoftmaxPolicy(
+            model, getattr(config, CONST_TEMPERATURE, DEFAULT_TEMPERATURE)
+        )
+    elif config.policy_distribution == CONST_BANG_BANG:
+        return BangBangPolicy(
             model, getattr(config, CONST_TEMPERATURE, DEFAULT_TEMPERATURE)
         )
     else:

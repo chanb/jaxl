@@ -98,7 +98,7 @@ class A2C(OnPolicyLearner):
             aux = {
                 CONST_POLICY: pi_loss,
                 CONST_VF: vf_loss,
-                CONST_LOG_PROB: pi_aux[CONST_LOG_PROB],
+                CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
                 CONST_ADVANTAGE: (rets - baselines).mean(),
             }
             return agg_loss, aux
@@ -311,7 +311,7 @@ class A2C(OnPolicyLearner):
             f"{CONST_GRAD_NORM}/pi": auxes[CONST_AUX][CONST_GRAD_NORM][
                 CONST_POLICY
             ].item(),
-            f"losses_info/pi_log_prob": auxes[CONST_AUX][CONST_LOG_PROB].item(),
+            f"losses_info/pi_log_prob": auxes[CONST_AUX][CONST_LOG_PROBS].item(),
             f"{CONST_PARAM_NORM}/pi": l2_norm(
                 self.model_dict[CONST_MODEL][CONST_POLICY]
             ).item(),

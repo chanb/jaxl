@@ -207,7 +207,7 @@ class REINFORCE(OnPolicyLearner):
             f"{CONST_GRAD_NORM}/pi": auxes[CONST_AUX][CONST_GRAD_NORM][
                 CONST_POLICY
             ].item(),
-            f"losses_info/pi_log_prob": auxes[CONST_AUX][CONST_LOG_PROB].item(),
+            f"losses_info/pi_log_prob": auxes[CONST_AUX][CONST_LOG_PROBS].item(),
             f"{CONST_PARAM_NORM}/pi": l2_norm(
                 self.model_dict[CONST_MODEL][CONST_POLICY]
             ).item(),

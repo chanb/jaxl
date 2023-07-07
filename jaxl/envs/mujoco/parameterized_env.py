@@ -10,12 +10,20 @@ from gymnasium.envs.mujoco.mujoco_env import DEFAULT_SIZE
 from typing import Any, Union
 
 
+BANG_BANG = "bang_bang"
 DEFAULT = "default"
+DISCRETE = "discrete"
 JOINT = "joint"
 GEOM = "geom"
 MIN = "min"
 MAX = "max"
 OPTION = "option"
+
+VALID_CONTROL_MODE = [
+    DEFAULT,
+    BANG_BANG,
+    DISCRETE,
+]
 
 
 def sample_data(attr_data: dict, np_random: np.random.Generator) -> chex.Array:
@@ -48,7 +56,7 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
         default_camera_config: Union[dict, None] = None,
         seed: Union[int, None] = None,
         use_default: bool = False,
-        bang_bang_control: bool = False,
+        control_mode: str = DEFAULT,
         **kwargs
     ):
         self._rng = np.random.RandomState(seed)
@@ -66,7 +74,16 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
             **kwargs,
         )
 
-        if bang_bang_control:
+        self.control_mode = control_mode
+        assert control_mode in VALID_CONTROL_MODE
+        if control_mode == BANG_BANG:
+            n_dim = int(np.prod(self.action_space.shape))
+            self.agent_action_space = spaces.Discrete(n_dim)
+
+            def process_action(action):
+                return (-1) ** (np.array(action) + 1)
+
+        elif control_mode == DISCRETE:
             n_dim = int(np.prod(self.action_space.shape))
             self.agent_action_space = spaces.Discrete(n_dim * 2)
 

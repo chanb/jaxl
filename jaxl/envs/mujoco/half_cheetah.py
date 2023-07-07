@@ -154,7 +154,7 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
         exclude_current_positions_from_observation=True,
         seed=None,
         use_default=False,
-        bang_bang_control=False,
+        control_mode="default",
         **kwargs,
     ):
         self._forward_reward_weight = forward_reward_weight
@@ -186,7 +186,7 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
             default_camera_config=DEFAULT_CAMERA_CONFIG,
             seed=seed,
             use_default=use_default,
-            bang_bang_control=bang_bang_control,
+            control_mode=control_mode,
             **kwargs,
         )
 

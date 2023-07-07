@@ -216,7 +216,7 @@ def make_reinforce_loss(
 
         # TODO: Logging of action lprobs
         return reduction(-lprobs * (rets - baselines)), {
-            CONST_LOG_PROB: lprobs,
+            CONST_LOG_PROBS: lprobs,
         }
 
     return reinforce_loss
@@ -292,7 +292,7 @@ def make_ppo_pi_loss(
         return reduction(-pi_surrogate), {
             CONST_NUM_CLIPPED: (clipped_is_ratio != is_ratio).sum(),
             CONST_IS_RATIO: is_ratio,
-            CONST_LOG_PROB: lprobs,
+            CONST_LOG_PROBS: lprobs,
         }
 
     return pi_loss

@@ -157,7 +157,7 @@ class HopperEnv(ParameterizedMujocoEnv):
         forward_reward_weight=1.0,
         ctrl_cost_weight=1e-3,
         healthy_reward=1.0,
-        terminate_when_unhealthy=True,
+        terminate_when_unhealthy=False,
         healthy_state_range=(-100.0, 100.0),
         healthy_z_range=(0.7, float("inf")),
         healthy_angle_range=(-0.2, 0.2),
@@ -165,7 +165,7 @@ class HopperEnv(ParameterizedMujocoEnv):
         exclude_current_positions_from_observation=True,
         seed=None,
         use_default=False,
-        bang_bang_control=False,
+        control_mode="default",
         **kwargs,
     ):
         self._forward_reward_weight = forward_reward_weight
@@ -193,7 +193,7 @@ class HopperEnv(ParameterizedMujocoEnv):
             default_camera_config=default_camera_config,
             seed=seed,
             use_default=use_default,
-            bang_bang_control=bang_bang_control,
+            control_mode=control_mode,
             **kwargs,
         )
 
@@ -275,10 +275,13 @@ class HopperEnv(ParameterizedMujocoEnv):
         healthy_reward = self.healthy_reward
 
         rewards = forward_reward + healthy_reward
-        costs = ctrl_cost
+        # costs = ctrl_cost
+        costs = 0
 
         observation = self._get_obs()
         reward = rewards - costs
+        r_th = 0.5
+        shaped_reward = np.clip(rewards - r_th, 0, 1 - r_th) / (1 - r_th)
         terminated = self.terminated
         info = {
             "reward_forward": forward_reward,
@@ -287,6 +290,7 @@ class HopperEnv(ParameterizedMujocoEnv):
             "x_position": x_position_after,
             "z_distance_from_origin": self.data.qpos[1] - self.init_qpos[1],
             "x_velocity": x_velocity,
+            "shaped_reward": shaped_reward,
         }
 
         if self.render_mode == "human":

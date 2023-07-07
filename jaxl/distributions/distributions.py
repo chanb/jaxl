@@ -2,8 +2,8 @@ from abc import abstractstaticmethod
 from typing import Optional
 
 import chex
+import jax.nn as nn
 import jax.numpy as jnp
-import jax.scipy as js
 import jax.random as jrandom
 import math
 
@@ -144,4 +144,49 @@ class Softmax(Distribution):
         """
         return jnp.sum(
             jnp.eye(logits.shape[-1])[x.astype(int)[..., 0]] * logits, axis=-1
-        ) - js.special.logsumexp(logits, axis=-1)
+        ) - nn.logsumexp(logits, axis=-1)
+
+
+class Bernoulli(Distribution):
+    """
+    Bernoulli distribution that extends the ``Distribution`` class
+    """
+
+    @staticmethod
+    def sample(
+        probs: chex.Array,
+        key: jrandom.PRNGKey,
+        num_samples: Optional[int] = None,
+    ) -> chex.Array:
+        """
+        Samples from bernoulli distribution.
+
+        :param probs: probability of the bernoulli distribution
+        :param key: the random number generator key
+        :param num_samples: the number of samples to have
+        :type probs: chex.Array
+        :type key: jrandom.PRNGKey
+        :type num_samples: Optional[int]:  (Default value = None)
+        :return: the samples
+        :rtype: chex.Array
+
+        """
+        if num_samples:
+            shape = (num_samples, *probs.shape[:-1], 1)
+        else:
+            shape = probs.shape
+        return jrandom.bernoulli(key, probs, shape=shape)
+
+    def lprob(probs: chex.Array, x: chex.Array) -> chex.Array:
+        """
+        Computes the log probabilities with bernoulli distribution.
+
+        :param probs: probability of the bernoulli distribution
+        :param x: the samples
+        :type probs: chex.Array
+        :type x: chex.Array
+        :return: the log probabilities of the given samples
+        :rtype: chex.Array
+
+        """
+        return jnp.log(probs)

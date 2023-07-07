@@ -265,10 +265,13 @@ class StandardRollout(Rollout):
                     act, self._env.action_space.low, self._env.action_space.high
                 )
             next_obs, rew, terminated, truncated, info = self._env.step(env_act)
+
             self._episodic_returns[-1] += float(rew)
             self._episode_lengths[-1] += 1
 
             self._done = terminated or truncated
+
+            rew = info.get("shaped_reward", rew)
 
             buffer.push(
                 self._curr_obs,
