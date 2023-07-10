@@ -6,6 +6,7 @@ import os
 from gymnasium.spaces import Box
 
 from jaxl.envs.mujoco.parameterized_env import ParameterizedMujocoEnv
+from jaxl.envs.reward_utils import tolerance
 
 
 DEFAULT_CAMERA_CONFIG = {
@@ -270,6 +271,21 @@ class HopperEnv(ParameterizedMujocoEnv):
         self.do_simulation(action, self.frame_skip)
         x_position_after = self.data.qpos[0]
         x_velocity = (x_position_after - x_position_before) / self.dt
+
+        # DMC reward function
+        # z_position_after = self.data.qpos[1]
+        # standing = tolerance(
+        #     z_position_after,
+        #     (0.6, 2)
+        # )
+        # hopping = tolerance(
+        #     x_velocity,
+        #     bounds=(1.5, float("inf")),
+        #     margin=1.5 / 2,
+        #     value_at_margin=0.5,
+        #     sigmoid="linear",
+        # )
+        # shaped_reward = standing * hopping
 
         ctrl_cost = self.control_cost(action)
 
