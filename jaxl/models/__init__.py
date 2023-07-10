@@ -111,7 +111,7 @@ def get_optimizer(
         else:
             raise NotImplementedError
 
-        opt_transforms.append(optax.scale(-opt_config.lr))
+        opt_transforms.append(get_scheduler(opt_config.lr))
     opt = optax.chain(*opt_transforms)
     opt_state = opt.init(params)
     return opt, opt_state
