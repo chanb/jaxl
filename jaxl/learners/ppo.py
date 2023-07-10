@@ -20,6 +20,7 @@ from jaxl.models import (
     get_model,
     get_optimizer,
     get_policy,
+    get_scheduler,
     policy_output_dim,
 )
 from jaxl.utils import l2_norm
@@ -56,6 +57,7 @@ class PPO(OnPolicyLearner):
         self._sample_key = jrandom.split(
             jrandom.PRNGKey(self._config.seeds.buffer_seed)
         )[1]
+        self._num_updates = 0
 
         assert (
             self._opt_batch_size <= self._update_frequency
@@ -82,6 +84,10 @@ class PPO(OnPolicyLearner):
 
         self._vf_loss = vf_loss
 
+        self._ent_coef = optax.constant_schedule(0.0)
+        if hasattr(self._config, "ent_loss_setting"):
+            self._ent_coef = get_scheduler(self._config.ent_loss_setting)
+
         def joint_loss(
             model_dicts: Dict[str, Any],
             obss: chex.Array,
@@ -91,6 +97,7 @@ class PPO(OnPolicyLearner):
             advs: chex.Array,
             vals: chex.Array,
             old_lprobs: chex.Array,
+            ent_coef: float,
             *args,
             **kwargs,
         ) -> Tuple[chex.Array, Dict]:
@@ -105,6 +112,7 @@ class PPO(OnPolicyLearner):
             :param advs: the advantages
             :param vals: the predicted values from the critic
             :param old_lprobs: the action log probabilities
+            :param ent_coef: the entropy coefficient
             :param *args:
             :param **kwargs:
             :type model_dict: Dict[str, Any]
@@ -112,9 +120,10 @@ class PPO(OnPolicyLearner):
             :type h_states: chex.Array
             :type acts: chex.Array
             :type rets: chex.Array
-            :types advs: chex.Array
-            :types vals: chex.Array
-            :types old_lprobs: chex.Array
+            :type advs: chex.Array
+            :type vals: chex.Array
+            :type old_lprobs: chex.Array
+            :type ent_coef: float
             :return: the aggregate loss and auxiliary information
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
@@ -141,7 +150,7 @@ class PPO(OnPolicyLearner):
             agg_loss = (
                 self._config.pi_loss_setting.coefficient * pi_loss
                 + self._config.vf_loss_setting.coefficient * vf_loss
-                - getattr(self._config, "entropy_coefficient", 0.0) * entropy
+                - ent_coef * entropy
             )
 
             aux = {
@@ -234,6 +243,7 @@ class PPO(OnPolicyLearner):
             advs: chex.Array,
             vals: chex.Array,
             old_lprobs: chex.Array,
+            ent_coef: float,
             *args,
             **kwargs,
         ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
@@ -248,6 +258,7 @@ class PPO(OnPolicyLearner):
             :param advs: the advantages
             :param vals: the predicted values from the critic
             :param old_lprobs: the action log probabilities
+            :param ent_coef: the entropy coefficient
             :param *args:
             :param **kwargs:
             :type model_dict: Dict[str, Any]
@@ -255,9 +266,10 @@ class PPO(OnPolicyLearner):
             :type h_states: chex.Array
             :type acts: chex.Array
             :type rets: chex.Array
-            :types advs: chex.Array
-            :types vals: chex.Array
-            :types old_lprobs: chex.Array
+            :type advs: chex.Array
+            :type vals: chex.Array
+            :type old_lprobs: chex.Array
+            :type ent_coef: float
             :return: the aggregate loss and auxiliary information
             :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
 
@@ -271,6 +283,7 @@ class PPO(OnPolicyLearner):
                 advs,
                 vals,
                 old_lprobs,
+                ent_coef,
             )
             aux[CONST_AGG_LOSS] = agg_loss
             aux[CONST_GRAD_NORM] = {
@@ -400,6 +413,7 @@ class PPO(OnPolicyLearner):
                     advs[minibatch_idxes],
                     vals[minibatch_idxes],
                     old_lprobs[minibatch_idxes],
+                    self._ent_coef(self._num_updates),
                 )
                 assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
                 auxes_per_epoch.append(aux)
@@ -424,6 +438,7 @@ class PPO(OnPolicyLearner):
                 i: {k: np.abs(old_act_params[k][..., i]).mean() for k in old_act_params}
                 for i in range(acts.shape[-1])
             }
+            self._num_updates += 1
 
         auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
         aux[CONST_LOG] = {

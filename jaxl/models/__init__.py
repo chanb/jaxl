@@ -16,6 +16,44 @@ XXX: Feel free to add new components as needed.
 """
 
 
+def get_scheduler(
+    scheduler_config: SimpleNamespace,
+) -> optax.Schedule:
+    """
+    Gets a scheduler
+
+    :param scheduler_config: the scheduler configuration
+    :type scheduler_config: SimpleNamespace
+    :return: the scheduler
+    :rtype: optax.Schedule
+    """
+    assert (
+        scheduler_config.scheduler in VALID_SCEHDULER
+    ), f"{scheduler_config.scheduler} is not supported (one of {VALID_SCEHDULER})"
+
+    kwargs = scheduler_config.scheduler_kwargs
+    if scheduler_config.scheduler == CONST_CONSTANT_SCHEDULE:
+        return optax.constant_schedule(kwargs.value)
+    elif scheduler_config.scheduler == CONST_LINEAR_SCHEDULE:
+        return optax.linear_schedule(
+            kwargs.init_value,
+            kwargs.end_value,
+            kwargs.transition_steps,
+            kwargs.transition_begin,
+        )
+    elif scheduler_config.scheduler == CONST_EXPONENTIAL_DECAY:
+        return optax.exponential_decay(
+            kwargs.init_value,
+            kwargs.transition_steps,
+            kwargs.decay_rate,
+            kwargs.transition_begin,
+            kwargs.staircase,
+            kwargs.end_value,
+        )
+    else:
+        raise NotImplementedError
+
+
 def get_optimizer(
     opt_config: SimpleNamespace,
     model: Model,
