@@ -149,6 +149,7 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
         self,
         parameter_config_path,
         forward_reward_weight=1.0,
+        run_speed=10.0,
         ctrl_cost_weight=0.1,
         reset_noise_scale=0.1,
         exclude_current_positions_from_observation=True,
@@ -158,6 +159,7 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
         **kwargs,
     ):
         self._forward_reward_weight = forward_reward_weight
+        self._run_speed = run_speed
 
         self._ctrl_cost_weight = ctrl_cost_weight
 
@@ -207,8 +209,7 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
 
         observation = self._get_obs()
         reward = forward_reward - ctrl_cost
-        r_th = 0.5
-        shaped_reward = np.clip(reward - r_th, 0, 1 - r_th) / (1 - r_th)
+        shaped_reward = np.clip(reward - self._run_speed, 0, 1)
         terminated = False
         info = {
             "x_position": x_position_after,

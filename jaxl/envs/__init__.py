@@ -25,6 +25,8 @@ def get_environment(env_config: SimpleNamespace) -> DefaultGymWrapper:
         import gymnasium as gym
 
         env = gym.make(env_config.env_name, **vars(env_config.env_kwargs))
+    elif env_config.env_type == CONST_DM_CONTROL:
+        raise NotImplementedError
     else:
         raise NotImplementedError
 

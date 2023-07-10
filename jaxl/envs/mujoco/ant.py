@@ -217,6 +217,7 @@ class AntEnv(ParameterizedMujocoEnv):
         contact_cost_weight=5e-4,
         healthy_reward=1.0,
         terminate_when_unhealthy=True,
+        walk_speed=1.5,
         healthy_z_range=(0.2, 1.0),
         contact_force_range=(-1.0, 1.0),
         reset_noise_scale=0.1,
@@ -228,6 +229,7 @@ class AntEnv(ParameterizedMujocoEnv):
     ):
         self._ctrl_cost_weight = ctrl_cost_weight
         self._contact_cost_weight = contact_cost_weight
+        self._walk_speed = walk_speed
 
         self._healthy_reward = healthy_reward
         self._terminate_when_unhealthy = terminate_when_unhealthy
@@ -327,8 +329,7 @@ class AntEnv(ParameterizedMujocoEnv):
 
         reward = rewards - costs
 
-        r_th = 0.5
-        shaped_reward = np.clip(reward - r_th, 0, 1 - r_th) / (1 - r_th)
+        shaped_reward = np.clip(reward - self._walk_speed, 0, 1)
 
         info = {
             "reward_forward": forward_reward,

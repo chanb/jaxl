@@ -141,6 +141,7 @@ class SwimmerEnv(ParameterizedMujocoEnv):
         forward_reward_weight=1.0,
         ctrl_cost_weight=1e-4,
         reset_noise_scale=0.1,
+        swim_speed=1.0,
         exclude_current_positions_from_observation=True,
         seed=None,
         use_default=False,
@@ -149,6 +150,7 @@ class SwimmerEnv(ParameterizedMujocoEnv):
     ):
         self._forward_reward_weight = forward_reward_weight
         self._ctrl_cost_weight = ctrl_cost_weight
+        self._swim_speed = swim_speed
 
         self._reset_noise_scale = reset_noise_scale
 
@@ -194,8 +196,7 @@ class SwimmerEnv(ParameterizedMujocoEnv):
         observation = self._get_obs()
         reward = forward_reward - ctrl_cost
 
-        r_th = 0.5
-        shaped_reward = np.clip(reward - r_th, 0, 1 - r_th) / (1 - r_th)
+        shaped_reward = np.clip(reward - self._swim_speed, 0, 1)
         info = {
             "reward_fwd": forward_reward,
             "reward_ctrl": -ctrl_cost,
