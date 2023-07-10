@@ -36,6 +36,13 @@ def get_environment(env_config: SimpleNamespace) -> DefaultGymWrapper:
 
 
 register(
+    id="ParameterizedAcrobot-v0",
+    entry_point="jaxl.envs.classic_control.acrobot:ParameterizedAcrobotEnv",
+    max_episode_steps=500,
+    reward_threshold=-100.0,
+    kwargs={},
+)
+register(
     id="ParameterizedInvertedDoublePendulum-v0",
     entry_point="jaxl.envs.mujoco.inverted_double_pendulum:ParameterizedInvertedDoublePendulumEnv",
     max_episode_steps=1000,
@@ -46,7 +53,6 @@ register(
         )
     },
 )
-
 register(
     id="ParameterizedHopper-v0",
     entry_point="jaxl.envs.mujoco.hopper:HopperEnv",
