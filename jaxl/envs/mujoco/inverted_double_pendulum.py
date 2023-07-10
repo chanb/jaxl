@@ -140,6 +140,7 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
         parameter_config_path,
         init_qpos_low: float = -0.1,
         init_qpos_high: float = 0.1,
+        action_scale: float = 1.0,
         terminate_when_unhealthy: bool = True,
         alive_bonus: float = 10.0,
         seed=None,
@@ -154,6 +155,7 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
         self.init_qpos_high = init_qpos_high
         self._terminate_when_unhealthy = terminate_when_unhealthy
         self._alive_bonus = alive_bonus
+        self._action_scale = action_scale
         observation_space = Box(low=-np.inf, high=np.inf, shape=(11,), dtype=np.float64)
 
         super().__init__(
@@ -172,8 +174,8 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
         )
 
     def step(self, action):
-        action = self.process_action(action)
-        self.do_simulation(action, self.frame_skip)
+        action = np.array(self.process_action(action))
+        self.do_simulation(action * self._action_scale, self.frame_skip)
         ob = self._get_obs()
         x, _, y = self.data.site_xpos[0]
         dist_penalty = 0.01 * x**2 + (y - 2) ** 2

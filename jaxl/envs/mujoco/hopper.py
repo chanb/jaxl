@@ -158,6 +158,7 @@ class HopperEnv(ParameterizedMujocoEnv):
         ctrl_cost_weight=1e-3,
         healthy_reward=1.0,
         terminate_when_unhealthy=True,
+        hop_speed=0.5,
         healthy_state_range=(-100.0, 100.0),
         healthy_z_range=(0.7, float("inf")),
         healthy_angle_range=(-0.2, 0.2),
@@ -174,6 +175,7 @@ class HopperEnv(ParameterizedMujocoEnv):
 
         self._healthy_reward = healthy_reward
         self._terminate_when_unhealthy = terminate_when_unhealthy
+        self._hop_speed = hop_speed
 
         self._healthy_state_range = healthy_state_range
         self._healthy_z_range = healthy_z_range
@@ -279,8 +281,7 @@ class HopperEnv(ParameterizedMujocoEnv):
 
         observation = self._get_obs()
         reward = rewards - costs
-        r_th = 0.5
-        shaped_reward = np.clip(reward - r_th, 0, 1 - r_th) / (1 - r_th)
+        shaped_reward = np.clip(reward - self._hop_speed, 0, 1)
         terminated = self.terminated
         info = {
             "reward_forward": forward_reward,
