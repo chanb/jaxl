@@ -105,13 +105,11 @@ def get_optimizer(
         if opt_config.max_grad_norm:
             opt_transforms.append(optax.clip_by_global_norm(opt_config.max_grad_norm))
         if opt_config.optimizer == CONST_ADAM:
-            opt_transforms.append(optax.scale_by_adam())
+            opt_transforms.append(optax.adam(get_scheduler(opt_config.lr)))
         elif opt_config.optimizer == CONST_SGD:
-            pass
+            opt_transforms.append(optax.sgd(get_scheduler(opt_config.lr)))
         else:
             raise NotImplementedError
-
-        opt_transforms.append(get_scheduler(opt_config.lr))
     opt = optax.chain(*opt_transforms)
     opt_state = opt.init(params)
     return opt, opt_state
