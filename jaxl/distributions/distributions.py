@@ -1,4 +1,5 @@
 from abc import abstractstaticmethod
+from jax.scipy.special import entr
 from typing import Optional
 
 import chex
@@ -185,8 +186,8 @@ class Softmax(Distribution):
         :rtype: chex.Array
 
         """
-        probs = nn.softmax(logits - nn.logsumexp(logits, axis=-1, keepdims=True), axis=-1)
-        return -jnp.sum(jnp.log(probs) * probs, axis=-1)
+        probs = nn.softmax(logits, axis=-1)
+        return jnp.sum(entr(probs), axis=-1)
 
 
 class Bernoulli(Distribution):
@@ -245,4 +246,4 @@ class Bernoulli(Distribution):
         :rtype: chex.Array
 
         """
-        return -jnp.sum(probs * jnp.log(probs), axis=-1)
+        return jnp.sum(entr(probs), axis=-1)

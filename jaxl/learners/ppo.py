@@ -159,7 +159,7 @@ class PPO(OnPolicyLearner):
                     CONST_NUM_CLIPPED: pi_aux[CONST_NUM_CLIPPED],
                     CONST_IS_RATIO: pi_aux[CONST_IS_RATIO],
                     CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
-                    CONST_ENTROPY: entropy,
+                    CONST_ENTROPY: pi_aux[CONST_AUX].get(CONST_ENTROPY, 0.0),
                 },
                 CONST_VF: {
                     CONST_LOSS: vf_loss,
