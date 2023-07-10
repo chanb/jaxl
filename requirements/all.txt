@@ -14,3 +14,4 @@ mujoco-py>=2.1.2.14
 matplotlib>=3.7.1
 moviepy>=1.0.3
 jupyter>=1.0.0
+xmldiff>=2.6.3

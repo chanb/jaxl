@@ -91,31 +91,36 @@ def train(
         learner.save_env_config(os.path.join(save_path, "env_config.pkl"))
 
     true_epoch = 0
-    for epoch in tqdm.tqdm(range(train_config.num_epochs)):
-        train_aux = learner.update()
-        true_epoch = epoch + 1
+    try:
+        for epoch in tqdm.tqdm(range(train_config.num_epochs)):
+            train_aux = learner.update()
+            true_epoch = epoch + 1
 
-        if (
-            save_path
-            and logging_config.log_interval
-            and true_epoch % logging_config.log_interval == 0
-        ):
-            if CONST_LOG in train_aux:
-                # NOTE: we expect the user to properly define the logging scalars in the learner
-                for key, val in train_aux[CONST_LOG].items():
-                    summary_writer.add_scalar(key, val, true_epoch)
+            if (
+                save_path
+                and logging_config.log_interval
+                and true_epoch % logging_config.log_interval == 0
+            ):
+                if CONST_LOG in train_aux:
+                    # NOTE: we expect the user to properly define the logging scalars in the learner
+                    for key, val in train_aux[CONST_LOG].items():
+                        summary_writer.add_scalar(key, val, true_epoch)
 
-        if (
-            save_path
-            and logging_config.checkpoint_interval
-            and true_epoch % logging_config.checkpoint_interval == 0
-        ):
-            with open(
-                os.path.join(save_path, "auxes", f"auxes-{true_epoch}.pkl"),
-                "wb",
-            ) as f:
-                pickle.dump(train_aux, f)
-            learner.checkpoint(os.path.join(save_path, "models", f"model-{true_epoch}"))
+            if (
+                save_path
+                and logging_config.checkpoint_interval
+                and true_epoch % logging_config.checkpoint_interval == 0
+            ):
+                with open(
+                    os.path.join(save_path, "auxes", f"auxes-{true_epoch}.pkl"),
+                    "wb",
+                ) as f:
+                    pickle.dump(train_aux, f)
+                learner.checkpoint(
+                    os.path.join(save_path, "models", f"model-{true_epoch}")
+                )
+    except KeyboardInterrupt:
+        pass
     if save_path:
         learner.checkpoint(os.path.join(save_path, "termination_model"))
         learner.save_buffer(os.path.join(save_path, "termination_buffer.gzip"))

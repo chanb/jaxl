@@ -85,7 +85,7 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
 
         elif control_mode == DISCRETE:
             n_dim = int(np.prod(self.action_space.shape))
-            self.agent_action_space = spaces.Discrete(2 ** n_dim)
+            self.agent_action_space = spaces.Discrete(2**n_dim)
 
             def process_action(action):
                 return [

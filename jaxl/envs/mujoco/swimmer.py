@@ -193,6 +193,9 @@ class SwimmerEnv(ParameterizedMujocoEnv):
 
         observation = self._get_obs()
         reward = forward_reward - ctrl_cost
+
+        r_th = 0.5
+        shaped_reward = np.clip(reward - r_th, 0, 1 - r_th) / (1 - r_th)
         info = {
             "reward_fwd": forward_reward,
             "reward_ctrl": -ctrl_cost,
@@ -202,6 +205,7 @@ class SwimmerEnv(ParameterizedMujocoEnv):
             "x_velocity": x_velocity,
             "y_velocity": y_velocity,
             "forward_reward": forward_reward,
+            "shaped_reward": shaped_reward,
         }
 
         if self.render_mode == "human":

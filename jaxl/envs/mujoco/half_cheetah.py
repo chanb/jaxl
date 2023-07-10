@@ -207,12 +207,15 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
 
         observation = self._get_obs()
         reward = forward_reward - ctrl_cost
+        r_th = 0.5
+        shaped_reward = np.clip(reward - r_th, 0, 1 - r_th) / (1 - r_th)
         terminated = False
         info = {
             "x_position": x_position_after,
             "x_velocity": x_velocity,
             "reward_run": forward_reward,
             "reward_ctrl": -ctrl_cost,
+            "shaped_reward": shaped_reward,
         }
 
         if self.render_mode == "human":

@@ -141,7 +141,7 @@ class PPO(OnPolicyLearner):
             agg_loss = (
                 self._config.pi_loss_setting.coefficient * pi_loss
                 + self._config.vf_loss_setting.coefficient * vf_loss
-                + getattr(self._config, "entropy_coefficient", 0.0) * entropy
+                - getattr(self._config, "entropy_coefficient", 0.0) * entropy
             )
 
             aux = {

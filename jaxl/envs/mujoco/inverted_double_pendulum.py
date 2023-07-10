@@ -140,6 +140,8 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
         parameter_config_path,
         init_qpos_low: float = -0.1,
         init_qpos_high: float = 0.1,
+        terminate_when_unhealthy: bool = True,
+        alive_bonus: float = 10.0,
         seed=None,
         use_default=False,
         control_mode="default",
@@ -150,6 +152,8 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
         ), "invalid qpos range ({}, {})".format(init_qpos_low, init_qpos_high)
         self.init_qpos_low = init_qpos_low
         self.init_qpos_high = init_qpos_high
+        self._terminate_when_unhealthy = terminate_when_unhealthy
+        self._alive_bonus = alive_bonus
         observation_space = Box(low=-np.inf, high=np.inf, shape=(11,), dtype=np.float64)
 
         super().__init__(
@@ -175,9 +179,8 @@ class ParameterizedInvertedDoublePendulumEnv(ParameterizedMujocoEnv):
         dist_penalty = 0.01 * x**2 + (y - 2) ** 2
         v1, v2 = self.data.qvel[1:3]
         vel_penalty = 1e-3 * v1**2 + 5e-3 * v2**2
-        alive_bonus = 10
-        r = alive_bonus - dist_penalty - vel_penalty
-        terminated = bool(y <= 1)
+        r = self._alive_bonus - dist_penalty - vel_penalty
+        terminated = self._terminate_when_unhealthy and bool(y <= 1)
         if self.render_mode == "human":
             self.render()
         return ob, r, terminated, False, {}

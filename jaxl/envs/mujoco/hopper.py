@@ -156,7 +156,7 @@ class HopperEnv(ParameterizedMujocoEnv):
         default_camera_config=DEFAULT_CAMERA_CONFIG,
         forward_reward_weight=1.0,
         ctrl_cost_weight=1e-3,
-        healthy_reward=0.0,
+        healthy_reward=1.0,
         terminate_when_unhealthy=True,
         healthy_state_range=(-100.0, 100.0),
         healthy_z_range=(0.7, float("inf")),
@@ -274,14 +274,13 @@ class HopperEnv(ParameterizedMujocoEnv):
         forward_reward = self._forward_reward_weight * x_velocity
         healthy_reward = self.healthy_reward
 
-        rewards = forward_reward + healthy_reward
-        # costs = ctrl_cost
-        costs = 0
+        rewards = forward_reward * healthy_reward
+        costs = ctrl_cost
 
         observation = self._get_obs()
         reward = rewards - costs
         r_th = 0.5
-        shaped_reward = np.clip(rewards - r_th, 0, 1 - r_th) / (1 - r_th)
+        shaped_reward = np.clip(reward - r_th, 0, 1 - r_th) / (1 - r_th)
         terminated = self.terminated
         info = {
             "reward_forward": forward_reward,

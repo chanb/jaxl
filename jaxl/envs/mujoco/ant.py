@@ -320,6 +320,16 @@ class AntEnv(ParameterizedMujocoEnv):
 
         terminated = self.terminated
         observation = self._get_obs()
+        if self._use_contact_forces:
+            contact_cost = self.contact_cost
+            costs += contact_cost
+            info["reward_ctrl"] = -contact_cost
+
+        reward = rewards - costs
+
+        r_th = 0.5
+        shaped_reward = np.clip(reward - r_th, 0, 1 - r_th) / (1 - r_th)
+
         info = {
             "reward_forward": forward_reward,
             "reward_ctrl": -ctrl_cost,
@@ -330,13 +340,8 @@ class AntEnv(ParameterizedMujocoEnv):
             "x_velocity": x_velocity,
             "y_velocity": y_velocity,
             "forward_reward": forward_reward,
+            "shaped_reward": shaped_reward,
         }
-        if self._use_contact_forces:
-            contact_cost = self.contact_cost
-            costs += contact_cost
-            info["reward_ctrl"] = -contact_cost
-
-        reward = rewards - costs
 
         if self.render_mode == "human":
             self.render()
