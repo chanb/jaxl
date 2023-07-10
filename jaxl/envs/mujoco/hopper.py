@@ -273,19 +273,19 @@ class HopperEnv(ParameterizedMujocoEnv):
         x_velocity = (x_position_after - x_position_before) / self.dt
 
         # DMC reward function
-        # z_position_after = self.data.qpos[1]
-        # standing = tolerance(
-        #     z_position_after,
-        #     (0.6, 2)
-        # )
-        # hopping = tolerance(
-        #     x_velocity,
-        #     bounds=(1.5, float("inf")),
-        #     margin=1.5 / 2,
-        #     value_at_margin=0.5,
-        #     sigmoid="linear",
-        # )
-        # shaped_reward = standing * hopping
+        z_position_after = self.data.qpos[1]
+        standing = tolerance(
+            z_position_after,
+            (0.6, 2)
+        )
+        hopping = tolerance(
+            x_velocity,
+            bounds=(1.5, float("inf")),
+            margin=1.5 / 2,
+            value_at_margin=0.5,
+            sigmoid="linear",
+        )
+        shaped_reward = standing * hopping
 
         ctrl_cost = self.control_cost(action)
 
@@ -297,7 +297,7 @@ class HopperEnv(ParameterizedMujocoEnv):
 
         observation = self._get_obs()
         reward = rewards - costs
-        shaped_reward = np.clip(reward - self._hop_speed, 0, 1)
+        # shaped_reward = np.clip(reward - self._hop_speed, 0, 1)
         terminated = self.terminated
         info = {
             "reward_forward": forward_reward,
