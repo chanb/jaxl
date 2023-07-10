@@ -598,7 +598,7 @@ class SoftmaxPolicy(StochasticPolicy):
 
             """
             act_params, h_state = model.forward(params, obs, h_state)
-            act_max, _ = jnp.argmax(act_params, axis=-1)
+            act_max = jnp.argmax(act_params, axis=-1)
             return act_max, h_state
 
         return deterministic_action
