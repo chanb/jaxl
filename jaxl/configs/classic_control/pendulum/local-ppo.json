@@ -24,7 +24,7 @@
                     "value": 1e-3
                 }
             },
-            "max_grad_norm": 0.5,
+            "max_grad_norm": false,
             "weight_decay": 0.1
         },
         "vf": {
@@ -35,7 +35,7 @@
                     "value": 1e-3
                 }
             },
-            "max_grad_norm": 0.5
+            "max_grad_norm": false
         }
     },
     "learner_config": {
@@ -56,11 +56,11 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 2048
+            "buffer_size": 1024
         },
         "num_steps_per_epoch": 2048,
         "learner": "ppo",
-        "gamma": 0.99,
+        "gamma": 0.9,
         "gae_lambda": 0.95,
         "normalize_advantage": true,
         "temperature": 1.0,
@@ -68,7 +68,7 @@
         "obs_rms": false,
         "value_rms": false,
         "policy_distribution": "softmax",
-        "opt_batch_size": 128,
+        "opt_batch_size": 64,
         "opt_epochs": 10,
         "ent_loss_setting": {
             "scheduler": "constant_schedule",
@@ -88,6 +88,6 @@
         }
     },
     "train_config": {
-        "num_epochs": 150
+        "num_epochs": 500
     }
 }
