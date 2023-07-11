@@ -3,16 +3,16 @@
         "save_path": "./logs/pendulum",
         "experiment_name": "ppo",
         "log_interval": 1,
-        "checkpoint_interval": 10
+        "checkpoint_interval": 100
     },
     "model_config": {
         "policy": {
             "architecture": "mlp",
-            "layers": [128, 128]
+            "layers": [64, 64]
         },
         "vf": {
             "architecture": "mlp",
-            "layers": [128, 128]
+            "layers": [64, 64]
         }
     },
     "optimizer_config": {
@@ -24,8 +24,7 @@
                     "value": 1e-3
                 }
             },
-            "max_grad_norm": false,
-            "weight_decay": 0.1
+            "max_grad_norm": 0.5
         },
         "vf": {
             "optimizer": "adam",
@@ -35,7 +34,7 @@
                     "value": 1e-3
                 }
             },
-            "max_grad_norm": false
+            "max_grad_norm": 0.5
         }
     },
     "learner_config": {
@@ -65,10 +64,10 @@
         "normalize_advantage": true,
         "temperature": 1.0,
         "eps": 1e-5,
-        "obs_rms": false,
+        "obs_rms": true,
         "value_rms": false,
         "policy_distribution": "softmax",
-        "opt_batch_size": 64,
+        "opt_batch_size": 128,
         "opt_epochs": 10,
         "ent_loss_setting": {
             "scheduler": "constant_schedule",
@@ -77,9 +76,9 @@
             }
         },
         "vf_loss_setting": {
-            "coefficient": 1.0,
+            "coefficient": 0.5,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": false
         },
         "pi_loss_setting": {
             "coefficient": 1.0,
@@ -88,6 +87,6 @@
         }
     },
     "train_config": {
-        "num_epochs": 500
+        "num_epochs": 1000
     }
 }

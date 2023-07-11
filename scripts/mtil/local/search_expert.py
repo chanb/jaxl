@@ -1,17 +1,12 @@
 """ Script for generating experiment for multitask imitation learning
 
 Example command:
-python generate_experts.py \
+python search_expert.py \
     --main_path=/Users/chanb/research/personal/jaxl/jaxl/main.py \
-    --config_template=/Users/chanb/research/personal/jaxl/jaxl/configs/parameterized_envs/inverted_pendulum/template-generate_expert-reinforce.json \
-    --exp_name=inverted_pendulum \
-    --out_dir=/Users/chanb/research/personal/jaxl/data/inverted_pendulum \
-    --run_seed=0 \
-    --num_model_seeds=1 \
-    --num_env_seeds=1 \
-    --num_envs=1000 \
-    --min_gravity=-11.0 \
-    --max_gravity=-9.0
+    --config_template=/Users/chanb/research/personal/jaxl/jaxl/configs/classic_control/pendulum/local-ppo.json \
+    --exp_name=search_expert-pendulum \
+    --out_dir=/Users/chanb/research/personal/jaxl/data/pendulum/search_expert \
+    --run_seed=0
 
 
 Then, to generate the data, run the generated script run_all-*.sh ${run_seed}
@@ -57,34 +52,6 @@ flags.DEFINE_integer(
     help="The run seed",
     required=False,
 )
-flags.DEFINE_integer(
-    "num_model_seeds",
-    default=None,
-    help="The number of seeds for initializing model parameters",
-    required=True,
-)
-flags.DEFINE_integer(
-    "num_env_seeds",
-    default=None,
-    help="The number of seeds for initializing environments",
-    required=True,
-)
-flags.DEFINE_integer(
-    "num_envs",
-    default=None,
-    help="The number of environment variations",
-    required=True,
-)
-flags.DEFINE_float(
-    "min_gravity",
-    default=-9.81,
-    help="the minimum gravity to sample from",
-)
-flags.DEFINE_float(
-    "max_gravity",
-    default=-9.81,
-    help="the maximum gravity to sample from",
-)
 
 NUM_FILES_PER_DIRECTORY = 100
 
@@ -98,43 +65,50 @@ def main(config):
 
     os.makedirs(config.out_dir, exist_ok=True)
 
-    assert (
-        config.num_model_seeds > 0
-    ), f"need at least one model_seed, got {config.num_model_seeds}"
-    while True:
-        model_seeds = np.random.randint(0, 2**32 - 1, config.num_model_seeds)
-        if len(model_seeds) == len(np.unique(model_seeds)):
-            break
-
-    assert (
-        config.num_env_seeds > 0
-    ), f"need at least one env_seed, got {config.num_env_seeds}"
-    while True:
-        env_seeds = np.random.randint(0, 2**32 - 1, config.num_env_seeds)
-        if len(env_seeds) == len(np.unique(env_seeds)):
-            break
-
-    assert (
-        config.num_envs > 0
-    ), f"need at least one environment variant, got {config.num_envs}"
-    assert (
-        config.min_gravity <= config.max_gravity
-    ), f"min_gravity {config.min_gravity} should be less than max_gravity {config.max_gravity}"
-    gravities = np.ones(config.num_envs) * config.min_gravity
-    if config.min_gravity < config.max_gravity:
-        gravities = np.random.uniform(
-            config.min_gravity, config.max_gravity, size=config.num_envs
-        )
-
     # Standard template
     template["logging_config"]["experiment_name"] = ""
+
+    models = [[64, 64], [128, 128]]
+    lrs = [3e-4, 1e-3]
+    max_grad_norms = [False, 0.5, 10.0]
+    obs_rmss = [False, True]
+    opt_batch_sizes = [64, 128, 256, 512]
+    opt_epochss = [4, 10]
+    vf_clip_params = [False, 0.2]
+    ent_coefs = [
+        {
+            "scheduler": "constant_schedule",
+            "scheduler_kwargs": {
+                "value": 0.0
+            },
+        },
+        {
+            "scheduler": "linear_schedule",
+            "scheduler_kwargs": {
+                "init_value": 0.002,
+                "end_value": 0.0,
+                "transition_begin": 0,
+                "transition_steps": 100
+            },
+        }
+    ]
+    hyperparamss = [
+        models,
+        lrs,
+        max_grad_norms,
+        obs_rmss,
+        opt_batch_sizes,
+        opt_epochss,
+        vf_clip_params,
+        ent_coefs,
+    ]
 
     base_script_dir = os.path.join(config.out_dir, "scripts")
     base_log_dir = os.path.join(config.out_dir, "logs")
     base_run_dir = os.path.join(config.out_dir, "runs")
     shell_script = ""
-    for idx, (env_seed, model_seed, gravity) in enumerate(
-        itertools.product(env_seeds, model_seeds, gravities)
+    for idx, hyperparams in enumerate(
+        itertools.product(*hyperparamss)
     ):
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
@@ -145,13 +119,24 @@ def main(config):
             os.makedirs(curr_run_dir, exist_ok=True)
             os.makedirs(curr_script_dir, exist_ok=True)
 
+        template["model_config"]["policy"]["layers"] = hyperparams[0]
+        template["model_config"]["vf"]["layers"] = hyperparams[0]
+        template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"]["value"] = hyperparams[1]
+        template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"]["value"] = hyperparams[1]
+        template["optimizer_config"]["policy"]["max_grad_norm"] = hyperparams[2]
+        template["optimizer_config"]["vf"]["max_grad_norm"] = hyperparams[2]
+        template["learner_config"]["obs_rms"] = hyperparams[3]
+        template["learner_config"]["opt_batch_size"] = hyperparams[4]
+        template["learner_config"]["opt_epochs"] = hyperparams[5]
+        template["learner_config"]["vf_loss_setting"]["clip_param"] = hyperparams[6]
+        template["learner_config"]["ent_loss_setting"] = hyperparams[7]
+
         variant = (
-            f"variant-env_seed_{env_seed}-model_seed_{model_seed}-gravity_{gravity}"
+            f"variant-{idx}"
         )
-        template["logging_config"]["experiment_name"] = f"gravity_{gravity}"
-        template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
-        template["learner_config"]["seeds"]["env_seed"] = int(env_seed)
-        template["learner_config"]["env_config"]["env_kwargs"]["gravity"] = gravity
+        template["logging_config"]["experiment_name"] = f"variant-{idx}"
+        template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = True
+        template["learner_config"]["env_config"]["env_kwargs"]["discrete_control"] = True
         template["logging_config"]["save_path"] = curr_run_dir
 
         out_path = os.path.join(curr_script_dir, variant)
