@@ -7,6 +7,7 @@ import jax.nn as nn
 import jax.numpy as jnp
 import jax.random as jrandom
 import math
+import optax
 
 
 class Distribution:
@@ -187,7 +188,7 @@ class Softmax(Distribution):
 
         """
         probs = nn.softmax(logits, axis=-1)
-        return jnp.sum(entr(probs), axis=-1)
+        return optax.softmax_cross_entropy(logits, probs)
 
 
 class Bernoulli(Distribution):
@@ -197,17 +198,17 @@ class Bernoulli(Distribution):
 
     @staticmethod
     def sample(
-        probs: chex.Array,
+        logits: chex.Array,
         key: jrandom.PRNGKey,
         num_samples: Optional[int] = None,
     ) -> chex.Array:
         """
         Samples from bernoulli distribution.
 
-        :param probs: probability of the bernoulli distribution
+        :param logits: the logits of the bernoulli distribution
         :param key: the random number generator key
         :param num_samples: the number of samples to have
-        :type probs: chex.Array
+        :type logits: chex.Array
         :type key: jrandom.PRNGKey
         :type num_samples: Optional[int]:  (Default value = None)
         :return: the samples
@@ -215,35 +216,36 @@ class Bernoulli(Distribution):
 
         """
         if num_samples:
-            shape = (num_samples, *probs.shape[:-1], 1)
+            shape = (num_samples, *logits.shape[:-1], 1)
         else:
-            shape = probs.shape
-        return jrandom.bernoulli(key, probs, shape=shape)
+            shape = logits.shape
+        return jrandom.bernoulli(key, nn.sigmoid(logits), shape=shape)
 
     @staticmethod
-    def lprob(probs: chex.Array, x: chex.Array) -> chex.Array:
+    def lprob(logits: chex.Array, x: chex.Array) -> chex.Array:
         """
         Computes the log probabilities with bernoulli distribution.
 
-        :param probs: probability of the bernoulli distribution
+        :param logits: the logits of the bernoulli distribution
         :param x: the samples
-        :type probs: chex.Array
+        :type logits: chex.Array
         :type x: chex.Array
         :return: the log probabilities of the given samples
         :rtype: chex.Array
 
         """
-        return jnp.log((probs**x) * ((1 - probs) ** (1 - x)))
+        return optax.sigmoid_binary_cross_entropy(logits, x)
 
     @staticmethod
-    def entropy(probs: chex.Array) -> chex.Array:
+    def entropy(logits: chex.Array) -> chex.Array:
         """
         Computes the entropy with bernoulli distribution.
 
-        :param probs: probability of the bernoulli distribution
-        :type probs: chex.Array
+        :param logits: the logits of the bernoulli distribution
+        :type logits: chex.Array
         :return: the entropy of the given samples
         :rtype: chex.Array
 
         """
-        return jnp.sum(entr(probs), axis=-1)
+        probs = nn.sigmoid(logits)
+        return optax.sigmoid_binary_cross_entropy(logits, probs)

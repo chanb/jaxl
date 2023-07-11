@@ -101,11 +101,17 @@ def get_optimizer(
     if opt_config.optimizer == CONST_FROZEN:
         opt_transforms.append(optax.set_to_zero())
     else:
-        opt_transforms.append(optax.zero_nans())
+        # opt_transforms.append(optax.zero_nans())
         if opt_config.max_grad_norm:
             opt_transforms.append(optax.clip_by_global_norm(opt_config.max_grad_norm))
         if opt_config.optimizer == CONST_ADAM:
-            opt_transforms.append(optax.adam(get_scheduler(opt_config.lr)))
+            if hasattr(opt_config, "weight_decay"):
+                opt_transforms.append(optax.adamw(
+                    get_scheduler(opt_config.lr),
+                    weight_decay=opt_config.weight_decay,
+                ))
+            else:
+                opt_transforms.append(optax.adam(get_scheduler(opt_config.lr)))
         elif opt_config.optimizer == CONST_SGD:
             opt_transforms.append(optax.sgd(get_scheduler(opt_config.lr)))
         else:

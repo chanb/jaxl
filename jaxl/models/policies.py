@@ -823,7 +823,7 @@ class BangBangPolicy(StochasticPolicy):
 
             """
             act_params, h_state = model.forward(params, obs, h_state)
-            act = Bernoulli.sample(nn.sigmoid(act_params / self._temperature), key)
+            act = Bernoulli.sample(act_params / self._temperature, key)
             return act, h_state
 
         return compute_action
@@ -866,7 +866,7 @@ class BangBangPolicy(StochasticPolicy):
 
             """
             act_params, h_state = model.forward(params, obs, h_state)
-            act_max, _ = jnp.argmax(nn.sigmoid(act_params / self._temperature), axis=-1)
+            act_max, _ = jnp.argmax(act_params / self._temperature, axis=-1)
             return act_max, h_state
 
         return deterministic_action
@@ -917,7 +917,7 @@ class BangBangPolicy(StochasticPolicy):
 
             """
             act_params, h_state = model.forward(params, obs, h_state)
-            act = Bernoulli.sample(nn.sigmoid(act_params / self._temperature), key)
+            act = Bernoulli.sample(act_params / self._temperature, key)
             return act, h_state
 
         return random_action
@@ -968,9 +968,9 @@ class BangBangPolicy(StochasticPolicy):
 
             """
             act_params, h_state = model.forward(params, obs, h_state)
-            probs = nn.sigmoid(act_params / self._temperature)
-            act = Bernoulli.sample(probs, key)
-            lprob = Bernoulli.lprob(probs, act).sum(-1, keepdims=True)
+            logits = act_params / self._temperature
+            act = Bernoulli.sample(logits, key)
+            lprob = Bernoulli.lprob(logits, act).sum(-1, keepdims=True)
             return act, lprob, h_state
 
         return act_lprob
@@ -1016,11 +1016,10 @@ class BangBangPolicy(StochasticPolicy):
 
             """
             act_params, _ = model.forward(params, obs, h_state)
-            probs = nn.sigmoid(act_params / self._temperature)
-            lprob = Bernoulli.lprob(probs, act).sum(-1, keepdims=True)
+            logits = act_params / self._temperature
+            lprob = Bernoulli.lprob(logits, act).sum(-1, keepdims=True)
             return lprob, {
-                CONST_PROBS: probs,
-                CONST_ENTROPY: Bernoulli.entropy(probs),
+                CONST_ENTROPY: Bernoulli.entropy(logits),
             }
 
         return lprob
