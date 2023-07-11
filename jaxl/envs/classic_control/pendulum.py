@@ -139,7 +139,7 @@ class ParameterizedPendulumEnv(gym.Env):
             #     [([-2.0, 2.0] ** np.arange(-3, 2)[:, None]).flatten(), [0]]
             # )
 
-            action_map = np.arange(-2, 2.25, 0.25)
+            action_map = np.arange(-1, 1.25, 0.25)
             self.action_space = spaces.Discrete(len(action_map))
 
             def process_action(u):
@@ -151,9 +151,7 @@ class ParameterizedPendulumEnv(gym.Env):
             )
 
             def process_action(u):
-                return np.clip(u * self.max_torque, -self.max_torque, self.max_torque)[
-                    0
-                ]
+                return np.clip(u, -self.max_torque, self.max_torque)[0]
 
         self.process_action = process_action
         self.observation_space = spaces.Box(low=-high, high=high, dtype=np.float32)

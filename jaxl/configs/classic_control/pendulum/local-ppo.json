@@ -55,7 +55,7 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 1024
+            "buffer_size": 512
         },
         "num_steps_per_epoch": 2048,
         "learner": "ppo",
@@ -87,6 +87,6 @@
         }
     },
     "train_config": {
-        "num_epochs": 1000
+        "num_epochs": 300
     }
 }

@@ -8,6 +8,14 @@ python search_expert.py \
     --out_dir=/Users/chanb/research/personal/jaxl/data/pendulum_cont/search_expert \
     --run_seed=0
 
+python search_expert.py \
+    --main_path=/Users/chanb/research/personal/jaxl/jaxl/main.py \
+    --config_template=/Users/chanb/research/personal/jaxl/jaxl/configs/classic_control/pendulum/local-ppo.json \
+    --exp_name=search_expert-pendulum_disc \
+    --out_dir=/Users/chanb/research/personal/jaxl/data/pendulum_disc/search_expert \
+    --run_seed=0 \
+    --discrete_control
+
 
 Then, to generate the data, run the generated script run_all-*.sh ${run_seed}
 """
@@ -77,7 +85,7 @@ def main(config):
     lrs = [3e-4, 1e-3]
     max_grad_norms = [False, 0.5, 10.0]
     obs_rmss = [False, True]
-    opt_batch_sizes = [64, 128, 256, 512]
+    opt_batch_sizes = [64, 128, 256]
     opt_epochss = [4, 10]
     vf_clip_params = [False, 0.2]
     ent_coefs = [
