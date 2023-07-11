@@ -109,7 +109,10 @@ def train(
             if (
                 save_path
                 and logging_config.checkpoint_interval
-                and true_epoch % logging_config.checkpoint_interval == 0
+                and (
+                    true_epoch % logging_config.checkpoint_interval == 0
+                    or true_epoch == 1
+                )
             ):
                 with open(
                     os.path.join(save_path, "auxes", f"auxes-{true_epoch}.pkl"),

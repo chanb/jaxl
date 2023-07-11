@@ -263,11 +263,11 @@ class ParameterizedAcrobotEnv(Env):
         ns[3] = bound(ns[3], -self.MAX_VEL_2, self.MAX_VEL_2)
         self.state = ns
         terminated = self._terminal()
-        reward = -1.0 if not terminated else 0.0
+        reward = 0.0 if not terminated else 1.0
 
         if self.render_mode == "human":
             self.render()
-        return (self._get_ob(), reward, terminated, False, {})
+        return (self._get_ob(), reward, False, False, {})
 
     def _get_ob(self):
         s = self.state
