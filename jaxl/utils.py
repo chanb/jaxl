@@ -151,15 +151,31 @@ def get_reduction(reduction: str) -> Callable[..., chex.Array]:
     return reduction_func
 
 
-def l2_norm(params: chex.PyTreeDef):
+def l2_norm(params: chex.PyTreeDef) -> chex.Array:
     """
-    Computes the L2 norm of a PyTree.
+    Computes the L2 norm of a complete PyTree.
 
     :param params: the pytree object with scalars
     :type params: PyTreeDef
+    :return: L2 norm of the complete PyTree
+    :rtype: chex.Array
 
     """
     return sum(jnp.sum(p**2) for p in jax.tree_util.tree_leaves(params))
+
+
+def per_leaf_l2_norm(params: chex.PyTreeDef) -> chex.PyTreeDef:
+    """
+    Computes the L2 norm of each leaf in a PyTree.
+
+    :param params: the pytree object with scalars
+    :type params: PyTreeDef
+    :return: L2 norm of each leaf in the PyTree
+    :rtype: PyTreeDef
+
+    """
+    # return {k: jnp.sum(p**2) for k, p in jax.tree_util.tree_leaves_with_path(params)}
+    return jax.tree_util.tree_map(lambda p: jnp.sum(p**2), params)
 
 
 class DummySummaryWriter:

@@ -10,6 +10,7 @@ import timeit
 
 from jaxl.constants import *
 from jaxl.learners.reinforcement import OnPolicyLearner
+from jaxl.learners.utils import gather_per_leaf_l2_norm
 from jaxl.losses.reinforcement import (
     scan_gae_lambda_returns,
     make_ppo_pi_loss,
@@ -466,18 +467,19 @@ class PPO(OnPolicyLearner):
             f"{CONST_GRAD_NORM}/pi": auxes[CONST_AUX][CONST_GRAD_NORM][
                 CONST_POLICY
             ].item(),
-            f"{CONST_PARAM_NORM}/pi": l2_norm(
-                self.model_dict[CONST_MODEL][CONST_POLICY]
-            ).item(),
             f"{CONST_GRAD_NORM}/vf": auxes[CONST_AUX][CONST_GRAD_NORM][CONST_VF].item(),
-            f"{CONST_PARAM_NORM}/vf": l2_norm(
-                self.model_dict[CONST_MODEL][CONST_VF]
-            ).item(),
             f"interaction/{CONST_AVERAGE_RETURN}": self._rollout.latest_average_return(),
             f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}": self._rollout.latest_average_episode_length(),
             f"time/{CONST_ROLLOUT_TIME}": total_rollout_time,
             f"time/{CONST_UPDATE_TIME}": total_update_time,
         }
+
+        gather_per_leaf_l2_norm(
+            aux[CONST_LOG], "pi", self.model_dict[CONST_MODEL][CONST_POLICY]
+        )
+        gather_per_leaf_l2_norm(
+            aux[CONST_LOG], "vf", self.model_dict[CONST_MODEL][CONST_VF]
+        )
 
         for act_i in range(acts.shape[-1]):
             for k in auxes[CONST_ACTION][act_i]:

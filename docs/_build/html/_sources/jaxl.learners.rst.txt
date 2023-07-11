@@ -68,6 +68,14 @@ jaxl.learners.supervised module
    :undoc-members:
    :show-inheritance:
 
+jaxl.learners.utils module
+--------------------------
+
+.. automodule:: jaxl.learners.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

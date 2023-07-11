@@ -658,6 +658,24 @@ This is the general learner for supervised learning agents.</p>
 </dd></dl>
 
 </section>
+<section id="module-jaxl.learners.utils">
+<span id="jaxl-learners-utils-module"></span><h2>jaxl.learners.utils module<a class="headerlink" href="#module-jaxl.learners.utils" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.learners.utils.gather_per_leaf_l2_norm">
+<span class="sig-prename descclassname"><span class="pre">jaxl.learners.utils.</span></span><span class="sig-name descname"><span class="pre">gather_per_leaf_l2_norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aux</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.utils.gather_per_leaf_l2_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gathers the L2 norm of a given model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>aux</strong> (<em>Dict</em>) – the auxiliary object that contains the information</p></li>
+<li><p><strong>model_name</strong> (<em>str</em>) – the model name</p></li>
+<li><p><strong>model_dict</strong> (<em>Union</em><em>[</em><em>optax.Params</em><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – the model parameters</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="module-jaxl.learners">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-jaxl.learners" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">

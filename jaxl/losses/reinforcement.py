@@ -279,7 +279,9 @@ def make_ppo_pi_loss(
         is_ratio = jnp.exp(lprobs - old_lprobs)
         # XXX: Deal with inf values
         # TODO: Check this new implementation and see if we still need zero_nans
-        is_ratio = jax.lax.select(jnp.isfinite(is_ratio), is_ratio, jnp.zeros_like(is_ratio))
+        is_ratio = jax.lax.select(
+            jnp.isfinite(is_ratio), is_ratio, jnp.zeros_like(is_ratio)
+        )
         # is_ratio = jnp.nan_to_num(is_ratio, posinf=0.0, neginf=0.0)
 
         clipped_is_ratio = jnp.clip(

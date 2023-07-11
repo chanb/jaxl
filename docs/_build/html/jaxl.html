@@ -205,6 +205,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.envs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.envs.html#module-jaxl.envs.reward_utils">jaxl.envs.reward_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.reward_utils.tolerance"><code class="docutils literal notranslate"><span class="pre">tolerance()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.envs.html#module-jaxl.envs.rollouts">jaxl.envs.rollouts module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.rollout"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout.rollout()</span></code></a></li>
@@ -335,6 +339,10 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.supervised.SupervisedLearner.update"><code class="docutils literal notranslate"><span class="pre">SupervisedLearner.update()</span></code></a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.utils">jaxl.learners.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.utils.gather_per_leaf_l2_norm"><code class="docutils literal notranslate"><span class="pre">gather_per_leaf_l2_norm()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners">Module contents</a><ul>
@@ -742,11 +750,17 @@ Assumes shape to be (number of inputs, input_shape).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="jaxl.utils.l2_norm">
-<span class="sig-prename descclassname"><span class="pre">jaxl.utils.</span></span><span class="sig-name descname"><span class="pre">l2_norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PyTreeDef</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.utils.l2_norm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the L2 norm of a PyTree.</p>
+<span class="sig-prename descclassname"><span class="pre">jaxl.utils.</span></span><span class="sig-name descname"><span class="pre">l2_norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PyTreeDef</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span></span></span><a class="headerlink" href="#jaxl.utils.l2_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the L2 norm of a complete PyTree.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>params</strong> (<em>PyTreeDef</em>) – the pytree object with scalars</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>L2 norm of the complete PyTree</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>chex.Array</p>
 </dd>
 </dl>
 </dd></dl>
@@ -765,6 +779,23 @@ Reference: <a class="reference external" href="https://stackoverflow.com/questio
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>SimpleNamespace</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.utils.per_leaf_l2_norm">
+<span class="sig-prename descclassname"><span class="pre">jaxl.utils.</span></span><span class="sig-name descname"><span class="pre">per_leaf_l2_norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PyTreeDef</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PyTreeDef</span></span></span><a class="headerlink" href="#jaxl.utils.per_leaf_l2_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the L2 norm of each leaf in a PyTree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>PyTreeDef</em>) – the pytree object with scalars</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>L2 norm of each leaf in the PyTree</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PyTreeDef</p>
 </dd>
 </dl>
 </dd></dl>

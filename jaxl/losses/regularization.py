@@ -43,7 +43,7 @@ def make_weight_decay(
 
         """
         return (
-            sum(jnp.sum(jnp.square(p)) for p in jax.tree_util.tree_leaves(params)),
+            jnp.sum(jnp.sum(jnp.square(p)) for p in jax.tree_util.tree_leaves(params)),
             {},
         )
 

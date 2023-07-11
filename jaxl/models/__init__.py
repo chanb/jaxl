@@ -106,10 +106,12 @@ def get_optimizer(
             opt_transforms.append(optax.clip_by_global_norm(opt_config.max_grad_norm))
         if opt_config.optimizer == CONST_ADAM:
             if hasattr(opt_config, "weight_decay"):
-                opt_transforms.append(optax.adamw(
-                    get_scheduler(opt_config.lr),
-                    weight_decay=opt_config.weight_decay,
-                ))
+                opt_transforms.append(
+                    optax.adamw(
+                        get_scheduler(opt_config.lr),
+                        weight_decay=opt_config.weight_decay,
+                    )
+                )
             else:
                 opt_transforms.append(optax.adam(get_scheduler(opt_config.lr)))
         elif opt_config.optimizer == CONST_SGD:

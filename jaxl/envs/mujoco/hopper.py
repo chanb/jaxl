@@ -274,10 +274,7 @@ class HopperEnv(ParameterizedMujocoEnv):
 
         # DMC reward function
         z_position_after = self.data.qpos[1]
-        standing = tolerance(
-            z_position_after,
-            (0.6, 2)
-        )
+        standing = tolerance(z_position_after, (0.6, 2))
         hopping = tolerance(
             x_velocity,
             bounds=(1.5, float("inf")),
