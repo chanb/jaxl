@@ -78,9 +78,7 @@ def main(config):
     ent_coefs = [
         {
             "scheduler": "constant_schedule",
-            "scheduler_kwargs": {
-                "value": 0.0
-            },
+            "scheduler_kwargs": {"value": 0.0},
         },
         {
             "scheduler": "linear_schedule",
@@ -88,9 +86,9 @@ def main(config):
                 "init_value": 0.002,
                 "end_value": 0.0,
                 "transition_begin": 0,
-                "transition_steps": 100
+                "transition_steps": 100,
             },
-        }
+        },
     ]
     hyperparamss = [
         models,
@@ -107,9 +105,7 @@ def main(config):
     base_log_dir = os.path.join(config.out_dir, "logs")
     base_run_dir = os.path.join(config.out_dir, "runs")
     shell_script = ""
-    for idx, hyperparams in enumerate(
-        itertools.product(*hyperparamss)
-    ):
+    for idx, hyperparams in enumerate(itertools.product(*hyperparamss)):
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
         curr_log_dir = os.path.join(base_log_dir, dir_i)
@@ -121,8 +117,12 @@ def main(config):
 
         template["model_config"]["policy"]["layers"] = hyperparams[0]
         template["model_config"]["vf"]["layers"] = hyperparams[0]
-        template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"]["value"] = hyperparams[1]
-        template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"]["value"] = hyperparams[1]
+        template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"][
+            "value"
+        ] = hyperparams[1]
+        template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"][
+            "value"
+        ] = hyperparams[1]
         template["optimizer_config"]["policy"]["max_grad_norm"] = hyperparams[2]
         template["optimizer_config"]["vf"]["max_grad_norm"] = hyperparams[2]
         template["learner_config"]["obs_rms"] = hyperparams[3]
@@ -131,12 +131,12 @@ def main(config):
         template["learner_config"]["vf_loss_setting"]["clip_param"] = hyperparams[6]
         template["learner_config"]["ent_loss_setting"] = hyperparams[7]
 
-        variant = (
-            f"variant-{idx}"
-        )
+        variant = f"variant-{idx}"
         template["logging_config"]["experiment_name"] = f"variant-{idx}"
         template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = True
-        template["learner_config"]["env_config"]["env_kwargs"]["discrete_control"] = True
+        template["learner_config"]["env_config"]["env_kwargs"][
+            "discrete_control"
+        ] = True
         template["logging_config"]["save_path"] = curr_run_dir
 
         out_path = os.path.join(curr_script_dir, variant)
