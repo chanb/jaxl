@@ -45,7 +45,8 @@
             "env_name": "ParameterizedPendulum-v0",
             "env_kwargs": {
                 "seed": 0,
-                "use_default": true
+                "use_default": true,
+                "discrete_control": true
             }
         },
         "seeds": {

@@ -101,6 +101,7 @@ class ParameterizedPendulumEnv(gym.Env):
         self,
         use_default: bool = True,
         seed: int = None,
+        discrete_control: int = False,
         render_mode: Optional[str] = None,
     ):
         self.max_speed = 8
@@ -133,9 +134,18 @@ class ParameterizedPendulumEnv(gym.Env):
         # This will throw a warning in tests/envs/test_envs in utils/env_checker.py as the space is not symmetric
         #   or normalised as max_torque == 2 by default. Ignoring the issue here as the default settings are too old
         #   to update to follow the gymnasium api
-        self.action_space = spaces.Box(
-            low=-self.max_torque, high=self.max_torque, shape=(1,), dtype=np.float32
-        )
+        if discrete_control:
+            self.action_space = spaces.Discrete(5)
+            action_map = np.arange(-2, 3)
+            def process_action(u):
+                return action_map[u].item()
+        else:
+            self.action_space = spaces.Box(
+                low=-1.0, high=1.0, shape=(1,), dtype=np.float32
+            )
+            def process_action(u):
+                return np.clip(u * self.max_torque, -self.max_torque, self.max_torque)[0]
+        self.process_action = process_action
         self.observation_space = spaces.Box(low=-high, high=high, dtype=np.float32)
 
     def step(self, u):
@@ -146,7 +156,7 @@ class ParameterizedPendulumEnv(gym.Env):
         l = self.l
         dt = self.dt
 
-        u = np.clip(u, -self.max_torque, self.max_torque)[0]
+        u = self.process_action(u)
         self.last_u = u  # for rendering
         costs = angle_normalize(th) ** 2 + 0.1 * thdot**2 + 0.001 * (u**2)
 
