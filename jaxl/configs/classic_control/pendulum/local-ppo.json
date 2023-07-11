@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/acrobot",
+        "save_path": "./logs/pendulum",
         "experiment_name": "ppo",
         "log_interval": 1,
         "checkpoint_interval": 10
@@ -42,7 +42,7 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "ParameterizedAcrobot-v0",
+            "env_name": "ParameterizedPendulum-v0",
             "env_kwargs": {
                 "seed": 0,
                 "use_default": true

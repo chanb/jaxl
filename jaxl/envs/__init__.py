@@ -43,6 +43,12 @@ register(
     kwargs={},
 )
 register(
+    id="ParameterizedPendulum-v0",
+    entry_point="jaxl.envs.classic_control.pendulum:ParameterizedPendulumEnv",
+    max_episode_steps=200,
+    kwargs={},
+)
+register(
     id="ParameterizedInvertedDoublePendulum-v0",
     entry_point="jaxl.envs.mujoco.inverted_double_pendulum:ParameterizedInvertedDoublePendulumEnv",
     max_episode_steps=1000,
