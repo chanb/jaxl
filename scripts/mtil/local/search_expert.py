@@ -4,8 +4,8 @@ Example command:
 python search_expert.py \
     --main_path=/Users/chanb/research/personal/jaxl/jaxl/main.py \
     --config_template=/Users/chanb/research/personal/jaxl/jaxl/configs/classic_control/pendulum/local-ppo.json \
-    --exp_name=search_expert-pendulum \
-    --out_dir=/Users/chanb/research/personal/jaxl/data/pendulum/search_expert \
+    --exp_name=search_expert-pendulum_cont \
+    --out_dir=/Users/chanb/research/personal/jaxl/data/pendulum_cont/search_expert \
     --run_seed=0
 
 
@@ -51,6 +51,11 @@ flags.DEFINE_integer(
     default=0,
     help="The run seed",
     required=False,
+)
+flags.DEFINE_boolean(
+    "discrete_control",
+    default=False,
+    help="Whether or not to use discrete control"
 )
 
 NUM_FILES_PER_DIRECTORY = 100
@@ -134,9 +139,16 @@ def main(config):
         variant = f"variant-{idx}"
         template["logging_config"]["experiment_name"] = f"variant-{idx}"
         template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = True
-        template["learner_config"]["env_config"]["env_kwargs"][
-            "discrete_control"
-        ] = True
+        if config.discrete_control:
+            template["learner_config"]["env_config"]["env_kwargs"][
+                "discrete_control"
+            ] = True
+            template["learner_config"]["policy_distribution"] = "softmax"
+        else:
+            template["learner_config"]["env_config"]["env_kwargs"][
+                "discrete_control"
+            ] = False
+            template["learner_config"]["policy_distribution"] = "gaussian"
         template["logging_config"]["save_path"] = curr_run_dir
 
         out_path = os.path.join(curr_script_dir, variant)
