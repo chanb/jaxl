@@ -135,16 +135,24 @@ class ParameterizedPendulumEnv(gym.Env):
         #   or normalised as max_torque == 2 by default. Ignoring the issue here as the default settings are too old
         #   to update to follow the gymnasium api
         if discrete_control:
-            action_map = ([-2.0, 2.0] ** np.arange(-4, 2)[:, None]).flatten()
+            action_map = np.concatenate(
+                [([-2.0, 2.0] ** np.arange(-4, 2)[:, None]).flatten(), [0]]
+            )
             self.action_space = spaces.Discrete(len(action_map))
+
             def process_action(u):
                 return action_map[u].item()
+
         else:
             self.action_space = spaces.Box(
                 low=-1.0, high=1.0, shape=(1,), dtype=np.float32
             )
+
             def process_action(u):
-                return np.clip(u * self.max_torque, -self.max_torque, self.max_torque)[0]
+                return np.clip(u * self.max_torque, -self.max_torque, self.max_torque)[
+                    0
+                ]
+
         self.process_action = process_action
         self.observation_space = spaces.Box(low=-high, high=high, dtype=np.float32)
 
