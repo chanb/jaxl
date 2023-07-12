@@ -14,6 +14,13 @@ from gymnasium.error import DependencyNotInstalled
 DEFAULT_X = np.pi
 DEFAULT_Y = 1.0
 
+def sample_data(
+    min_val: float, max_val: float, np_random: np.random.Generator
+) -> chex.Array:
+    assert min_val <= max_val
+    sampled_val = np_random.uniform()
+    sampled_val = (max_val - min_val) * sampled_val + min_val
+    return sampled_val
 
 class ParameterizedPendulumEnv(gym.Env):
     """
@@ -101,7 +108,7 @@ class ParameterizedPendulumEnv(gym.Env):
         self,
         use_default: bool = True,
         seed: int = None,
-        discrete_control: int = False,
+        control_mode: str = "default",
         render_mode: Optional[str] = None,
         **kwargs,
     ):
@@ -135,7 +142,8 @@ class ParameterizedPendulumEnv(gym.Env):
         # This will throw a warning in tests/envs/test_envs in utils/env_checker.py as the space is not symmetric
         #   or normalised as max_torque == 2 by default. Ignoring the issue here as the default settings are too old
         #   to update to follow the gymnasium api
-        if discrete_control:
+        self.control_mode = control_mode
+        if self.control_mode != "default":
             action_map = np.concatenate(
                 [([-2.0, 2.0] ** np.arange(-3, 2)[:, None]).flatten(), [0]]
             )

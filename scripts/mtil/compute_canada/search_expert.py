@@ -133,16 +133,10 @@ def main(config):
     template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = True
     if config.discrete_control:
         template["learner_config"]["env_config"]["env_kwargs"][
-            "discrete_control"
-        ] = True
-        template["learner_config"]["env_config"]["env_kwargs"][
             "control_mode"
         ] = "discrete"
         template["learner_config"]["policy_distribution"] = "softmax"
     else:
-        template["learner_config"]["env_config"]["env_kwargs"][
-            "discrete_control"
-        ] = False
         template["learner_config"]["env_config"]["env_kwargs"][
             "control_mode"
         ] = "default"
