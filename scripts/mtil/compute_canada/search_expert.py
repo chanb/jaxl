@@ -1,4 +1,5 @@
-""" Script for generating experiment for multitask imitation learning
+"""
+This script performs hyperparameter search on an environment.
 
 Example command:
 python search_expert.py \
@@ -187,7 +188,7 @@ def main(config):
         template["learner_config"]["ent_loss_setting"] = hyperparams[7]
 
         variant = f"variant-{idx}"
-        template["logging_config"]["experiment_name"] = f"variant-{idx}"
+        template["logging_config"]["experiment_name"] = variant
         template["logging_config"]["save_path"] = curr_run_dir
 
         out_path = os.path.join(curr_script_dir, variant)

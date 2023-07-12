@@ -145,7 +145,7 @@ def main(config):
         template["learner_config"]["ent_loss_setting"] = hyperparams[7]
 
         variant = f"variant-{idx}"
-        template["logging_config"]["experiment_name"] = f"variant-{idx}"
+        template["logging_config"]["experiment_name"] = variant
         template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = True
         if config.discrete_control:
             template["learner_config"]["env_config"]["env_kwargs"][
