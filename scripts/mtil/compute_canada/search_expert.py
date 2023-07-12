@@ -120,7 +120,7 @@ def main(config):
 
     def map_key_to_hyperparameter(hyperparams, key):
         hyperparam_idx = hyperparam_keys.index(key)
-        return hyperparam_keys[hyperparam_idx]
+        return hyperparams[hyperparam_idx]
 
     base_script_dir = os.path.join(config.out_dir, "scripts")
     base_log_dir = os.path.join(config.out_dir, "logs")
