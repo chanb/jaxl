@@ -177,6 +177,7 @@ class ParameterizedAcrobotEnv(Env):
         use_default: bool = True,
         seed: int = None,
         render_mode: Optional[str] = None,
+        **kwargs,
     ):
         self.render_mode = render_mode
         self.screen = None

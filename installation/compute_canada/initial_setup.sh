@@ -13,6 +13,5 @@ source ~/jaxl_env/bin/activate
 
 cd ~/src/jaxl
 pip install absl-py
-pip install mujoco_py
 pip install -r requirements/minimal.txt
 pip install -e .

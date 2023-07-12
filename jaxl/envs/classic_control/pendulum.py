@@ -103,6 +103,7 @@ class ParameterizedPendulumEnv(gym.Env):
         seed: int = None,
         discrete_control: int = False,
         render_mode: Optional[str] = None,
+        **kwargs,
     ):
         self.max_speed = 8
         self.max_torque = 2.0
