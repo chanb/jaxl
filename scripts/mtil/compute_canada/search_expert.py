@@ -26,6 +26,7 @@ Then, to generate the data, run the generated script run_all-*.sh ${run_seed}
 """
 
 from absl import app, flags
+from functools import partial
 
 import itertools
 import jax
@@ -72,8 +73,61 @@ flags.DEFINE_integer(
     "num_epochs", default=300, help="The number of epochs to run the algorithm"
 )
 flags.DEFINE_string("run_time", default="03:00:00", help="The run time per variant")
+flags.DEFINE_string("env", required=True, help="The hyperparameters to use")
 
 NUM_FILES_PER_DIRECTORY = 100
+
+HYPERPARAMETERS_CONFIG = {
+    "ParameterizedPendulum-v0": {
+        "model": [[64, 64], [128, 128]],
+        "lr": [3e-4, 1e-3],
+        "max_grad_norm": [False, 0.5],
+        "obs_rms": [False, True],
+        "opt_batch_size": [64, 128, 256],
+        "opt_epochs": [4, 10],
+        "vf_clip_param": [False, 0.2],
+        "ent_coef": [
+            {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {"value": 0.0},
+            },
+            {
+                "scheduler": "linear_schedule",
+                "scheduler_kwargs": {
+                    "init_value": 0.002,
+                    "end_value": 0.0,
+                    "transition_begin": 0,
+                    "transition_steps": 100,
+                },
+            },
+        ],
+    },
+    "ParameterizedHopper-v0": {
+        "model": [[128, 128]],
+        "lr": [3e-4, 1e-3],
+        "max_grad_norm": [False, 0.5],
+        "obs_rms": [True],
+        "opt_batch_size": [64, 128, 256, 512],
+        "opt_epochs": [4, 10],
+        "vf_clip_param": [False, 0.2],
+        "value_rms": [False, True],
+        "ent_coef": [
+            {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {"value": 0.0},
+            },
+            {
+                "scheduler": "linear_schedule",
+                "scheduler_kwargs": {
+                    "init_value": 0.002,
+                    "end_value": 0.0,
+                    "transition_begin": 0,
+                    "transition_steps": 100,
+                },
+            },
+        ],
+    },
+}
 
 
 def main(config):
@@ -83,6 +137,8 @@ def main(config):
     ), f"{config.config_template} is not a file"
     with open(config.config_template, "r") as f:
         template = json.load(f)
+
+    assert template["learner_config"]["env_config"]["env_name"] in HYPERPARAMETERS_CONFIG, f"{} has no hyperparameters config".format(template["learner_config"]["env_config"]["env_name"])
 
     assert (
         config.num_epochs > 0
@@ -96,38 +152,12 @@ def main(config):
     # Standard template
     template["logging_config"]["experiment_name"] = ""
 
-    models = [[64, 64], [128, 128]]
-    lrs = [3e-4, 1e-3]
-    max_grad_norms = [False, 0.5]
-    obs_rmss = [False, True]
-    opt_batch_sizes = [64, 128, 256]
-    opt_epochss = [4, 10]
-    vf_clip_params = [False, 0.2]
-    ent_coefs = [
-        {
-            "scheduler": "constant_schedule",
-            "scheduler_kwargs": {"value": 0.0},
-        },
-        {
-            "scheduler": "linear_schedule",
-            "scheduler_kwargs": {
-                "init_value": 0.002,
-                "end_value": 0.0,
-                "transition_begin": 0,
-                "transition_steps": 100,
-            },
-        },
-    ]
-    hyperparamss = [
-        models,
-        lrs,
-        max_grad_norms,
-        obs_rmss,
-        opt_batch_sizes,
-        opt_epochss,
-        vf_clip_params,
-        ent_coefs,
-    ]
+    hyperparamss = list(HYPERPARAMETERS_CONFIG[template["learner_config"]["env_config"]["env_name"]].values())
+    hyperparam_keys = list(HYPERPARAMETERS_CONFIG[template["learner_config"]["env_config"]["env_name"]].keys())
+
+    def map_key_to_hyperparameter(hyperparams, key):
+        hyperparam_idx = hyperparam_keys.index(key)
+        return hyperparam_keys[hyperparam_idx]
 
     base_script_dir = os.path.join(config.out_dir, "scripts")
     base_log_dir = os.path.join(config.out_dir, "logs")
@@ -156,6 +186,7 @@ def main(config):
         template["learner_config"]["policy_distribution"] = "gaussian"
 
     for idx, hyperparams in enumerate(itertools.product(*hyperparamss)):
+        get_hyperparam = partial(map_key_to_hyperparameter, hyperparams)
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
         curr_run_dir = os.path.join(base_run_dir, dir_i)
@@ -163,21 +194,39 @@ def main(config):
             os.makedirs(curr_run_dir, exist_ok=True)
             os.makedirs(curr_script_dir, exist_ok=True)
 
-        template["model_config"]["policy"]["layers"] = hyperparams[0]
-        template["model_config"]["vf"]["layers"] = hyperparams[0]
-        template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"][
-            "value"
-        ] = hyperparams[1]
-        template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"][
-            "value"
-        ] = hyperparams[1]
-        template["optimizer_config"]["policy"]["max_grad_norm"] = hyperparams[2]
-        template["optimizer_config"]["vf"]["max_grad_norm"] = hyperparams[2]
-        template["learner_config"]["obs_rms"] = hyperparams[3]
-        template["learner_config"]["opt_batch_size"] = hyperparams[4]
-        template["learner_config"]["opt_epochs"] = hyperparams[5]
-        template["learner_config"]["vf_loss_setting"]["clip_param"] = hyperparams[6]
-        template["learner_config"]["ent_loss_setting"] = hyperparams[7]
+        if "model" in hyperparam_keys:
+            template["model_config"]["policy"]["layers"] = get_hyperparam("model")
+            template["model_config"]["vf"]["layers"] = get_hyperparam("model")
+        
+        if "lr" in hyperparam_keys:
+            template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"][
+                "value"
+            ] = get_hyperparam("lr")
+            template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"][
+                "value"
+            ] = get_hyperparam("lr")
+
+        if "max_grad_norm" in hyperparam_keys:
+            template["optimizer_config"]["policy"]["max_grad_norm"] = get_hyperparam("max_grad_norm")
+            template["optimizer_config"]["vf"]["max_grad_norm"] = get_hyperparam("max_grad_norm")
+
+        if "obs_rms" in hyperparam_keys:
+            template["learner_config"]["obs_rms"] = get_hyperparam("obs_rms")
+
+        if "value_rms" in hyperparam_keys:
+            template["learner_config"]["value_rms"] = get_hyperparam("value_rms")
+
+        if "opt_batch_size" in hyperparam_keys:
+            template["learner_config"]["opt_batch_size"] = get_hyperparam("opt_batch_size")
+
+        if "opt_epochs" in hyperparam_keys:
+            template["learner_config"]["opt_epochs"] = get_hyperparam("opt_epochs")
+
+        if "vf_clip_param" in hyperparam_keys:
+            template["learner_config"]["vf_loss_setting"]["clip_param"] = get_hyperparam("vf_clip_param")
+
+        if "ent_coef" in hyperparam_keys:
+            template["learner_config"]["ent_loss_setting"] = get_hyperparam("ent_coef")
 
         variant = f"variant-{idx}"
         template["logging_config"]["experiment_name"] = variant
