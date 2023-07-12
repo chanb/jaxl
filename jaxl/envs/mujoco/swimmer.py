@@ -206,8 +206,9 @@ class SwimmerEnv(ParameterizedMujocoEnv):
             "x_velocity": x_velocity,
             "y_velocity": y_velocity,
             "forward_reward": forward_reward,
-            "shaped_reward": shaped_reward,
         }
+        if self.control_mode != "default":
+            info["shaped_reward"] = shaped_reward
 
         if self.render_mode == "human":
             self.render()

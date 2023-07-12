@@ -2,6 +2,7 @@
 This script performs hyperparameter search on an environment.
 
 Example command:
+# ParameterizedPendulum-v0
 python search_expert.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/local-ppo.json \
@@ -73,7 +74,7 @@ flags.DEFINE_integer(
     "num_epochs", default=300, help="The number of epochs to run the algorithm"
 )
 flags.DEFINE_string("run_time", default="03:00:00", help="The run time per variant")
-flags.DEFINE_string("env", required=True, help="The hyperparameters to use")
+
 
 NUM_FILES_PER_DIRECTORY = 100
 
@@ -138,7 +139,7 @@ def main(config):
     with open(config.config_template, "r") as f:
         template = json.load(f)
 
-    assert template["learner_config"]["env_config"]["env_name"] in HYPERPARAMETERS_CONFIG, f"{} has no hyperparameters config".format(template["learner_config"]["env_config"]["env_name"])
+    assert template["learner_config"]["env_config"]["env_name"] in HYPERPARAMETERS_CONFIG, "{} has no hyperparameters config".format(template["learner_config"]["env_config"]["env_name"])
 
     assert (
         config.num_epochs > 0

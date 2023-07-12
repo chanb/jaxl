@@ -300,8 +300,9 @@ class HopperEnv(ParameterizedMujocoEnv):
             "x_position": x_position_after,
             "z_distance_from_origin": self.data.qpos[1] - self.init_qpos[1],
             "x_velocity": x_velocity,
-            "shaped_reward": shaped_reward,
         }
+        if self.control_mode != "default":
+            info["shaped_reward"] = shaped_reward
 
         if self.render_mode == "human":
             self.render()

@@ -216,8 +216,9 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
             "x_velocity": x_velocity,
             "reward_run": forward_reward,
             "reward_ctrl": -ctrl_cost,
-            "shaped_reward": shaped_reward,
         }
+        if self.control_mode != "default":
+            info["shaped_reward"] = shaped_reward
 
         if self.render_mode == "human":
             self.render()

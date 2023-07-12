@@ -18,12 +18,22 @@
     "optimizer_config": {
         "policy": {
             "optimizer": "adam",
-            "lr": 3e-4,
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 3e-4
+                }
+            },
             "max_grad_norm": false
         },
         "vf": {
             "optimizer": "adam",
-            "lr": 3e-4,
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 3e-4
+                }
+            },
             "max_grad_norm": false
         }
     },
@@ -58,7 +68,12 @@
         "min_std": 1e-6,
         "opt_batch_size": 256,
         "opt_epochs": 5,
-        "entropy_coefficient": 0.002,
+        "ent_loss_setting": {
+            "scheduler": "constant_schedule",
+            "scheduler_kwargs": {
+                "value": 0.0
+            }
+        },
         "vf_loss_setting": {
             "coefficient": 1,
             "reduction": "mean",
