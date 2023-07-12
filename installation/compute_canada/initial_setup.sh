@@ -12,6 +12,6 @@ python -m venv ~/jaxl_env
 source ~/jaxl_env/bin/activate
 
 cd ~/src/jaxl
-pip install absl-py
-pip install -r requirements/minimal.txt
-pip install -e .
+python -m pip install absl-py
+python -m pip install -r requirements/minimal.txt
+python -m pip install -e .
