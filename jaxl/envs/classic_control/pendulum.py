@@ -14,6 +14,7 @@ from gymnasium.error import DependencyNotInstalled
 DEFAULT_X = np.pi
 DEFAULT_Y = 1.0
 
+
 def sample_data(
     min_val: float, max_val: float, np_random: np.random.Generator
 ) -> chex.Array:
@@ -21,6 +22,7 @@ def sample_data(
     sampled_val = np_random.uniform()
     sampled_val = (max_val - min_val) * sampled_val + min_val
     return sampled_val
+
 
 class ParameterizedPendulumEnv(gym.Env):
     """
