@@ -8,7 +8,7 @@ python search_expert.py \
     --out_dir=${HOME}/scratch/data/pendulum_cont/search_expert \
     --run_seed=0 \
     --num_epochs=500 \
-    --run_time=04:00:00
+    --run_time=02:00:00
 
 python search_expert.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
@@ -17,7 +17,7 @@ python search_expert.py \
     --out_dir=${HOME}/scratch/data/pendulum_disc/search_expert \
     --run_seed=0 \
     --num_epochs=500 \
-    --run_time=04:00:00 \
+    --run_time=02:00:00 \
     --discrete_control
 
 
