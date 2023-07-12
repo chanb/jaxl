@@ -208,7 +208,7 @@ def main(config):
     sbatch_content += "#SBATCH --time={}\n".format(config.run_time)
     sbatch_content += "#SBATCH --cpus-per-task=1\n"
     sbatch_content += "#SBATCH --mem=3G\n"
-    sbatch_content += "#SBATCH --array=1:{}\n".format(num_runs)
+    sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
     sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/search_expert-{}/%j.out\n".format(config.exp_name)
     sbatch_content += "module load python/3.9\n"
     sbatch_content += 'module load mujoco\n'
