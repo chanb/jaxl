@@ -5,15 +5,19 @@ python search_expert.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/local-ppo.json \
     --exp_name=search_expert-pendulum_cont \
-    --out_dir=${JAXL_PATH}/data/pendulum_cont/search_expert \
-    --run_seed=0
+    --out_dir=${HOME}/scratch/data/pendulum_cont/search_expert \
+    --run_seed=0 \
+    --num_epochs=500 \
+    --run_time=04:00:00
 
 python search_expert.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/local-ppo.json \
     --exp_name=search_expert-pendulum_disc \
-    --out_dir=${JAXL_PATH}/data/pendulum_disc/search_expert \
+    --out_dir=${HOME}/data/pendulum_disc/search_expert \
     --run_seed=0 \
+    --num_epochs=500 \
+    --run_time=04:00:00 \
     --discrete_control
 
 
@@ -65,6 +69,16 @@ flags.DEFINE_boolean(
     default=False,
     help="Whether or not to use discrete control"
 )
+flags.DEFINE_integer(
+    "num_epochs",
+    default=300,
+    help="The number of epochs to run the algorithm"
+)
+flags.DEFINE_string(
+    "run_time",
+    default="03:00:00",
+    help="The run time per variant"
+)
 
 NUM_FILES_PER_DIRECTORY = 100
 
@@ -75,6 +89,9 @@ def main(config):
     ), f"{config.config_template} is not a file"
     with open(config.config_template, "r") as f:
         template = json.load(f)
+
+    assert config.num_epochs > 0, f"num_epochs needs to be at least 1, got {config.num_epochs}"
+    assert len(config.run_time.split(":")) == 3, f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
 
     os.makedirs(config.out_dir, exist_ok=True)
 
@@ -120,6 +137,26 @@ def main(config):
 
     dat_content = ""
     num_runs = 0
+
+    template["train_config"]["num_epochs"] = config.num_epochs
+    template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = True
+    if config.discrete_control:
+        template["learner_config"]["env_config"]["env_kwargs"][
+            "discrete_control"
+        ] = True
+        template["learner_config"]["env_config"]["env_kwargs"][
+            "control_mode"
+        ] = "discrete"
+        template["learner_config"]["policy_distribution"] = "softmax"
+    else:
+        template["learner_config"]["env_config"]["env_kwargs"][
+            "discrete_control"
+        ] = False
+        template["learner_config"]["env_config"]["env_kwargs"][
+            "control_mode"
+        ] = "default"
+        template["learner_config"]["policy_distribution"] = "gaussian"
+
     for idx, hyperparams in enumerate(itertools.product(*hyperparamss)):
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
@@ -148,23 +185,6 @@ def main(config):
 
         variant = f"variant-{idx}"
         template["logging_config"]["experiment_name"] = f"variant-{idx}"
-        template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = True
-        if config.discrete_control:
-            template["learner_config"]["env_config"]["env_kwargs"][
-                "discrete_control"
-            ] = True
-            template["learner_config"]["env_config"]["env_kwargs"][
-                "control_mode"
-            ] = "discrete"
-            template["learner_config"]["policy_distribution"] = "softmax"
-        else:
-            template["learner_config"]["env_config"]["env_kwargs"][
-                "discrete_control"
-            ] = False
-            template["learner_config"]["env_config"]["env_kwargs"][
-                "control_mode"
-            ] = "default"
-            template["learner_config"]["policy_distribution"] = "gaussian"
         template["logging_config"]["save_path"] = curr_run_dir
 
         out_path = os.path.join(curr_script_dir, variant)
@@ -184,7 +204,7 @@ def main(config):
     sbatch_content = "/home/chanb/scratch/run_reports/search_expert-{}".format(config.exp_name)
     sbatch_content += "#!/bin/bash \n"
     sbatch_content += "#SBATCH --account=def-schuurma \n"
-    sbatch_content += "#SBATCH --time=06:00:00 \n"
+    sbatch_content += "#SBATCH --time={} \n".format(config.run_time)
     sbatch_content += "#SBATCH --cpus-per-task=1 \n"
     sbatch_content += "#SBATCH --mem=3G \n"
     sbatch_content += "#SBATCH --array=1:{} \n".format(num_runs)
@@ -198,8 +218,8 @@ def main(config):
     sbatch_content += 'echo "Running on hostname `hostname`" \n'
     sbatch_content += 'echo "Starting run at: `date`" \n'
     sbatch_content += 'python3 /home/chanb/scratch/jaxl/jaxl/main.py \\ \n'
-    sbatch_content += '--config_path=${config_path} \\ \n'
-    sbatch_content += '--run_seed=${run_seed} \n'
+    sbatch_content += '  --config_path=${config_path} \\ \n'
+    sbatch_content += '  --run_seed=${run_seed} \n'
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`" \n'
 
     with open(os.path.join(f"./run_all-{config.exp_name}.sh"), "w+") as f:

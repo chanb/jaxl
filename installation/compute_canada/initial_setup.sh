@@ -13,5 +13,7 @@ source ~/jaxl_env/bin/activate
 
 cd ~/src/jaxl
 python -m pip install absl-py
+python -m pip install imageio
+python -m pip install pygame
 python -m pip install -r requirements/minimal.txt
 python -m pip install -e .
