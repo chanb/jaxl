@@ -6,6 +6,7 @@ import os
 from gymnasium.spaces import Box
 
 from jaxl.envs.mujoco.parameterized_env import ParameterizedMujocoEnv
+from jaxl.envs.reward_utils import tolerance
 
 
 class SwimmerEnv(ParameterizedMujocoEnv):
@@ -188,6 +189,16 @@ class SwimmerEnv(ParameterizedMujocoEnv):
 
         xy_velocity = (xy_position_after - xy_position_before) / self.dt
         x_velocity, y_velocity = xy_velocity
+
+        # DMC reward function
+        running = tolerance(
+            x_velocity,
+            bounds=(10.0, float("inf")),
+            margin=10.0,
+            value_at_margin=0.0,
+            sigmoid="linear",
+        )
+        shaped_reward = running
 
         forward_reward = self._forward_reward_weight * x_velocity
 

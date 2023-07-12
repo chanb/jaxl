@@ -5,6 +5,7 @@ from gymnasium.envs.mujoco import mujoco_env
 from gymnasium.spaces import Box
 
 from jaxl.envs.mujoco.parameterized_env import ParameterizedMujocoEnv
+from jaxl.envs.reward_utils import tolerance
 
 
 DEFAULT_CAMERA_CONFIG = {
@@ -313,6 +314,16 @@ class AntEnv(ParameterizedMujocoEnv):
         xy_velocity = (xy_position_after - xy_position_before) / self.dt
         x_velocity, y_velocity = xy_velocity
 
+        # DMC reward function
+        running = tolerance(
+            x_velocity,
+            bounds=(10.0, float("inf")),
+            margin=10.0,
+            value_at_margin=0.0,
+            sigmoid="linear",
+        )
+        shaped_reward = running
+
         forward_reward = x_velocity
         healthy_reward = self.healthy_reward
 
@@ -328,8 +339,6 @@ class AntEnv(ParameterizedMujocoEnv):
             info["reward_ctrl"] = -contact_cost
 
         reward = rewards - costs
-
-        shaped_reward = np.clip(reward - self._walk_speed, 0, 1)
 
         info = {
             "reward_forward": forward_reward,
