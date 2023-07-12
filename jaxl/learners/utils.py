@@ -24,6 +24,6 @@ def gather_per_leaf_l2_norm(
 
     """
     param_norm = per_leaf_l2_norm(model_dict)
-    for k, v in jax.tree_util.tree_leaves_with_path(param_norm):
+    for k, v in jax.tree_util.tree_flatten_with_path(param_norm)[0]:
         k = ".".join([layer.key for layer in k])
         aux[f"{CONST_PARAM_NORM}/{model_name}_{k}"] = v.item()

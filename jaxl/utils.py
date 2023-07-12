@@ -174,7 +174,6 @@ def per_leaf_l2_norm(params: chex.PyTreeDef) -> chex.PyTreeDef:
     :rtype: PyTreeDef
 
     """
-    # return {k: jnp.sum(p**2) for k, p in jax.tree_util.tree_leaves_with_path(params)}
     return jax.tree_util.tree_map(lambda p: jnp.sum(p**2), params)
 
 
