@@ -1,6 +1,7 @@
 jax>=0.4.9
 optax>=0.1.4
 flax>=0.6.8
+imageio>=2.31.1
 tqdm>=4.65.0
 orbax-checkpoint>=0.1.8
 gymnasium>=0.28.1
