@@ -7,6 +7,7 @@ from gymnasium.envs.mujoco import mujoco_env
 from gymnasium.spaces import Box
 
 from jaxl.envs.mujoco.parameterized_env import ParameterizedMujocoEnv
+from jaxl.envs.reward_utils import tolerance
 
 
 DEFAULT_CAMERA_CONFIG = {
@@ -203,13 +204,22 @@ class HalfCheetahEnv(ParameterizedMujocoEnv):
         x_position_after = self.data.qpos[0]
         x_velocity = (x_position_after - x_position_before) / self.dt
 
+        # DMC reward function
+        running = tolerance(
+            x_velocity,
+            bounds=(10.0, float("inf")),
+            margin=10.0,
+            value_at_margin=0.0,
+            sigmoid="linear",
+        )
+        shaped_reward = running
+
         ctrl_cost = self.control_cost(action)
 
         forward_reward = self._forward_reward_weight * x_velocity
 
         observation = self._get_obs()
         reward = forward_reward - ctrl_cost
-        shaped_reward = np.clip(reward - self._run_speed, 0, 1)
         terminated = False
         info = {
             "x_position": x_position_after,
