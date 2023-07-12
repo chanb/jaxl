@@ -158,10 +158,8 @@ def main(config):
     for idx, hyperparams in enumerate(itertools.product(*hyperparamss)):
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
-        curr_log_dir = os.path.join(base_log_dir, dir_i)
         curr_run_dir = os.path.join(base_run_dir, dir_i)
         if idx % NUM_FILES_PER_DIRECTORY == 0:
-            os.makedirs(curr_log_dir, exist_ok=True)
             os.makedirs(curr_run_dir, exist_ok=True)
             os.makedirs(curr_script_dir, exist_ok=True)
 
