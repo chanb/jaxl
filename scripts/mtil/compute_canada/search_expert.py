@@ -139,7 +139,11 @@ def main(config):
     with open(config.config_template, "r") as f:
         template = json.load(f)
 
-    assert template["learner_config"]["env_config"]["env_name"] in HYPERPARAMETERS_CONFIG, "{} has no hyperparameters config".format(template["learner_config"]["env_config"]["env_name"])
+    assert (
+        template["learner_config"]["env_config"]["env_name"] in HYPERPARAMETERS_CONFIG
+    ), "{} has no hyperparameters config".format(
+        template["learner_config"]["env_config"]["env_name"]
+    )
 
     assert (
         config.num_epochs > 0
@@ -153,8 +157,16 @@ def main(config):
     # Standard template
     template["logging_config"]["experiment_name"] = ""
 
-    hyperparamss = list(HYPERPARAMETERS_CONFIG[template["learner_config"]["env_config"]["env_name"]].values())
-    hyperparam_keys = list(HYPERPARAMETERS_CONFIG[template["learner_config"]["env_config"]["env_name"]].keys())
+    hyperparamss = list(
+        HYPERPARAMETERS_CONFIG[
+            template["learner_config"]["env_config"]["env_name"]
+        ].values()
+    )
+    hyperparam_keys = list(
+        HYPERPARAMETERS_CONFIG[
+            template["learner_config"]["env_config"]["env_name"]
+        ].keys()
+    )
 
     def map_key_to_hyperparameter(hyperparams, key):
         hyperparam_idx = hyperparam_keys.index(key)
@@ -198,7 +210,7 @@ def main(config):
         if "model" in hyperparam_keys:
             template["model_config"]["policy"]["layers"] = get_hyperparam("model")
             template["model_config"]["vf"]["layers"] = get_hyperparam("model")
-        
+
         if "lr" in hyperparam_keys:
             template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"][
                 "value"
@@ -208,8 +220,12 @@ def main(config):
             ] = get_hyperparam("lr")
 
         if "max_grad_norm" in hyperparam_keys:
-            template["optimizer_config"]["policy"]["max_grad_norm"] = get_hyperparam("max_grad_norm")
-            template["optimizer_config"]["vf"]["max_grad_norm"] = get_hyperparam("max_grad_norm")
+            template["optimizer_config"]["policy"]["max_grad_norm"] = get_hyperparam(
+                "max_grad_norm"
+            )
+            template["optimizer_config"]["vf"]["max_grad_norm"] = get_hyperparam(
+                "max_grad_norm"
+            )
 
         if "obs_rms" in hyperparam_keys:
             template["learner_config"]["obs_rms"] = get_hyperparam("obs_rms")
@@ -218,13 +234,17 @@ def main(config):
             template["learner_config"]["value_rms"] = get_hyperparam("value_rms")
 
         if "opt_batch_size" in hyperparam_keys:
-            template["learner_config"]["opt_batch_size"] = get_hyperparam("opt_batch_size")
+            template["learner_config"]["opt_batch_size"] = get_hyperparam(
+                "opt_batch_size"
+            )
 
         if "opt_epochs" in hyperparam_keys:
             template["learner_config"]["opt_epochs"] = get_hyperparam("opt_epochs")
 
         if "vf_clip_param" in hyperparam_keys:
-            template["learner_config"]["vf_loss_setting"]["clip_param"] = get_hyperparam("vf_clip_param")
+            template["learner_config"]["vf_loss_setting"][
+                "clip_param"
+            ] = get_hyperparam("vf_clip_param")
 
         if "ent_coef" in hyperparam_keys:
             template["learner_config"]["ent_loss_setting"] = get_hyperparam("ent_coef")
