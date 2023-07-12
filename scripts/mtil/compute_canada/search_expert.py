@@ -35,7 +35,7 @@ import json
 import numpy as np
 import os
 
-from .search_config import HYPERPARAMETERS_CONFIG
+from search_config import HYPERPARAMETERS_CONFIG
 
 
 FLAGS = flags.FLAGS
