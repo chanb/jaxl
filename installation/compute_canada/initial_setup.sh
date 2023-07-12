@@ -11,7 +11,8 @@ module load mujoco
 python -m venv ~/jaxl_env
 source ~/jaxl_env/bin/activate
 
-cd ~/scratch/jaxl
+cd ~/src/jaxl
 pip install absl-py
-pip install -e .
 pip install mujoco_py
+pip install -r requirements/minimal.txt
+pip install -e .
