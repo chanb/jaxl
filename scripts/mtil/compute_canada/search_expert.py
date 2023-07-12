@@ -14,7 +14,7 @@ python search_expert.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/local-ppo.json \
     --exp_name=search_expert-pendulum_disc \
-    --out_dir=${HOME}/data/pendulum_disc/search_expert \
+    --out_dir=${HOME}/scratch/data/pendulum_disc/search_expert \
     --run_seed=0 \
     --num_epochs=500 \
     --run_time=04:00:00 \
@@ -85,6 +85,9 @@ NUM_FILES_PER_DIRECTORY = 100
 
 def main(config):
     assert os.path.isfile(
+        config.main_path
+    ), f"{config.main_path} is not a file"
+    assert os.path.isfile(
         config.config_template
     ), f"{config.config_template} is not a file"
     with open(config.config_template, "r") as f:
@@ -100,7 +103,7 @@ def main(config):
 
     models = [[64, 64], [128, 128]]
     lrs = [3e-4, 1e-3]
-    max_grad_norms = [False, 0.5, 10.0]
+    max_grad_norms = [False, 0.5]
     obs_rmss = [False, True]
     opt_batch_sizes = [64, 128, 256]
     opt_epochss = [4, 10]
@@ -219,7 +222,7 @@ def main(config):
     sbatch_content += 'echo "Current working directory is `pwd`"\n'
     sbatch_content += 'echo "Running on hostname `hostname`"\n'
     sbatch_content += 'echo "Starting run at: `date`"\n'
-    sbatch_content += 'python3 /home/chanb/scratch/jaxl/jaxl/main.py \\\n'
+    sbatch_content += 'python3 {} \\\n'.format(config.main_path)
     sbatch_content += '  --config_path=${config_path} \\\n'
     sbatch_content += '  --run_seed=${run_seed}\n'
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
