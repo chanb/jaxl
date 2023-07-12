@@ -150,7 +150,9 @@ class ParameterizedPendulumEnv(gym.Env):
             )
 
             def process_action(u):
-                return np.clip(u * self.max_torque, -self.max_torque, self.max_torque)[0]
+                return np.clip(u * self.max_torque, -self.max_torque, self.max_torque)[
+                    0
+                ]
 
         self.process_action = process_action
         self.observation_space = spaces.Box(low=-high, high=high, dtype=np.float32)

@@ -66,36 +66,30 @@ flags.DEFINE_integer(
     required=False,
 )
 flags.DEFINE_boolean(
-    "discrete_control",
-    default=False,
-    help="Whether or not to use discrete control"
+    "discrete_control", default=False, help="Whether or not to use discrete control"
 )
 flags.DEFINE_integer(
-    "num_epochs",
-    default=300,
-    help="The number of epochs to run the algorithm"
+    "num_epochs", default=300, help="The number of epochs to run the algorithm"
 )
-flags.DEFINE_string(
-    "run_time",
-    default="03:00:00",
-    help="The run time per variant"
-)
+flags.DEFINE_string("run_time", default="03:00:00", help="The run time per variant")
 
 NUM_FILES_PER_DIRECTORY = 100
 
 
 def main(config):
-    assert os.path.isfile(
-        config.main_path
-    ), f"{config.main_path} is not a file"
+    assert os.path.isfile(config.main_path), f"{config.main_path} is not a file"
     assert os.path.isfile(
         config.config_template
     ), f"{config.config_template} is not a file"
     with open(config.config_template, "r") as f:
         template = json.load(f)
 
-    assert config.num_epochs > 0, f"num_epochs needs to be at least 1, got {config.num_epochs}"
-    assert len(config.run_time.split(":")) == 3, f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
+    assert (
+        config.num_epochs > 0
+    ), f"num_epochs needs to be at least 1, got {config.num_epochs}"
+    assert (
+        len(config.run_time.split(":")) == 3
+    ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
 
     os.makedirs(config.out_dir, exist_ok=True)
 
@@ -200,12 +194,13 @@ def main(config):
         dat_content += "config_path={}.json \n".format(out_path)
 
     dat_path = os.path.join(f"./export-search_expert-{config.exp_name}.dat")
-    with open(
-        dat_path, "w+"
-    ) as f:
+    with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
-    os.makedirs("/home/chanb/scratch/run_reports/search_expert-{}".format(config.exp_name), exist_ok=True)
+    os.makedirs(
+        "/home/chanb/scratch/run_reports/search_expert-{}".format(config.exp_name),
+        exist_ok=True,
+    )
     sbatch_content = ""
     sbatch_content += "#!/bin/bash\n"
     sbatch_content += "#SBATCH --account=def-schuurma\n"
@@ -213,19 +208,21 @@ def main(config):
     sbatch_content += "#SBATCH --cpus-per-task=1\n"
     sbatch_content += "#SBATCH --mem=3G\n"
     sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
-    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/search_expert-{}/%j.out\n".format(config.exp_name)
+    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/search_expert-{}/%j.out\n".format(
+        config.exp_name
+    )
     sbatch_content += "module load python/3.9\n"
-    sbatch_content += 'module load mujoco\n'
-    sbatch_content += 'source ~/jaxl_env/bin/activate\n'
+    sbatch_content += "module load mujoco\n"
+    sbatch_content += "source ~/jaxl_env/bin/activate\n"
     sbatch_content += '`sed -n "${SLURM_ARRAY_TASK_ID}p"'
     sbatch_content += " < {}`\n".format(dat_path)
-    sbatch_content += 'echo ${SLURM_ARRAY_TASK_ID}\n'
+    sbatch_content += "echo ${SLURM_ARRAY_TASK_ID}\n"
     sbatch_content += 'echo "Current working directory is `pwd`"\n'
     sbatch_content += 'echo "Running on hostname `hostname`"\n'
     sbatch_content += 'echo "Starting run at: `date`"\n'
-    sbatch_content += 'python3 {} \\\n'.format(config.main_path)
-    sbatch_content += '  --config_path=${config_path} \\\n'
-    sbatch_content += '  --run_seed=${run_seed}\n'
+    sbatch_content += "python3 {} \\\n".format(config.main_path)
+    sbatch_content += "  --config_path=${config_path} \\\n"
+    sbatch_content += "  --run_seed=${run_seed}\n"
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(os.path.join(f"./run_all-{config.exp_name}.sh"), "w+") as f:

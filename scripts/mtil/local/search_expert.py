@@ -61,9 +61,7 @@ flags.DEFINE_integer(
     required=False,
 )
 flags.DEFINE_boolean(
-    "discrete_control",
-    default=False,
-    help="Whether or not to use discrete control"
+    "discrete_control", default=False, help="Whether or not to use discrete control"
 )
 
 NUM_FILES_PER_DIRECTORY = 100

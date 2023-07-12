@@ -68,9 +68,7 @@ flags.DEFINE_integer(
     required=True,
 )
 flags.DEFINE_boolean(
-    "discrete_control",
-    default=False,
-    help="Whether or not to use discrete control"
+    "discrete_control", default=False, help="Whether or not to use discrete control"
 )
 
 NUM_FILES_PER_DIRECTORY = 100
@@ -115,9 +113,7 @@ def main(config: FlagValues):
             os.makedirs(curr_run_dir, exist_ok=True)
             os.makedirs(curr_script_dir, exist_ok=True)
 
-        variant = (
-            f"variant-{idx}-env_seed_{env_seed}-model_seed_{model_seed}"
-        )
+        variant = f"variant-{idx}-env_seed_{env_seed}-model_seed_{model_seed}"
         template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
         template["logging_config"]["save_path"] = curr_run_dir
         template["logging_config"]["experiment_name"] = variant
@@ -143,12 +139,13 @@ def main(config: FlagValues):
         dat_content += "config_path={}.json \n".format(out_path)
 
     dat_path = os.path.join(f"./export-generate_experts-{config.exp_name}.dat")
-    with open(
-        dat_path, "w+"
-    ) as f:
+    with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
-    os.makedirs("/home/chanb/scratch/run_reports/generate_experts-{}".format(config.exp_name), exist_ok=True)
+    os.makedirs(
+        "/home/chanb/scratch/run_reports/generate_experts-{}".format(config.exp_name),
+        exist_ok=True,
+    )
     sbatch_content = ""
     sbatch_content += "#!/bin/bash\n"
     sbatch_content += "#SBATCH --account=def-schuurma\n"
@@ -156,19 +153,21 @@ def main(config: FlagValues):
     sbatch_content += "#SBATCH --cpus-per-task=1\n"
     sbatch_content += "#SBATCH --mem=3G\n"
     sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
-    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/generate_experts-{}/%j.out\n".format(config.exp_name)
+    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/generate_experts-{}/%j.out\n".format(
+        config.exp_name
+    )
     sbatch_content += "module load python/3.9\n"
-    sbatch_content += 'module load mujoco\n'
-    sbatch_content += 'source ~/jaxl_env/bin/activate\n'
+    sbatch_content += "module load mujoco\n"
+    sbatch_content += "source ~/jaxl_env/bin/activate\n"
     sbatch_content += '`sed -n "${SLURM_ARRAY_TASK_ID}p"'
     sbatch_content += " < {}`\n".format(dat_path)
-    sbatch_content += 'echo ${SLURM_ARRAY_TASK_ID}\n'
+    sbatch_content += "echo ${SLURM_ARRAY_TASK_ID}\n"
     sbatch_content += 'echo "Current working directory is `pwd`"\n'
     sbatch_content += 'echo "Running on hostname `hostname`"\n'
     sbatch_content += 'echo "Starting run at: `date`"\n'
-    sbatch_content += 'python3 {} \\\n'.format(config.main_path)
-    sbatch_content += '  --config_path=${config_path} \\\n'
-    sbatch_content += '  --run_seed=${run_seed}\n'
+    sbatch_content += "python3 {} \\\n".format(config.main_path)
+    sbatch_content += "  --config_path=${config_path} \\\n"
+    sbatch_content += "  --run_seed=${run_seed}\n"
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(os.path.join(f"./run_all-{config.exp_name}.sh"), "w+") as f:
