@@ -1,0 +1,99 @@
+{
+    "logging_config": {
+        "save_path": "/home/chanb/scratch/data/pendulum_cont/search_expert/runs/0",
+        "experiment_name": "variant-28",
+        "log_interval": 1,
+        "checkpoint_interval": false
+    },
+    "model_config": {
+        "policy": {
+            "architecture": "mlp",
+            "layers": [
+                64,
+                64
+            ]
+        },
+        "vf": {
+            "architecture": "mlp",
+            "layers": [
+                64,
+                64
+            ]
+        }
+    },
+    "optimizer_config": {
+        "policy": {
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 0.0003
+                }
+            },
+            "max_grad_norm": false
+        },
+        "vf": {
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 0.0003
+                }
+            },
+            "max_grad_norm": false
+        }
+    },
+    "learner_config": {
+        "task": "reinforcement_learning",
+        "env_config": {
+            "env_type": "gym",
+            "env_name": "ParameterizedPendulum-v0",
+            "env_kwargs": {
+                "seed": 0,
+                "use_default": true,
+                "discrete_control": false,
+                "control_mode": "default"
+            }
+        },
+        "seeds": {
+            "model_seed": 42,
+            "buffer_seed": 42,
+            "env_seed": 42
+        },
+        "buffer_config": {
+            "buffer_type": "default",
+            "buffer_size": 512
+        },
+        "num_steps_per_epoch": 2048,
+        "learner": "ppo",
+        "gamma": 0.9,
+        "gae_lambda": 0.95,
+        "normalize_advantage": true,
+        "temperature": 1.0,
+        "eps": 1e-05,
+        "obs_rms": true,
+        "value_rms": false,
+        "policy_distribution": "gaussian",
+        "opt_batch_size": 64,
+        "opt_epochs": 10,
+        "ent_loss_setting": {
+            "scheduler": "constant_schedule",
+            "scheduler_kwargs": {
+                "value": 0.0
+            }
+        },
+        "vf_loss_setting": {
+            "coefficient": 0.5,
+            "reduction": "mean",
+            "clip_param": false
+        },
+        "pi_loss_setting": {
+            "coefficient": 1.0,
+            "reduction": "mean",
+            "clip_param": 0.2
+        }
+    },
+    "train_config": {
+        "num_epochs": 500
+    }
+}
