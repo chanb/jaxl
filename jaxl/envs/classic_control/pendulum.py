@@ -146,8 +146,9 @@ class ParameterizedPendulumEnv(gym.Env):
         #   to update to follow the gymnasium api
         self.control_mode = control_mode
         if self.control_mode != "default":
+            actions = ([2.0] ** np.arange(-3, 2)[:, None]).flatten()
             action_map = np.concatenate(
-                [([-2.0, 2.0] ** np.arange(-3, 2)[:, None]).flatten(), [0]]
+                [-actions, [0], actions]
             )
             self.action_space = spaces.Discrete(len(action_map))
 
