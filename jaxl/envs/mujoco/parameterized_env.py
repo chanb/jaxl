@@ -5,8 +5,9 @@ import numpy as np
 import xml.etree.ElementTree as et
 
 from gymnasium import utils, Space, spaces
-from gymnasium.envs.mujoco import MujocoEnv, mujoco_env
+from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium.envs.mujoco.mujoco_env import DEFAULT_SIZE
+from itertools import product
 from typing import Any, Union
 
 
@@ -85,12 +86,12 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
 
         elif control_mode == DISCRETE:
             n_dim = int(np.prod(self.action_space.shape))
-            self.agent_action_space = spaces.Discrete(2**n_dim)
+            self.agent_action_space = spaces.Discrete(3**n_dim)
+
+            action_map = np.array(list(product(np.arange(-1, 2), repeat=n_dim)))
 
             def process_action(action):
-                return [
-                    (-1) ** (int(bit) + 1) for bit in bin(int(action))[2:].zfill(n_dim)
-                ]
+                return action_map[int(action)]
 
         else:
             self.agent_action_space = self.action_space
