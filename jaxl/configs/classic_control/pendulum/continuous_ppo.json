@@ -1,9 +1,9 @@
 {
     "logging_config": {
-        "save_path": "/home/chanb/scratch/data/pendulum_cont/search_expert/runs/0",
-        "experiment_name": "variant-28",
+        "save_path": "./logs/pendulum",
+        "experiment_name": "ppo-continuous",
         "log_interval": 1,
-        "checkpoint_interval": false
+        "checkpoint_interval": 50
     },
     "model_config": {
         "policy": {
@@ -58,7 +58,7 @@
         "seeds": {
             "model_seed": 42,
             "buffer_seed": 42,
-            "env_seed": 42
+            "env_seed": 43
         },
         "buffer_config": {
             "buffer_type": "default",
