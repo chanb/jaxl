@@ -3,6 +3,7 @@ __credits__ = ["Carlos Luis"]
 from os import path
 from typing import Optional
 
+import chex
 import numpy as np
 
 import gymnasium as gym
