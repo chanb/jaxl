@@ -31,7 +31,7 @@ HYPERPARAMETERS_CONFIG = {
         "opt_batch_size": [64, 128, 256, 512],
         "opt_epochs": [4, 10],
         "vf_clip_param": [False, 0.2],
-        "value_rms": [False, True],
+        "value_rms": [True],
         "ent_coef": [
             {
                 "scheduler": "constant_schedule",
