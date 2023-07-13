@@ -69,7 +69,7 @@
         "gamma": 0.9,
         "gae_lambda": 0.95,
         "normalize_advantage": true,
-        "temperature": 1.0,
+        "min_std": 1e-6,
         "eps": 1e-05,
         "obs_rms": true,
         "value_rms": false,
