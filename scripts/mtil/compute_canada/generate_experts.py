@@ -103,6 +103,7 @@ def main(config: FlagValues):
     base_script_dir = os.path.join(out_dir, "scripts")
     base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
+    num_runs = 0
     for idx, (env_seed, model_seed) in enumerate(
         itertools.product(env_seeds, model_seeds)
     ):
@@ -122,13 +123,13 @@ def main(config: FlagValues):
         template["learner_config"]["env_config"]["env_kwargs"]["seed"] = int(env_seed)
         if config.discrete_control:
             template["learner_config"]["env_config"]["env_kwargs"][
-                "discrete_control"
-            ] = True
+                "control_mode"
+            ] = "discrete"
             template["learner_config"]["policy_distribution"] = "softmax"
         else:
             template["learner_config"]["env_config"]["env_kwargs"][
-                "discrete_control"
-            ] = False
+                "control_mode"
+            ] = "default"
             template["learner_config"]["policy_distribution"] = "gaussian"
 
         out_path = os.path.join(curr_script_dir, variant)
@@ -137,6 +138,7 @@ def main(config: FlagValues):
 
         dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
+        num_runs += 1
 
     dat_path = os.path.join(f"./export-generate_experts-{config.exp_name}.dat")
     with open(dat_path, "w+") as f:
