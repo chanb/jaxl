@@ -193,6 +193,9 @@ def main(config):
         if "ent_coef" in hyperparam_keys:
             template["learner_config"]["ent_loss_setting"] = get_hyperparam("ent_coef")
 
+        if "buffer_size" in hyperparam_keys:
+            template["learner_config"]["buffer_config"]["buffer_size"] = get_hyperparam("buffer_size")
+
         variant = f"variant-{idx}"
         template["logging_config"]["experiment_name"] = variant
         template["logging_config"]["save_path"] = curr_run_dir

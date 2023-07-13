@@ -18,12 +18,22 @@
     "optimizer_config": {
         "policy": {
             "optimizer": "adam",
-            "lr": 3e-4,
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 3e-4
+                }
+            },
             "max_grad_norm": 0.5
         },
         "vf": {
             "optimizer": "adam",
-            "lr": 3e-4,
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 3e-4
+                }
+            },
             "max_grad_norm": 0.5
         }
     },
