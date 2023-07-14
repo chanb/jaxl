@@ -132,6 +132,7 @@ class EvaluationRollout(Rollout):
         obs_rms: Union[bool, RunningMeanStd],
         num_episodes: int,
         buffer: ReplayBuffer = None,
+        use_tqdm: bool = True,
     ):
         """
         Executes the policy in the environment.
@@ -141,14 +142,19 @@ class EvaluationRollout(Rollout):
         :param obs_rms: the running statistics for observations
         :param num_episodes: the number of interaction episodes with the environment
         :param buffer: the buffer to store the transitions with
+        :param use_tqdm: whether or not to show progress bar
         :type params: Union[optax.Params, Dict[str, Any]]
         :type policy: Policy
         :type obs_rms: Union[bool, RunningMeanStd]
         :type num_episodes: int
         :type buffer: ReplayBuffer (DefaultValue = None)
+        :type use_tqdm: bool (DefaultValue = False)
 
         """
-        for _ in tqdm(range(num_episodes)):
+        it = range(num_episodes)
+        if use_tqdm:
+            it = tqdm(it)
+        for _ in it:
             self._episodic_returns.append(0)
             self._episode_lengths.append(0)
             seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
