@@ -161,7 +161,7 @@ def main(config: FlagValues):
     sbatch_content += "  --run_seed=${run_seed}\n"
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
-    with open(os.path.join(f"./run_all-{config.exp_name}.sh"), "w+") as f:
+    with open(os.path.join(f"./run_all-generate_experts-{config.exp_name}.sh"), "w+") as f:
         f.writelines(sbatch_content)
 
 
