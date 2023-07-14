@@ -1,16 +1,17 @@
 """
-This script generates an expert for each environment variant.
+This script generates the expert data for each provided model.
 
 Example command:
-python generate_experts.py \
-    --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/discrete_ppo.json \
+python generate_expert_data.py \
+    --main_path=${JAXL_PATH}/jaxl/evaluate_rl_agents.py \
+    --runs_dir=${HOME}/scratch/data/expert_models/pendulum_disc \
     --exp_name=mtbc_main \
     --run_seed=0 \
-    --out_dir=${HOME}/scratch/jaxl/data/expert_models/pendulum_disc \
-    --num_model_seeds=1 \
-    --num_envs=100 \
-    --run_time=02:00:00
+    --env_seed=0 \
+    --out_dir=${HOME}/scratch/jaxl/data/expert_data/pendulum_disc \
+    --num_episodes=1000 \
+    --max_episode_length=1000 \
+    --run_time=01:00:00
 
 
 This will generate a dat file that consists of various runs.
@@ -29,14 +30,14 @@ import os
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
     "main_path",
-    default="../../../../jaxl/main.py",
-    help="Path to main.py",
+    default="../../../../jaxl/evaluate_rl_agents.py",
+    help="Path to evaluate_rl_agents.py",
     required=False,
 )
 flags.DEFINE_string(
-    "config_template",
+    "runs_dir",
     default=None,
-    help="Training configuration template",
+    help="The directory storing the runs",
     required=True,
 )
 flags.DEFINE_string(
@@ -46,6 +47,9 @@ flags.DEFINE_string(
     required=True,
 )
 flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=True)
+flags.DEFINE_integer(
+    "env_seed", default=None, help="Seed for the environment", required=True
+)
 flags.DEFINE_string(
     "out_dir",
     default=None,
@@ -53,15 +57,15 @@ flags.DEFINE_string(
     required=True,
 )
 flags.DEFINE_integer(
-    "num_model_seeds",
+    "num_episodes",
     default=None,
-    help="The number of seeds for initializing model parameters",
+    help="The number of demonstration episodes to store",
     required=True,
 )
 flags.DEFINE_integer(
-    "num_envs",
+    "max_episode_length",
     default=None,
-    help="The number of environment variations",
+    help="The maximum length of an episode of the MDP",
     required=True,
 )
 flags.DEFINE_string("run_time", default="03:00:00", help="The run time per variant")
@@ -71,6 +75,7 @@ NUM_FILES_PER_DIRECTORY = 100
 
 def main(config: FlagValues):
     assert os.path.isfile(config.main_path), f"{config.main_path} is not a file"
+    assert os.path.isdir(config.runs_dir), f"{config.runs_dir} is not a directory"
     assert (
         len(config.run_time.split(":")) == 3
     ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
@@ -80,61 +85,53 @@ def main(config: FlagValues):
     with open(config.config_template, "r") as f:
         template = json.load(f)
 
+    assert (
+        config.max_episode_length > 0
+    ), f"max_episode_length should be at least 0, got {config.max_episode_length}"
+    assert (
+        config.num_episodes > 0
+    ), f"num_episodes shoudl be at least 0, got {config.num_episodes}"
+
     out_dir = os.path.join(config.out_dir, config.exp_name)
     os.makedirs(out_dir, exist_ok=True)
 
-    assert (
-        config.num_model_seeds > 0
-    ), f"need at least one model_seed, got {config.num_model_seeds}"
-    while True:
-        model_seeds = np.random.randint(0, 2**32 - 1, config.num_model_seeds)
-        if len(model_seeds) == len(np.unique(model_seeds)):
-            break
+    buffer_size = config.num_episodes * config.max_episode_length
 
-    assert (
-        config.num_envs > 0
-    ), f"need at least one environment variant, got {config.num_envs}"
-    env_seeds = np.arange(config.num_envs)
-
-    # Standard template
-    template["logging_config"]["experiment_name"] = ""
-
-    base_script_dir = os.path.join(out_dir, "scripts")
-    base_run_dir = os.path.join(out_dir, "runs")
     dat_content = ""
     num_runs = 0
-    for idx, (env_seed, model_seed) in enumerate(
-        itertools.product(env_seeds, model_seeds)
-    ):
-        dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
-        curr_script_dir = os.path.join(base_script_dir, dir_i)
-        curr_run_dir = os.path.join(base_run_dir, dir_i)
-        if idx % NUM_FILES_PER_DIRECTORY == 0:
-            os.makedirs(curr_run_dir, exist_ok=True)
-            os.makedirs(curr_script_dir, exist_ok=True)
+    for run_path, _, filenames in os.walk(config.runs_dir):
+        for filename in filenames:
+            if filename != "config.json":
+                continue
 
-        variant = f"variant-{idx}-env_seed_{env_seed}-model_seed_{model_seed}"
-        template["learner_config"]["seeds"]["model_seed"] = int(model_seed)
-        template["logging_config"]["save_path"] = curr_run_dir
-        template["logging_config"]["experiment_name"] = variant
+            save_id = os.path.basename(
+                os.path.abspath(os.path.join(run_path, os.pardir))
+            )
+            save_buffer = os.path.join(
+                out_dir,
+                f"{save_id}-{os.path.basename(run_path)}-num_episodes_{config.num_episodes}.gzip",
+            )
+            dat_content += (
+                "export buffer_size={} num_episodes={} env_seed={} run_seed={} ".format(
+                    buffer_size,
+                    config.num_episodes,
+                    config.env_seed,
+                    config.run_seed,
+                )
+            )
+            dat_content += "save_buffer={} run_path={}\n".format(
+                save_buffer, config.run_path
+            )
+            num_runs += 1
 
-        template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = False
-        template["learner_config"]["env_config"]["env_kwargs"]["seed"] = int(env_seed)
-
-        out_path = os.path.join(curr_script_dir, variant)
-        with open(f"{out_path}.json", "w+") as f:
-            json.dump(template, f)
-
-        dat_content += "export run_seed={} ".format(config.run_seed)
-        dat_content += "config_path={}.json \n".format(out_path)
-        num_runs += 1
-
-    dat_path = os.path.join(f"./export-generate_experts-{config.exp_name}.dat")
+    dat_path = os.path.join(f"./export-generate_expert_data-{config.exp_name}.dat")
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
     os.makedirs(
-        "/home/chanb/scratch/run_reports/generate_experts-{}".format(config.exp_name),
+        "/home/chanb/scratch/run_reports/generate_expert_data-{}".format(
+            config.exp_name
+        ),
         exist_ok=True,
     )
     sbatch_content = ""
@@ -144,7 +141,7 @@ def main(config: FlagValues):
     sbatch_content += "#SBATCH --cpus-per-task=1\n"
     sbatch_content += "#SBATCH --mem=3G\n"
     sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
-    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/generate_experts-{}/%j.out\n".format(
+    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/generate_expert_data-{}/%j.out\n".format(
         config.exp_name
     )
     sbatch_content += "module load python/3.9\n"
@@ -162,7 +159,7 @@ def main(config: FlagValues):
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(
-        os.path.join(f"./run_all-generate_experts-{config.exp_name}.sh"), "w+"
+        os.path.join(f"./run_all-generate_expert_data-{config.exp_name}.sh"), "w+"
     ) as f:
         f.writelines(sbatch_content)
 

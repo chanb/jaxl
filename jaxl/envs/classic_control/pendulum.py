@@ -148,9 +148,7 @@ class ParameterizedPendulumEnv(gym.Env):
         self.control_mode = control_mode
         if self.control_mode != "default":
             actions = ([2.0] ** np.arange(-3, 2)[:, None]).flatten()
-            action_map = np.concatenate(
-                [-actions, [0], actions]
-            )
+            action_map = np.concatenate([-actions, [0], actions])
             self.action_space = spaces.Discrete(len(action_map))
 
             def process_action(u):
