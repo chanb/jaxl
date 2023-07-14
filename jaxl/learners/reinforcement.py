@@ -86,39 +86,34 @@ class ReinforcementLearner(OnlineLearner):
         """
         return self._update_frequency
 
-    def checkpoint(self, checkpoint_path: str, exist_ok: bool = False):
+    def checkpoint(self) -> Dict[str, Any]:
         """
-        Saves the current model state.
+        Returns the parameters to checkpoint
 
-        :param checkpoint_path: directory path to store the checkpoint to
-        :param exist_ok: whether to overwrite the existing checkpoint path
-        :type checkpoint_path: str
-        :type exist_ok: bool (Default value = False)
+        :return: the checkpoint parameters
+        :rtype: Dict[str, Any]
 
         """
-        super().checkpoint(checkpoint_path, exist_ok)
-        learner_dict = {
-            CONST_OBS_RMS: self.obs_rms,
-            CONST_VALUE_RMS: self.val_rms,
-        }
+        params = super().checkpoint()
+        if self.obs_rms:
+            params[CONST_OBS_RMS] = self.obs_rms.get_state()
+        if self.val_rms:
+            params[CONST_VALUE_RMS] = self.val_rms.get_state()
+        return params
 
-        with open(os.path.join(checkpoint_path, "learner_dict.pkl"), "wb") as f:
-            pickle.dump(learner_dict, f)
-
-    def load_checkpoint(self, checkpoint_path: str):
+    def load_checkpoint(self, params: Dict[str, Any]):
         """
         Loads a model state from a saved checkpoint.
 
-        :param checkpoint_path: directory path to load the checkpoint from
-        :type checkpoint_path: str
+        :param params: the checkpointed parameters
+        :type params: Dict[str, Any]
 
         """
-        super().load_checkpoint(checkpoint_path)
-
-        with open(os.path.join(checkpoint_path, "learner_dict.pkl"), "rb") as f:
-            learner_dict = pickle.load(f)
-            self._obs_rms = learner_dict[CONST_OBS_RMS]
-            self._val_rms = learner_dict[CONST_VALUE_RMS]
+        super().load_checkpoint(params)
+        if self.obs_rms:
+            self._obs_rms.set_state(params[CONST_OBS_RMS])
+        if self.val_rms:
+            self._val_rms.set_state(params[CONST_VALUE_RMS])
 
     def update_value_rms_and_normalize(self, rets: chex.Array) -> chex.Array:
         """
@@ -225,24 +220,3 @@ class OnPolicyLearner(ReinforcementLearner):
         self._num_update_steps = self._num_steps_per_epoch // self._update_frequency
         self._sample_idxes = np.arange(self._update_frequency)
         self._rollout = StandardRollout(self._env, self._config.seeds.env_seed)
-
-    def checkpoint(self, checkpoint_path: str, exist_ok: bool = False):
-        """
-        Saves the current model state.
-
-        :param checkpoint_path: directory path to store the checkpoint to
-        :param exist_ok: whether to overwrite the existing checkpoint path
-        :type checkpoint_path: str
-        :type exist_ok: bool (Default value = False)
-
-        """
-        super().checkpoint(checkpoint_path, exist_ok)
-
-        with open(os.path.join(checkpoint_path, "train_returns.pkl"), "wb") as f:
-            pickle.dump(
-                {
-                    CONST_EPISODE_LENGTHS: self._rollout.episode_lengths,
-                    CONST_EPISODIC_RETURNS: self._rollout.episodic_returns,
-                },
-                f,
-            )
