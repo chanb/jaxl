@@ -96,7 +96,7 @@ def train(
 
             checkpoint_manager = CheckpointManager(
                 os.path.join(save_path, "models"),
-                {k: PyTreeCheckpointer() for k in params.keys()},
+                PyTreeCheckpointer(),
             )
             checkpoint_manager.save(true_epoch, params)
 
@@ -127,13 +127,8 @@ def train(
                     "wb",
                 ) as f:
                     pickle.dump(train_aux, f)
-                params = learner.checkpoint()
-                checkpoint_manager.save(true_epoch, params)
+                checkpoint_manager.save(true_epoch, learner.checkpoint())
     except KeyboardInterrupt:
         pass
     if save_path:
-        checkpointer = PyTreeCheckpointer()
-        checkpointer.save(
-            os.path.join(save_path, "termination_model"),
-            learner.checkpoint(),
-        )
+        checkpoint_manager.save(true_epoch, learner.checkpoint())
