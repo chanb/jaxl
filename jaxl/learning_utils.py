@@ -2,6 +2,7 @@ import _pickle as pickle
 import os
 import tqdm
 
+from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from torch.utils.tensorboard import SummaryWriter
 from types import SimpleNamespace
 
@@ -78,20 +79,27 @@ def train(
     logging_config = config.logging_config
     train_config = config.train_config
 
-    summary_writer = DummySummaryWriter()
-    if save_path:
-        if logging_config.checkpoint_interval:
-            os.makedirs(os.path.join(save_path, "models"), exist_ok=True)
-            os.makedirs(os.path.join(save_path, "auxes"), exist_ok=True)
-        summary_writer = SummaryWriter(log_dir=f"{save_path}/tensorboard")
-        summary_writer.add_text(
-            CONST_HYPERPARAMETERS,
-            hyperparameter_str,
-        )
-        learner.save_env_config(os.path.join(save_path, "env_config.pkl"))
-
     true_epoch = 0
+    summary_writer = DummySummaryWriter()
     try:
+        if save_path:
+            if logging_config.checkpoint_interval:
+                os.makedirs(os.path.join(save_path, "models"), exist_ok=True)
+                os.makedirs(os.path.join(save_path, "auxes"), exist_ok=True)
+            summary_writer = SummaryWriter(log_dir=f"{save_path}/tensorboard")
+            summary_writer.add_text(
+                CONST_HYPERPARAMETERS,
+                hyperparameter_str,
+            )
+            learner.save_env_config(os.path.join(save_path, "env_config.pkl"))
+            params = learner.checkpoint()
+
+            checkpoint_manager = CheckpointManager(
+                os.path.join(save_path, "models"),
+                {k: PyTreeCheckpointer() for k in params.keys()},
+            )
+            checkpoint_manager.save(true_epoch, params)
+
         for epoch in tqdm.tqdm(range(train_config.num_epochs)):
             train_aux = learner.update()
             true_epoch = epoch + 1
@@ -119,11 +127,13 @@ def train(
                     "wb",
                 ) as f:
                     pickle.dump(train_aux, f)
-                learner.checkpoint(
-                    os.path.join(save_path, "models", f"model-{true_epoch}")
-                )
+                params = learner.checkpoint()
+                checkpoint_manager.save(true_epoch, params)
     except KeyboardInterrupt:
         pass
     if save_path:
-        learner.checkpoint(os.path.join(save_path, "termination_model"))
-        learner.save_buffer(os.path.join(save_path, "termination_buffer.gzip"))
+        checkpointer = PyTreeCheckpointer()
+        checkpointer.save(
+            os.path.join(save_path, "termination_model"),
+            learner.checkpoint(),
+        )

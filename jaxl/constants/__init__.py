@@ -7,6 +7,7 @@ from jaxl.constants.optimizers import *
 
 CONST_BUFFER_PATH = "buffer_path"
 CONST_CONFIG = "config"
+CONST_COUNT = "count"
 CONST_HYPERPARAMETERS = "hyperparameters"
 CONST_MODEL_DICT = "model_dict"
 CONST_OPTIMIZER = "optimizer"
@@ -23,7 +24,14 @@ CONST_PROBS = "probs"
 CONST_RUN_PATH = "run_path"
 CONST_SCALAR = "scalar"
 CONST_SCALARS = "scalars"
+CONST_SHAPE = "shape"
 CONST_STD = "std"
+CONST_VAR = "var"
+
+CONST_A_MIN = "a_min"
+CONST_A_MAX = "a_max"
+
+CONST_EPSILON = "epsilon"
 
 CONST_IL = "imitation_learning"
 CONST_RL = "reinforcement_learning"
