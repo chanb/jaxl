@@ -5,9 +5,9 @@ Example command:
 python generate_experts.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/discrete_ppo.json \
-    --exp_name=mtbc_main \
+    --exp_name=pendulum_disc \
     --run_seed=0 \
-    --out_dir=${HOME}/scratch/data/expert_models/pendulum_disc \
+    --out_dir=${HOME}/scratch/data/expert_models \
     --num_model_seeds=1 \
     --num_envs=100 \
     --run_time=02:00:00

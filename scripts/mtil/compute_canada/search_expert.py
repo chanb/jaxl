@@ -6,7 +6,7 @@ Example command:
 python search_expert.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/local-ppo.json \
-    --exp_name=search_expert-pendulum_cont \
+    --exp_name=pendulum_cont \
     --out_dir=${HOME}/scratch/data/pendulum_cont/search_expert \
     --run_seed=0 \
     --num_epochs=500 \
@@ -15,7 +15,7 @@ python search_expert.py \
 python search_expert.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/local-ppo.json \
-    --exp_name=search_expert-pendulum_disc \
+    --exp_name=pendulum_disc \
     --out_dir=${HOME}/scratch/data/pendulum_disc/search_expert \
     --run_seed=0 \
     --num_epochs=500 \
