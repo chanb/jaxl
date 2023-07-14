@@ -3,23 +3,13 @@ This script generates an expert for each environment variant.
 
 Example command:
 python generate_experts.py \
-    --config_template=${JAXL_PATH}/jaxl/configs/parameterized_envs/inverted_double_pendulum/template-generate_expert-ppo.json \
-    --exp_name=gravity \
+    --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/discrete-ppo.json \
+    --exp_name=mtbc_main \
     --run_seed=0 \
-    --out_dir=${HOME}/scratch/jaxl/data/inverted_double_pendulum/expert_models \
+    --out_dir=${HOME}/scratch/jaxl/data/expert_models/pendulum_disc \
     --num_model_seeds=1 \
     --num_envs=100 \
     --run_time=02:00:00
-
-python generate_experts.py \
-    --config_template=${JAXL_PATH}/jaxl/configs/parameterized_envs/inverted_double_pendulum/template-generate_expert-ppo.json \
-    --exp_name=gravity \
-    --run_seed=0 \
-    --out_dir=${HOME}/scratch/jaxl/data/inverted_double_pendulum/expert_models \
-    --num_model_seeds=1 \
-    --num_envs=100 \
-    --run_time=02:00:00 \
-    --discrete_control
 
 
 This will generate a dat file that consists of various runs.
@@ -67,14 +57,15 @@ flags.DEFINE_integer(
     help="The number of environment variations",
     required=True,
 )
-flags.DEFINE_boolean(
-    "discrete_control", default=False, help="Whether or not to use discrete control"
-)
+flags.DEFINE_string("run_time", default="03:00:00", help="The run time per variant")
 
 NUM_FILES_PER_DIRECTORY = 100
 
 
 def main(config: FlagValues):
+    assert (
+        len(config.run_time.split(":")) == 3
+    ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
     assert os.path.isfile(
         config.config_template
     ), f"{config.config_template} is not a file"
@@ -121,16 +112,6 @@ def main(config: FlagValues):
 
         template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = False
         template["learner_config"]["env_config"]["env_kwargs"]["seed"] = int(env_seed)
-        if config.discrete_control:
-            template["learner_config"]["env_config"]["env_kwargs"][
-                "control_mode"
-            ] = "discrete"
-            template["learner_config"]["policy_distribution"] = "softmax"
-        else:
-            template["learner_config"]["env_config"]["env_kwargs"][
-                "control_mode"
-            ] = "default"
-            template["learner_config"]["policy_distribution"] = "gaussian"
 
         out_path = os.path.join(curr_script_dir, variant)
         with open(f"{out_path}.json", "w+") as f:
