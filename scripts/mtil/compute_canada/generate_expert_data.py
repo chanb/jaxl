@@ -4,11 +4,11 @@ This script generates the expert data for each provided model.
 Example command:
 python generate_expert_data.py \
     --main_path=${JAXL_PATH}/jaxl/evaluate_rl_agents.py \
-    --runs_dir=${HOME}/scratch/data/expert_models/pendulum_disc \
+    --runs_dir=${HOME}/scratch/expert_models/pendulum_disc \
     --exp_name=pendulum_disc \
     --run_seed=0 \
     --env_seed=0 \
-    --out_dir=${HOME}/scratch/jaxl/data/expert_data \
+    --out_dir=${HOME}/scratch/expert_data \
     --num_episodes=1000 \
     --max_episode_length=1000 \
     --run_time=01:00:00
@@ -79,11 +79,6 @@ def main(config: FlagValues):
     assert (
         len(config.run_time.split(":")) == 3
     ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
-    assert os.path.isfile(
-        config.config_template
-    ), f"{config.config_template} is not a file"
-    with open(config.config_template, "r") as f:
-        template = json.load(f)
 
     assert (
         config.max_episode_length > 0
@@ -120,7 +115,7 @@ def main(config: FlagValues):
                 )
             )
             dat_content += "save_buffer={} run_path={}\n".format(
-                save_buffer, config.run_path
+                save_buffer, run_path
             )
             num_runs += 1
 
@@ -154,7 +149,7 @@ def main(config: FlagValues):
     sbatch_content += 'echo "Running on hostname `hostname`"\n'
     sbatch_content += 'echo "Starting run at: `date`"\n'
     sbatch_content += "python3 {} \\\n".format(config.main_path)
-    sbatch_content += "  --config_path=${config_path} \\\n"
+    sbatch_content += "  --run_path=${run_path} \\\n"
     sbatch_content += "  --run_seed=${run_seed}\n"
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
