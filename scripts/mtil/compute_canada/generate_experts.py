@@ -3,6 +3,7 @@ This script generates an expert for each environment variant.
 
 Example command:
 python generate_experts.py \
+    --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/discrete_ppo.json \
     --exp_name=mtbc_main \
     --run_seed=0 \
@@ -26,6 +27,12 @@ import os
 
 
 FLAGS = flags.FLAGS
+flags.DEFINE_string(
+    "main_path",
+    default="../../../../jaxl/main.py",
+    help="Path to main.py",
+    required=False,
+)
 flags.DEFINE_string(
     "config_template",
     default=None,
@@ -63,6 +70,7 @@ NUM_FILES_PER_DIRECTORY = 100
 
 
 def main(config: FlagValues):
+    assert os.path.isfile(config.main_path), f"{config.main_path} is not a file"
     assert (
         len(config.run_time.split(":")) == 3
     ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
