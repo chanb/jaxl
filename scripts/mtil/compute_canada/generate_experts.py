@@ -7,7 +7,7 @@ python generate_experts.py \
     --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/discrete_ppo.json \
     --exp_name=mtbc_main \
     --run_seed=0 \
-    --out_dir=${HOME}/scratch/jaxl/data/expert_models/pendulum_disc \
+    --out_dir=${HOME}/scratch/data/expert_models/pendulum_disc \
     --num_model_seeds=1 \
     --num_envs=100 \
     --run_time=02:00:00
