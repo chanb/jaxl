@@ -56,7 +56,7 @@
             }
         },
         "seeds": {
-            "model_seed": 42,
+            "model_seed": 44,
             "buffer_seed": 42,
             "env_seed": 42
         },

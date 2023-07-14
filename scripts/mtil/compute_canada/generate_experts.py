@@ -3,7 +3,7 @@ This script generates an expert for each environment variant.
 
 Example command:
 python generate_experts.py \
-    --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/discrete-ppo.json \
+    --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/discrete_ppo.json \
     --exp_name=mtbc_main \
     --run_seed=0 \
     --out_dir=${HOME}/scratch/jaxl/data/expert_models/pendulum_disc \
