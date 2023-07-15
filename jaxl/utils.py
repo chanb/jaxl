@@ -230,6 +230,35 @@ class RunningMeanStd:
         self.a_min = a_min
         self.a_max = a_max
 
+    def get_state(self) -> Dict[str, Any]:
+        """
+        Returns the state of the running statistics.
+
+        :return: the running statistics state
+        :rtype: Dict[str, Any]
+
+        """
+        return {
+            CONST_SHAPE: self.shape,
+            CONST_MEAN: self.mean,
+            CONST_VAR: self.var,
+            CONST_EPSILON: self.epsilon,
+            CONST_COUNT: self.count,
+            CONST_A_MIN: self.a_min,
+            CONST_A_MAX: self.a_max,
+        }
+
+    def set_state(self, state: Dict[str, Any]):
+        """
+        Sets the state of the running statistics.
+
+        :param state: the running statistics state
+        :type state: Dict[str, Any]
+
+        """
+        for k, v in state.items():
+            setattr(self, k, v)
+
     def update(self, x: chex.Array):
         """
         Updates the running statistics.

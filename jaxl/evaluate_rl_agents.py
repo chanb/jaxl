@@ -4,7 +4,7 @@ XXX: Try not to modify this.
 """
 from absl import app, flags
 from absl.flags import FlagValues
-from orbax.checkpoint import PyTreeCheckpointer
+from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
 import _pickle as pickle
 import jax
@@ -24,6 +24,7 @@ from jaxl.constants import (
     CONST_EPISODIC_RETURNS,
     CONST_RUN_PATH,
     CONST_BUFFER_PATH,
+    CONST_MODEL_DICT,
 )
 from jaxl.models import (
     get_model,
@@ -32,7 +33,7 @@ from jaxl.models import (
 )
 from jaxl.envs import get_environment
 from jaxl.envs.rollouts import EvaluationRollout
-from jaxl.utils import set_seed, parse_dict
+from jaxl.utils import set_seed, parse_dict, RunningMeanStd
 
 
 FLAGS = flags.FLAGS
@@ -109,13 +110,19 @@ def main(
     )
     policy = get_policy(model, agent_config.learner_config)
 
-    run_path = os.path.join(config.run_path, "termination_model")
-    checkpointer = PyTreeCheckpointer()
-    model_dict = checkpointer.restore(run_path)
+    run_path = os.path.join(config.run_path, "models")
+    checkpoint_manager = CheckpointManager(
+        os.path.join(run_path, "models"),
+        PyTreeCheckpointer(),
+    )
+
+    params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+    model_dict = params[CONST_MODEL_DICT]
     policy_params = model_dict[CONST_MODEL][CONST_POLICY]
-    with open(os.path.join(run_path, "learner_dict.pkl"), "rb") as f:
-        learner_dict = pickle.load(f)
-        obs_rms = learner_dict[CONST_OBS_RMS]
+    obs_rms = False
+    if CONST_OBS_RMS in params:
+        obs_rms = RunningMeanStd()
+        obs_rms.set_state(params[CONST_OBS_RMS])
 
     env_seed = config.env_seed
     if env_seed is None:

@@ -75,35 +75,27 @@ class Learner(ABC):
         """
         return self._buffer
 
-    def checkpoint(self, checkpoint_path: str, exist_ok: bool = False):
+    def checkpoint(self) -> Dict[str, Any]:
         """
-        Saves the current model state.
+        Returns the parameters to checkpoint
 
-        :param checkpoint_path: directory path to store the checkpoint to
-        :param exist_ok: whether to overwrite the existing checkpoint path
-        :type checkpoint_path: str
-        :type exist_ok: bool (Default value = False)
+        :return: the checkpoint parameters
+        :rtype: Dict[str, Any]
 
         """
-        assert not (
-            os.path.isfile(checkpoint_path) and not exist_ok
-        ), f"{checkpoint_path} already exists and experiment prevents from overwriting"
+        return {
+            CONST_MODEL_DICT: self.model_dict,
+        }
 
-        checkpointer = PyTreeCheckpointer()
-        checkpointer.save(checkpoint_path, self.model_dict)
-
-    def load_checkpoint(self, checkpoint_path: str):
+    def load_checkpoint(self, params: Dict[str, Any]):
         """
         Loads a model state from a saved checkpoint.
 
-        :param checkpoint_path: directory path to load the checkpoint from
-        :type checkpoint_path: str
+        :param params: the checkpointed parameters
+        :type params: Dict[str, Any]
 
         """
-        assert os.path.isfile(checkpoint_path), f"{checkpoint_path} does not exist"
-
-        checkpointer = PyTreeCheckpointer()
-        self._model_dict = checkpointer.restore(checkpoint_path)
+        self.model_dict = params[CONST_MODEL_DICT]
 
     def save_env_config(self, checkpoint_path: str):
         """
