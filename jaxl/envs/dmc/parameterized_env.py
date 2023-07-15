@@ -174,7 +174,7 @@ class ParameterizedDMCEnv(gym.Env):
         timestep = self.env.step(action)
         next_obs = self._get_obs(timestep)
         truncated = timestep.last()
-        return (next_obs, timestep.reward, truncated, False, {})
+        return (next_obs, timestep.reward, False, truncated, {})
 
     def render(self):
         return self.env.physics.render(
