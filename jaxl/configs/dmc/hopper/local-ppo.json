@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/dmc/hopper-default",
-        "experiment_name": "ppo",
+        "experiment_name": "ppo-discrete",
         "log_interval": 1,
         "checkpoint_interval": false
     },
@@ -44,7 +44,8 @@
             "env_name": "DMCHopper-v0",
             "env_kwargs": {
                 "seed": 0,
-                "use_default": true
+                "use_default": true,
+                "control_mode": "discrete"
             }
         },
         "seeds": {
@@ -64,7 +65,7 @@
         "eps": 1e-5,
         "obs_rms": true,
         "value_rms": false,
-        "policy_distribution": "gaussian",
+        "policy_distribution": "softmax",
         "min_std": 1e-6,
         "opt_batch_size": 256,
         "opt_epochs": 5,

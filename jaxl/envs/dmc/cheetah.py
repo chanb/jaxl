@@ -27,7 +27,13 @@ from dm_control.utils import containers
 from dm_control.utils import rewards
 from typing import Any, Union
 
-from jaxl.envs.dmc.parameterized_env import ParameterizedDMCEnv, randomize_env_xml
+from jaxl.envs.dmc.parameterized_env import (
+    ParameterizedDMCEnv,
+    randomize_env_xml,
+    DEFAULT_ID,
+    DEFAULT_RGB_ARRAY,
+    DEFAULT_SIZE,
+)
 
 
 # How long the simulation will run, in seconds.
@@ -94,6 +100,11 @@ class CheetahEnv(ParameterizedDMCEnv):
         use_default: bool = False,
         control_mode: str = "default",
         environment_kwargs: Any = None,
+        width: int = DEFAULT_SIZE,
+        height: int = DEFAULT_SIZE,
+        camera_id: int = DEFAULT_ID,
+        render_mode: str = DEFAULT_RGB_ARRAY,
+        **kwargs,
     ):
         rng = np.random.RandomState(seed)
         self.xml, self.modified_attributes = randomize_env_xml(
@@ -112,9 +123,13 @@ class CheetahEnv(ParameterizedDMCEnv):
             self.task,
             time_limit=time_limit,
             control_timestep=control_timestep,
-            **environment_kwargs
+            **environment_kwargs,
         )
 
         super().__init__(
+            width,
+            height,
+            camera_id,
+            render_mode,
             control_mode,
         )

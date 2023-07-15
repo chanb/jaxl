@@ -28,6 +28,10 @@ VALID_CONTROL_MODE = [
     DISCRETE,
 ]
 
+DEFAULT_ID = 0
+DEFAULT_RGB_ARRAY = "rgb_array"
+DEFAULT_SIZE = 480
+
 
 def sample_data(attr_data: dict, np_random: np.random.Generator) -> chex.Array:
     min_vals = np.array(attr_data[MIN])
@@ -78,7 +82,19 @@ class ParameterizedDMCEnv(gym.Env):
     env: control.Environment
     task: base.Task
 
-    def __init__(self, control_mode: str = DEFAULT, **kwargs):
+    def __init__(
+        self,
+        width: int = DEFAULT_SIZE,
+        height: int = DEFAULT_SIZE,
+        camera_id: int = DEFAULT_ID,
+        render_mode: str = DEFAULT_RGB_ARRAY,
+        control_mode: str = DEFAULT,
+        **kwargs,
+    ):
+        self.render_mode = render_mode
+        self.width = width
+        self.height = height
+        self.camera_id = camera_id
         self.action_space = spaces.Box(
             low=self.env.action_spec().minimum,
             high=self.env.action_spec().maximum,
@@ -152,3 +168,8 @@ class ParameterizedDMCEnv(gym.Env):
         next_obs = self._get_obs(timestep)
         truncated = timestep.last()
         return (next_obs, timestep.reward, truncated, False, {})
+
+    def render(self):
+        self.env.physics.render(
+            camera_id=self.camera_id, height=self.height, width=self.width
+        )
