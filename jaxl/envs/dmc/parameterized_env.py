@@ -82,6 +82,13 @@ class ParameterizedDMCEnv(gym.Env):
     env: control.Environment
     task: base.Task
 
+    metadata = {
+        "render_modes": [
+            "rgb_array",
+        ],
+        "render_fps": 50,
+    }
+
     def __init__(
         self,
         width: int = DEFAULT_SIZE,
@@ -170,6 +177,6 @@ class ParameterizedDMCEnv(gym.Env):
         return (next_obs, timestep.reward, truncated, False, {})
 
     def render(self):
-        self.env.physics.render(
+        return self.env.physics.render(
             camera_id=self.camera_id, height=self.height, width=self.width
         )
