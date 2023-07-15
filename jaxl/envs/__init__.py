@@ -110,8 +110,6 @@ register(
 register(
     id="DMCHopper-v0",
     entry_point="jaxl.envs.dmc.hopper:HopperEnv",
-    max_episode_steps=1000,
-    reward_threshold=3800.0,
     kwargs={
         "parameter_config_path": os.path.join(
             os.path.dirname(__file__), "dmc/configs/hopper.json"
@@ -121,8 +119,6 @@ register(
 register(
     id="DMCCheetah-v0",
     entry_point="jaxl.envs.dmc.cheetah:CheetahEnv",
-    max_episode_steps=1000,
-    reward_threshold=3800.0,
     kwargs={
         "parameter_config_path": os.path.join(
             os.path.dirname(__file__), "dmc/configs/cheetah.json"
