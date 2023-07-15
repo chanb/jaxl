@@ -26,7 +26,11 @@ def get_environment(env_config: SimpleNamespace) -> DefaultGymWrapper:
 
         env = gym.make(env_config.env_name, **vars(env_config.env_kwargs))
     elif env_config.env_type == CONST_DM_CONTROL:
-        raise NotImplementedError
+        from dm_control import suite
+
+        env = suite.load(
+            env_config.env_domain, env_config.env_task, vars(env_config.env_kwargs)
+        )
     else:
         raise NotImplementedError
 
@@ -100,6 +104,24 @@ register(
     kwargs={
         "parameter_config_path": os.path.join(
             os.path.dirname(__file__), "mujoco/configs/ant.json"
+        )
+    },
+)
+register(
+    id="DMCHopper-v0",
+    entry_point="jaxl.envs.dmc.hopper:HopperEnv",
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "dmc/configs/hopper.json"
+        )
+    },
+)
+register(
+    id="DMCCheetah-v0",
+    entry_point="jaxl.envs.dmc.cheetah:CheetahEnv",
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "dmc/configs/cheetah.json"
         )
     },
 )
