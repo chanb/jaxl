@@ -125,3 +125,12 @@ register(
         )
     },
 )
+register(
+    id="DMCWalker-v0",
+    entry_point="jaxl.envs.dmc.walker:WalkerEnv",
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "dmc/configs/walker.json"
+        )
+    },
+)
