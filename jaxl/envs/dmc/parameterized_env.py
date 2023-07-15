@@ -87,9 +87,14 @@ class ParameterizedDMCEnv(gym.Env):
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
-            shape=(sum(
-                [np.product(val.shape) for val in self.env.observation_spec().values()]
-            ),),
+            shape=(
+                sum(
+                    [
+                        np.product(val.shape)
+                        for val in self.env.observation_spec().values()
+                    ]
+                ),
+            ),
             dtype=np.float64,
         )
 
