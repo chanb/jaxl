@@ -84,7 +84,7 @@ class ParameterizedDMCEnv(gym.Env):
 
     metadata = {
         "render_modes": [
-            "rgb_array",
+            DEFAULT_RGB_ARRAY,
         ],
         "render_fps": 50,
     }
@@ -94,7 +94,7 @@ class ParameterizedDMCEnv(gym.Env):
         width: int = DEFAULT_SIZE,
         height: int = DEFAULT_SIZE,
         camera_id: int = DEFAULT_ID,
-        render_mode: str = DEFAULT_RGB_ARRAY,
+        render_mode: str = None,
         control_mode: str = DEFAULT,
         **kwargs,
     ):
