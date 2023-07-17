@@ -508,8 +508,8 @@ class PPO(OnPolicyLearner):
 
             # Stop update due to approximate KL
             if stop_update:
-                if not self._update_before_early_stopping:
-                    opt_i -= 1
+                if self._update_before_early_stopping:
+                    opt_i += 1
                 break
 
         auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
