@@ -212,6 +212,7 @@
 <li class="toctree-l2"><a class="reference internal" href="jaxl.envs.html#module-jaxl.envs.rollouts">jaxl.envs.rollouts module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.rollout"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout.rollout()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.rollout_with_subsampling"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout.rollout_with_subsampling()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.Rollout"><code class="docutils literal notranslate"><span class="pre">Rollout</span></code></a><ul>
@@ -357,7 +358,8 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.losses.html#module-jaxl.losses.reinforcement">jaxl.losses.reinforcement module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.gae_lambda_returns"><code class="docutils literal notranslate"><span class="pre">gae_lambda_returns()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_ppo_pi_loss"><code class="docutils literal notranslate"><span class="pre">make_ppo_pi_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_pi_is_loss"><code class="docutils literal notranslate"><span class="pre">make_pi_is_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_ppo_clip_loss"><code class="docutils literal notranslate"><span class="pre">make_ppo_clip_loss()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_ppo_vf_loss"><code class="docutils literal notranslate"><span class="pre">make_ppo_vf_loss()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_reinforce_loss"><code class="docutils literal notranslate"><span class="pre">make_reinforce_loss()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.monte_carlo_returns"><code class="docutils literal notranslate"><span class="pre">monte_carlo_returns()</span></code></a></li>
@@ -506,16 +508,11 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
 </section>
-<section id="module-jaxl.evaluate_rl_agents">
-<span id="jaxl-evaluate-rl-agents-module"></span><h2>jaxl.evaluate_rl_agents module<a class="headerlink" href="#module-jaxl.evaluate_rl_agents" title="Permalink to this heading">¶</a></h2>
-<p>This script is the entrypoint for evaluating RL-trained policies.
-XXX: Try not to modify this.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="jaxl.evaluate_rl_agents.main">
-<span class="sig-prename descclassname"><span class="pre">jaxl.evaluate_rl_agents.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FlagValues</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.evaluate_rl_agents.main" title="Permalink to this definition">¶</a></dt>
-<dd><p>Orchestrates the evaluation.</p>
-</dd></dl>
-
+<section id="jaxl-evaluate-rl-agents-module">
+<h2>jaxl.evaluate_rl_agents module<a class="headerlink" href="#jaxl-evaluate-rl-agents-module" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="jaxl-gather-expert-data-module">
+<h2>jaxl.gather_expert_data module<a class="headerlink" href="#jaxl-gather-expert-data-module" title="Permalink to this heading">¶</a></h2>
 </section>
 <section id="module-jaxl.learning_utils">
 <span id="jaxl-learning-utils-module"></span><h2>jaxl.learning_utils module<a class="headerlink" href="#module-jaxl.learning_utils" title="Permalink to this heading">¶</a></h2>
@@ -541,6 +538,33 @@ XXX: Try not to modify this.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="jaxl.learning_utils.load_evaluation_components">
+<span class="sig-prename descclassname"><span class="pre">jaxl.learning_utils.</span></span><span class="sig-name descname"><span class="pre">load_evaluation_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy" title="jaxl.models.common.Policy"><span class="pre">Policy</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#jaxl.utils.RunningMeanStd" title="jaxl.utils.RunningMeanStd"><span class="pre">RunningMeanStd</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Env</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer" title="jaxl.buffers.buffers.ReplayBuffer"><span class="pre">ReplayBuffer</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learning_utils.load_evaluation_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the latest checkpointed agent, the buffer, and the environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run_path</strong> (<em>str</em>) – the configuration file path to load the components from</p></li>
+<li><p><strong>buffer_size</strong> (<em>int</em>) – the buffer size</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the latest checkpointed agent, the buffer, and the environment</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[
+<a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy" title="jaxl.models.common.Policy">Policy</a>,
+Dict[str, Any],
+Union[<a class="reference internal" href="#jaxl.utils.RunningMeanStd" title="jaxl.utils.RunningMeanStd">RunningMeanStd</a>, bool],
+<a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer" title="jaxl.buffers.buffers.ReplayBuffer">ReplayBuffer</a>,
+Env,
+int,</p>
+</dd>
+</dl>
+<p>]</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="jaxl.learning_utils.train">
 <span class="sig-prename descclassname"><span class="pre">jaxl.learning_utils.</span></span><span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">learner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.learner.Learner" title="jaxl.learners.learner.Learner"><span class="pre">Learner</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hyperparameter_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learning_utils.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Executes the training loop.</p>
@@ -557,8 +581,25 @@ XXX: Try not to modify this.</p>
 </dd></dl>
 
 </section>
-<section id="jaxl-main-module">
-<h2>jaxl.main module<a class="headerlink" href="#jaxl-main-module" title="Permalink to this heading">¶</a></h2>
+<section id="module-jaxl.main">
+<span id="jaxl-main-module"></span><h2>jaxl.main module<a class="headerlink" href="#module-jaxl.main" title="Permalink to this heading">¶</a></h2>
+<p>This script is the entrypoint for any experiment.
+XXX: Try not to modify this.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.main.main">
+<span class="sig-prename descclassname"><span class="pre">jaxl.main.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.main.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Orchestrates the experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_path</strong> (<em>str</em>) – the experiment configuration file path</p></li>
+<li><p><strong>run_seed</strong> (<em>int:</em><em> (</em><em>Default value = None</em><em>)</em>) – the seed to initialize the random number generators</p></li>
+<li><p><strong>device</strong> (<em>str:</em><em> (</em><em>Default value = cpu</em><em>)</em>) – the JAX device to use, supports [<cite>cpu</cite>, <cite>gpu:&lt;device_ids&gt;</cite>]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-jaxl.utils">
 <span id="jaxl-utils-module"></span><h2>jaxl.utils module<a class="headerlink" href="#module-jaxl.utils" title="Permalink to this heading">¶</a></h2>
