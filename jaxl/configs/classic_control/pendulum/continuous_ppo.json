@@ -30,7 +30,7 @@
                     "value": 0.0003
                 }
             },
-            "max_grad_norm": false
+            "max_grad_norm": 0.5
         },
         "vf": {
             "optimizer": "adam",
@@ -40,7 +40,7 @@
                     "value": 0.0003
                 }
             },
-            "max_grad_norm": false
+            "max_grad_norm": 0.5
         }
     },
     "learner_config": {
