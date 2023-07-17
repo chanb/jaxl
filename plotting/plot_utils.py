@@ -2,6 +2,9 @@ import json
 import os
 
 from jaxl.constants import *
+from jaxl.envs import get_environment
+from jaxl.models import get_model, get_policy, policy_output_dim
+from jaxl.models.policies import MultitaskPolicy
 from jaxl.utils import set_dict_value, get_dict_value, parse_dict
 
 
@@ -73,3 +76,20 @@ def get_config(agent_path):
         "multitask": multitask,
         "num_models": num_models,
     }
+
+def get_evaluation_components(agent_path):
+    agent_config, aux = get_config(agent_path)
+    env = get_environment(agent_config.learner_config.env_config)
+
+    input_dim = env.observation_space.shape
+    output_dim = policy_output_dim(env.act_dim, agent_config.learner_config)
+    model = get_model(
+        input_dim,
+        output_dim,
+        getattr(agent_config.model_config, "policy", agent_config.model_config),
+    )
+    policy = get_policy(model, agent_config.learner_config)
+    if aux["multitask"]:
+        policy = MultitaskPolicy(policy, model, aux["num_models"])
+
+    return env, policy
