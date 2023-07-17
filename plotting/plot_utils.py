@@ -1,3 +1,10 @@
+import json
+import os
+
+from jaxl.constants import *
+from jaxl.utils import set_dict_value, get_dict_value, parse_dict
+
+
 def set_size(width_pt, fraction=1, subplots=(1, 1)):
     """
     Reference: https://jwalton.info/Matplotlib-latex-PGF/
@@ -46,3 +53,23 @@ pgf_with_latex = {  # setup matplotlib to use latex for output
     "ytick.labelsize": 8,
     "pgf.rcfonts": False     # don't setup fonts from rc parameters
 }
+
+
+def get_config(agent_path):
+    agent_config_path = os.path.join(agent_path, "config.json")
+    with open(agent_config_path, "r") as f:
+        agent_config_dict = json.load(f)
+        agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+            "render_mode"
+        ] = "rgb_array"
+        if "policy_distribution" not in agent_config_dict["learner_config"]:
+            agent_config_dict["learner_config"][
+                "policy_distribution"
+            ] = CONST_DETERMINISTIC
+        set_dict_value(agent_config_dict, "vmap_all", False)
+        (multitask, num_models) = get_dict_value(agent_config_dict, "num_models")
+        agent_config = parse_dict(agent_config_dict)
+    return agent_config, {
+        "multitask": multitask,
+        "num_models": num_models,
+    }
