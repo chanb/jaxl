@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/dmc/cheetah",
-        "experiment_name": "ppo_disc-kl_threshold",
+        "experiment_name": "ppo_cont",
         "log_interval": 1,
         "checkpoint_interval": false
     },
@@ -26,7 +26,7 @@
                     "value": 3e-4
                 }
             },
-            "max_grad_norm": false
+            "max_grad_norm": 0.5
         },
         "vf": {
             "optimizer": "adam",
@@ -36,7 +36,7 @@
                     "value": 3e-4
                 }
             },
-            "max_grad_norm": false
+            "max_grad_norm": 0.5
         }
     },
     "learner_config": {
@@ -45,13 +45,13 @@
             "env_type": "gym",
             "env_name": "DMCCheetah-v0",
             "env_kwargs": {
-                "seed": 0,
+                "seed": 36,
                 "use_default": true,
-                "control_mode": "discrete"
+                "control_mode": "default"
             }
         },
         "seeds": {
-            "model_seed": 42,
+            "model_seed": 41,
             "buffer_seed": 42,
             "env_seed": 42
         },
@@ -67,29 +67,23 @@
         "eps": 1e-5,
         "obs_rms": true,
         "value_rms": false,
-        "policy_distribution": "softmax",
-        "temperature": 1.0,
-        "opt_batch_size": 256,
-        "opt_epochs": 100,
-        "kl_threshold": 0.015,
-        "update_before_early_stopping": true,
-        "ent_loss_setting": {
-            "scheduler": "constant_schedule",
-            "scheduler_kwargs": {
-                "value": 0
-            }
-        },
+        "policy_distribution": "gaussian",
+        "min_std": 1e-4,
+        "opt_batch_size": 128,
+        "opt_epochs": 80,
+        "kl_threshold": false,
+        "update_before_early_stopping": false,
         "vf_loss_setting": {
             "coefficient": 0.5,
             "reduction": "mean",
             "clip_param": false
         },
         "pi_loss_setting": {
-            "objective": "clip",
+            "objective": "reverse_kl",
             "coefficient": 1.0,
             "reduction": "mean",
             "clip_param": 0.2,
-            "beta": 0.0
+            "beta": 0.02
         }
     },
     "train_config": {

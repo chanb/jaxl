@@ -1,9 +1,9 @@
 {
     "logging_config": {
-        "save_path": "./logs/dmc/cheetah",
-        "experiment_name": "ppo_disc-kl_threshold",
+        "save_path": "./logs/dmc/cheetah/objective_comparison",
+        "experiment_name": "clipped-tanh",
         "log_interval": 1,
-        "checkpoint_interval": false
+        "checkpoint_interval": 25
     },
     "model_config": {
         "policy": {
@@ -51,9 +51,9 @@
             }
         },
         "seeds": {
-            "model_seed": 42,
-            "buffer_seed": 42,
-            "env_seed": 42
+            "model_seed": 43,
+            "buffer_seed": 43,
+            "env_seed": 43
         },
         "buffer_config": {
             "buffer_type": "default",

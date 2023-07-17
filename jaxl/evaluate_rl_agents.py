@@ -4,36 +4,23 @@ XXX: Try not to modify this.
 """
 from absl import app, flags
 from absl.flags import FlagValues
-from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
 import _pickle as pickle
 import jax
-import json
 import logging
 import numpy as np
 import os
 import timeit
 
-from jaxl.buffers import get_buffer
 from jaxl.constants import (
-    CONST_DEFAULT,
-    CONST_MODEL,
-    CONST_OBS_RMS,
-    CONST_POLICY,
     CONST_EPISODE_LENGTHS,
     CONST_EPISODIC_RETURNS,
     CONST_RUN_PATH,
     CONST_BUFFER_PATH,
-    CONST_MODEL_DICT,
 )
-from jaxl.models import (
-    get_model,
-    get_policy,
-    policy_output_dim,
-)
-from jaxl.envs import get_environment
 from jaxl.envs.rollouts import EvaluationRollout
-from jaxl.utils import set_seed, parse_dict, RunningMeanStd
+from jaxl.learning_utils import load_latest_agent
+from jaxl.utils import set_seed
 
 
 FLAGS = flags.FLAGS
@@ -81,52 +68,13 @@ def main(
     set_seed(config.run_seed)
     assert os.path.isdir(config.run_path), f"{config.run_path} is not a directory"
 
-    agent_config_path = os.path.join(config.run_path, "config.json")
-    with open(agent_config_path, "r") as f:
-        agent_config_dict = json.load(f)
-
-    agent_config_dict["learner_config"]["buffer_config"][
-        "buffer_size"
-    ] = config.buffer_size
-    agent_config_dict["learner_config"]["buffer_config"]["buffer_type"] = CONST_DEFAULT
-    agent_config = parse_dict(agent_config_dict)
-
-    h_state_dim = (1,)
-    if hasattr(agent_config.model_config, "h_state_dim"):
-        h_state_dim = agent_config.model_config.h_state_dim
-    env = get_environment(agent_config.learner_config.env_config)
-    buffer = get_buffer(
-        agent_config.learner_config.buffer_config,
-        agent_config.learner_config.seeds.buffer_seed,
-        env,
-        h_state_dim,
-    )
-    input_dim = buffer.input_dim
-    output_dim = policy_output_dim(buffer.output_dim, agent_config.learner_config)
-    model = get_model(
-        input_dim,
-        output_dim,
-        getattr(agent_config.model_config, "policy", agent_config.model_config),
-    )
-    policy = get_policy(model, agent_config.learner_config)
-
-    run_path = os.path.join(config.run_path, "models")
-    checkpoint_manager = CheckpointManager(
-        os.path.join(run_path, "models"),
-        PyTreeCheckpointer(),
+    policy, policy_params, obs_rms, buffer, env, env_seed = load_latest_agent(
+        config.run_path, config.buffer_size
     )
 
-    params = checkpoint_manager.restore(checkpoint_manager.latest_step())
-    model_dict = params[CONST_MODEL_DICT]
-    policy_params = model_dict[CONST_MODEL][CONST_POLICY]
-    obs_rms = False
-    if CONST_OBS_RMS in params:
-        obs_rms = RunningMeanStd()
-        obs_rms.set_state(params[CONST_OBS_RMS])
+    if config.env_seed is not None:
+        env_seed = config.env_seed
 
-    env_seed = config.env_seed
-    if env_seed is None:
-        env_seed = agent_config.learner_config.seeds.env_seed
     rollout = EvaluationRollout(env, seed=env_seed)
     rollout.rollout(policy_params, policy, obs_rms, config.num_episodes, buffer)
     if config.save_buffer:

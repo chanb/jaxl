@@ -5,6 +5,7 @@ from typing import Any, Dict, Iterable, Tuple, Union
 
 import chex
 import jax.random as jrandom
+import math
 import numpy as np
 import optax
 
@@ -202,6 +203,108 @@ class EvaluationRollout(Rollout):
 
                 self._curr_obs = next_obs
                 self._curr_h_state = next_h_state
+        self._env.reset()
+
+    def rollout_with_subsampling(
+        self,
+        params: Union[optax.Params, Dict[str, Any]],
+        policy: Policy,
+        obs_rms: Union[bool, RunningMeanStd],
+        buffer: ReplayBuffer,
+        num_samples: int,
+        subsampling_length: int,
+        use_tqdm: bool = True,
+    ):
+        """
+        Executes the policy in the environment and store them with a subsampling scheme.
+
+        :param params: the model parameters
+        :param policy: the policy
+        :param obs_rms: the running statistics for observations
+        :param buffer: the buffer to store the transitions with
+        :param num_sampels: the number of samples to store
+        :param subsampling_length: the length of the subtrajectory per episode
+        :param use_tqdm: whether or not to show progress bar
+        :type params: Union[optax.Params, Dict[str, Any]]
+        :type policy: Policy
+        :type obs_rms: Union[bool, RunningMeanStd]
+        :type buffer: ReplayBuffer
+        :type num_samples: int
+        :type subsampling_length: int
+        :type use_tqdm: bool (DefaultValue = False)
+
+        """
+        num_episodes = math.ceil(num_samples / subsampling_length)
+        drop_last = num_samples % subsampling_length
+
+        it = range(num_episodes)
+        if use_tqdm:
+            it = tqdm(it)
+        for _ in it:
+            self._episodic_returns.append(0)
+            self._episode_lengths.append(0)
+            seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
+            self._reset_key = jrandom.split(self._reset_key, 1)[0]
+            self._curr_obs, self._curr_info = self._env.reset(seed=seed)
+            self._curr_h_state = policy.reset()
+
+            curr_episode = []
+            done = False
+            while not done:
+                normalize_obs = np.array([self._curr_obs])
+                if obs_rms:
+                    normalize_obs = obs_rms.normalize(normalize_obs)
+
+                act, next_h_state = policy.deterministic_action(
+                    params,
+                    normalize_obs,
+                    np.array([self._curr_h_state]),
+                )
+                act = act[0]
+                next_h_state = next_h_state[0]
+
+                env_act = act
+                if isinstance(self._env.action_space, spaces.Box):
+                    env_act = np.clip(
+                        act, self._env.action_space.low, self._env.action_space.high
+                    )
+                next_obs, rew, terminated, truncated, info = self._env.step(env_act)
+                self._episodic_returns[-1] += float(rew)
+                self._episode_lengths[-1] += 1
+
+                done = terminated or truncated
+
+                curr_episode.append(
+                    (
+                        self._curr_obs,
+                        self._curr_h_state,
+                        act,
+                        rew,
+                        terminated,
+                        truncated,
+                        info,
+                        next_obs,
+                        next_h_state,
+                    )
+                )
+
+                self._curr_obs = next_obs
+                self._curr_h_state = next_h_state
+
+            idx_start = 0
+            idx_end = len(curr_episode)
+            if subsampling_length < len(curr_episode):
+                idx_start = jrandom.randint(
+                    self._reset_key,
+                    1,
+                    minval=0,
+                    maxval=len(curr_episode) - subsampling_length,
+                )
+                idx_end = idx_start + subsampling_length
+
+            for idx in range(idx_start, idx_end):
+                buffer.push(*curr_episode[idx])
+
         self._env.reset()
 
 
