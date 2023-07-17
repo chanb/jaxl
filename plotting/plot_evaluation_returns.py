@@ -1,6 +1,7 @@
 from gymnasium.experimental.wrappers import RecordVideoV0
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
+import _pickle as pickle
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,7 +26,7 @@ save_path = f"./results-{experiment_name}"
 
 num_evaluation_episodes = 10
 env_seed = 9999
-record_video = True
+record_video = False
 
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
@@ -91,7 +92,7 @@ for variant_name, returns in result_per_variant.items():
         alpha=0.3,
     )
 
-ax.set_ylabel('Expected Returns')
+ax.set_ylabel('Expected Return')
 ax.set_xlabel('Iterations')
 ax.legend()
 
