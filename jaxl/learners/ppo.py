@@ -4,6 +4,7 @@ from typing import Any, Dict, Tuple
 
 import chex
 import jax
+import jax.numpy as jnp
 import jax.random as jrandom
 import numpy as np
 import optax
@@ -14,7 +15,8 @@ from jaxl.learners.reinforcement import OnPolicyLearner
 from jaxl.learners.utils import gather_per_leaf_l2_norm
 from jaxl.losses.reinforcement import (
     scan_gae_lambda_returns,
-    make_ppo_pi_loss,
+    make_pi_is_loss,
+    make_ppo_clip_loss,
     make_ppo_vf_loss,
 )
 from jaxl.losses.supervised import make_squared_loss
@@ -72,8 +74,6 @@ class PPO(OnPolicyLearner):
         self._pi = get_policy(self._model[CONST_POLICY], config)
         self._vf = self._model[CONST_VF]
 
-        self._pi_loss = make_ppo_pi_loss(self._pi, self._config.pi_loss_setting)
-
         if self._config.vf_loss_setting.clip_param:
             _vf_loss = make_ppo_vf_loss(self._vf, self._config.vf_loss_setting)
 
@@ -88,68 +88,28 @@ class PPO(OnPolicyLearner):
 
         self._vf_loss = vf_loss
 
+        if self._config.pi_loss_setting.objective == CONST_CLIP:
+            pi_loss = make_ppo_clip_loss(self._pi, self._config.pi_loss_setting)
+
+            def reg(old_lprobs, new_lprobs):
+                return 0
+
+        elif self._config.pi_loss_setting.objective == CONST_REVERSE_KL:
+            pi_loss = make_pi_is_loss(self._pi, self._config.pi_loss_setting)
+
+            def reg(old_lprobs, new_lprobs):
+                log_ratio = old_lprobs - new_lprobs
+                return jnp.mean((jnp.exp(log_ratio) - 1) - log_ratio)
+
+        else:
+            raise ValueError(
+                f"only support {VALID_PPO_OBJECTIVE}, got {self._config.pi_loss_setting.objective}"
+            )
+        self._pi_loss = pi_loss
+
         self._ent_coef = optax.constant_schedule(0.0)
         if hasattr(self._config, "ent_loss_setting"):
             self._ent_coef = get_scheduler(self._config.ent_loss_setting)
-
-        def no_update(
-            grads: FrozenDict,
-            model_dict: Dict[str, Any],
-        ) -> Dict[str, Any]:
-            """
-            Skip update on the optimizer and the model.
-
-            :param grads: the gradient
-            :param model_dict: the dictionary containing both optimizer state and the model parameters
-            :type grads: FrozenDict
-            :type model_dict: Dict[str, Any]
-            :return: the original optimizer state and model parameters
-            :rtype: Dict[str, Any]
-
-            """
-            return model_dict
-
-        def perform_update(
-            grads: FrozenDict,
-            model_dict: Dict[str, Any],
-        ) -> Dict[str, Any]:
-            """
-            Perform update on the optimizer and the model.
-
-            :param grads: the gradient
-            :param model_dict: the dictionary containing both optimizer state and the model parameters
-            :type grads: FrozenDict
-            :type model_dict: Dict[str, Any]
-            :return: the updated optimizer state and model parameters
-            :rtype: Dict[str, Any]
-
-            """
-            updates, pi_opt_state = self._optimizer[CONST_POLICY].update(
-                grads[CONST_POLICY],
-                model_dict[CONST_OPT_STATE][CONST_POLICY],
-                model_dict[CONST_MODEL][CONST_POLICY],
-            )
-            pi_params = optax.apply_updates(
-                model_dict[CONST_MODEL][CONST_POLICY], updates
-            )
-
-            updates, vf_opt_state = self._optimizer[CONST_VF].update(
-                grads[CONST_VF],
-                model_dict[CONST_OPT_STATE][CONST_VF],
-                model_dict[CONST_MODEL][CONST_VF],
-            )
-            vf_params = optax.apply_updates(model_dict[CONST_MODEL][CONST_VF], updates)
-
-            return {
-                CONST_MODEL: {
-                    CONST_POLICY: pi_params,
-                    CONST_VF: vf_params,
-                },
-                CONST_OPT_STATE: {
-                    CONST_POLICY: pi_opt_state,
-                    CONST_VF: vf_opt_state,
-                },
-            }
 
         def joint_loss(
             model_dicts: Dict[str, Any],
@@ -201,6 +161,7 @@ class PPO(OnPolicyLearner):
             )
 
             entropy = np.mean(pi_aux[CONST_AUX].get(CONST_ENTROPY, 0.0))
+            reg_term = reg(old_lprobs, pi_aux[CONST_LOG_PROBS])
 
             vf_loss, vf_aux = self._vf_loss(
                 model_dicts[CONST_VF],
@@ -214,6 +175,7 @@ class PPO(OnPolicyLearner):
                 self._config.pi_loss_setting.coefficient * pi_loss
                 + self._config.vf_loss_setting.coefficient * vf_loss
                 - ent_coef * entropy
+                + self._config.pi_loss_setting.beta * reg_term
             )
 
             aux = {
@@ -223,6 +185,7 @@ class PPO(OnPolicyLearner):
                     CONST_IS_RATIO: pi_aux[CONST_IS_RATIO],
                     CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
                     CONST_ENTROPY: pi_aux[CONST_AUX].get(CONST_ENTROPY, 0.0),
+                    CONST_REGULARIZATION: reg_term,
                 },
                 CONST_VF: {
                     CONST_LOSS: vf_loss,
@@ -233,13 +196,6 @@ class PPO(OnPolicyLearner):
 
         self._joint_loss = joint_loss
         self.joint_step = jax.jit(self.make_joint_step())
-        self.perform_update = jax.jit(perform_update)
-
-        # This variant means that when reverse KL exceeds threshold,
-        # whether or not we still perform the current update.
-        self.no_update = jax.jit(
-            perform_update if self._update_before_early_stopping else no_update
-        )
 
     @property
     def policy(self):
@@ -361,22 +317,32 @@ class PPO(OnPolicyLearner):
                 CONST_VF: l2_norm(grads[CONST_VF]),
             }
 
-            # Approx. reverse KL
-            stop_update = (
-                self._kl_threshold
-                and np.mean(old_lprobs - aux[CONST_POLICY][CONST_LOG_PROBS])
-                > self._kl_threshold
+            updates, pi_opt_state = self._optimizer[CONST_POLICY].update(
+                grads[CONST_POLICY],
+                model_dict[CONST_OPT_STATE][CONST_POLICY],
+                model_dict[CONST_MODEL][CONST_POLICY],
+            )
+            pi_params = optax.apply_updates(
+                model_dict[CONST_MODEL][CONST_POLICY], updates
             )
 
-            model_dict = jax.lax.cond(
-                stop_update,
-                self.no_update,
-                self.perform_update,
-                grads,
-                self._model_dict,
+            updates, vf_opt_state = self._optimizer[CONST_VF].update(
+                grads[CONST_VF],
+                model_dict[CONST_OPT_STATE][CONST_VF],
+                model_dict[CONST_MODEL][CONST_VF],
             )
+            vf_params = optax.apply_updates(model_dict[CONST_MODEL][CONST_VF], updates)
 
-            return stop_update, model_dict, aux
+            return {
+                CONST_MODEL: {
+                    CONST_POLICY: pi_params,
+                    CONST_VF: vf_params,
+                },
+                CONST_OPT_STATE: {
+                    CONST_POLICY: pi_opt_state,
+                    CONST_VF: vf_opt_state,
+                },
+            }, aux
 
         return _joint_step
 
@@ -395,7 +361,8 @@ class PPO(OnPolicyLearner):
         total_rollout_time = 0
         total_update_time = 0
         stop_update = False
-        for update_i in range(self._num_update_steps):
+        old_model_dict = self.model_dict
+        for _ in range(self._num_update_steps):
             auxes.append({})
             tic = timeit.default_timer()
             next_obs, next_h_state = self._rollout.rollout(
@@ -465,7 +432,7 @@ class PPO(OnPolicyLearner):
                 minibatch_idxes = sample_idxes[
                     opt_i * self._opt_batch_size : (opt_i + 1) * self._opt_batch_size
                 ]
-                stop_update, self.model_dict, aux = self.joint_step(
+                next_model_dict, aux = self.joint_step(
                     self._model_dict,
                     obss[minibatch_idxes],
                     h_states[minibatch_idxes],
@@ -476,15 +443,31 @@ class PPO(OnPolicyLearner):
                     old_lprobs[minibatch_idxes],
                     self._ent_coef(self._num_updates),
                 )
+                approx_reverse_kl = np.mean(
+                    old_lprobs[minibatch_idxes] - aux[CONST_POLICY][CONST_LOG_PROBS]
+                )
+                stop_update = (
+                    self._kl_threshold and approx_reverse_kl > self._kl_threshold
+                )
+
+                aux[CONST_REVERSE_KL] = approx_reverse_kl
                 assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
                 auxes_per_epoch.append(aux)
 
                 # Stop update due to approximate KL
                 if stop_update:
+                    if self._update_before_early_stopping:
+                        self.model_dict = next_model_dict
+                        opt_i += 1
                     break
+                else:
+                    self.model_dict = next_model_dict
+            else:
+                opt_i += 1
 
             total_update_time += timeit.default_timer() - tic
 
+            auxes[-1][CONST_NUM_UPDATES] = opt_i
             auxes[-1][CONST_RETURNS] = rets.mean().item()
             auxes[-1][CONST_VALUES] = vals.mean().item()
             auxes[-1][CONST_ADVANTAGES] = advs.mean().item()
@@ -506,21 +489,19 @@ class PPO(OnPolicyLearner):
             }
             self._num_updates += 1
 
-            # Stop update due to approximate KL
-            if stop_update:
-                if self._update_before_early_stopping:
-                    opt_i += 1
-                break
-
         auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
         aux[CONST_LOG] = {
             f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
             f"losses/pi": auxes[CONST_AUX][CONST_POLICY][CONST_LOSS].item(),
             f"losses/vf": auxes[CONST_AUX][CONST_VF][CONST_LOSS].item(),
+            f"losses/{CONST_REGULARIZATION}": auxes[CONST_AUX][CONST_POLICY][
+                CONST_REGULARIZATION
+            ].item(),
+            f"losses_info/{CONST_REVERSE_KL}": auxes[CONST_AUX][CONST_REVERSE_KL],
+            f"losses_info/{CONST_NUM_UPDATES}": auxes[CONST_NUM_UPDATES],
             f"losses_info/{CONST_ENTROPY}": auxes[CONST_AUX][CONST_POLICY][
                 CONST_ENTROPY
             ].item(),
-            f"losses_info/{CONST_NUM_UPDATES}": update_i * self._opt_epochs + opt_i,
             f"losses_info/{CONST_RETURN}": auxes[CONST_RETURNS].item(),
             f"losses_info/{CONST_ADVANTAGE}": auxes[CONST_ADVANTAGES].item(),
             f"losses_info/{CONST_VALUE}": auxes[CONST_VALUES].item(),

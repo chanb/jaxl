@@ -23,6 +23,7 @@ VALID_IL_LEARNER = [CONST_BC, CONST_MTBC]
 CONST_PRE_PARAM_NORM = "pre_param_norm"
 CONST_POST_PARAM_NORM = "post_param_norm"
 
+CONST_REGULARIZATION = "regularization"
 CONST_PARAM_NORM = "param_norm"
 CONST_GRAD_NORM = "grad_norm"
 CONST_STOP_UPDATE = "stop_update"
@@ -38,3 +39,7 @@ CONST_PI_LOSS_SETTING = "pi_loss_setting"
 CONST_VF_LOSS_SETTING = "vf_loss_setting"
 
 CONST_NUM_CLIPPED = "num_clipped"
+
+CONST_REVERSE_KL = "reverse_kl"
+CONST_CLIP = "clip"
+VALID_PPO_OBJECTIVE = [CONST_CLIP, CONST_REVERSE_KL]

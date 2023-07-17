@@ -214,7 +214,6 @@ def make_reinforce_loss(
         """
         lprobs, aux = policy.lprob(params, obss, h_states, acts)
 
-        # TODO: Logging of action lprobs
         return reduction(-lprobs * (rets - baselines)), {
             CONST_LOG_PROBS: lprobs,
             CONST_AUX: aux,
@@ -223,7 +222,77 @@ def make_reinforce_loss(
     return reinforce_loss
 
 
-def make_ppo_pi_loss(
+def make_pi_is_loss(
+    policy: StochasticPolicy,
+    loss_setting: SimpleNamespace,
+) -> Callable[
+    [
+        Union[optax.Params, Dict[str, Any]],
+        chex.Array,
+        chex.Array,
+        chex.Array,
+        chex.Array,
+        chex.Array,
+    ],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets policy with importance sampling loss function.
+
+    :param policy: the policy
+    :param loss_setting: the loss configuration
+    :type policy: StochasticPolicy
+    :type loss_setting: SimpleNamespace
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    def pi_loss(
+        params: Union[optax.Params, Dict[str, Any]],
+        obss: chex.Array,
+        h_states: chex.Array,
+        acts: chex.Array,
+        advs: chex.Array,
+        old_lprobs: chex.Array,
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        Policy with importance sampling loss.
+
+        :param params: the model parameters
+        :param obss: the observations
+        :param h_states: the hidden states
+        :param acts: the actions taken
+        :param advs: the advantages
+        :param old_lprobs: the action log probabilities for importance sampling
+        :type params: Union[optax.Params, Dict[str, Any]]
+        :type obss: chex.Array
+        :type h_states: chex.Array
+        :type acts: chex.Array
+        :type advs: chex.Array
+        :type old_lprobs: chex.Array
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+        lprobs, aux = policy.lprob(params, obss, h_states, acts)
+        is_ratio = jnp.exp(lprobs - old_lprobs)
+        # XXX: Deal with inf values
+        is_ratio = jax.lax.select(
+            jnp.isfinite(is_ratio), is_ratio, jnp.zeros_like(is_ratio)
+        )
+        pi_surrogate = is_ratio * advs
+
+        return reduction(-pi_surrogate), {
+            CONST_NUM_CLIPPED: 0,
+            CONST_IS_RATIO: is_ratio,
+            CONST_LOG_PROBS: lprobs,
+            CONST_AUX: aux,
+        }
+
+    return pi_loss
+
+
+def make_ppo_clip_loss(
     policy: StochasticPolicy,
     loss_setting: SimpleNamespace,
 ) -> Callable[
@@ -278,11 +347,9 @@ def make_ppo_pi_loss(
         lprobs, aux = policy.lprob(params, obss, h_states, acts)
         is_ratio = jnp.exp(lprobs - old_lprobs)
         # XXX: Deal with inf values
-        # TODO: Check this new implementation and see if we still need zero_nans
         is_ratio = jax.lax.select(
             jnp.isfinite(is_ratio), is_ratio, jnp.zeros_like(is_ratio)
         )
-        # is_ratio = jnp.nan_to_num(is_ratio, posinf=0.0, neginf=0.0)
 
         clipped_is_ratio = jnp.clip(
             is_ratio,

@@ -9,12 +9,12 @@
         "policy": {
             "architecture": "mlp",
             "layers": [64, 64],
-            "activation": "tanh"
+            "activation": "relu"
         },
         "vf": {
             "architecture": "mlp",
             "layers": [64, 64],
-            "activation": "tanh"
+            "activation": "relu"
         }
     },
     "optimizer_config": {
@@ -26,7 +26,7 @@
                     "value": 3e-4
                 }
             },
-            "max_grad_norm": 0.5
+            "max_grad_norm": false
         },
         "vf": {
             "optimizer": "adam",
@@ -36,7 +36,7 @@
                     "value": 3e-4
                 }
             },
-            "max_grad_norm": 0.5
+            "max_grad_norm": false
         }
     },
     "learner_config": {
@@ -45,7 +45,7 @@
             "env_type": "gym",
             "env_name": "DMCCheetah-v0",
             "env_kwargs": {
-                "seed": 36,
+                "seed": 0,
                 "use_default": true,
                 "control_mode": "discrete"
             }
@@ -68,11 +68,11 @@
         "obs_rms": true,
         "value_rms": false,
         "policy_distribution": "softmax",
-        "temperature": 0.1,
+        "temperature": 1.0,
         "opt_batch_size": 128,
         "opt_epochs": 80,
-        "kl_threshold": 0.015,
-        "update_before_early_stopping": false,
+        "kl_threshold": 0.0015,
+        "update_before_early_stopping": true,
         "ent_loss_setting": {
             "scheduler": "constant_schedule",
             "scheduler_kwargs": {
@@ -85,9 +85,11 @@
             "clip_param": false
         },
         "pi_loss_setting": {
+            "objective": "clip",
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": 0.2,
+            "beta": 3.0
         }
     },
     "train_config": {
