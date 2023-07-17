@@ -51,9 +51,9 @@
             }
         },
         "seeds": {
-            "model_seed": 43,
-            "buffer_seed": 43,
-            "env_seed": 43
+            "model_seed": 46,
+            "buffer_seed": 46,
+            "env_seed": 46
         },
         "buffer_config": {
             "buffer_type": "default",

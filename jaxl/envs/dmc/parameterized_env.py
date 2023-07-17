@@ -1,7 +1,7 @@
 from dm_control.rl import control
 from dm_control.suite import base
 from dm_env import TimeStep
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 import chex
 import gymnasium as gym
@@ -111,11 +111,13 @@ class ParameterizedDMCEnv(gym.Env):
             low=-np.inf,
             high=np.inf,
             shape=(
-                sum(
-                    [
-                        np.product(val.shape)
-                        for val in self.env.observation_spec().values()
-                    ]
+                int(
+                    sum(
+                        [
+                            np.product(val.shape) if len(val.shape) else 1
+                            for val in self.env.observation_spec().values()
+                        ]
+                    )
                 ),
             ),
             dtype=np.float64,
@@ -154,7 +156,13 @@ class ParameterizedDMCEnv(gym.Env):
         }
 
     def _get_obs(self, timestep: TimeStep):
-        return np.concatenate(jax.tree_util.tree_leaves(timestep.observation), axis=0)
+        return np.concatenate(
+            [
+                val if isinstance(val, Iterable) else np.array([val])
+                for val in jax.tree_util.tree_leaves(timestep.observation)
+            ],
+            axis=0,
+        )
 
     def reset(
         self,
