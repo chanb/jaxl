@@ -5,22 +5,22 @@ Example command:
 # ParameterizedPendulum-v0
 python search_expert.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/local-ppo.json \
-    --exp_name=pendulum_cont \
-    --out_dir=${HOME}/scratch/data/pendulum_cont/search_expert \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
+    --out_dir=${HOME}/scratch/data/search_expert \
     --run_seed=0 \
-    --num_epochs=500 \
-    --run_time=02:00:00
+    --env_seed=42 \
+    --env_name=ParameterizedPendulum-v0 \
+    --exp_name=pendulum
 
 python search_expert.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/jaxl/configs/classic_control/pendulum/local-ppo.json \
-    --exp_name=pendulum_disc \
-    --out_dir=${HOME}/scratch/data/pendulum_disc/search_expert \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
+    --out_dir=${HOME}/scratch/data/search_expert \
     --run_seed=0 \
-    --num_epochs=500 \
-    --run_time=02:00:00 \
-    --discrete_control
+    --env_seed=42 \
+    --discrete_control \
+    --env_name=ParameterizedPendulum-v0 \
+    --exp_name=pendulum
 
 
 Then, to generate the data, run the generated script run_all-*.sh ${run_seed}
@@ -35,7 +35,7 @@ import json
 import numpy as np
 import os
 
-from search_config import HYPERPARAMETERS_CONFIG
+from search_config import HYPERPARAMETERS_CONFIG, POLICY_CONFIG
 
 
 FLAGS = flags.FLAGS
@@ -73,12 +73,69 @@ flags.DEFINE_boolean(
     "discrete_control", default=False, help="Whether or not to use discrete control"
 )
 flags.DEFINE_integer(
-    "num_epochs", default=300, help="The number of epochs to run the algorithm"
+    "num_epochs", default=1000, help="The number of epochs to run the algorithm"
 )
-flags.DEFINE_string("run_time", default="03:00:00", help="The run time per variant")
+flags.DEFINE_string("run_time", default="05:00:00", help="The run time per variant")
+flags.DEFINE_string("env_name", required=True, help="The environment name")
+flags.DEFINE_integer("env_seed", default=42, help="The environment seed")
 
 
 NUM_FILES_PER_DIRECTORY = 100
+
+
+def set_ppo(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=None):
+    assert (key is not None) != (hyperparam_keys is not None and hyperparam_map is not None)
+    if key is not None:
+        if key == "objective":
+            template["learner_config"]["pi_loss_setting"]["objective"] = val
+    elif hyperparam_keys is not None:
+        if "model" in hyperparam_keys:
+            template["model_config"]["policy"]["layers"] = hyperparam_map("model")
+            template["model_config"]["vf"]["layers"] = hyperparam_map("model")
+
+        if "lr" in hyperparam_keys:
+            template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"][
+                "value"
+            ] = hyperparam_map("lr")
+            template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"][
+                "value"
+            ] = hyperparam_map("lr")
+
+        if "max_grad_norm" in hyperparam_keys:
+            template["optimizer_config"]["policy"]["max_grad_norm"] = hyperparam_map(
+                "max_grad_norm"
+            )
+            template["optimizer_config"]["vf"]["max_grad_norm"] = hyperparam_map(
+                "max_grad_norm"
+            )
+
+        if "obs_rms" in hyperparam_keys:
+            template["learner_config"]["obs_rms"] = hyperparam_map("obs_rms")
+
+        if "value_rms" in hyperparam_keys:
+            template["learner_config"]["value_rms"] = hyperparam_map("value_rms")
+
+        if "opt_batch_size" in hyperparam_keys:
+            template["learner_config"]["opt_batch_size"] = hyperparam_map(
+                "opt_batch_size"
+            )
+
+        if "opt_epochs" in hyperparam_keys:
+            template["learner_config"]["opt_epochs"] = hyperparam_map("opt_epochs")
+
+        if "vf_clip_param" in hyperparam_keys:
+            template["learner_config"]["vf_loss_setting"][
+                "clip_param"
+            ] = hyperparam_map("vf_clip_param")
+
+        if "ent_coef" in hyperparam_keys:
+            template["learner_config"]["ent_loss_setting"] = hyperparam_map("ent_coef")
+
+        if "beta" in hyperparam_keys:
+            template["learner_config"]["pi_loss_setting"]["beta"] = hyperparam_map("beta")
+
+        if "clip_param" in hyperparam_keys:
+            template["learner_config"]["pi_loss_setting"]["clip_param"] = hyperparam_map("clip_param")
 
 
 def main(config):
@@ -104,46 +161,60 @@ def main(config):
 
     os.makedirs(config.out_dir, exist_ok=True)
 
-    # Standard template
-    template["logging_config"]["experiment_name"] = ""
+    # Only use the default environmental parameters for hyperparameter search.
+    # Should generalize well anyway
+    template["train_config"]["num_epochs"] = config.num_epochs
 
+    algo = template["learner_config"]["learner"]
+    if algo == "ppo":
+        template_setter = set_ppo
+    else:
+        raise ValueError(f"{algo} not supported")
+    
+    # Set action-space specific hyperparameters
+    control_mode = "discrete" if config.discrete_control else "continuous"
+    template["learner_config"]["policy_distribution"] = POLICY_CONFIG[algo][control_mode]["policy_distribution"]
+
+    for key, val in POLICY_CONFIG[algo][control_mode].items():
+        if key == "hyperparameters":
+            continue
+
+        template_setter(
+            template=template,
+            key=key,
+            val=val
+        )
+
+    # Set environment configuration
+    template["learner_config"]["env_config"]["env_kwargs"] = {
+        "use_default": True,
+        "seed": config.env_seed,
+        "control_mode": control_mode,
+    }
+
+    # Hyperparameter list
     hyperparamss = list(
-        HYPERPARAMETERS_CONFIG[
+        HYPERPARAMETERS_CONFIG[algo][
             template["learner_config"]["env_config"]["env_name"]
         ].values()
-    )
+    ) + list(POLICY_CONFIG[algo][control_mode]["hyperparameters"].values())
     hyperparam_keys = list(
-        HYPERPARAMETERS_CONFIG[
+        HYPERPARAMETERS_CONFIG[algo][
             template["learner_config"]["env_config"]["env_name"]
         ].keys()
-    )
+    ) + list(POLICY_CONFIG[algo][control_mode]["hyperparameters"].keys())
 
     def map_key_to_hyperparameter(hyperparams, key):
         hyperparam_idx = hyperparam_keys.index(key)
         return hyperparams[hyperparam_idx]
 
-    base_script_dir = os.path.join(config.out_dir, "scripts")
-    base_log_dir = os.path.join(config.out_dir, "logs")
-    base_run_dir = os.path.join(config.out_dir, "runs")
-
+    # Create config per setting
+    base_script_dir = os.path.join(config.out_dir, config.exp_name, control_mode, "scripts")
+    base_run_dir = os.path.join(config.out_dir, config.exp_name, control_mode, "runs")
     dat_content = ""
     num_runs = 0
-
-    template["train_config"]["num_epochs"] = config.num_epochs
-    template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = True
-    if config.discrete_control:
-        template["learner_config"]["env_config"]["env_kwargs"][
-            "control_mode"
-        ] = "discrete"
-        template["learner_config"]["policy_distribution"] = "softmax"
-    else:
-        template["learner_config"]["env_config"]["env_kwargs"][
-            "control_mode"
-        ] = "default"
-        template["learner_config"]["policy_distribution"] = "gaussian"
-
     for idx, hyperparams in enumerate(itertools.product(*hyperparamss)):
-        get_hyperparam = partial(map_key_to_hyperparameter, hyperparams)
+        hyperparam_map = partial(map_key_to_hyperparameter, hyperparams)
         dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
         curr_script_dir = os.path.join(base_script_dir, dir_i)
         curr_run_dir = os.path.join(base_run_dir, dir_i)
@@ -151,50 +222,14 @@ def main(config):
             os.makedirs(curr_run_dir, exist_ok=True)
             os.makedirs(curr_script_dir, exist_ok=True)
 
-        if "model" in hyperparam_keys:
-            template["model_config"]["policy"]["layers"] = get_hyperparam("model")
-            template["model_config"]["vf"]["layers"] = get_hyperparam("model")
-
-        if "lr" in hyperparam_keys:
-            template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"][
-                "value"
-            ] = get_hyperparam("lr")
-            template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"][
-                "value"
-            ] = get_hyperparam("lr")
-
-        if "max_grad_norm" in hyperparam_keys:
-            template["optimizer_config"]["policy"]["max_grad_norm"] = get_hyperparam(
-                "max_grad_norm"
-            )
-            template["optimizer_config"]["vf"]["max_grad_norm"] = get_hyperparam(
-                "max_grad_norm"
-            )
-
-        if "obs_rms" in hyperparam_keys:
-            template["learner_config"]["obs_rms"] = get_hyperparam("obs_rms")
-
-        if "value_rms" in hyperparam_keys:
-            template["learner_config"]["value_rms"] = get_hyperparam("value_rms")
-
-        if "opt_batch_size" in hyperparam_keys:
-            template["learner_config"]["opt_batch_size"] = get_hyperparam(
-                "opt_batch_size"
-            )
-
-        if "opt_epochs" in hyperparam_keys:
-            template["learner_config"]["opt_epochs"] = get_hyperparam("opt_epochs")
-
-        if "vf_clip_param" in hyperparam_keys:
-            template["learner_config"]["vf_loss_setting"][
-                "clip_param"
-            ] = get_hyperparam("vf_clip_param")
-
-        if "ent_coef" in hyperparam_keys:
-            template["learner_config"]["ent_loss_setting"] = get_hyperparam("ent_coef")
+        template_setter(
+            template=template,
+            hyperparam_keys=hyperparam_keys,
+            hyperparam_map=hyperparam_map
+        )
 
         if "buffer_size" in hyperparam_keys:
-            template["learner_config"]["buffer_config"]["buffer_size"] = get_hyperparam(
+            template["learner_config"]["buffer_config"]["buffer_size"] = hyperparam_map(
                 "buffer_size"
             )
 
@@ -215,7 +250,7 @@ def main(config):
         f.writelines(dat_content)
 
     os.makedirs(
-        "/home/chanb/scratch/run_reports/search_expert-{}".format(config.exp_name),
+        "/home/chanb/scratch/run_reports/search_expert-{}_{}".format(config.exp_name, control_mode),
         exist_ok=True,
     )
     sbatch_content = ""
@@ -225,8 +260,8 @@ def main(config):
     sbatch_content += "#SBATCH --cpus-per-task=1\n"
     sbatch_content += "#SBATCH --mem=3G\n"
     sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
-    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/search_expert-{}/%j.out\n".format(
-        config.exp_name
+    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/search_expert-{}_{}/%j.out\n".format(
+        config.exp_name, control_mode
     )
     sbatch_content += "module load python/3.9\n"
     sbatch_content += "module load mujoco\n"
