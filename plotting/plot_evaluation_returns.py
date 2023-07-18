@@ -1,5 +1,6 @@
 from gymnasium.experimental.wrappers import RecordVideoV0
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
+from typing import Iterable
 
 import _pickle as pickle
 import matplotlib as mpl
@@ -9,7 +10,7 @@ import os
 
 from jaxl.constants import *
 from jaxl.envs.rollouts import EvaluationRollout
-from jaxl.utils import RunningMeanStd
+from jaxl.utils import RunningMeanStd, flatten_dict
 from plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
@@ -150,9 +151,14 @@ for variant_name in env_configs:
     max_return_means.append(max_return_mean)
     max_return_stds.append(max_return_std)
 
-    for attr_name, attr_val in env_config.items():
-        modified_attributes.setdefault(attr_name, [])
-        modified_attributes[attr_name].append(attr_val)
+    for (attr_name, attr_val) in flatten_dict(env_config):
+        if isinstance(attr_val, Iterable):
+            for val_i in range(len(attr_val)):
+                modified_attributes.setdefault(f"{attr_name}.{val_i}", [])
+                modified_attributes[f"{attr_name}.{val_i}"].append(attr_val[val_i])
+        else:
+            modified_attributes.setdefault(attr_name, [])
+            modified_attributes[attr_name].append(attr_val)
 
 max_return_means = np.array(max_return_means)
 max_return_stds = np.array(max_return_stds)
@@ -190,9 +196,9 @@ for attr_i, (attr_name, attr_vals) in enumerate(modified_attributes.items()):
     if num_rows == num_cols == 1:
         ax = axes
     elif num_rows == 1 or num_cols == 1:
-        ax = ax[attr_i]
+        ax = axes[attr_i]
     else:
-        ax = ax[attr_i // num_cols, attr_i % num_cols]
+        ax = axes[attr_i // num_cols, attr_i % num_cols]
 
     x_vals = attr_vals[sort_idxes]
     means = max_return_means[sort_idxes]
