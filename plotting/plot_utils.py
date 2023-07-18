@@ -32,7 +32,7 @@ def set_size(width_pt, fraction=1, subplots=(1, 1)):
     inches_per_pt = 1 / 72.27
 
     # Golden ratio to set aesthetic figure height
-    golden_ratio = (5**.5 - 1) / 2
+    golden_ratio = (5**0.5 - 1) / 2
 
     # Figure width in inches
     fig_width_in = fig_width_pt * inches_per_pt
@@ -54,7 +54,7 @@ pgf_with_latex = {  # setup matplotlib to use latex for output
     "legend.fontsize": 8,  # Make the legend/label fonts a little smaller
     "xtick.labelsize": 8,
     "ytick.labelsize": 8,
-    "pgf.rcfonts": False     # don't setup fonts from rc parameters
+    "pgf.rcfonts": False,  # don't setup fonts from rc parameters
 }
 
 
@@ -76,6 +76,7 @@ def get_config(agent_path):
         "multitask": multitask,
         "num_models": num_models,
     }
+
 
 def get_evaluation_components(agent_path):
     agent_config, aux = get_config(agent_path)

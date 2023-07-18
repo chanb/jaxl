@@ -14,14 +14,16 @@ from plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
 # Use the seborn style
-plt.style.use('seaborn')
+plt.style.use("seaborn")
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
-experiment_name = "single_seed_comparison"
-experiment_dir = f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
+experiment_name = "single_hyperparameter_robustness"
+experiment_dir = (
+    f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
+)
 save_path = f"./results-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)
 
@@ -32,11 +34,15 @@ record_video = False
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
 if os.path.isfile(f"{save_path}/returns.pkl"):
-    (result_per_variant, env_configs) = pickle.load(open(f"{save_path}/returns.pkl", "rb"))
+    (result_per_variant, env_configs) = pickle.load(
+        open(f"{save_path}/returns.pkl", "rb")
+    )
 else:
     result_per_variant = {}
     env_configs = {}
-    for variant_name in os.listdir(experiment_dir):
+    for variant_i, variant_name in enumerate(os.listdir(experiment_dir)):
+        if (variant_i + 1) % 10 == 0:
+            print(f"Processed {variant_i + 1} variants")
         variant_path = os.path.join(experiment_dir, variant_name)
         episodic_returns_per_variant = {}
         for agent_path, _, filenames in os.walk(variant_path):
@@ -56,9 +62,14 @@ else:
                     PyTreeCheckpointer(),
                 )
                 for checkpoint_step in checkpoint_manager.all_steps():
-                    if record_video and checkpoint_step == checkpoint_manager.latest_step():
+                    if (
+                        record_video
+                        and checkpoint_step == checkpoint_manager.latest_step()
+                    ):
                         env = RecordVideoV0(
-                            env, f"{save_path}/videos/variant_{variant_name}/model_id_{checkpoint_step}", disable_logger=True
+                            env,
+                            f"{save_path}/videos/variant_{variant_name}/model_id_{checkpoint_step}",
+                            disable_logger=True,
                         )
                     params = checkpoint_manager.restore(checkpoint_step)
                     model_dict = params[CONST_MODEL_DICT]
@@ -70,11 +81,18 @@ else:
 
                     agent_rollout = EvaluationRollout(env, seed=env_seed)
                     agent_rollout.rollout(
-                        agent_policy_params, policy, agent_obs_rms, num_evaluation_episodes, None
+                        agent_policy_params,
+                        policy,
+                        agent_obs_rms,
+                        num_evaluation_episodes,
+                        None,
+                        use_tqdm=False,
                     )
 
                     episodic_returns_per_variant.setdefault(checkpoint_step, [])
-                    episodic_returns_per_variant[checkpoint_step].append(np.mean(agent_rollout.episodic_returns))
+                    episodic_returns_per_variant[checkpoint_step].append(
+                        np.mean(agent_rollout.episodic_returns)
+                    )
                 result_per_variant[variant_name] = episodic_returns_per_variant
                 env_configs[variant_name] = env_config["modified_attributes"]
 
@@ -102,12 +120,12 @@ for variant_name, returns in result_per_variant.items():
         alpha=0.3,
     )
 
-ax.set_ylabel('Expected Return')
-ax.set_xlabel('Iterations')
+ax.set_ylabel("Expected Return")
+ax.set_xlabel("Iterations")
 ax.legend()
 
 fig.tight_layout()
-fig.savefig(f'{save_path}/returns.pdf', format='pdf', bbox_inches='tight', dpi=600)
+fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)
 
 with open(f"{save_path}/returns.pkl", "wb") as f:
     pickle.dump((result_per_variant, env_configs), f)
@@ -162,15 +180,13 @@ else:
     num_rows = 1
 
 fig, axes = plt.subplots(
-    num_rows,
-    num_cols,
-    figsize=set_size(doc_width_pt, fraction, (num_rows, num_cols))
+    num_rows, num_cols, figsize=set_size(doc_width_pt, fraction, (num_rows, num_cols))
 )
-fig.supylabel('Expected Return')
+fig.supylabel("Expected Return")
 
 for attr_i, (attr_name, attr_vals) in enumerate(modified_attributes.items()):
     sort_idxes = np.argsort(attr_vals)
-    
+
     if num_rows == num_cols == 1:
         ax = axes
     elif num_rows == 1 or num_cols == 1:
@@ -187,9 +203,11 @@ for attr_i, (attr_name, attr_vals) in enumerate(modified_attributes.items()):
         means + stds,
         means - stds,
         alpha=0.3,
-    )  
+    )
 
-    ax.set_xlabel(f'{attr_name}')
+    ax.set_xlabel(f"{attr_name}")
 
 fig.tight_layout()
-fig.savefig(f'{save_path}/returns-variants.pdf', format='pdf', bbox_inches='tight', dpi=600)
+fig.savefig(
+    f"{save_path}/returns-variants.pdf", format="pdf", bbox_inches="tight", dpi=600
+)
