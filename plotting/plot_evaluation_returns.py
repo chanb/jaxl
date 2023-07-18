@@ -23,6 +23,7 @@ doc_width_pt = 452.9679
 experiment_name = "single_seed_comparison"
 experiment_dir = f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
 save_path = f"./results-{experiment_name}"
+os.makedirs(save_path, exist_ok=True)
 
 num_evaluation_episodes = 10
 env_seed = 9999
@@ -31,9 +32,10 @@ record_video = False
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
 if os.path.isfile(f"{save_path}/returns.pkl"):
-    result_per_variant = pickle.load(open(f"{save_path}/returns.pkl", "rb"))
+    (result_per_variant, env_configs) = pickle.load(open(f"{save_path}/returns.pkl", "rb"))
 else:
     result_per_variant = {}
+    env_configs = {}
     for variant_name in os.listdir(experiment_dir):
         variant_path = os.path.join(experiment_dir, variant_name)
         episodic_returns_per_variant = {}
@@ -41,6 +43,11 @@ else:
             for filename in filenames:
                 if filename != "config.json":
                     continue
+
+                env_config_path = os.path.join(agent_path, "env_config.pkl")
+                env_config = None
+                if os.path.isfile(env_config_path):
+                    env_config = pickle.load(open(env_config_path, "rb"))
 
                 env, policy = get_evaluation_components(agent_path)
 
@@ -69,7 +76,10 @@ else:
                     episodic_returns_per_variant.setdefault(checkpoint_step, [])
                     episodic_returns_per_variant[checkpoint_step].append(np.mean(agent_rollout.episodic_returns))
                 result_per_variant[variant_name] = episodic_returns_per_variant
+                env_configs[variant_name] = env_config["modified_attributes"]
 
+
+# Plot main return
 fig, ax = plt.subplots(1, 1, figsize=set_size(doc_width_pt, 0.49, (1, 1)))
 
 for variant_name, returns in result_per_variant.items():
@@ -100,4 +110,86 @@ fig.tight_layout()
 fig.savefig(f'{save_path}/returns.pdf', format='pdf', bbox_inches='tight', dpi=600)
 
 with open(f"{save_path}/returns.pkl", "wb") as f:
-    pickle.dump(result_per_variant, f)
+    pickle.dump((result_per_variant, env_configs), f)
+
+# Plot return based on environmental parameter
+max_return_means = []
+max_return_stds = []
+modified_attributes = {}
+for variant_name in env_configs:
+    env_config = env_configs[variant_name]
+    returns = result_per_variant[variant_name]
+
+    max_return_mean = -np.inf
+    max_return_std = 0.0
+    for val in returns.values():
+        mean = np.mean(val)
+        std = np.std(val)
+        if max_return_mean < mean:
+            max_return_mean = mean
+            max_return_std = std
+
+    max_return_means.append(max_return_mean)
+    max_return_stds.append(max_return_std)
+
+    for attr_name, attr_val in env_config.items():
+        modified_attributes.setdefault(attr_name, [])
+        modified_attributes[attr_name].append(attr_val)
+
+max_return_means = np.array(max_return_means)
+max_return_stds = np.array(max_return_stds)
+
+for attr_name, attr_vals in modified_attributes.items():
+    modified_attributes[attr_name] = np.array(attr_vals)
+
+fraction = 0.9
+num_rows = 1
+num_cols = 1
+if len(modified_attributes) % 5 == 0:
+    num_cols = 5
+    num_rows = len(modified_attributes) // 5
+elif len(modified_attributes) % 4 == 0:
+    num_cols = 4
+    num_rows = len(modified_attributes) // 4
+elif len(modified_attributes) % 3 == 0:
+    num_cols = 3
+    num_rows = len(modified_attributes) // 3
+elif len(modified_attributes) % 2 == 0:
+    num_cols = 2
+    num_rows = len(modified_attributes) // 2
+else:
+    num_cols = len(modified_attributes)
+    num_rows = 1
+
+fig, axes = plt.subplots(
+    num_rows,
+    num_cols,
+    figsize=set_size(doc_width_pt, fraction, (num_rows, num_cols))
+)
+fig.supylabel('Expected Return')
+
+for attr_i, (attr_name, attr_vals) in enumerate(modified_attributes.items()):
+    sort_idxes = np.argsort(attr_vals)
+    
+    if num_rows == num_cols == 1:
+        ax = axes
+    elif num_rows == 1 or num_cols == 1:
+        ax = ax[attr_i]
+    else:
+        ax = ax[attr_i // num_cols, attr_i % num_cols]
+
+    x_vals = attr_vals[sort_idxes]
+    means = max_return_means[sort_idxes]
+    stds = max_return_stds[sort_idxes]
+    ax.plot(x_vals, means, marker="x")
+    ax.fill_between(
+        x_vals,
+        means + stds,
+        means - stds,
+        alpha=0.3,
+    )  
+
+    ax.set_xlabel(f'{attr_name}')
+
+fig.tight_layout()
+fig.savefig(f'{save_path}/returns-variants.pdf', format='pdf', bbox_inches='tight', dpi=600)
