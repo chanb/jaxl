@@ -155,12 +155,6 @@ def main(config):
         template = json.load(f)
 
     assert (
-        template["learner_config"]["env_config"]["env_name"] in HYPERPARAMETERS_CONFIG
-    ), "{} has no hyperparameters config".format(
-        template["learner_config"]["env_config"]["env_name"]
-    )
-
-    assert (
         config.num_epochs > 0
     ), f"num_epochs needs to be at least 1, got {config.num_epochs}"
     assert (
@@ -200,14 +194,10 @@ def main(config):
 
     # Hyperparameter list
     hyperparamss = list(
-        HYPERPARAMETERS_CONFIG[algo][
-            template["learner_config"]["env_config"]["env_name"]
-        ].values()
+        HYPERPARAMETERS_CONFIG[algo].values()
     ) + list(POLICY_CONFIG[algo][control_mode]["hyperparameters"].values())
     hyperparam_keys = list(
-        HYPERPARAMETERS_CONFIG[algo][
-            template["learner_config"]["env_config"]["env_name"]
-        ].keys()
+        HYPERPARAMETERS_CONFIG[algo].keys()
     ) + list(POLICY_CONFIG[algo][control_mode]["hyperparameters"].keys())
 
     def map_key_to_hyperparameter(hyperparams, key):
