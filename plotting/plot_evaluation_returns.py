@@ -20,7 +20,7 @@ plt.rcParams.update(pgf_with_latex)
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
-experiment_name = "objective_comparison"
+experiment_name = "single_seed_comparison"
 experiment_dir = f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
 save_path = f"./results-{experiment_name}"
 
@@ -68,7 +68,7 @@ else:
 
                     episodic_returns_per_variant.setdefault(checkpoint_step, [])
                     episodic_returns_per_variant[checkpoint_step].append(np.mean(agent_rollout.episodic_returns))
-                result_per_variant[variant_name.split("-")[0]] = episodic_returns_per_variant
+                result_per_variant[variant_name] = episodic_returns_per_variant
 
 fig, ax = plt.subplots(1, 1, figsize=set_size(doc_width_pt, 0.49, (1, 1)))
 

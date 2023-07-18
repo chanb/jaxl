@@ -76,7 +76,9 @@ flags.DEFINE_integer(
     "num_epochs", default=1000, help="The number of epochs to run the algorithm"
 )
 flags.DEFINE_string("run_time", default="05:00:00", help="The run time per variant")
-flags.DEFINE_string("env_name", required=True, help="The environment name")
+flags.DEFINE_string(
+    "env_name", default=None, required=True, help="The environment name"
+)
 flags.DEFINE_integer("env_seed", default=42, help="The environment seed")
 
 
@@ -84,7 +86,9 @@ NUM_FILES_PER_DIRECTORY = 100
 
 
 def set_ppo(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=None):
-    assert (key is not None) != (hyperparam_keys is not None and hyperparam_map is not None)
+    assert (key is not None) != (
+        hyperparam_keys is not None and hyperparam_map is not None
+    )
     if key is not None:
         if key == "objective":
             template["learner_config"]["pi_loss_setting"]["objective"] = val
@@ -132,10 +136,14 @@ def set_ppo(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=N
             template["learner_config"]["ent_loss_setting"] = hyperparam_map("ent_coef")
 
         if "beta" in hyperparam_keys:
-            template["learner_config"]["pi_loss_setting"]["beta"] = hyperparam_map("beta")
+            template["learner_config"]["pi_loss_setting"]["beta"] = hyperparam_map(
+                "beta"
+            )
 
         if "clip_param" in hyperparam_keys:
-            template["learner_config"]["pi_loss_setting"]["clip_param"] = hyperparam_map("clip_param")
+            template["learner_config"]["pi_loss_setting"][
+                "clip_param"
+            ] = hyperparam_map("clip_param")
 
 
 def main(config):
@@ -170,20 +178,18 @@ def main(config):
         template_setter = set_ppo
     else:
         raise ValueError(f"{algo} not supported")
-    
+
     # Set action-space specific hyperparameters
     control_mode = "discrete" if config.discrete_control else "continuous"
-    template["learner_config"]["policy_distribution"] = POLICY_CONFIG[algo][control_mode]["policy_distribution"]
+    template["learner_config"]["policy_distribution"] = POLICY_CONFIG[algo][
+        control_mode
+    ]["policy_distribution"]
 
     for key, val in POLICY_CONFIG[algo][control_mode].items():
         if key == "hyperparameters":
             continue
 
-        template_setter(
-            template=template,
-            key=key,
-            val=val
-        )
+        template_setter(template=template, key=key, val=val)
 
     # Set environment configuration
     template["learner_config"]["env_config"]["env_kwargs"] = {
@@ -209,7 +215,9 @@ def main(config):
         return hyperparams[hyperparam_idx]
 
     # Create config per setting
-    base_script_dir = os.path.join(config.out_dir, config.exp_name, control_mode, "scripts")
+    base_script_dir = os.path.join(
+        config.out_dir, config.exp_name, control_mode, "scripts"
+    )
     base_run_dir = os.path.join(config.out_dir, config.exp_name, control_mode, "runs")
     dat_content = ""
     num_runs = 0
@@ -225,7 +233,7 @@ def main(config):
         template_setter(
             template=template,
             hyperparam_keys=hyperparam_keys,
-            hyperparam_map=hyperparam_map
+            hyperparam_map=hyperparam_map,
         )
 
         if "buffer_size" in hyperparam_keys:
@@ -250,7 +258,9 @@ def main(config):
         f.writelines(dat_content)
 
     os.makedirs(
-        "/home/chanb/scratch/run_reports/search_expert-{}_{}".format(config.exp_name, control_mode),
+        "/home/chanb/scratch/run_reports/search_expert-{}_{}".format(
+            config.exp_name, control_mode
+        ),
         exist_ok=True,
     )
     sbatch_content = ""

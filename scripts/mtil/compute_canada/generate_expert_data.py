@@ -114,9 +114,7 @@ def main(config: FlagValues):
                     config.run_seed,
                 )
             )
-            dat_content += "save_buffer={} run_path={}\n".format(
-                save_buffer, run_path
-            )
+            dat_content += "save_buffer={} run_path={}\n".format(save_buffer, run_path)
             num_runs += 1
 
     dat_path = os.path.join(f"./export-generate_expert_data-{config.exp_name}.dat")

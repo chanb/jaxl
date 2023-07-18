@@ -3,16 +3,12 @@ POLICY_CONFIG = {
         "continuous": {
             "policy_distribution": "gaussian",
             "objective": "clip",
-            "hyperparameters": {
-                "clip_param": [False, 0.1, 0.2]
-            },
+            "hyperparameters": {"clip_param": [False, 0.1, 0.2]},
         },
         "discrete": {
             "policy_distribution": "softmax",
             "objective": "reverse_kl",
-            "hyperparameters": {
-                "beta": [0.2, 0.02, 0.002]
-            },
+            "hyperparameters": {"beta": [0.2, 0.02, 0.002]},
         },
     },
 }
