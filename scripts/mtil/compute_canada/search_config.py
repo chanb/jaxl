@@ -15,6 +15,7 @@ POLICY_CONFIG = {
 
 HYPERPARAMETERS_CONFIG = {
     "ppo": {
+        "buffer_size": [2048],
         "max_grad_norm": [False, 0.5],
         "opt_batch_size": [64, 128, 256],
         "opt_epochs": [100, 200],

@@ -186,6 +186,7 @@ def main(config):
         template_setter(template=template, key=key, val=val)
 
     # Set environment configuration
+    template["learner_config"]["env_config"]["env_name"] = config.env_name
     template["learner_config"]["env_config"]["env_kwargs"] = {
         "use_default": True,
         "seed": config.env_seed,
@@ -243,7 +244,7 @@ def main(config):
         dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
 
-    dat_path = os.path.join(f"./export-search_expert-{config.exp_name}.dat")
+    dat_path = os.path.join(f"./export-search_expert-{config.exp_name}_{control_mode}.dat")
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
@@ -277,7 +278,7 @@ def main(config):
     sbatch_content += "  --run_seed=${run_seed}\n"
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
-    with open(os.path.join(f"./run_all-{config.exp_name}.sh"), "w+") as f:
+    with open(os.path.join(f"./run_all-{config.exp_name}_{control_mode}.sh"), "w+") as f:
         f.writelines(sbatch_content)
 
 
