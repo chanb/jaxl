@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/dmc/cheetah/single_seed_comparison",
-        "experiment_name": "batch_size_512",
+        "experiment_name": "beta_0.0002",
         "log_interval": 1,
         "checkpoint_interval": 25
     },
@@ -51,9 +51,9 @@
             }
         },
         "seeds": {
-            "model_seed": 47,
-            "buffer_seed": 47,
-            "env_seed": 47
+            "model_seed": 50,
+            "buffer_seed": 50,
+            "env_seed": 50
         },
         "buffer_config": {
             "buffer_type": "default",
@@ -69,7 +69,7 @@
         "value_rms": false,
         "policy_distribution": "softmax",
         "temperature": 1.0,
-        "opt_batch_size": 512,
+        "opt_batch_size": 256,
         "opt_epochs": 100,
         "kl_threshold": false,
         "update_before_early_stopping": false,
@@ -89,7 +89,7 @@
             "coefficient": 1.0,
             "reduction": "mean",
             "clip_param": 0.2,
-            "beta": 0.02
+            "beta": 0.0002
         }
     },
     "train_config": {
