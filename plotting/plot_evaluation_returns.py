@@ -97,6 +97,8 @@ else:
                 result_per_variant[variant_name] = episodic_returns_per_variant
                 env_configs[variant_name] = env_config["modified_attributes"]
 
+    with open(f"{save_path}/returns.pkl", "wb") as f:
+        pickle.dump((result_per_variant, env_configs), f)
 
 # Plot main return
 fig, ax = plt.subplots(1, 1, figsize=set_size(doc_width_pt, 0.49, (1, 1)))
@@ -127,9 +129,6 @@ ax.legend()
 
 fig.tight_layout()
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)
-
-with open(f"{save_path}/returns.pkl", "wb") as f:
-    pickle.dump((result_per_variant, env_configs), f)
 
 # Plot return based on environmental parameter
 max_return_means = []

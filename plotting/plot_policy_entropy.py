@@ -1,15 +1,9 @@
-from gymnasium.experimental.wrappers import RecordVideoV0
-from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
-
 import _pickle as pickle
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 from jaxl.constants import *
-from jaxl.envs.rollouts import EvaluationRollout
-from jaxl.utils import RunningMeanStd
 from plot_utils import set_size, pgf_with_latex
 
 
@@ -56,6 +50,9 @@ else:
                     )
         result_per_variant[variant_name.split("-")[0]] = entropies
 
+    with open(f"{save_path}/entropies.pkl", "wb") as f:
+        pickle.dump(result_per_variant, f)
+
 fig, ax = plt.subplots(1, 1, figsize=set_size(doc_width_pt, 0.49, (1, 1)))
 
 for variant_name, returns in result_per_variant.items():
@@ -86,6 +83,3 @@ fig.tight_layout()
 fig.savefig(
     f"{save_path}/policy_entropies.pdf", format="pdf", bbox_inches="tight", dpi=600
 )
-
-with open(f"{save_path}/entropies.pkl", "wb") as f:
-    pickle.dump(result_per_variant, f)
