@@ -104,7 +104,6 @@ def train(
                 os.path.join(save_path, "models"),
                 PyTreeCheckpointer(),
             )
-            checkpoint_manager.save(true_epoch, params)
 
         for epoch in tqdm.tqdm(range(train_config.num_epochs)):
             train_aux = learner.update()
