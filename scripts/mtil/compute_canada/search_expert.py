@@ -193,6 +193,8 @@ def main(config):
         "control_mode": control_mode,
     }
 
+    template["logging_config"]["checkpoint_interval"] = False
+
     # Hyperparameter list
     hyperparamss = list(HYPERPARAMETERS_CONFIG[algo].values()) + list(
         POLICY_CONFIG[algo][control_mode]["hyperparameters"].values()
