@@ -1,8 +1,8 @@
 """
-This script performs hyperparameter search on an environment.
+This script performs hyperparameter search on multiple environment variations.
 
 Example command:
-# ParameterizedPendulum-v0
+# DMCCheetah-v0
 python single_hyperparam_robustness.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
