@@ -1,6 +1,7 @@
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
 import _pickle as pickle
+import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,9 +15,9 @@ doc_width_pt = 452.9679
 top_k = 10
 cc = True
 
-experiment_name = "single_hyperparameter_robustness"
+experiment_name = "search_expert-cheetah_discrete"
 experiment_dir = (
-    f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
+    "/Users/chanb/research/personal/mtil_results/data/search_expert/cheetah/discrete"
 )
 save_path = f"./results-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)
@@ -48,7 +49,7 @@ else:
                 PyTreeCheckpointer(),
             )
 
-            checkpoint = checkpoint_manager.restore(checkpoint_manager.latest())
+            checkpoint = checkpoint_manager.restore(checkpoint_manager.latest_step())
             
             episodic_returns_per_variant[variant_name] = checkpoint[CONST_AUX][CONST_EPISODIC_RETURNS]
 
@@ -56,6 +57,10 @@ else:
         pickle.dump(episodic_returns_per_variant, f)
 
 
+# Use the seborn style
+plt.style.use("seaborn")
+# But with fonts from the document body
+plt.rcParams.update(pgf_with_latex)
 fig, ax = plt.subplots(1, 1, figsize=set_size(doc_width_pt, 0.49, (1, 1)))
 
 aucs = []
@@ -71,12 +76,18 @@ for idx, (variant_name, returns) in enumerate(episodic_returns_per_variant.items
     if idx not in top_k_idxes:
         continue
 
-    num_episodes = range(len(returns))
-    ax.plot(num_episodes, np.cumsum(returns), marker="x", label=variant_name)
+    num_episodes = np.arange(len(returns))
+    ax.plot(num_episodes, np.cumsum(returns) / num_episodes, marker="x", label=variant_name.split("-")[1])
 
-ax.set_ylabel("Cumulative Return")
+ax.set_ylabel("Expected Return")
 ax.set_xlabel("Training Episode")
-ax.legend()
+ax.legend(
+    bbox_to_anchor=(0., 1.02, 1., .102),
+    loc='lower left',
+    ncols=math.ceil(top_k / 2),
+    mode="expand",
+    borderaxespad=0.
+)
 
 fig.tight_layout()
 fig.savefig(
