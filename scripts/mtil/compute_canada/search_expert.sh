@@ -60,3 +60,11 @@ python search_expert.py \
     --discrete_control \
     --env_name=DMCWalker-v0 \
     --exp_name=walker
+
+chmod +x run_all-*.sh
+sbatch run_all-cheetah_continuous.sh
+sbatch run_all-cheetah_discrete.sh
+sbatch run_all-walker_continuous.sh
+sbatch run_all-walker_discrete.sh
+sbatch run_all-pendulum_continuous.sh
+sbatch run_all-pendulum_discrete.sh
