@@ -241,9 +241,9 @@ def main(config):
 
         template["learner_config"]["env_config"]["env_kwargs"][
             "env_seed"
-        ] = hyperparam_map("env_seed")
-        template["learner_config"]["seeds"]["env_seed"] = hyperparam_map("env_seed")
-        template["learner_config"]["seeds"]["model_seed"] = hyperparam_map("model_seed")
+        ] = int(hyperparam_map("env_seed"))
+        template["learner_config"]["seeds"]["env_seed"] = int(hyperparam_map("env_seed"))
+        template["learner_config"]["seeds"]["model_seed"] = int(hyperparam_map("model_seed"))
 
         variant = f"variant-{idx}"
         template["logging_config"]["experiment_name"] = variant
