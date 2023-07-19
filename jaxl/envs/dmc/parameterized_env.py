@@ -14,6 +14,7 @@ from gymnasium import spaces
 from itertools import product
 
 BANG_BANG = "bang_bang"
+CONTINUOUS = "continuous"
 DEFAULT = "default"
 DISCRETE = "discrete"
 JOINT = "joint"
@@ -23,7 +24,7 @@ MAX = "max"
 OPTION = "option"
 
 VALID_CONTROL_MODE = [
-    DEFAULT,
+    CONTINUOUS,
     BANG_BANG,
     DISCRETE,
 ]
@@ -95,7 +96,7 @@ class ParameterizedDMCEnv(gym.Env):
         height: int = DEFAULT_SIZE,
         camera_id: int = DEFAULT_ID,
         render_mode: str = None,
-        control_mode: str = DEFAULT,
+        control_mode: str = CONTINUOUS,
         **kwargs,
     ):
         self.render_mode = render_mode

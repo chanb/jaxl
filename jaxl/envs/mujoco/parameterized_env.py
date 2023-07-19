@@ -12,6 +12,7 @@ from typing import Any, Union
 
 
 BANG_BANG = "bang_bang"
+CONTINUOUS = "continuous"
 DEFAULT = "default"
 DISCRETE = "discrete"
 JOINT = "joint"
@@ -21,7 +22,7 @@ MAX = "max"
 OPTION = "option"
 
 VALID_CONTROL_MODE = [
-    DEFAULT,
+    CONTINUOUS,
     BANG_BANG,
     DISCRETE,
 ]
@@ -57,7 +58,7 @@ class ParameterizedMujocoEnv(MujocoEnv, utils.EzPickle):
         default_camera_config: Union[dict, None] = None,
         seed: Union[int, None] = None,
         use_default: bool = False,
-        control_mode: str = DEFAULT,
+        control_mode: str = CONTINUOUS,
         **kwargs
     ):
         self._rng = np.random.RandomState(seed)

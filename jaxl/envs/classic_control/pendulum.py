@@ -111,7 +111,7 @@ class ParameterizedPendulumEnv(gym.Env):
         self,
         use_default: bool = True,
         seed: int = None,
-        control_mode: str = "default",
+        control_mode: str = "continuous",
         render_mode: Optional[str] = None,
         **kwargs,
     ):
@@ -146,7 +146,7 @@ class ParameterizedPendulumEnv(gym.Env):
         #   or normalised as max_torque == 2 by default. Ignoring the issue here as the default settings are too old
         #   to update to follow the gymnasium api
         self.control_mode = control_mode
-        if self.control_mode != "default":
+        if self.control_mode != "continuous":
             actions = ([2.0] ** np.arange(-3, 2)[:, None]).flatten()
             action_map = np.concatenate([-actions, [0], actions])
             self.action_space = spaces.Discrete(len(action_map))
