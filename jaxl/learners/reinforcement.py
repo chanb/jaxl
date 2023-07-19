@@ -1,7 +1,6 @@
-import _pickle as pickle
 import chex
+import jax.numpy as jnp
 import numpy as np
-import os
 
 from types import SimpleNamespace
 from typing import Any, Dict, Union
@@ -102,10 +101,9 @@ class ReinforcementLearner(OnlineLearner):
         if self.val_rms:
             params[CONST_VALUE_RMS] = self.val_rms.get_state()
         if final:
-            print("FINAL")
             params[CONST_AUX] = {
-                CONST_EPISODIC_RETURNS: self._rollout.episodic_returns,
-                CONST_EPISODE_LENGTHS: self._rollout.episode_lengths,
+                CONST_EPISODIC_RETURNS: jnp.array(self._rollout.episodic_returns),
+                CONST_EPISODE_LENGTHS: jnp.array(self._rollout.episode_lengths),
             }
         return params
 

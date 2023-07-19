@@ -3,7 +3,7 @@
         "save_path": "./logs/acrobot",
         "experiment_name": "ppo",
         "log_interval": 1,
-        "checkpoint_interval": 10
+        "checkpoint_interval": 5
     },
     "model_config": {
         "policy": {
@@ -64,7 +64,7 @@
         "normalize_advantage": true,
         "temperature": 1.0,
         "eps": 1e-5,
-        "obs_rms": false,
+        "obs_rms": true,
         "value_rms": false,
         "policy_distribution": "softmax",
         "opt_batch_size": 128,
@@ -91,6 +91,6 @@
         }
     },
     "train_config": {
-        "num_epochs": 20
+        "num_epochs": 6
     }
 }
