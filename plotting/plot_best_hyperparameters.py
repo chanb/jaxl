@@ -94,11 +94,9 @@ for row_i, task in enumerate(tasks):
         print(agent_paths[top_k_idxes][::-1])
 
         ax = axes[row_i, col_i]
-        for idx, (variant_name, returns) in enumerate(
-            episodic_returns_per_variant.items()
-        ):
-            if idx not in top_k_idxes:
-                continue
+        res = list(episodic_returns_per_variant.items())
+        for idx in top_k_idxes:
+            (variant_name, returns) = res[idx]
 
             num_episodes = np.arange(len(returns))
             cumsum_returns = np.cumsum(returns)
@@ -130,10 +128,12 @@ for row_i, task in enumerate(tasks):
             borderaxespad=0.0,
             frameon=True,
         )
+
+        if col_i == 0:
+            ax.set_ylabel(task)
         if row_i == len(tasks) - 1:
             ax.set_xlabel(control_mode)
 
-fig.suptitle(f"Top {top_k} Runs")
 fig.supylabel("Expected Return")
 fig.supxlabel("Training Episode")
 fig.savefig(
