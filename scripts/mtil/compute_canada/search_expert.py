@@ -283,7 +283,7 @@ def main(config):
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(
-        os.path.join(f"./run_all-{config.exp_name}_{control_mode}.sh"), "w+"
+        os.path.join(f"./run_all-search_expert-{config.exp_name}_{control_mode}.sh"), "w+"
     ) as f:
         f.writelines(sbatch_content)
 

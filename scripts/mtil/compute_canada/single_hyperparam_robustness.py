@@ -27,7 +27,7 @@ import json
 import numpy as np
 import os
 
-from search_config import HYPERPARAMETERS_CONFIG, POLICY_CONFIG
+from search_config import HYPERPARAMETER_ROBUSTNESS_CONFIG, HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG
 
 
 FLAGS = flags.FLAGS
@@ -174,11 +174,11 @@ def main(config):
 
     # Set action-space specific hyperparameters
     control_mode = "discrete" if config.discrete_control else "continuous"
-    template["learner_config"]["policy_distribution"] = POLICY_CONFIG[algo][
+    template["learner_config"]["policy_distribution"] = HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][
         control_mode
     ]["policy_distribution"]
 
-    for key, val in POLICY_CONFIG[algo][control_mode].items():
+    for key, val in HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode].items():
         if key == "hyperparameters":
             continue
 
@@ -198,13 +198,13 @@ def main(config):
     env_seeds = rng.permutation(2**10)[: config.num_envs]
     # Hyperparameter list
     hyperparamss = (
-        list(HYPERPARAMETERS_CONFIG[algo].values())
-        + list(POLICY_CONFIG[algo][control_mode]["hyperparameters"].values())
+        list(HYPERPARAMETER_ROBUSTNESS_CONFIG[algo].values())
+        + list(HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode]["hyperparameters"].values())
         + [env_seeds, model_seeds]
     )
     hyperparam_keys = (
-        list(HYPERPARAMETERS_CONFIG[algo].keys())
-        + list(POLICY_CONFIG[algo][control_mode]["hyperparameters"].keys())
+        list(HYPERPARAMETER_ROBUSTNESS_CONFIG[algo].keys())
+        + list(HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode]["hyperparameters"].keys())
         + ["env_seed", "model_seed"]
     )
 
@@ -294,7 +294,7 @@ def main(config):
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(
-        os.path.join(f"./run_all-{config.exp_name}_{control_mode}.sh"), "w+"
+        os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}_{control_mode}.sh"), "w+"
     ) as f:
         f.writelines(sbatch_content)
 

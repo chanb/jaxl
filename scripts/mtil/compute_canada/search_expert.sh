@@ -62,9 +62,9 @@ python search_expert.py \
     --exp_name=walker
 
 chmod +x run_all-*.sh
-sbatch run_all-cheetah_continuous.sh
-sbatch run_all-cheetah_discrete.sh
-sbatch run_all-walker_continuous.sh
-sbatch run_all-walker_discrete.sh
-sbatch run_all-pendulum_continuous.sh
-sbatch run_all-pendulum_discrete.sh
+sbatch run_all-search_expert-cheetah_continuous.sh
+sbatch run_all-search_expert-cheetah_discrete.sh
+sbatch run_all-search_expert-walker_continuous.sh
+sbatch run_all-search_expert-walker_discrete.sh
+sbatch run_all-search_expert-pendulum_continuous.sh
+sbatch run_all-search_expert-pendulum_discrete.sh
