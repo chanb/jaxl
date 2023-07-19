@@ -150,7 +150,7 @@ for variant_name in env_configs:
     max_return_means.append(max_return_mean)
     max_return_stds.append(max_return_std)
 
-    for (attr_name, attr_val) in flatten_dict(env_config):
+    for attr_name, attr_val in flatten_dict(env_config):
         if isinstance(attr_val, Iterable):
             for val_i in range(len(attr_val)):
                 modified_attributes.setdefault(f"{attr_name}.{val_i}", [])
