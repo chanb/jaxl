@@ -75,10 +75,12 @@ class Learner(ABC):
         """
         return self._buffer
 
-    def checkpoint(self) -> Dict[str, Any]:
+    def checkpoint(self, final=False) -> Dict[str, Any]:
         """
         Returns the parameters to checkpoint
 
+        :param final: whether or not this is the final checkpoint
+        :type final: bool (DefaultValue = False)
         :return: the checkpoint parameters
         :rtype: Dict[str, Any]
 

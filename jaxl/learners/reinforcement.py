@@ -86,19 +86,23 @@ class ReinforcementLearner(OnlineLearner):
         """
         return self._update_frequency
 
-    def checkpoint(self) -> Dict[str, Any]:
+    def checkpoint(self, final=False) -> Dict[str, Any]:
         """
         Returns the parameters to checkpoint
 
+        :param final: whether or not this is the final checkpoint
+        :type final: bool (DefaultValue = False)
         :return: the checkpoint parameters
         :rtype: Dict[str, Any]
 
         """
-        params = super().checkpoint()
+        params = super().checkpoint(final=final)
         if self.obs_rms:
             params[CONST_OBS_RMS] = self.obs_rms.get_state()
         if self.val_rms:
             params[CONST_VALUE_RMS] = self.val_rms.get_state()
+        if final:
+            params[CONST_EPISODIC_RETURNS] = self._rollout.episodic_returns
         return params
 
     def load_checkpoint(self, params: Dict[str, Any]):
@@ -220,3 +224,20 @@ class OnPolicyLearner(ReinforcementLearner):
         self._num_update_steps = self._num_steps_per_epoch // self._update_frequency
         self._sample_idxes = np.arange(self._update_frequency)
         self._rollout = StandardRollout(self._env, self._config.seeds.env_seed)
+
+    def checkpoint(self, final=False) -> Dict[str, Any]:
+        """
+        Returns the parameters to checkpoint
+
+        :param final: whether or not this is the final checkpoint
+        :type final: bool (DefaultValue = False)
+        :return: the checkpoint parameters
+        :rtype: Dict[str, Any]
+
+        """
+        params = super().checkpoint(final=final)
+        if self.obs_rms:
+            params[CONST_OBS_RMS] = self.obs_rms.get_state()
+        if self.val_rms:
+            params[CONST_VALUE_RMS] = self.val_rms.get_state()
+        return params

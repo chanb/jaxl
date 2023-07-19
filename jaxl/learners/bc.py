@@ -179,15 +179,17 @@ class BC(SupervisedLearner):
         """
         return self._obs_rms
 
-    def checkpoint(self) -> Dict[str, Any]:
+    def checkpoint(self, final=False) -> Dict[str, Any]:
         """
         Returns the parameters to checkpoint
 
+        :param final: whether or not this is the final checkpoint
+        :type final: bool (DefaultValue = False)
         :return: the checkpoint parameters
         :rtype: Dict[str, Any]
 
         """
-        params = super().checkpoint()
+        params = super().checkpoint(final=final)
         if self.obs_rms:
             params[CONST_OBS_RMS] = self.obs_rms.get_state()
         return params

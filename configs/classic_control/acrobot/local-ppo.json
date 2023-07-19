@@ -68,7 +68,9 @@
         "value_rms": false,
         "policy_distribution": "softmax",
         "opt_batch_size": 128,
-        "opt_epochs": 10,
+        "opt_epochs": 80,
+        "kl_threshold": 0.015,
+        "update_before_early_stopping": true,
         "ent_loss_setting": {
             "scheduler": "constant_schedule",
             "scheduler_kwargs": {
@@ -81,12 +83,14 @@
             "clip_param": 0.2
         },
         "pi_loss_setting": {
+            "objective": "clip",
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": 0.2,
+            "beta": 0.0
         }
     },
     "train_config": {
-        "num_epochs": 150
+        "num_epochs": 20
     }
 }

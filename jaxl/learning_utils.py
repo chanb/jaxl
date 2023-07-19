@@ -98,7 +98,7 @@ def train(
                 hyperparameter_str,
             )
             learner.save_env_config(os.path.join(save_path, "env_config.pkl"))
-            params = learner.checkpoint()
+            params = learner.checkpoint(final=False)
 
             checkpoint_manager = CheckpointManager(
                 os.path.join(save_path, "models"),
@@ -133,11 +133,11 @@ def train(
                     "wb",
                 ) as f:
                     pickle.dump(train_aux, f)
-                checkpoint_manager.save(true_epoch, learner.checkpoint())
+                checkpoint_manager.save(true_epoch, learner.checkpoint(final=False))
     except KeyboardInterrupt:
         pass
     if save_path:
-        checkpoint_manager.save(true_epoch, learner.checkpoint())
+        checkpoint_manager.save(true_epoch, learner.checkpoint(final=True))
 
 
 def load_evaluation_components(
