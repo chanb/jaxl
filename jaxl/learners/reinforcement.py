@@ -103,6 +103,7 @@ class ReinforcementLearner(OnlineLearner):
             params[CONST_VALUE_RMS] = self.val_rms.get_state()
         if final:
             params[CONST_EPISODIC_RETURNS] = self._rollout.episodic_returns
+            params[CONST_EPISODE_LENGTHS] = self._rollout.episode_lengths
         return params
 
     def load_checkpoint(self, params: Dict[str, Any]):
