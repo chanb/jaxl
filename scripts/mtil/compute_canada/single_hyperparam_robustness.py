@@ -258,13 +258,13 @@ def main(config):
         dat_content += "config_path={}.json \n".format(out_path)
 
     dat_path = os.path.join(
-        f"./export-search_expert-{config.exp_name}_{control_mode}.dat"
+        f"./export-single_hyperparam_robustness-{config.exp_name}_{control_mode}.dat"
     )
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
     os.makedirs(
-        "/home/chanb/scratch/run_reports/search_expert-{}_{}".format(
+        "/home/chanb/scratch/run_reports/single_hyperparam_robustness-{}_{}".format(
             config.exp_name, control_mode
         ),
         exist_ok=True,
@@ -276,7 +276,7 @@ def main(config):
     sbatch_content += "#SBATCH --cpus-per-task=1\n"
     sbatch_content += "#SBATCH --mem=3G\n"
     sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
-    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/search_expert-{}_{}/%j.out\n".format(
+    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/single_hyperparam_robustness-{}_{}/%j.out\n".format(
         config.exp_name, control_mode
     )
     sbatch_content += "module load python/3.9\n"
