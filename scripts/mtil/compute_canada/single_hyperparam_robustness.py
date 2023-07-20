@@ -209,6 +209,14 @@ def main(config):
         + ["env_seed", "model_seed"]
     )
 
+    with open(
+        os.path.join(f"./hyperparameters-single_hyperparam_robustness-{config.exp_name}_{control_mode}.pkl"), "wb"
+    ) as f:
+        pickle.dump(
+            [hyperparam_keys, hyperparamss],
+            f
+        )
+
     def map_key_to_hyperparameter(hyperparams, key):
         hyperparam_idx = hyperparam_keys.index(key)
         return hyperparams[hyperparam_idx]
@@ -298,14 +306,6 @@ def main(config):
         os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}_{control_mode}.sh"), "w+"
     ) as f:
         f.writelines(sbatch_content)
-
-    with open(
-        os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}_{control_mode}.pkl"), "wb"
-    ) as f:
-        pickle.dump(
-            [hyperparam_keys, hyperparamss],
-            f
-        )
 
 
 if __name__ == "__main__":
