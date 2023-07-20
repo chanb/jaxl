@@ -182,6 +182,7 @@ class EvaluationRollout(Rollout):
                     env_act = np.clip(
                         act, self._env.action_space.low, self._env.action_space.high
                     )
+                print(env_act)
                 next_obs, rew, terminated, truncated, info = self._env.step(env_act)
                 self._episodic_returns[-1] += float(rew)
                 self._episode_lengths[-1] += 1

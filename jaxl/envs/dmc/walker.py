@@ -135,7 +135,7 @@ class WalkerEnv(ParameterizedDMCEnv):
     def __init__(
         self,
         parameter_config_path,
-        move_speed: float = _RUN_SPEED,
+        move_speed: float = _WALK_SPEED,
         time_limit: int = _DEFAULT_TIME_LIMIT,
         control_timestep: float = _CONTROL_TIMESTEP,
         seed: Union[int, None] = None,
