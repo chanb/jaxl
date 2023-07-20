@@ -12,7 +12,7 @@ from plot_utils import set_size, pgf_with_latex
 
 
 doc_width_pt = 452.9679
-top_k = 5
+top_k = 10
 smoothing = 20
 cc = True
 
@@ -127,6 +127,7 @@ for row_i, task in enumerate(tasks):
             mode="expand",
             borderaxespad=0.0,
             frameon=True,
+            fontsize='5',
         )
 
         if col_i == 0:

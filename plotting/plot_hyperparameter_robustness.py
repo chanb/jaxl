@@ -210,7 +210,7 @@ if num_blanks > 0:
         axes[-1, -ax_i].axis('off')
 
 fig.supylabel("Expected Return")
-fig.supxlabel("Iterations")
+fig.supxlabel("Training Episode")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)
 
 # Plot return based on environmental parameter
