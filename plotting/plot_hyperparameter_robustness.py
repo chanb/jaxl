@@ -3,6 +3,7 @@ from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from typing import Iterable
 
 import _pickle as pickle
+import itertools
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,16 +24,25 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 experiment_name = "single_hyperparameter_robustness"
 experiment_dir = (
-    f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
+    "/Users/chanb/research/personal/mtil_results/data/single_hyperparam_robustness/cheetah"
+)
+hyperparameter_path = (
+    "/Users/chanb/research/personal/mtil_results/data/single_hyperparam_robustness/hyperparameters-single_hyperparam_robustness-cheetah_discrete.pkl"
 )
 save_path = f"./results-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)
 
-num_evaluation_episodes = 10
+num_evaluation_episodes = 5
 env_seed = 9999
 record_video = False
 
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
+assert os.path.isfile(hyperparameter_path), f"{hyperparameter_path} is not a file"
+
+with open(hyperparameter_path, "rb") as f:
+    (hyperparam_keys, hyperparamss) = pickle.load(f)
+    num_envs = len(hyperparamss[-2])
+    num_models = len(hyperparamss[-1])
 
 if os.path.isfile(f"{save_path}/returns.pkl"):
     (result_per_variant, env_configs) = pickle.load(
@@ -41,60 +51,76 @@ if os.path.isfile(f"{save_path}/returns.pkl"):
 else:
     result_per_variant = {}
     env_configs = {}
-    for variant_i, variant_name in enumerate(os.listdir(experiment_dir)):
+
+    num_variants = len(list(itertools.product(*hyperparamss)))
+    agent_paths = {}
+    for agent_path, _, filenames in os.walk(experiment_dir):
+        variant_name = os.path.basename(os.path.dirname(agent_path))
+        if not variant_name.startswith("variant-"):
+            continue
+
+        for filename in filenames:
+            if filename == "config.json":
+                break
+        agent_paths[int(variant_name.split("-")[1])] = agent_path
+
+    for variant_i, hyperparams in enumerate(itertools.product(*hyperparamss)):
         if (variant_i + 1) % 10 == 0:
             print(f"Processed {variant_i + 1} variants")
-        variant_path = os.path.join(experiment_dir, variant_name)
-        episodic_returns_per_variant = {}
-        for agent_path, _, filenames in os.walk(variant_path):
-            for filename in filenames:
-                if filename != "config.json":
-                    continue
 
-                env_config_path = os.path.join(agent_path, "env_config.pkl")
-                env_config = None
-                if os.path.isfile(env_config_path):
-                    env_config = pickle.load(open(env_config_path, "rb"))
+        model_seed = hyperparams[-1]
+        env_seed = hyperparams[-2]
+        hyperparam_i = variant_i // (num_envs * num_models)
 
-                env, policy = get_evaluation_components(agent_path)
+        variant_name = f"hyperparam_{hyperparam_i}-env_seed_{env_seed}"
 
-                checkpoint_manager = CheckpointManager(
-                    os.path.join(agent_path, "models"),
-                    PyTreeCheckpointer(),
+        result_per_variant[variant_name] = {}
+        
+        agent_path = agent_paths[variant_i]
+
+        env_config_path = os.path.join(agent_path, "env_config.pkl")
+        env_config = None
+        if os.path.isfile(env_config_path):
+            env_config = pickle.load(open(env_config_path, "rb"))
+
+        env, policy = get_evaluation_components(agent_path)
+
+        checkpoint_manager = CheckpointManager(
+            os.path.join(agent_path, "models"),
+            PyTreeCheckpointer(),
+        )
+        for checkpoint_step in checkpoint_manager.all_steps():
+            if (
+                record_video
+                and checkpoint_step == checkpoint_manager.latest_step()
+            ):
+                env = RecordVideoV0(
+                    env,
+                    f"{save_path}/videos/variant_{variant_name}-model_seed_{model_seed}/model_id_{checkpoint_step}",
+                    disable_logger=True,
                 )
-                for checkpoint_step in checkpoint_manager.all_steps():
-                    if (
-                        record_video
-                        and checkpoint_step == checkpoint_manager.latest_step()
-                    ):
-                        env = RecordVideoV0(
-                            env,
-                            f"{save_path}/videos/variant_{variant_name}/model_id_{checkpoint_step}",
-                            disable_logger=True,
-                        )
-                    params = checkpoint_manager.restore(checkpoint_step)
-                    model_dict = params[CONST_MODEL_DICT]
-                    agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
-                    agent_obs_rms = False
-                    if CONST_OBS_RMS in params:
-                        agent_obs_rms = RunningMeanStd()
-                        agent_obs_rms.set_state(params[CONST_OBS_RMS])
+            params = checkpoint_manager.restore(checkpoint_step)
+            model_dict = params[CONST_MODEL_DICT]
+            agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
+            agent_obs_rms = False
+            if CONST_OBS_RMS in params:
+                agent_obs_rms = RunningMeanStd()
+                agent_obs_rms.set_state(params[CONST_OBS_RMS])
 
-                    agent_rollout = EvaluationRollout(env, seed=env_seed)
-                    agent_rollout.rollout(
-                        agent_policy_params,
-                        policy,
-                        agent_obs_rms,
-                        num_evaluation_episodes,
-                        None,
-                        use_tqdm=False,
-                    )
+            agent_rollout = EvaluationRollout(env, seed=env_seed)
+            agent_rollout.rollout(
+                agent_policy_params,
+                policy,
+                agent_obs_rms,
+                num_evaluation_episodes,
+                None,
+                use_tqdm=False,
+            )
 
-                    episodic_returns_per_variant.setdefault(checkpoint_step, [])
-                    episodic_returns_per_variant[checkpoint_step].append(
-                        np.mean(agent_rollout.episodic_returns)
-                    )
-        result_per_variant[variant_name] = episodic_returns_per_variant
+            result_per_variant[variant_name].setdefault(checkpoint_step, [])
+            result_per_variant[variant_name][checkpoint_step].append(
+                np.mean(agent_rollout.episodic_returns)
+            )
         env_configs[variant_name] = env_config["modified_attributes"]
 
     with open(f"{save_path}/returns.pkl", "wb") as f:

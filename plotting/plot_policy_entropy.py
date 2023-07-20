@@ -107,9 +107,9 @@ else:
                         np.mean(data[CONST_POLICY][CONST_ENTROPY])
                     )
 
-                result_per_variant[variant_name] = entropies
-                result_per_variant[variant_name] = episodic_returns_per_variant
-                env_configs[variant_name] = env_config["modified_attributes"]
+        result_per_variant[variant_name] = entropies
+        result_per_variant[variant_name] = episodic_returns_per_variant
+        env_configs[variant_name] = env_config["modified_attributes"]
 
     with open(f"{save_path}/returns.pkl", "wb") as f:
         pickle.dump((result_per_variant, env_configs), f)
