@@ -33,8 +33,9 @@ hyperparameter_path = (
 save_path = f"./results-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)
 
+plot_reference = False
 reference_config_path = "/Users/chanb/research/personal/mtil_results/data/search_expert/cheetah/discrete/scripts/0/variant-71.json"
-top_k = 3
+top_k = 5
 smoothing = 20
 num_evaluation_episodes = 5
 env_seed = 9999
@@ -42,10 +43,14 @@ record_video = False
 
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 assert os.path.isfile(hyperparameter_path), f"{hyperparameter_path} is not a file"
-assert os.path.isfile(reference_config_path), f"{reference_config_path} is not a file"
 
-with open(reference_config_path, "r") as f:
-    reference_config = json.load(f)
+if plot_reference:
+    assert os.path.isfile(reference_config_path), f"{reference_config_path} is not a file"
+
+    with open(reference_config_path, "r") as f:
+        reference_config = json.load(f)
+        del reference_config["learner_config"]["seeds"]
+        del reference_config["learner_config"]["env_config"]
 
 with open(hyperparameter_path, "rb") as f:
     (hyperparam_keys, hyperparamss) = pickle.load(f)
@@ -85,11 +90,13 @@ else:
         
         agent_path = agent_paths[variant_i]
 
-        if match_hyperparams_i is None:
+        if plot_reference and match_hyperparams_i is None:
             match_hyperparams = True
             curr_config_path = os.path.join(agent_path, "config.json")
             with open(curr_config_path, "r") as f:
                 curr_config = json.load(f)
+                del curr_config["learner_config"]["seeds"]
+                del curr_config["learner_config"]["env_config"]
 
                 for key in ("model_config", "learner_config", "optimizer_config"):
                     match_hyperparams = match_hyperparams and (curr_config[key] == reference_config[key])
@@ -121,12 +128,13 @@ else:
         pickle.dump((result_per_variant, env_configs, match_hyperparams_i), f)
 
 # Plot main return
-num_cols = 5
+num_cols = 3
 num_rows = math.ceil(num_envs / num_cols)
 fig, axes = plt.subplots(
     num_rows,
     num_cols,
-    figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols))
+    figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
+    layout="constrained"
 )
 
 aucs_per_seed = {}
@@ -139,6 +147,7 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
         )
     aucs_per_seed[env_seed] = np.array(aucs_per_seed[env_seed])
     top_k_idxes = np.argsort(aucs_per_seed[env_seed])[-top_k:]
+    # top_k_idxes = [22, 28] # Visually both 22 and 28 are robust.
 
     if num_cols == num_rows == 1:
         ax = axes
@@ -175,10 +184,10 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
             smoothed_returns_mean,
             label=idx
             if hyperparam_i != len(top_k_idxes)
-            else "{} - reference".format(idx),
-            linewidth=1.0,
+            else "{} - ref.".format(idx),
+            linewidth=0.5,
             alpha=0.7,
-            linestyle="-" if idx != hyperparam_i == len(top_k_idxes) else "--",
+            linestyle="-" if hyperparam_i != len(top_k_idxes) else ":",
         )
         ax.fill_between(
             num_episodes,
@@ -195,10 +204,13 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
         frameon=True,
     )
 
+num_blanks = num_cols - num_envs % num_cols
+if num_blanks > 0:
+    for ax_i in range(1, num_blanks + 1):
+        axes[-1, -ax_i].axis('off')
+
 fig.supylabel("Expected Return")
 fig.supxlabel("Iterations")
-
-fig.tight_layout()
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)
 
 # Plot return based on environmental parameter
