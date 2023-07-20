@@ -66,7 +66,7 @@ else:
 
     for variant_i, hyperparams in enumerate(itertools.product(*hyperparamss)):
         if (variant_i + 1) % 10 == 0:
-            print(f"Processed {variant_i + 1} variants")
+            print(f"Processed {variant_i + 1}/{num_variants} variants")
 
         model_seed = hyperparams[-1]
         env_seed = hyperparams[-2]
