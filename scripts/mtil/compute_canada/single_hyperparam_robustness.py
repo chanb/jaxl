@@ -11,8 +11,8 @@ python single_hyperparam_robustness.py \
     --env_name=DMCCheetah-v0 \
     --exp_name=cheetah \
     --discrete_control \
-    --num_envs=5 \
-    --num_runs=5
+    --num_envs=6 \
+    --num_runs=3
 
 
 Then, to generate the data, run the generated script run_all-*.sh ${run_seed}
