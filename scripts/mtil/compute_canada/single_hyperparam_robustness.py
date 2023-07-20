@@ -21,6 +21,7 @@ Then, to generate the data, run the generated script run_all-*.sh ${run_seed}
 from absl import app, flags
 from functools import partial
 
+import _pickle as pickle
 import itertools
 import jax
 import json
@@ -297,6 +298,14 @@ def main(config):
         os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}_{control_mode}.sh"), "w+"
     ) as f:
         f.writelines(sbatch_content)
+
+    with open(
+        os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}_{control_mode}.pkl"), "wb"
+    ) as f:
+        pickle.dump(
+            [hyperparam_keys, hyperparamss],
+            f
+        )
 
 
 if __name__ == "__main__":
