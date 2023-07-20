@@ -67,10 +67,10 @@ python single_hyperparam_robustness.py \
     --num_envs=6 \
     --num_runs=3
 
-# chmod +x run_all-*.sh
-# sbatch run_all-single_hyperparam_robustness-cheetah_discrete.sh
-# sbatch run_all-single_hyperparam_robustness-cheetah_continuous.sh
-# sbatch run_all-single_hyperparam_robustness-walker_discrete.sh
-# sbatch run_all-single_hyperparam_robustness-walker_continuous.sh
-# sbatch run_all-single_hyperparam_robustness-pendulum_discrete.sh
-# sbatch run_all-single_hyperparam_robustness-pendulum_continuous.sh
+chmod +x run_all-*.sh
+sbatch run_all-single_hyperparam_robustness-cheetah_disc.sh
+sbatch run_all-single_hyperparam_robustness-cheetah_cont.sh
+sbatch run_all-single_hyperparam_robustness-walker_disc.sh
+sbatch run_all-single_hyperparam_robustness-walker_cont.sh
+sbatch run_all-single_hyperparam_robustness-pendulum_disc.sh
+sbatch run_all-single_hyperparam_robustness-pendulum_cont.sh

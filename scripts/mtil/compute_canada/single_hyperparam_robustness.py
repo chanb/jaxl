@@ -210,7 +210,7 @@ def main(config):
     )
 
     with open(
-        os.path.join(f"./hyperparameters-single_hyperparam_robustness-{config.exp_name}_{control_mode}.pkl"), "wb"
+        os.path.join(f"./hyperparameters-single_hyperparam_robustness-{config.exp_name}.pkl"), "wb"
     ) as f:
         pickle.dump(
             [hyperparam_keys, hyperparamss],
@@ -267,7 +267,7 @@ def main(config):
         dat_content += "config_path={}.json \n".format(out_path)
 
     dat_path = os.path.join(
-        f"./export-single_hyperparam_robustness-{config.exp_name}_{control_mode}.dat"
+        f"./export-single_hyperparam_robustness-{config.exp_name}.dat"
     )
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
@@ -303,7 +303,7 @@ def main(config):
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(
-        os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}_{control_mode}.sh"), "w+"
+        os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}.sh"), "w+"
     ) as f:
         f.writelines(sbatch_content)
 
