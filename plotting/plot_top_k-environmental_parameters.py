@@ -35,7 +35,7 @@ os.makedirs(save_path, exist_ok=True)
 
 plot_reference = False
 reference_config_path = "/Users/chanb/research/personal/mtil_results/data/search_expert/cheetah/discrete/scripts/0/variant-71.json"
-top_k = 5
+top_k = False
 smoothing = 20
 num_evaluation_episodes = 5
 env_seed = 9999
@@ -58,6 +58,8 @@ with open(hyperparameter_path, "rb") as f:
     num_models = len(hyperparamss[-1])
     num_variants = len(list(itertools.product(*hyperparamss)))
     num_hyperparamss = num_variants // (num_envs * num_models)
+    if not top_k:
+        top_k = num_hyperparamss
 
 if os.path.isfile(f"{save_path}/returns.pkl"):
     (result_per_variant, env_configs, match_hyperparams_i) = pickle.load(
@@ -139,6 +141,7 @@ fig, axes = plt.subplots(
 
 aucs_per_seed = {}
 top_k_per_seed = []
+agg_auc_list = {}
 for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.items()):
     aucs_per_seed[env_seed] = []
     for hyperparam_i in range(num_hyperparamss):
@@ -147,7 +150,6 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
         )
     aucs_per_seed[env_seed] = np.array(aucs_per_seed[env_seed])
     top_k_idxes = np.argsort(aucs_per_seed[env_seed])[-top_k:]
-    # top_k_idxes = [22, 28] # Visually both 22 and 28 are robust.
 
     if num_cols == num_rows == 1:
         ax = axes
@@ -155,13 +157,14 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
         ax = axes[ax_i]
     else:
         ax = axes[ax_i // num_cols, ax_i % num_cols]
-    for hyperparam_i, idx in enumerate([*top_k_idxes, match_hyperparams_i]):
-        if idx is None:
+    for iter_i, hyperparam_i in enumerate([*top_k_idxes, match_hyperparams_i]):
+        if hyperparam_i is None:
             continue
 
+        agg_auc_list.setdefault(hyperparam_i, [])
         smoothed_returns = []
         
-        for returns in result_per_hyperparam[idx]:
+        for returns in result_per_hyperparam[hyperparam_i]:
             cumsum_returns = np.cumsum(returns)
             last_t_episodic_returns = cumsum_returns - np.concatenate(
                 (np.zeros(smoothing), cumsum_returns[:-smoothing])
@@ -175,6 +178,7 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
                 )
             )
 
+        agg_auc_list[hyperparam_i].append(np.sum(result_per_hyperparam[hyperparam_i]))
         smoothed_returns_mean = np.mean(smoothed_returns, axis=0)
         smoothed_returns_std = np.std(smoothed_returns, axis=0)
         num_episodes = np.arange(len(smoothed_returns_mean))
@@ -182,12 +186,12 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
         ax.plot(
             num_episodes,
             smoothed_returns_mean,
-            label=idx
-            if hyperparam_i != len(top_k_idxes)
-            else "{} - ref.".format(idx),
+            label=hyperparam_i
+            if iter_i != len(top_k_idxes)
+            else "{} - ref.".format(hyperparam_i),
             linewidth=0.5,
             alpha=0.7,
-            linestyle="-" if hyperparam_i != len(top_k_idxes) else ":",
+            linestyle="-" if iter_i != len(top_k_idxes) else ":",
         )
         ax.fill_between(
             num_episodes,
@@ -213,37 +217,43 @@ fig.supylabel("Expected Return")
 fig.supxlabel("Training Episode")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)
 
+total_aucs = {k: np.mean(v) for k, v in agg_auc_list.items()}
+hyperparam_list = list(total_aucs.keys())
+hyperparam_total_auc = list(total_aucs.values())
+total_aucs_sort_idxes = np.argsort(hyperparam_total_auc)
+print(np.stack((hyperparam_list, hyperparam_total_auc))[total_aucs_sort_idxes].T)
+
 # Plot return based on environmental parameter
-max_return_means = []
-max_return_stds = []
-modified_attributes = {}
-for variant_name in env_configs:
-    env_config = env_configs[variant_name]
-    returns = result_per_variant[variant_name]
+# max_return_means = []
+# max_return_stds = []
+# modified_attributes = {}
+# for variant_name in env_configs:
+#     env_config = env_configs[variant_name]
+#     returns = result_per_variant[variant_name]
 
-    max_return_mean = -np.inf
-    max_return_std = 0.0
-    for val in returns.values():
-        mean = np.mean(val)
-        std = np.std(val)
-        if max_return_mean < mean:
-            max_return_mean = mean
-            max_return_std = std
+#     max_return_mean = -np.inf
+#     max_return_std = 0.0
+#     for val in returns.values():
+#         mean = np.mean(val)
+#         std = np.std(val)
+#         if max_return_mean < mean:
+#             max_return_mean = mean
+#             max_return_std = std
 
-    max_return_means.append(max_return_mean)
-    max_return_stds.append(max_return_std)
+#     max_return_means.append(max_return_mean)
+#     max_return_stds.append(max_return_std)
 
-    for attr_name, attr_val in flatten_dict(env_config):
-        if isinstance(attr_val, Iterable):
-            for val_i in range(len(attr_val)):
-                modified_attributes.setdefault(f"{attr_name}.{val_i}", [])
-                modified_attributes[f"{attr_name}.{val_i}"].append(attr_val[val_i])
-        else:
-            modified_attributes.setdefault(attr_name, [])
-            modified_attributes[attr_name].append(attr_val)
+#     for attr_name, attr_val in flatten_dict(env_config):
+#         if isinstance(attr_val, Iterable):
+#             for val_i in range(len(attr_val)):
+#                 modified_attributes.setdefault(f"{attr_name}.{val_i}", [])
+#                 modified_attributes[f"{attr_name}.{val_i}"].append(attr_val[val_i])
+#         else:
+#             modified_attributes.setdefault(attr_name, [])
+#             modified_attributes[attr_name].append(attr_val)
 
-max_return_means = np.array(max_return_means)
-max_return_stds = np.array(max_return_stds)
+# max_return_means = np.array(max_return_means)
+# max_return_stds = np.array(max_return_stds)
 
-for attr_name, attr_vals in modified_attributes.items():
-    modified_attributes[attr_name] = np.array(attr_vals)
+# for attr_name, attr_vals in modified_attributes.items():
+#     modified_attributes[attr_name] = np.array(attr_vals)
