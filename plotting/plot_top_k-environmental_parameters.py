@@ -1,18 +1,15 @@
-from gymnasium.experimental.wrappers import RecordVideoV0
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
-from typing import Iterable
+from pprint import pprint
 
 import _pickle as pickle
 import json
 import itertools
 import math
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 from jaxl.constants import *
-from jaxl.utils import RunningMeanStd, flatten_dict
 from plot_utils import set_size, pgf_with_latex
 
 
@@ -23,13 +20,45 @@ plt.rcParams.update(pgf_with_latex)
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
-experiment_name = "single_hyperparameter_robustness"
-experiment_dir = (
-    "/Users/chanb/research/personal/mtil_results/data/single_hyperparam_robustness/cheetah"
-)
+
+# Experiment to filter from 32 configurations to 8 configurations
+# experiment_name = "single_hyperparameter_robustness"
+# experiment_dir = (
+#     "/Users/chanb/research/personal/mtil_results/data/single_hyperparam_robustness/cheetah"
+# )
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/single_hyperparam_robustness/hyperparameters-single_hyperparam_robustness-cheetah_discrete.pkl"
+# )
+
+# Experiment to choose continuous cheetah
+experiment_name = "hyperparam_search-cheetah_cont"
+experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/cheetah_cont/continuous"
 hyperparameter_path = (
-    "/Users/chanb/research/personal/mtil_results/data/single_hyperparam_robustness/hyperparameters-single_hyperparam_robustness-cheetah_discrete.pkl"
+    "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-cheetah_cont.pkl"
 )
+
+# Experiment to choose discrete cheetah
+# experiment_name = "hyperparam_search-cheetah_disc"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/cheetah_disc/discrete"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-cheetah_disc.pkl"
+# )
+
+# Experiment to choose continuous walker
+# experiment_name = "hyperparam_search-walker_cont"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/walker_cont/continuous"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-walker_cont.pkl"
+# )
+
+# Experiment to choose discrete walker
+# experiment_name = "hyperparam_search-walker_disc"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/walker_disc/discrete"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-walker_disc.pkl"
+# )
+
+
 save_path = f"./results-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)
 
@@ -56,7 +85,8 @@ with open(hyperparameter_path, "rb") as f:
     (hyperparam_keys, hyperparamss) = pickle.load(f)
     num_envs = len(hyperparamss[-2])
     num_models = len(hyperparamss[-1])
-    num_variants = len(list(itertools.product(*hyperparamss)))
+    hyperparams_comb = list(itertools.product(*hyperparamss))
+    num_variants = len(hyperparams_comb)
     num_hyperparamss = num_variants // (num_envs * num_models)
     if not top_k:
         top_k = num_hyperparamss
@@ -80,7 +110,7 @@ else:
         agent_paths[int(variant_name.split("-")[1])] = agent_path
 
     match_hyperparams_i = None
-    for variant_i, hyperparams in enumerate(itertools.product(*hyperparamss)):
+    for variant_i, hyperparams in enumerate(hyperparams_comb):
         if (variant_i + 1) % 10 == 0:
             print(f"Processed {variant_i + 1}/{num_variants} variants")
 
@@ -183,12 +213,15 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
         smoothed_returns_std = np.std(smoothed_returns, axis=0)
         num_episodes = np.arange(len(smoothed_returns_mean))
 
+        label = hyperparam_i
+        if iter_i == 0:
+            label = "{} - worst".format(hyperparam_i)
+        elif iter_i == len(top_k_idxes) - 1:
+            label = "{} - best".format(hyperparam_i)
         ax.plot(
             num_episodes,
             smoothed_returns_mean,
-            label=hyperparam_i
-            if iter_i != len(top_k_idxes)
-            else "{} - ref.".format(hyperparam_i),
+            label=label,
             linewidth=0.5,
             alpha=0.7,
             linestyle="-" if iter_i != len(top_k_idxes) else ":",
@@ -206,10 +239,11 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
         mode="expand",
         borderaxespad=0.0,
         frameon=True,
+        fontsize='4',
     )
 
 num_blanks = num_cols - num_envs % num_cols
-if num_blanks > 0:
+if num_cols > num_blanks > 0:
     for ax_i in range(1, num_blanks + 1):
         axes[-1, -ax_i].axis('off')
 
@@ -221,7 +255,10 @@ total_aucs = {k: np.mean(v) for k, v in agg_auc_list.items()}
 hyperparam_list = list(total_aucs.keys())
 hyperparam_total_auc = list(total_aucs.values())
 total_aucs_sort_idxes = np.argsort(hyperparam_total_auc)
-print(np.stack((hyperparam_list, hyperparam_total_auc))[total_aucs_sort_idxes].T)
+print(np.stack((hyperparam_list, hyperparam_total_auc)).T[total_aucs_sort_idxes])
+
+for (key, val) in zip(hyperparam_keys, hyperparams_comb[total_aucs_sort_idxes[-1]]):
+    print("{}: {}".format(key, val))
 
 # Plot return based on environmental parameter
 # max_return_means = []
