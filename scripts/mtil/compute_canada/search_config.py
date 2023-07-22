@@ -75,7 +75,7 @@ HYPERPARAM_SWEEP = {
 
 PENDULUM_CONTINUOUS = {
     "ppo": {
-        "discrete": {
+        "continuous": {
             "policy_distribution": "gaussian",
             "objective": "clip",
             "hyperparameters": {"clip_param": [0.2]},

@@ -74,9 +74,9 @@ python sweep_rl \
     --hyperparam_set=hyperparam_search
 
 chmod +x run_all-*.sh
-sbatch run_all-hyperparam_search-cheetah_disc.sh
-sbatch run_all-hyperparam_search-cheetah_cont.sh
-sbatch run_all-hyperparam_search-walker_disc.sh
-sbatch run_all-hyperparam_search-walker_cont.sh
-sbatch run_all-hyperparam_search-pendulum_disc.sh
-sbatch run_all-hyperparam_search-pendulum_cont.sh
+sbatch run_all-hyperparam_search-cheetah_discrete.sh
+sbatch run_all-hyperparam_search-cheetah_continuous.sh
+sbatch run_all-hyperparam_search-walker_discrete.sh
+sbatch run_all-hyperparam_search-walker_continuous.sh
+sbatch run_all-hyperparam_search-pendulum_discrete.sh
+sbatch run_all-hyperparam_search-pendulum_continuous.sh

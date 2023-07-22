@@ -80,7 +80,7 @@ flags.DEFINE_string(
 )
 flags.DEFINE_integer("num_envs", default=1, help="The number of environment variations")
 flags.DEFINE_integer("num_runs", default=1, help="The number of runs per variation")
-flags.DEFINE_integer(
+flags.DEFINE_string(
     "hyperparam_set",
     default=None,
     required=True,
@@ -124,18 +124,18 @@ def main(config):
 
     hyperparam_set = HYPERPARAM_SETS[config.hyperparam_set]
 
+    algo = template["learner_config"]["learner"]
+    if algo == "ppo":
+        template_setter = set_ppo
+    else:
+        raise ValueError(f"{algo} not supported")
+
     # Set action-space specific hyperparameters
     template["train_config"]["num_epochs"] = config.num_epochs
     control_mode = "discrete" if config.discrete_control else "continuous"
     template["learner_config"]["policy_distribution"] = hyperparam_set[algo][
         control_mode
     ]["policy_distribution"]
-
-    algo = template["learner_config"]["learner"]
-    if algo == "ppo":
-        template_setter = set_ppo
-    else:
-        raise ValueError(f"{algo} not supported")
     for key, val in hyperparam_set[algo][control_mode].items():
         if key == "hyperparameters":
             continue
@@ -171,7 +171,7 @@ def main(config):
     with open(
         os.path.join(
             config.out_dir,
-            f"hyperparameters-{config.hyperparam_set}-{config.exp_name}.pkl",
+            f"hyperparameters-{config.hyperparam_set}-{config.exp_name}_{control_mode}.pkl",
         ),
         "wb",
     ) as f:
@@ -230,7 +230,7 @@ def main(config):
         dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
 
-    dat_path = os.path.join(f"./export-{config.hyperparam_set}-{config.exp_name}.dat")
+    dat_path = os.path.join(f"./export-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat")
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
@@ -267,7 +267,7 @@ def main(config):
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(
-        os.path.join(f"./run_all-{config.hyperparam_set}-{config.exp_name}.sh"),
+        os.path.join(f"./run_all-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"),
         "w+",
     ) as f:
         f.writelines(sbatch_content)
