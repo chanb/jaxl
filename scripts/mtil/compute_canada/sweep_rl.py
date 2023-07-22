@@ -230,7 +230,9 @@ def main(config):
         dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
 
-    dat_path = os.path.join(f"./export-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat")
+    dat_path = os.path.join(
+        f"./export-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat"
+    )
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
@@ -267,7 +269,9 @@ def main(config):
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(
-        os.path.join(f"./run_all-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"),
+        os.path.join(
+            f"./run_all-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"
+        ),
         "w+",
     ) as f:
         f.writelines(sbatch_content)
