@@ -11,7 +11,7 @@ python sweep_rl.py \
     --run_seed=0 \
     --num_envs=100 \
     --num_runs=1 \
-    --checkpoint_interval=50 \
+    --checkpoint_interval=250 \
     --hyperparam_set=pendulum_cont \
     --env_name=ParameterizedPendulum-v0 \
     --exp_name=pendulum
@@ -23,7 +23,7 @@ python sweep_rl.py \
     --run_seed=0 \
     --num_envs=100 \
     --num_runs=1 \
-    --checkpoint_interval=50 \
+    --checkpoint_interval=250 \
     --hyperparam_set=pendulum_disc \
     --discrete_control \
     --env_name=ParameterizedPendulum-v0 \
@@ -36,7 +36,7 @@ python sweep_rl.py \
     --run_seed=0 \
     --num_envs=100 \
     --num_runs=1 \
-    --checkpoint_interval=50 \
+    --checkpoint_interval=250 \
     --hyperparam_set=cheetah_cont \
     --env_name=DMCCheetah-v0 \
     --exp_name=cheetah
@@ -48,7 +48,7 @@ python sweep_rl.py \
     --run_seed=0 \
     --num_envs=100 \
     --num_runs=1 \
-    --checkpoint_interval=50 \
+    --checkpoint_interval=250 \
     --hyperparam_set=cheetah_disc \
     --discrete_control \
     --env_name=DMCCheetah-v0 \
@@ -61,7 +61,7 @@ python sweep_rl.py \
     --run_seed=0 \
     --num_envs=100 \
     --num_runs=1 \
-    --checkpoint_interval=50 \
+    --checkpoint_interval=250 \
     --hyperparam_set=walker_cont \
     --env_name=DMCWalker-v0 \
     --exp_name=walker
@@ -73,7 +73,7 @@ python sweep_rl.py \
     --run_seed=0 \
     --num_envs=100 \
     --num_runs=1 \
-    --checkpoint_interval=50 \
+    --checkpoint_interval=250 \
     --hyperparam_set=walker_disc \
     --discrete_control \
     --env_name=DMCWalker-v0 \
