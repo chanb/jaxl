@@ -3,10 +3,10 @@ This script performs hyperparameter search on multiple environment variations.
 
 Example command:
 # DMCCheetah-v0
-python single_hyperparam_robustness.py \
+python sweep_rl.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
-    --out_dir=${HOME}/scratch/data/single_hyperparam_robustness \
+    --out_dir=${HOME}/scratch/data/sweep_rl \
     --run_seed=0 \
     --env_name=DMCCheetah-v0 \
     --exp_name=cheetah \
@@ -28,10 +28,8 @@ import json
 import numpy as np
 import os
 
-from search_config import (
-    HYPERPARAMETER_ROBUSTNESS_CONFIG,
-    HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG,
-)
+from search_config import HYPERPARAM_SETS
+from utils import set_ppo
 
 
 FLAGS = flags.FLAGS
@@ -68,6 +66,11 @@ flags.DEFINE_integer(
 flags.DEFINE_boolean(
     "discrete_control", default=False, help="Whether or not to use discrete control"
 )
+flags.DEFINE_boolean(
+    "use_default_env",
+    default=False,
+    help="Whether or not to use default environmental parameter",
+)
 flags.DEFINE_integer(
     "num_epochs", default=1000, help="The number of epochs to run the algorithm"
 )
@@ -75,72 +78,17 @@ flags.DEFINE_string("run_time", default="05:00:00", help="The run time per varia
 flags.DEFINE_string(
     "env_name", default=None, required=True, help="The environment name"
 )
-flags.DEFINE_integer("num_envs", default=5, help="The number of environment variations")
-flags.DEFINE_integer("num_runs", default=5, help="The number of runs per variation")
+flags.DEFINE_integer("num_envs", default=1, help="The number of environment variations")
+flags.DEFINE_integer("num_runs", default=1, help="The number of runs per variation")
+flags.DEFINE_integer(
+    "hyperparam_set",
+    default=None,
+    required=True,
+    help="The hyperparameter configuration set to use, see search_config.py",
+)
 
 
 NUM_FILES_PER_DIRECTORY = 100
-
-
-def set_ppo(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=None):
-    assert (key is not None) != (
-        hyperparam_keys is not None and hyperparam_map is not None
-    )
-    if key is not None:
-        if key == "objective":
-            template["learner_config"]["pi_loss_setting"]["objective"] = val
-    elif hyperparam_keys is not None:
-        if "model" in hyperparam_keys:
-            template["model_config"]["policy"]["layers"] = hyperparam_map("model")
-            template["model_config"]["vf"]["layers"] = hyperparam_map("model")
-
-        if "lr" in hyperparam_keys:
-            template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"][
-                "value"
-            ] = hyperparam_map("lr")
-            template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"][
-                "value"
-            ] = hyperparam_map("lr")
-
-        if "max_grad_norm" in hyperparam_keys:
-            template["optimizer_config"]["policy"]["max_grad_norm"] = hyperparam_map(
-                "max_grad_norm"
-            )
-            template["optimizer_config"]["vf"]["max_grad_norm"] = hyperparam_map(
-                "max_grad_norm"
-            )
-
-        if "obs_rms" in hyperparam_keys:
-            template["learner_config"]["obs_rms"] = hyperparam_map("obs_rms")
-
-        if "value_rms" in hyperparam_keys:
-            template["learner_config"]["value_rms"] = hyperparam_map("value_rms")
-
-        if "opt_batch_size" in hyperparam_keys:
-            template["learner_config"]["opt_batch_size"] = hyperparam_map(
-                "opt_batch_size"
-            )
-
-        if "opt_epochs" in hyperparam_keys:
-            template["learner_config"]["opt_epochs"] = hyperparam_map("opt_epochs")
-
-        if "vf_clip_param" in hyperparam_keys:
-            template["learner_config"]["vf_loss_setting"][
-                "clip_param"
-            ] = hyperparam_map("vf_clip_param")
-
-        if "ent_coef" in hyperparam_keys:
-            template["learner_config"]["ent_loss_setting"] = hyperparam_map("ent_coef")
-
-        if "beta" in hyperparam_keys:
-            template["learner_config"]["pi_loss_setting"]["beta"] = hyperparam_map(
-                "beta"
-            )
-
-        if "clip_param" in hyperparam_keys:
-            template["learner_config"]["pi_loss_setting"][
-                "clip_param"
-            ] = hyperparam_map("clip_param")
 
 
 def main(config):
@@ -163,28 +111,27 @@ def main(config):
     assert (
         len(config.run_time.split(":")) == 3
     ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
+    assert (
+        config.hyperparam_set in HYPERPARAM_SETS
+    ), f"{config.hyperparam_set} not in {HYPERPARAM_SETS.keys()}"
 
     os.makedirs(config.out_dir, exist_ok=True)
 
-    # Only use the default environmental parameters for hyperparameter search.
-    # Should generalize well anyway
+    hyperparam_set = HYPERPARAM_SETS[config.hyperparam_set]
+
+    # Set action-space specific hyperparameters
     template["train_config"]["num_epochs"] = config.num_epochs
+    control_mode = "discrete" if config.discrete_control else "continuous"
+    template["learner_config"]["policy_distribution"] = hyperparam_set[algo][
+        control_mode
+    ]["policy_distribution"]
 
     algo = template["learner_config"]["learner"]
     if algo == "ppo":
         template_setter = set_ppo
     else:
         raise ValueError(f"{algo} not supported")
-
-    # Set action-space specific hyperparameters
-    control_mode = "discrete" if config.discrete_control else "continuous"
-    template["learner_config"][
-        "policy_distribution"
-    ] = HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode][
-        "policy_distribution"
-    ]
-
-    for key, val in HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode].items():
+    for key, val in hyperparam_set[algo][control_mode].items():
         if key == "hyperparameters":
             continue
 
@@ -193,7 +140,7 @@ def main(config):
     # Set environment configuration
     template["learner_config"]["env_config"]["env_name"] = config.env_name
     template["learner_config"]["env_config"]["env_kwargs"] = {
-        "use_default": False,
+        "use_default": config.use_default_env,
         "control_mode": control_mode,
     }
 
@@ -204,27 +151,19 @@ def main(config):
     env_seeds = rng.permutation(2**10)[: config.num_envs]
     # Hyperparameter list
     hyperparamss = (
-        list(HYPERPARAMETER_ROBUSTNESS_CONFIG[algo].values())
-        + list(
-            HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode][
-                "hyperparameters"
-            ].values()
-        )
+        list(hyperparam_set[algo]["general"].values())
+        + list(hyperparam_set[algo][control_mode]["hyperparameters"].values())
         + [env_seeds, model_seeds]
     )
     hyperparam_keys = (
-        list(HYPERPARAMETER_ROBUSTNESS_CONFIG[algo].keys())
-        + list(
-            HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode][
-                "hyperparameters"
-            ].keys()
-        )
+        list(hyperparam_set[algo]["general"].keys())
+        + list(hyperparam_set[algo][control_mode]["hyperparameters"].keys())
         + ["env_seed", "model_seed"]
     )
 
     with open(
         os.path.join(
-            f"./hyperparameters-single_hyperparam_robustness-{config.exp_name}.pkl"
+            f"./hyperparameters-{config.hyperparam_set}-{config.exp_name}.pkl"
         ),
         "wb",
     ) as f:
@@ -283,15 +222,13 @@ def main(config):
         dat_content += "export run_seed={} ".format(config.run_seed)
         dat_content += "config_path={}.json \n".format(out_path)
 
-    dat_path = os.path.join(
-        f"./export-single_hyperparam_robustness-{config.exp_name}.dat"
-    )
+    dat_path = os.path.join(f"./export-{config.hyperparam_set}-{config.exp_name}.dat")
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
     os.makedirs(
-        "/home/chanb/scratch/run_reports/single_hyperparam_robustness-{}_{}".format(
-            config.exp_name, control_mode
+        "/home/chanb/scratch/run_reports/{}-{}_{}".format(
+            config.hyperparam_set, config.exp_name, control_mode
         ),
         exist_ok=True,
     )
@@ -302,8 +239,10 @@ def main(config):
     sbatch_content += "#SBATCH --cpus-per-task=1\n"
     sbatch_content += "#SBATCH --mem=3G\n"
     sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
-    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/single_hyperparam_robustness-{}_{}/%j.out\n".format(
-        config.exp_name, control_mode
+    sbatch_content += (
+        "#SBATCH --output=/home/chanb/scratch/run_reports/{}-{}_{}/%j.out\n".format(
+            config.hyperparam_set, config.exp_name, control_mode
+        )
     )
     sbatch_content += "module load python/3.9\n"
     sbatch_content += "module load mujoco\n"
@@ -320,7 +259,7 @@ def main(config):
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(
-        os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}.sh"),
+        os.path.join(f"./run_all-{config.hyperparam_set}-{config.exp_name}.sh"),
         "w+",
     ) as f:
         f.writelines(sbatch_content)
