@@ -9,7 +9,8 @@ python sweep_rl.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
     --out_dir=${HOME}/scratch/data/single_sweep \
     --run_seed=0 \
-    --env_seed=42 \
+    --num_envs=1 \
+    --num_runs=1 \
     --hyperparam_set=single_sweep \
     --use_default_env \
     --env_name=ParameterizedPendulum-v0 \
@@ -20,7 +21,8 @@ python sweep_rl.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
     --out_dir=${HOME}/scratch/data/single_sweep \
     --run_seed=0 \
-    --env_seed=42 \
+    --num_envs=1 \
+    --num_runs=1 \
     --hyperparam_set=single_sweep \
     --use_default_env \
     --discrete_control \
@@ -32,7 +34,8 @@ python sweep_rl.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
     --out_dir=${HOME}/scratch/data/single_sweep \
     --run_seed=0 \
-    --env_seed=42 \
+    --num_envs=1 \
+    --num_runs=1 \
     --hyperparam_set=single_sweep \
     --use_default_env \
     --env_name=DMCCheetah-v0 \
@@ -43,7 +46,8 @@ python sweep_rl.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
     --out_dir=${HOME}/scratch/data/single_sweep \
     --run_seed=0 \
-    --env_seed=42 \
+    --num_envs=1 \
+    --num_runs=1 \
     --hyperparam_set=single_sweep \
     --use_default_env \
     --discrete_control \
@@ -55,7 +59,8 @@ python sweep_rl.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
     --out_dir=${HOME}/scratch/data/single_sweep \
     --run_seed=0 \
-    --env_seed=42 \
+    --num_envs=1 \
+    --num_runs=1 \
     --hyperparam_set=single_sweep \
     --use_default_env \
     --env_name=DMCWalker-v0 \
@@ -66,7 +71,8 @@ python sweep_rl.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
     --out_dir=${HOME}/scratch/data/single_sweep \
     --run_seed=0 \
-    --env_seed=42 \
+    --num_envs=1 \
+    --num_runs=1 \
     --hyperparam_set=single_sweep \
     --use_default_env \
     --discrete_control \

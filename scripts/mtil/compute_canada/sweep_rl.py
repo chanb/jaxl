@@ -86,6 +86,11 @@ flags.DEFINE_integer(
     required=True,
     help="The hyperparameter configuration set to use, see search_config.py",
 )
+flags.DEFINE_integer(
+    "checkpoint_interval",
+    default=None,
+    help="The frequency to checkpoint the model",
+)
 
 
 NUM_FILES_PER_DIRECTORY = 100
@@ -144,7 +149,9 @@ def main(config):
         "control_mode": control_mode,
     }
 
-    template["logging_config"]["checkpoint_interval"] = False
+    template["logging_config"]["checkpoint_interval"] = config.checkpoint_interval
+    if config.checkpoint_interval:
+        template["logging_config"]["checkpoint_interval"] = False
 
     rng = np.random.RandomState(config.run_seed)
     model_seeds = rng.permutation(2**10)[: config.num_runs]
