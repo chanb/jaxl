@@ -31,11 +31,11 @@ doc_width_pt = 452.9679
 # )
 
 # Experiment to choose continuous cheetah
-experiment_name = "hyperparam_search-cheetah_cont"
-experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/cheetah_cont/continuous"
-hyperparameter_path = (
-    "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-cheetah_cont.pkl"
-)
+# experiment_name = "hyperparam_search-cheetah_cont"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/cheetah_cont/continuous"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-cheetah_cont.pkl"
+# )
 
 # Experiment to choose discrete cheetah
 # experiment_name = "hyperparam_search-cheetah_disc"
@@ -56,6 +56,20 @@ hyperparameter_path = (
 # experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/walker_disc/discrete"
 # hyperparameter_path = (
 #     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-walker_disc.pkl"
+# )
+
+# Experiment to choose continuous pendulum
+# experiment_name = "hyperparam_search-pendulum_cont"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/pendulum_cont/continuous"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-pendulum_cont.pkl"
+# )
+
+# Experiment to choose discrete pendulum
+# experiment_name = "hyperparam_search-pendulum_disc"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/pendulum_disc/discrete"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-pendulum_disc.pkl"
 # )
 
 
@@ -257,7 +271,10 @@ hyperparam_total_auc = list(total_aucs.values())
 total_aucs_sort_idxes = np.argsort(hyperparam_total_auc)
 print(np.stack((hyperparam_list, hyperparam_total_auc)).T[total_aucs_sort_idxes])
 
-for (key, val) in zip(hyperparam_keys, hyperparams_comb[total_aucs_sort_idxes[-1]]):
+top_hyperparam = np.array(hyperparam_list)[total_aucs_sort_idxes][-1]
+print(top_hyperparam)
+hyperparams_comb = list(itertools.product(*hyperparamss[:-2]))
+for (key, val) in zip(hyperparam_keys, hyperparams_comb[top_hyperparam]):
     print("{}: {}".format(key, val))
 
 # Plot return based on environmental parameter

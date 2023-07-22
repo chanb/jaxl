@@ -81,7 +81,7 @@ HYPERPARAMETER_ROBUSTNESS_CONFIG = {
 
 EXPERT_CONFIG = {
     "ppo": {
-        "walker": {
+        "pendulum": {
             "continuous": {
                 "policy_distribution": "gaussian",
                 "objective": "clip",
@@ -100,14 +100,58 @@ EXPERT_CONFIG = {
                 "objective": "reverse_kl",
                 "buffer_size": 2048,
                 "max_grad_norm": 0.5,
+                "opt_batch_size": 256,
+                "opt_epochs": 200,
+                "ent_coef": {'scheduler': 'constant_schedule', 'scheduler_kwargs': {'value': 0.0}},
+                "beta": 0.002,
+            },
+        },
+        "cheetah": {
+            "continuous": {
+                "policy_distribution": "gaussian",
+                "objective": "clip",
+                "buffer_size": 2048,
+                "max_grad_norm": 0.5,
                 "opt_batch_size": 128,
                 "opt_epochs": 200,
                 "ent_coef": {
                     "scheduler": "constant_schedule",
                     "scheduler_kwargs": {"value": 0.0},
                 },
+                "clip_param": 0.2,
+            },
+            "discrete": {
+                "policy_distribution": "softmax",
+                "objective": "reverse_kl",
+                "buffer_size": 2048,
+                "max_grad_norm": 0.5,
+                "opt_batch_size": 128,
+                "opt_epochs": 200,
+                "ent_coef": {'scheduler': 'constant_schedule', 'scheduler_kwargs': {'value': 0.0}},
                 "beta": 0.02,
             },
-        }
+        },
+        "walker": {
+            "continuous": {
+                "policy_distribution": "gaussian",
+                "objective": "clip",
+                "buffer_size": 2048,
+                "max_grad_norm": 0.5,
+                "opt_batch_size": 128,
+                "opt_epochs": 200,
+                "ent_coef": {'scheduler': 'constant_schedule', 'scheduler_kwargs': {'value': 0.0}},
+                "clip_param": 0.1,
+            },
+            "discrete": {
+                "policy_distribution": "softmax",
+                "objective": "reverse_kl",
+                "buffer_size": 2048,
+                "max_grad_norm": 0.5,
+                "opt_batch_size": 128,
+                "opt_epochs": 200,
+                "ent_coef": {'scheduler': 'constant_schedule', 'scheduler_kwargs': {'value': 0.0}},
+                "beta": 0.002,
+            },
+        },
     }
 }
