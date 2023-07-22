@@ -25,6 +25,9 @@ import json
 import numpy as np
 import os
 
+from search_config import EXPERT_CONFIG
+from utils import set_ppo
+
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
@@ -51,6 +54,12 @@ flags.DEFINE_string(
     default=None,
     help="Directory for storing the experiment files",
     required=True,
+)
+flags.DEFINE_string(
+    "env_name", default=None, required=True, help="The environment name"
+)
+flags.DEFINE_boolean(
+    "discrete_control", default=False, help="Whether or not to use discrete control"
 )
 flags.DEFINE_integer(
     "num_model_seeds",

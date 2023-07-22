@@ -127,7 +127,7 @@ for row_i, task in enumerate(tasks):
             mode="expand",
             borderaxespad=0.0,
             frameon=True,
-            fontsize='5',
+            fontsize="5",
         )
 
         if col_i == 0:

@@ -88,7 +88,9 @@ assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 assert os.path.isfile(hyperparameter_path), f"{hyperparameter_path} is not a file"
 
 if plot_reference:
-    assert os.path.isfile(reference_config_path), f"{reference_config_path} is not a file"
+    assert os.path.isfile(
+        reference_config_path
+    ), f"{reference_config_path} is not a file"
 
     with open(reference_config_path, "r") as f:
         reference_config = json.load(f)
@@ -133,7 +135,7 @@ else:
         hyperparam_i = variant_i // (num_envs * num_models)
 
         variant_name = f"hyperparam_{hyperparam_i}-env_seed_{env_seed}"
-        
+
         agent_path = agent_paths[variant_i]
 
         if plot_reference and match_hyperparams_i is None:
@@ -145,7 +147,9 @@ else:
                 del curr_config["learner_config"]["env_config"]
 
                 for key in ("model_config", "learner_config", "optimizer_config"):
-                    match_hyperparams = match_hyperparams and (curr_config[key] == reference_config[key])
+                    match_hyperparams = match_hyperparams and (
+                        curr_config[key] == reference_config[key]
+                    )
             if match_hyperparams:
                 match_hyperparams_i = hyperparam_i
 
@@ -159,15 +163,13 @@ else:
             PyTreeCheckpointer(),
         )
 
-        checkpoint = checkpoint_manager.restore(
-            checkpoint_manager.latest_step()
-        )
+        checkpoint = checkpoint_manager.restore(checkpoint_manager.latest_step())
 
         result_per_variant.setdefault(env_seed, {})
         result_per_variant[env_seed].setdefault(hyperparam_i, [])
-        result_per_variant[env_seed][hyperparam_i].append(checkpoint[CONST_AUX][
-            CONST_EPISODIC_RETURNS
-        ][:-1])
+        result_per_variant[env_seed][hyperparam_i].append(
+            checkpoint[CONST_AUX][CONST_EPISODIC_RETURNS][:-1]
+        )
         env_configs[env_seed] = env_config["modified_attributes"]
 
     with open(f"{save_path}/returns.pkl", "wb") as f:
@@ -180,7 +182,7 @@ fig, axes = plt.subplots(
     num_rows,
     num_cols,
     figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
-    layout="constrained"
+    layout="constrained",
 )
 
 aucs_per_seed = {}
@@ -207,14 +209,15 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
 
         agg_auc_list.setdefault(hyperparam_i, [])
         smoothed_returns = []
-        
+
         for returns in result_per_hyperparam[hyperparam_i]:
             cumsum_returns = np.cumsum(returns)
             last_t_episodic_returns = cumsum_returns - np.concatenate(
                 (np.zeros(smoothing), cumsum_returns[:-smoothing])
             )
             smoothed_returns.append(
-                last_t_episodic_returns / np.concatenate(
+                last_t_episodic_returns
+                / np.concatenate(
                     (
                         np.arange(1, smoothing + 1),
                         np.ones(len(returns) - smoothing) * smoothing,
@@ -253,13 +256,13 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
         mode="expand",
         borderaxespad=0.0,
         frameon=True,
-        fontsize='4',
+        fontsize="4",
     )
 
 num_blanks = num_cols - num_envs % num_cols
 if num_cols > num_blanks > 0:
     for ax_i in range(1, num_blanks + 1):
-        axes[-1, -ax_i].axis('off')
+        axes[-1, -ax_i].axis("off")
 
 fig.supylabel("Expected Return")
 fig.supxlabel("Training Episode")
@@ -274,7 +277,7 @@ print(np.stack((hyperparam_list, hyperparam_total_auc)).T[total_aucs_sort_idxes]
 top_hyperparam = np.array(hyperparam_list)[total_aucs_sort_idxes][-1]
 print(top_hyperparam)
 hyperparams_comb = list(itertools.product(*hyperparamss[:-2]))
-for (key, val) in zip(hyperparam_keys, hyperparams_comb[top_hyperparam]):
+for key, val in zip(hyperparam_keys, hyperparams_comb[top_hyperparam]):
     print("{}: {}".format(key, val))
 
 # Plot return based on environmental parameter

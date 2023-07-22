@@ -57,9 +57,11 @@ HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG = {
 HYPERPARAMETER_ROBUSTNESS_CONFIG = {
     "ppo": {
         "buffer_size": [2048],
-        "max_grad_norm": [0.5], # clipping gradient norm is better, tested on [False, 0.5]
+        "max_grad_norm": [
+            0.5
+        ],  # clipping gradient norm is better, tested on [False, 0.5]
         "opt_batch_size": [128, 256],
-        "opt_epochs": [200], # more epochs is better, tested on [100, 200]
+        "opt_epochs": [200],  # more epochs is better, tested on [100, 200]
         "ent_coef": [
             {
                 "scheduler": "constant_schedule",
@@ -102,7 +104,10 @@ EXPERT_CONFIG = {
                 "max_grad_norm": 0.5,
                 "opt_batch_size": 256,
                 "opt_epochs": 200,
-                "ent_coef": {'scheduler': 'constant_schedule', 'scheduler_kwargs': {'value': 0.0}},
+                "ent_coef": {
+                    "scheduler": "constant_schedule",
+                    "scheduler_kwargs": {"value": 0.0},
+                },
                 "beta": 0.002,
             },
         },
@@ -127,7 +132,10 @@ EXPERT_CONFIG = {
                 "max_grad_norm": 0.5,
                 "opt_batch_size": 128,
                 "opt_epochs": 200,
-                "ent_coef": {'scheduler': 'constant_schedule', 'scheduler_kwargs': {'value': 0.0}},
+                "ent_coef": {
+                    "scheduler": "constant_schedule",
+                    "scheduler_kwargs": {"value": 0.0},
+                },
                 "beta": 0.02,
             },
         },
@@ -139,7 +147,10 @@ EXPERT_CONFIG = {
                 "max_grad_norm": 0.5,
                 "opt_batch_size": 128,
                 "opt_epochs": 200,
-                "ent_coef": {'scheduler': 'constant_schedule', 'scheduler_kwargs': {'value': 0.0}},
+                "ent_coef": {
+                    "scheduler": "constant_schedule",
+                    "scheduler_kwargs": {"value": 0.0},
+                },
                 "clip_param": 0.1,
             },
             "discrete": {
@@ -149,7 +160,10 @@ EXPERT_CONFIG = {
                 "max_grad_norm": 0.5,
                 "opt_batch_size": 128,
                 "opt_epochs": 200,
-                "ent_coef": {'scheduler': 'constant_schedule', 'scheduler_kwargs': {'value': 0.0}},
+                "ent_coef": {
+                    "scheduler": "constant_schedule",
+                    "scheduler_kwargs": {"value": 0.0},
+                },
                 "beta": 0.002,
             },
         },

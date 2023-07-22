@@ -28,7 +28,10 @@ import json
 import numpy as np
 import os
 
-from search_config import HYPERPARAMETER_ROBUSTNESS_CONFIG, HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG
+from search_config import (
+    HYPERPARAMETER_ROBUSTNESS_CONFIG,
+    HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG,
+)
 
 
 FLAGS = flags.FLAGS
@@ -175,9 +178,11 @@ def main(config):
 
     # Set action-space specific hyperparameters
     control_mode = "discrete" if config.discrete_control else "continuous"
-    template["learner_config"]["policy_distribution"] = HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][
-        control_mode
-    ]["policy_distribution"]
+    template["learner_config"][
+        "policy_distribution"
+    ] = HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode][
+        "policy_distribution"
+    ]
 
     for key, val in HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode].items():
         if key == "hyperparameters":
@@ -200,22 +205,30 @@ def main(config):
     # Hyperparameter list
     hyperparamss = (
         list(HYPERPARAMETER_ROBUSTNESS_CONFIG[algo].values())
-        + list(HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode]["hyperparameters"].values())
+        + list(
+            HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode][
+                "hyperparameters"
+            ].values()
+        )
         + [env_seeds, model_seeds]
     )
     hyperparam_keys = (
         list(HYPERPARAMETER_ROBUSTNESS_CONFIG[algo].keys())
-        + list(HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode]["hyperparameters"].keys())
+        + list(
+            HYPERPARAMETER_ROBUSTNESS_POLICY_CONFIG[algo][control_mode][
+                "hyperparameters"
+            ].keys()
+        )
         + ["env_seed", "model_seed"]
     )
 
     with open(
-        os.path.join(f"./hyperparameters-single_hyperparam_robustness-{config.exp_name}.pkl"), "wb"
+        os.path.join(
+            f"./hyperparameters-single_hyperparam_robustness-{config.exp_name}.pkl"
+        ),
+        "wb",
     ) as f:
-        pickle.dump(
-            [hyperparam_keys, hyperparamss],
-            f
-        )
+        pickle.dump([hyperparam_keys, hyperparamss], f)
 
     def map_key_to_hyperparameter(hyperparams, key):
         hyperparam_idx = hyperparam_keys.index(key)
@@ -248,11 +261,15 @@ def main(config):
                 "buffer_size"
             )
 
-        template["learner_config"]["env_config"]["env_kwargs"][
-            "env_seed"
-        ] = int(hyperparam_map("env_seed"))
-        template["learner_config"]["seeds"]["env_seed"] = int(hyperparam_map("env_seed"))
-        template["learner_config"]["seeds"]["model_seed"] = int(hyperparam_map("model_seed"))
+        template["learner_config"]["env_config"]["env_kwargs"]["env_seed"] = int(
+            hyperparam_map("env_seed")
+        )
+        template["learner_config"]["seeds"]["env_seed"] = int(
+            hyperparam_map("env_seed")
+        )
+        template["learner_config"]["seeds"]["model_seed"] = int(
+            hyperparam_map("model_seed")
+        )
 
         variant = f"variant-{idx}"
         template["logging_config"]["experiment_name"] = variant
@@ -303,7 +320,8 @@ def main(config):
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(
-        os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}.sh"), "w+"
+        os.path.join(f"./run_all-single_hyperparam_robustness-{config.exp_name}.sh"),
+        "w+",
     ) as f:
         f.writelines(sbatch_content)
 

@@ -97,7 +97,7 @@ else:
                     episodic_returns_per_variant[checkpoint_step].append(
                         np.mean(agent_rollout.episodic_returns)
                     )
-                
+
                 auxes = os.path.join(agent_path, "auxes")
                 for checkpoint_name in os.listdir(auxes):
                     checkpoint_i = int(checkpoint_name[:-4].split("-")[-1])
@@ -117,7 +117,9 @@ else:
         pickle.dump(entropy_per_variant, f)
 
 # Plot main return
-fig, axes = plt.subplots(1, 2, figsize=set_size(doc_width_pt, 0.95, (1, 2)), layout="constrained")
+fig, axes = plt.subplots(
+    1, 2, figsize=set_size(doc_width_pt, 0.95, (1, 2)), layout="constrained"
+)
 
 ax = axes[0]
 for variant_name, returns in result_per_variant.items():
@@ -168,4 +170,6 @@ for variant_name, entropies in entropy_per_variant.items():
 ax.set_ylabel("Policy Entropy")
 
 fig.supxlabel("Iterations")
-fig.savefig(f"{save_path}/returns_and_entropy.pdf", format="pdf", bbox_inches="tight", dpi=600)
+fig.savefig(
+    f"{save_path}/returns_and_entropy.pdf", format="pdf", bbox_inches="tight", dpi=600
+)
