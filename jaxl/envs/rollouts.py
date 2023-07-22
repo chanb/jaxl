@@ -296,7 +296,7 @@ class EvaluationRollout(Rollout):
             if subsampling_length < len(curr_episode):
                 idx_start = jrandom.randint(
                     self._reset_key,
-                    1,
+                    (),
                     minval=0,
                     maxval=len(curr_episode) - subsampling_length,
                 )
@@ -304,6 +304,8 @@ class EvaluationRollout(Rollout):
 
             for idx in range(idx_start, idx_end):
                 buffer.push(*curr_episode[idx])
+                if buffer.is_full:
+                    break
 
         self._env.reset()
 

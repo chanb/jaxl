@@ -70,7 +70,7 @@ By default, the `Learner` class enforces all learners have a way to perform chec
   The online learner can also interact with the environment, which is implemented via the `gymnasium` API.
 
 ### Supported Custom Environments
-We provide customized MuJoCo environments that randomize the physical parameters at the initialization of the environment. This allows us to do some form of multi-task learning, or some form of domain randomization. We achieve this by modifying the XML before passing it to the MuJoCo environment wrapper provided by `mujoco_env`. For more details, the environments are located under `envs/mujoco`.
+We provide customized MuJoCo environments (in both Gymnasium and Deepmind Control Suite) that randomize the physical parameters at the initialization of the environment. This allows us to do some form of multi-task learning, or some form of domain randomization. We achieve this by modifying the XML before passing it to the MuJoCo environment wrapper provided by `NujocoEnv` or `control.Environment`. For more details, the environments are located under `envs/mujoco` and `envs/dmc`.
 
 ## Styling
 - We use [`black`](https://github.com/psf/black/blob/main/README.md) to format code and [`pyment`](https://github.com/dadadel/pyment/blob/master/README.rst) to generate docstrings with `reST` style.

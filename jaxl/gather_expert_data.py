@@ -4,6 +4,7 @@ XXX: Try not to modify this.
 """
 from absl import app, flags
 from absl.flags import FlagValues
+from gymnasium.experimental.wrappers import RecordVideoV0
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
 import _pickle as pickle
@@ -33,7 +34,7 @@ from jaxl.models import (
 )
 from jaxl.envs import get_environment
 from jaxl.envs.rollouts import EvaluationRollout
-from jaxl.learning_utils import load_latest_agent
+from jaxl.learning_utils import load_evaluation_components
 from jaxl.utils import set_seed, parse_dict, RunningMeanStd
 
 
@@ -55,19 +56,22 @@ flags.DEFINE_string(
     help="Where to save the samples",
     required=False,
 )
-flag.DEFINE_string(
-    "subsampling",
+flags.DEFINE_integer(
+    "subsampling_length",
     default=1,
     help="The length of subtrajectories to gather per episode",
     required=False,
 )
 flags.DEFINE_integer(
-    "buffer_size", default=1000, help="Number of transitions to store", required=False
-)
-flags.DEFINE_integer(
     "env_seed",
     default=None,
     help="Environment seed for resetting episodes",
+    required=False,
+)
+flags.DEFINE_boolean(
+    "record_video",
+    default=False,
+    help="Whether or not to record video. Only enabled when save_stats=True",
     required=False,
 )
 
@@ -88,18 +92,32 @@ def main(
     set_seed(config.run_seed)
     assert os.path.isdir(config.run_path), f"{config.run_path} is not a directory"
 
-    policy, policy_params, obs_rms, buffer, env, env_seed = load_latest_agent(
-        config.run_path, config.buffer_size
+    policy, policy_params, obs_rms, buffer, env, env_seed = load_evaluation_components(
+        config.run_path, config.num_samples
     )
 
     if config.env_seed is not None:
         env_seed = config.env_seed
 
+    if config.save_stats and config.record_video:
+        env = RecordVideoV0(
+            env,
+            f"{os.path.dirname(config.save_stats)}/videos",
+            disable_logger=True
+        )
+
     rollout = EvaluationRollout(env, seed=env_seed)
-    rollout.rollout(policy_params, policy, obs_rms, config.num_samples, buffer)
+    rollout.rollout_with_subsampling(
+        policy_params,
+        policy,
+        obs_rms,
+        buffer,
+        config.num_samples,
+        config.subsampling_length,
+    )
     if config.save_buffer:
         print("Saving buffer with {} transitions".format(len(buffer)))
-        buffer.save(config.save_buffer)
+        buffer.save(config.save_buffer, end_with_done=False)
 
     if config.save_stats:
         print("Saving episodic statistics")
