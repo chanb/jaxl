@@ -30,8 +30,8 @@ import os
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
     "main_path",
-    default="../../../../jaxl/evaluate_rl_agents.py",
-    help="Path to evaluate_rl_agents.py",
+    default="../../../../jaxl/gather_expert_data.py",
+    help="Path to gather_expert_data.py",
     required=False,
 )
 flags.DEFINE_string(
@@ -57,18 +57,23 @@ flags.DEFINE_string(
     required=True,
 )
 flags.DEFINE_integer(
-    "num_episodes",
+    "num_samples",
     default=None,
-    help="The number of demonstration episodes to store",
+    help="The number of demonstration samples to store",
     required=True,
 )
-flags.DEFINE_integer(
-    "max_episode_length",
+flags.DEFINE_multi_integer(
+    "subsampling_lengths",
     default=None,
-    help="The maximum length of an episode of the MDP",
+    help="The lengths of subtrajectories to gather per episode",
     required=True,
 )
-flags.DEFINE_string("run_time", default="03:00:00", help="The run time per variant")
+flags.DEFINE_string(
+    "run_time",
+    default="03:00:00",
+    help="The run time per variant",
+    required=False,
+)
 
 NUM_FILES_PER_DIRECTORY = 100
 
@@ -80,17 +85,11 @@ def main(config: FlagValues):
         len(config.run_time.split(":")) == 3
     ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
 
-    assert (
-        config.max_episode_length > 0
-    ), f"max_episode_length should be at least 0, got {config.max_episode_length}"
-    assert (
-        config.num_episodes > 0
-    ), f"num_episodes shoudl be at least 0, got {config.num_episodes}"
+    assert all(length > 0 for length in config.subsampling_lengths), f"all of subsampling_lengths should be at least 1, got {config.subsampling_lengths}"
+    assert config.num_samples > 0, f"num_samples should be at least 1, got {config.num_samples}"
 
     out_dir = os.path.join(config.out_dir, config.exp_name)
     os.makedirs(out_dir, exist_ok=True)
-
-    buffer_size = config.num_episodes * config.max_episode_length
 
     dat_content = ""
     num_runs = 0
@@ -102,20 +101,25 @@ def main(config: FlagValues):
             save_id = os.path.basename(
                 os.path.abspath(os.path.join(run_path, os.pardir))
             )
-            save_buffer = os.path.join(
-                out_dir,
-                f"{save_id}-{os.path.basename(run_path)}-num_episodes_{config.num_episodes}.gzip",
-            )
-            dat_content += (
-                "export buffer_size={} num_episodes={} env_seed={} run_seed={} ".format(
-                    buffer_size,
-                    config.num_episodes,
-                    config.env_seed,
-                    config.run_seed,
+
+            for subsampling_length in config.subsampling_lengths:
+                save_buffer = os.path.join(
+                    out_dir,
+                    f"{save_id}-{os.path.basename(run_path)}-num_samples_{config.num_samples}-subsampling_length_{subsampling_length}.gzip",
                 )
-            )
-            dat_content += "save_buffer={} run_path={}\n".format(save_buffer, run_path)
-            num_runs += 1
+                dat_content += (
+                    "export num_samples={} env_seed={} run_seed={} ".format(
+                        config.num_samples,
+                        config.env_seed,
+                        config.run_seed,
+                    )
+                )
+                dat_content += "subsampling_length={} save_buffer={} run_path={}\n".format(
+                    subsampling_length,
+                    save_buffer,
+                    run_path
+                )
+                num_runs += 1
 
     dat_path = os.path.join(f"./export-generate_expert_data-{config.exp_name}.dat")
     with open(dat_path, "w+") as f:

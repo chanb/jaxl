@@ -5,37 +5,23 @@ XXX: Try not to modify this.
 from absl import app, flags
 from absl.flags import FlagValues
 from gymnasium.experimental.wrappers import RecordVideoV0
-from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
 import _pickle as pickle
 import jax
-import json
 import logging
 import numpy as np
 import os
 import timeit
 
-from jaxl.buffers import get_buffer
 from jaxl.constants import (
-    CONST_DEFAULT,
-    CONST_MODEL,
-    CONST_OBS_RMS,
-    CONST_POLICY,
     CONST_EPISODE_LENGTHS,
     CONST_EPISODIC_RETURNS,
     CONST_RUN_PATH,
     CONST_BUFFER_PATH,
-    CONST_MODEL_DICT,
 )
-from jaxl.models import (
-    get_model,
-    get_policy,
-    policy_output_dim,
-)
-from jaxl.envs import get_environment
 from jaxl.envs.rollouts import EvaluationRollout
 from jaxl.learning_utils import load_evaluation_components
-from jaxl.utils import set_seed, parse_dict, RunningMeanStd
+from jaxl.utils import set_seed
 
 
 FLAGS = flags.FLAGS
@@ -91,6 +77,12 @@ def main(
     tic = timeit.default_timer()
     set_seed(config.run_seed)
     assert os.path.isdir(config.run_path), f"{config.run_path} is not a directory"
+    assert (
+        config.subsampling_length > 0
+    ), f"subsampling_length should be at least 1, got {config.subsampling_length}"
+    assert (
+        config.num_samples > 0
+    ), f"num_samples should be at least 1, got {config.num_samples}"
 
     policy, policy_params, obs_rms, buffer, env, env_seed = load_evaluation_components(
         config.run_path, config.num_samples
@@ -101,9 +93,7 @@ def main(
 
     if config.save_stats and config.record_video:
         env = RecordVideoV0(
-            env,
-            f"{os.path.dirname(config.save_stats)}/videos",
-            disable_logger=True
+            env, f"{os.path.dirname(config.save_stats)}/videos", disable_logger=True
         )
 
     rollout = EvaluationRollout(env, seed=env_seed)

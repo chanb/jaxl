@@ -178,7 +178,9 @@ def load_evaluation_components(
 
     agent_config_dict["learner_config"]["buffer_config"]["buffer_size"] = buffer_size
     agent_config_dict["learner_config"]["buffer_config"]["buffer_type"] = CONST_DEFAULT
-    agent_config_dict["learner_config"]["env_config"]["env_kwargs"]["render_mode"] = "rgb_array"
+    agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+        "render_mode"
+    ] = "rgb_array"
     agent_config = parse_dict(agent_config_dict)
 
     h_state_dim = (1,)
