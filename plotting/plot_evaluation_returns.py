@@ -21,10 +21,49 @@ plt.rcParams.update(pgf_with_latex)
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
-experiment_name = "single_hyperparameter_robustness"
+
+# Variants:
+# experiment_name = "single_hyperparameter_robustness"
+# experiment_dir = (
+#     f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
+# )
+
+# Pendulum continuous expert
+experiment_name = "pendulum_cont"
 experiment_dir = (
-    f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
+    "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/continuous/runs/0/"
 )
+
+# Pendulum discrete expert
+experiment_name = "pendulum_disc"
+experiment_dir = (
+    "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/discrete/runs/0/"
+)
+
+# Cheetah continuous expert
+experiment_name = "cheetah_cont"
+experiment_dir = (
+    "/Users/chanb/research/personal/mtil_results/data/experts/cheetah/continuous/runs/0/"
+)
+
+# Cheetah discrete expert
+experiment_name = "cheetah_disc"
+experiment_dir = (
+    "/Users/chanb/research/personal/mtil_results/data/experts/cheetah/discrete/runs/0/"
+)
+
+# Walker continuous expert
+experiment_name = "walker_cont"
+experiment_dir = (
+    "/Users/chanb/research/personal/mtil_results/data/experts/walker/continuous/runs/0/"
+)
+
+# Walker discrete expert
+experiment_name = "walker_disc"
+experiment_dir = (
+    "/Users/chanb/research/personal/mtil_results/data/experts/walker/discrete/runs/0/"
+)
+
 save_path = f"./results-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)
 
