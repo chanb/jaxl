@@ -20,10 +20,7 @@ This will generate a dat file that consists of various runs.
 from absl import app, flags
 from absl.flags import FlagValues
 
-import itertools
 import jax
-import json
-import numpy as np
 import os
 
 
@@ -152,7 +149,11 @@ def main(config: FlagValues):
     sbatch_content += 'echo "Starting run at: `date`"\n'
     sbatch_content += "python3 {} \\\n".format(config.main_path)
     sbatch_content += "  --run_path=${run_path} \\\n"
-    sbatch_content += "  --run_seed=${run_seed}\n"
+    sbatch_content += "  --run_seed=${run_seed} \\\n"
+    sbatch_content += "  --num_samples=${num_samples} \\\n"
+    sbatch_content += "  --subsampling_length=${subsampling_length} \\\n"
+    sbatch_content += "  --save_buffer=${save_buffer} \\\n"
+    sbatch_content += "  --env_seed=${env_seed}\n"
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
     with open(
