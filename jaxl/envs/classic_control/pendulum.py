@@ -250,7 +250,7 @@ class ParameterizedPendulumEnv(gym.Env):
         scale = self.screen_dim / (bound * 2)
         offset = self.screen_dim // 2
 
-        rod_length = 1 * scale
+        rod_length = self.l * scale
         rod_width = 0.2 * scale
         l, r, t, b = 0, rod_length, rod_width / 2, -rod_width / 2
         coords = [(l, b), (l, t), (r, t), (r, b)]

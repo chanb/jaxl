@@ -94,64 +94,71 @@ else:
     result_per_variant = {}
     env_configs = {}
     default_env_seeds = {}
+    agent_paths = {}
     for variant_i, variant_name in enumerate(dirs_to_load):
-        print(f"Processing variant {variant_i + 1} / {num_agents_to_test}")
         variant_path = os.path.join(experiment_dir, variant_name)
-        episodic_returns_per_variant = {}
         for agent_path, _, filenames in os.walk(variant_path):
-            for filename in filenames:
-                if filename != "config.json":
-                    continue
+                for filename in filenames:
+                    if filename != "config.json":
+                        continue
+                    agent_paths[variant_name] = agent_path
 
-                env_config_path = os.path.join(agent_path, "env_config.pkl")
-                env_config = None
-                if os.path.isfile(env_config_path):
-                    env_config = pickle.load(open(env_config_path, "rb"))
+                    agent_config_path = os.path.join(agent_path, "config.json")
+                    with open(agent_config_path, "r") as f:
+                        agent_config_dict = json.load(f)
+                        default_env_seed = agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+                            "env_seed"
+                        ]
+                        default_env_seeds[variant_name] = default_env_seed
+    
+    all_env_seeds = [*default_env_seeds.values(), *env_seeds]
 
-                checkpoint_manager = CheckpointManager(
-                    os.path.join(agent_path, "models"),
-                    PyTreeCheckpointer(),
+    for variant_i, variant_name in enumerate(agent_paths):
+        print(f"Processing variant {variant_i + 1} / {num_agents_to_test}")
+        agent_path = agent_paths[variant_name]
+        env_config_path = os.path.join(agent_path, "env_config.pkl")
+        env_config = None
+        if os.path.isfile(env_config_path):
+            env_config = pickle.load(open(env_config_path, "rb"))
+
+        checkpoint_manager = CheckpointManager(
+            os.path.join(agent_path, "models"),
+            PyTreeCheckpointer(),
+        )
+
+        episodic_returns_per_variant = {}
+        for env_seed in all_env_seeds:
+            env, policy = get_evaluation_components(agent_path, env_seed)
+            if record_video:
+                env = RecordVideoV0(
+                    env,
+                    f"{save_path}/videos/variant_{variant_name}/env_seed_{env_seed}",
+                    disable_logger=True,
                 )
+            params = checkpoint_manager.restore(
+                checkpoint_manager.latest_step()
+            )
+            model_dict = params[CONST_MODEL_DICT]
+            agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
+            agent_obs_rms = False
+            if CONST_OBS_RMS in params:
+                agent_obs_rms = RunningMeanStd()
+                agent_obs_rms.set_state(params[CONST_OBS_RMS])
 
-                agent_config_path = os.path.join(agent_path, "config.json")
-                with open(agent_config_path, "r") as f:
-                    agent_config_dict = json.load(f)
-                    default_env_seed = agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
-                        "env_seed"
-                    ]
-                    default_env_seeds[variant_name] = default_env_seed
-                for env_seed in [default_env_seed, *env_seeds]:
-                    env, policy = get_evaluation_components(agent_path, env_seed)
-                    if record_video:
-                        env = RecordVideoV0(
-                            env,
-                            f"{save_path}/videos/variant_{variant_name}/env_seed_{env_seed}",
-                            disable_logger=True,
-                        )
-                    params = checkpoint_manager.restore(
-                        checkpoint_manager.latest_step()
-                    )
-                    model_dict = params[CONST_MODEL_DICT]
-                    agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
-                    agent_obs_rms = False
-                    if CONST_OBS_RMS in params:
-                        agent_obs_rms = RunningMeanStd()
-                        agent_obs_rms.set_state(params[CONST_OBS_RMS])
+            agent_rollout = EvaluationRollout(env, seed=rollout_seed)
+            agent_rollout.rollout(
+                agent_policy_params,
+                policy,
+                agent_obs_rms,
+                num_evaluation_episodes,
+                None,
+                use_tqdm=False,
+            )
 
-                    agent_rollout = EvaluationRollout(env, seed=rollout_seed)
-                    agent_rollout.rollout(
-                        agent_policy_params,
-                        policy,
-                        agent_obs_rms,
-                        num_evaluation_episodes,
-                        None,
-                        use_tqdm=False,
-                    )
-
-                    episodic_returns_per_variant.setdefault(env_seed, [])
-                    episodic_returns_per_variant[env_seed].append(
-                        np.mean(agent_rollout.episodic_returns)
-                    )
+            episodic_returns_per_variant.setdefault(env_seed, [])
+            episodic_returns_per_variant[env_seed].append(
+                np.mean(agent_rollout.episodic_returns)
+            )
         result_per_variant[variant_name] = episodic_returns_per_variant
         env_configs[variant_name] = env_config["modified_attributes"]
 
@@ -160,6 +167,10 @@ else:
 
 # Plot main return
 fig, ax = plt.subplots(1, 1, figsize=set_size(doc_width_pt, 0.95, (1, 1)))
+
+seeds_to_plot = np.array(all_env_seeds)
+sort_idxes = np.argsort(seeds_to_plot)
+seeds_to_plot = seeds_to_plot[sort_idxes]
 
 for variant_name, returns in result_per_variant.items():
     means = []
@@ -170,9 +181,6 @@ for variant_name, returns in result_per_variant.items():
     means = np.array(means)
     stds = np.array(stds)
 
-    seeds_to_plot = np.array([default_env_seeds[variant_name], *env_seeds])
-    sort_idxes = np.argsort(seeds_to_plot)
-    seeds_to_plot = seeds_to_plot[sort_idxes]
     ax.plot(
         seeds_to_plot,
         means[sort_idxes],
