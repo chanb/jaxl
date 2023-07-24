@@ -82,8 +82,12 @@ def main(config: FlagValues):
         len(config.run_time.split(":")) == 3
     ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
 
-    assert all(length > 0 for length in config.subsampling_lengths), f"all of subsampling_lengths should be at least 1, got {config.subsampling_lengths}"
-    assert config.num_samples > 0, f"num_samples should be at least 1, got {config.num_samples}"
+    assert all(
+        length > 0 for length in config.subsampling_lengths
+    ), f"all of subsampling_lengths should be at least 1, got {config.subsampling_lengths}"
+    assert (
+        config.num_samples > 0
+    ), f"num_samples should be at least 1, got {config.num_samples}"
 
     out_dir = os.path.join(config.out_dir, config.exp_name)
     os.makedirs(out_dir, exist_ok=True)
@@ -104,17 +108,15 @@ def main(config: FlagValues):
                     out_dir,
                     f"{save_id}-{os.path.basename(run_path)}-num_samples_{config.num_samples}-subsampling_length_{subsampling_length}.gzip",
                 )
-                dat_content += (
-                    "export num_samples={} env_seed={} run_seed={} ".format(
-                        config.num_samples,
-                        config.env_seed,
-                        config.run_seed,
-                    )
+                dat_content += "export num_samples={} env_seed={} run_seed={} ".format(
+                    config.num_samples,
+                    config.env_seed,
+                    config.run_seed,
                 )
-                dat_content += "subsampling_length={} save_buffer={} run_path={}\n".format(
-                    subsampling_length,
-                    save_buffer,
-                    run_path
+                dat_content += (
+                    "subsampling_length={} save_buffer={} run_path={}\n".format(
+                        subsampling_length, save_buffer, run_path
+                    )
                 )
                 num_runs += 1
 
