@@ -28,10 +28,10 @@ experiment_name = "pendulum_cont"
 experiment_dir = "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/continuous/runs/0/"
 
 # Pendulum discrete expert
-# experiment_name = "pendulum_disc"
-# experiment_dir = (
-#     "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/discrete/runs/0/"
-# )
+experiment_name = "pendulum_disc"
+experiment_dir = (
+    "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/discrete/runs/0/"
+)
 
 # Cheetah continuous expert
 # experiment_name = "cheetah_cont"
@@ -64,7 +64,8 @@ seed = 0
 rng = np.random.RandomState(seed)
 
 rollout_seed = 9999
-num_envs_to_test = 10
+env_seed_range = 1000
+num_envs_to_test = 5
 num_agents_to_test = 5
 
 num_evaluation_episodes = 10
@@ -81,9 +82,9 @@ variants_sample_idxes = rng.randint(0, num_variants, size=num_agents_to_test)
 while len(np.unique(variants_sample_idxes)) != num_agents_to_test:
     variants_sample_idxes = rng.randint(0, num_variants, size=num_agents_to_test)
 
-env_seeds = rng.randint(0, 10000, size=num_envs_to_test)
+env_seeds = rng.randint(0, env_seed_range, size=num_envs_to_test)
 while len(np.unique(env_seeds)) != num_envs_to_test:
-    env_seeds = rng.randint(0, 10000, size=num_envs_to_test)
+    env_seeds = rng.randint(0, env_seed_range, size=num_envs_to_test)
 
 dirs_to_load = variants[variants_sample_idxes]
 if os.path.isfile(f"{save_path}/returns_{seed}.pkl"):
