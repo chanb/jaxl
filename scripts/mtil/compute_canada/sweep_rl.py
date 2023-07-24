@@ -208,7 +208,7 @@ def main(config):
                 "buffer_size"
             )
 
-        template["learner_config"]["env_config"]["env_kwargs"]["env_seed"] = int(
+        template["learner_config"]["env_config"]["env_kwargs"]["seed"] = int(
             hyperparam_map("env_seed")
         )
         template["learner_config"]["seeds"]["env_seed"] = int(

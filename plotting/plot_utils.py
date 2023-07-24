@@ -72,7 +72,7 @@ def get_config(agent_path, env_seed=None):
 
         if env_seed is not None:
             agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
-                "env_seed"
+                "seed"
             ] = env_seed
 
         set_dict_value(agent_config_dict, "vmap_all", False)

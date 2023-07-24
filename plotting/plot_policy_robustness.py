@@ -65,11 +65,11 @@ rng = np.random.RandomState(seed)
 
 rollout_seed = 9999
 env_seed_range = 1000
-num_envs_to_test = 5
+num_envs_to_test = 1
 num_agents_to_test = 5
 
 num_evaluation_episodes = 10
-record_video = True
+record_video = False
 
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 assert num_envs_to_test > 0, f"num_envs_to_test needs to be at least 1"
@@ -112,7 +112,7 @@ else:
                         ]
                         default_env_seeds[variant_name] = default_env_seed
     
-    all_env_seeds = [*default_env_seeds.values(), *env_seeds]
+    all_env_seeds = [*env_seeds, *default_env_seeds.values()]
 
     for variant_i, variant_name in enumerate(agent_paths):
         print(f"Processing variant {variant_i + 1} / {num_agents_to_test}")
@@ -199,7 +199,7 @@ for variant_name, returns in result_per_variant.items():
     # ax.scatter([default_env_seeds[variant_name]], [means[0]], marker="*")
 
 ax.set_ylabel("Expected Return")
-ax.set_xlabel("Environment Variation")
+ax.set_xlabel("Environment Variant")
 ax.legend()
 
 fig.tight_layout()
