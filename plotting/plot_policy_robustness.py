@@ -3,6 +3,7 @@ from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from typing import Iterable
 
 import _pickle as pickle
+import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,10 +28,10 @@ experiment_name = "pendulum_cont"
 experiment_dir = "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/continuous/runs/0/"
 
 # Pendulum discrete expert
-experiment_name = "pendulum_disc"
-experiment_dir = (
-    "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/discrete/runs/0/"
-)
+# experiment_name = "pendulum_disc"
+# experiment_dir = (
+#     "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/discrete/runs/0/"
+# )
 
 # Cheetah continuous expert
 # experiment_name = "cheetah_cont"
@@ -63,11 +64,11 @@ seed = 0
 rng = np.random.RandomState(seed)
 
 rollout_seed = 9999
-num_envs_to_test = 30
+num_envs_to_test = 10
 num_agents_to_test = 5
 
 num_evaluation_episodes = 10
-record_video = False
+record_video = True
 
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 assert num_envs_to_test > 0, f"num_envs_to_test needs to be at least 1"
@@ -86,12 +87,13 @@ while len(np.unique(env_seeds)) != num_envs_to_test:
 
 dirs_to_load = variants[variants_sample_idxes]
 if os.path.isfile(f"{save_path}/returns_{seed}.pkl"):
-    (result_per_variant, env_configs) = pickle.load(
+    (result_per_variant, env_configs, default_env_seeds) = pickle.load(
         open(f"{save_path}/returns_{seed}.pkl", "rb")
     )
 else:
     result_per_variant = {}
     env_configs = {}
+    default_env_seeds = {}
     for variant_i, variant_name in enumerate(dirs_to_load):
         print(f"Processing variant {variant_i + 1} / {num_agents_to_test}")
         variant_path = os.path.join(experiment_dir, variant_name)
@@ -111,8 +113,15 @@ else:
                     PyTreeCheckpointer(),
                 )
 
-                for env_seed in env_seeds:
-                    env, policy = get_evaluation_components(agent_path)
+                agent_config_path = os.path.join(agent_path, "config.json")
+                with open(agent_config_path, "r") as f:
+                    agent_config_dict = json.load(f)
+                    default_env_seed = agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+                        "env_seed"
+                    ]
+                    default_env_seeds[variant_name] = default_env_seed
+                for env_seed in [default_env_seed, *env_seeds]:
+                    env, policy = get_evaluation_components(agent_path, env_seed)
                     if record_video:
                         env = RecordVideoV0(
                             env,
@@ -147,12 +156,11 @@ else:
         env_configs[variant_name] = env_config["modified_attributes"]
 
     with open(f"{save_path}/returns_{seed}.pkl", "wb") as f:
-        pickle.dump((result_per_variant, env_configs), f)
+        pickle.dump((result_per_variant, env_configs, default_env_seeds), f)
 
 # Plot main return
 fig, ax = plt.subplots(1, 1, figsize=set_size(doc_width_pt, 0.95, (1, 1)))
 
-sort_idxes = np.argsort(env_seeds)
 for variant_name, returns in result_per_variant.items():
     means = []
     stds = []
@@ -162,13 +170,24 @@ for variant_name, returns in result_per_variant.items():
     means = np.array(means)
     stds = np.array(stds)
 
-    ax.plot(env_seeds[sort_idxes], means[sort_idxes], marker="x", label=variant_name)
+    seeds_to_plot = np.array([default_env_seeds[variant_name], *env_seeds])
+    sort_idxes = np.argsort(seeds_to_plot)
+    seeds_to_plot = seeds_to_plot[sort_idxes]
+    ax.plot(
+        seeds_to_plot,
+        means[sort_idxes],
+        label=variant_name,
+        markevery=np.where(seeds_to_plot == default_env_seeds[variant_name])[0],
+        marker="*",
+        linewidth=1.0,
+    )
     ax.fill_between(
-        env_seeds[sort_idxes],
+        seeds_to_plot,
         means[sort_idxes] + stds[sort_idxes],
         means[sort_idxes] - stds[sort_idxes],
         alpha=0.3,
     )
+    # ax.scatter([default_env_seeds[variant_name]], [means[0]], marker="*")
 
 ax.set_ylabel("Expected Return")
 ax.set_xlabel("Environment Variation")
