@@ -10,7 +10,7 @@ python sweep_rl.py \
     --out_dir=${HOME}/scratch/data/hyperparam_sweep \
     --run_seed=0 \
     --env_name=ParameterizedPendulum-v0 \
-    --exp_name=pendulum_cont \
+    --exp_name=pendulum \
     --num_envs=6 \
     --num_runs=3 \
     --hyperparam_set=hyperparam_sweep
@@ -21,7 +21,7 @@ python sweep_rl.py \
     --out_dir=${HOME}/scratch/data/hyperparam_sweep \
     --run_seed=0 \
     --env_name=ParameterizedPendulum-v0 \
-    --exp_name=pendulum_disc \
+    --exp_name=pendulum \
     --discrete_control \
     --num_envs=6 \
     --num_runs=3 \
@@ -33,7 +33,7 @@ python sweep_rl.py \
     --out_dir=${HOME}/scratch/data/hyperparam_sweep \
     --run_seed=0 \
     --env_name=DMCCheetah-v0 \
-    --exp_name=cheetah_cont \
+    --exp_name=cheetah \
     --num_envs=6 \
     --num_runs=3 \
     --hyperparam_set=hyperparam_sweep
@@ -44,7 +44,7 @@ python sweep_rl.py \
     --out_dir=${HOME}/scratch/data/hyperparam_sweep \
     --run_seed=0 \
     --env_name=DMCCheetah-v0 \
-    --exp_name=cheetah_disc \
+    --exp_name=cheetah \
     --discrete_control \
     --num_envs=6 \
     --num_runs=3 \
@@ -56,7 +56,7 @@ python sweep_rl.py \
     --out_dir=${HOME}/scratch/data/hyperparam_sweep \
     --run_seed=0 \
     --env_name=DMCWalker-v0 \
-    --exp_name=walker_cont \
+    --exp_name=walker \
     --num_envs=6 \
     --num_runs=3 \
     --hyperparam_set=hyperparam_sweep
@@ -67,7 +67,7 @@ python sweep_rl.py \
     --out_dir=${HOME}/scratch/data/hyperparam_sweep \
     --run_seed=0 \
     --env_name=DMCWalker-v0 \
-    --exp_name=walker_disc \
+    --exp_name=walker \
     --discrete_control \
     --num_envs=6 \
     --num_runs=3 \
