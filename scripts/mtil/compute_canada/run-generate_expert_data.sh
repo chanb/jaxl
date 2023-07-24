@@ -10,7 +10,6 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=1 \
     --subsampling_lengths=20 \
     --subsampling_lengths=200 \
     --run_time=05:00:00 \
@@ -23,7 +22,6 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=1 \
     --subsampling_lengths=20 \
     --subsampling_lengths=200 \
     --run_time=05:00:00 \
@@ -36,7 +34,6 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=1 \
     --subsampling_lengths=20 \
     --subsampling_lengths=1000 \
     --run_time=05:00:00 \
@@ -49,7 +46,6 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=1 \
     --subsampling_lengths=20 \
     --subsampling_lengths=1000 \
     --run_time=05:00:00 \
@@ -62,7 +58,6 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=1 \
     --subsampling_lengths=20 \
     --subsampling_lengths=1000 \
     --run_time=05:00:00 \
@@ -75,7 +70,6 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=1 \
     --subsampling_lengths=20 \
     --subsampling_lengths=1000 \
     --run_time=05:00:00 \
@@ -83,9 +77,9 @@ python generate_expert_data.py \
     --exp_name=walker_disc
 
 chmod +x run_all-*.sh
-sbatch run_all-generate_expert_data-cheetah_cont.sh
-sbatch run_all-generate_expert_data-cheetah_disc.sh
-sbatch run_all-generate_expert_data-walker_cont.sh
+# sbatch run_all-generate_expert_data-cheetah_cont.sh
+# sbatch run_all-generate_expert_data-cheetah_disc.sh
+# sbatch run_all-generate_expert_data-walker_cont.sh
 sbatch run_all-generate_expert_data-walker_disc.sh
 sbatch run_all-generate_expert_data-pendulum_cont.sh
 sbatch run_all-generate_expert_data-pendulum_disc.sh
