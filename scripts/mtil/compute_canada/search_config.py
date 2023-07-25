@@ -115,18 +115,23 @@ PENDULUM_CONTINUOUS = {
         "continuous": {
             "policy_distribution": "gaussian",
             "objective": "clip",
-            "hyperparameters": {"clip_param": [0.2]},
+            "hyperparameters": {"clip_param": [0.1]},
         },
         "general": {
             "buffer_size": [2048],
             "max_grad_norm": [0.5],
-            "opt_batch_size": [128],
+            "opt_batch_size": [256],
             "opt_epochs": [200],
             "ent_coef": [
                 {
-                    "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {"value": 0.0},
-                }
+                    "scheduler": "linear_schedule",
+                    "scheduler_kwargs": {
+                        "init_value": 0.002,
+                        "end_value": 0.0,
+                        "transition_begin": 0,
+                        "transition_steps": 100,
+                    },
+                },
             ],
         },
     },
@@ -159,7 +164,7 @@ CHEETAH_CONTINUOUS = {
         "continuous": {
             "policy_distribution": "gaussian",
             "objective": "clip",
-            "hyperparameters": {"clip_param": [0.2]},
+            "hyperparameters": {"clip_param": [0.1]},
         },
         "general": {
             "buffer_size": [2048],
@@ -190,9 +195,14 @@ CHEETAH_DISCRETE = {
             "opt_epochs": [200],
             "ent_coef": [
                 {
-                    "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {"value": 0.0},
-                }
+                    "scheduler": "linear_schedule",
+                    "scheduler_kwargs": {
+                        "init_value": 0.002,
+                        "end_value": 0.0,
+                        "transition_begin": 0,
+                        "transition_steps": 100,
+                    },
+                },
             ],
         },
     },
@@ -234,9 +244,14 @@ WALKER_DISCRETE = {
             "opt_epochs": [200],
             "ent_coef": [
                 {
-                    "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {"value": 0.0},
-                }
+                    "scheduler": "linear_schedule",
+                    "scheduler_kwargs": {
+                        "init_value": 0.002,
+                        "end_value": 0.0,
+                        "transition_begin": 0,
+                        "transition_steps": 100,
+                    },
+                },
             ],
         },
     },

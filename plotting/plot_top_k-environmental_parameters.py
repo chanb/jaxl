@@ -18,67 +18,69 @@ plt.style.use("seaborn")
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
 
-# Using the set_size function as defined earlier
-doc_width_pt = 452.9679
-
-# Experiment to filter from 32 configurations to 8 configurations
-experiment_name = "cheetah_sweep"
-experiment_dir = (
-    "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/cheetah/discrete"
-)
-hyperparameter_path = "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/hyperparameters-cheetah_sweep-cheetah_discrete.pkl"
-
-# Experiment to choose continuous cheetah
-# experiment_name = "hyperparam_search-cheetah_cont"
-# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/cheetah_cont/continuous"
-# hyperparameter_path = (
-#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-cheetah_cont.pkl"
-# )
-
-# Experiment to choose discrete cheetah
-# experiment_name = "hyperparam_search-cheetah_disc"
-# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/cheetah_disc/discrete"
-# hyperparameter_path = (
-#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-cheetah_disc.pkl"
-# )
-
-# Experiment to choose continuous walker
-# experiment_name = "hyperparam_search-walker_cont"
-# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/walker_cont/continuous"
-# hyperparameter_path = (
-#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-walker_cont.pkl"
-# )
-
-# Experiment to choose discrete walker
-# experiment_name = "hyperparam_search-walker_disc"
-# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/walker_disc/discrete"
-# hyperparameter_path = (
-#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-walker_disc.pkl"
-# )
-
-# Experiment to choose continuous pendulum
-# experiment_name = "hyperparam_search-pendulum_cont"
-# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/pendulum_cont/continuous"
-# hyperparameter_path = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-pendulum_cont.pkl"
-
-# Experiment to choose discrete pendulum
-# experiment_name = "hyperparam_search-pendulum_disc"
-# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/pendulum_disc/discrete"
-# hyperparameter_path = (
-#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-pendulum_disc.pkl"
-# )
-
-
-save_path = f"./results-{experiment_name}"
-os.makedirs(save_path, exist_ok=True)
-
 plot_reference = False
-reference_config_path = "/Users/chanb/research/personal/mtil_results/data/search_expert/cheetah/discrete/scripts/0/variant-71.json"
+reference_config_path = None
 top_k = 8
 smoothing = 20
 num_evaluation_episodes = 5
 env_seed = 9999
 record_video = False
+
+# Using the set_size function as defined earlier
+doc_width_pt = 452.9679
+
+# Experiment to filter from 32 configurations to 8 configurations
+# experiment_name = "cheetah_sweep"
+# experiment_dir = (
+#     "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/cheetah/discrete"
+# )
+# hyperparameter_path = "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/hyperparameters-cheetah_sweep-cheetah_discrete.pkl"
+
+# Experiment to choose continuous pendulum
+experiment_name = "hyperparam_sweep-pendulum_cont"
+experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/pendulum/continuous"
+hyperparameter_path = (
+    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-pendulum_continuous.pkl"
+)
+
+# Experiment to choose discrete pendulum
+experiment_name = "hyperparam_sweep-pendulum_disc"
+experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/pendulum/discrete"
+hyperparameter_path = (
+    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-pendulum_discrete.pkl"
+)
+
+# Experiment to choose continuous cheetah
+experiment_name = "hyperparam_sweep-cheetah_cont"
+experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/cheetah/continuous"
+hyperparameter_path = (
+    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-cheetah_continuous.pkl"
+)
+
+# Experiment to choose discrete cheetah
+experiment_name = "hyperparam_sweep-cheetah_disc"
+experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/cheetah/discrete"
+hyperparameter_path = (
+    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-cheetah_discrete.pkl"
+)
+
+# Experiment to choose continuous walker
+experiment_name = "hyperparam_sweep-walker_cont"
+experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/walker/continuous"
+hyperparameter_path = (
+    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-walker_continuous.pkl"
+)
+
+# Experiment to choose discrete walker
+experiment_name = "hyperparam_sweep-walker_disc"
+experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/walker/discrete"
+hyperparameter_path = (
+    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-walker_discrete.pkl"
+)
+
+
+save_path = f"./results-{experiment_name}"
+os.makedirs(save_path, exist_ok=True)
 
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 assert os.path.isfile(hyperparameter_path), f"{hyperparameter_path} is not a file"
