@@ -44,25 +44,25 @@ hyperparameter_path = (
 )
 
 # Experiment to choose discrete pendulum
-experiment_name = "hyperparam_sweep-pendulum_disc"
-experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/pendulum/discrete"
-hyperparameter_path = (
-    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-pendulum_discrete.pkl"
-)
+# experiment_name = "hyperparam_sweep-pendulum_disc"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/pendulum/discrete"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-pendulum_discrete.pkl"
+# )
 
 # Experiment to choose continuous cheetah
-experiment_name = "hyperparam_sweep-cheetah_cont"
-experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/cheetah/continuous"
-hyperparameter_path = (
-    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-cheetah_continuous.pkl"
-)
+# experiment_name = "hyperparam_sweep-cheetah_cont"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/cheetah/continuous"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-cheetah_continuous.pkl"
+# )
 
 # Experiment to choose discrete cheetah
-experiment_name = "hyperparam_sweep-cheetah_disc"
-experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/cheetah/discrete"
-hyperparameter_path = (
-    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-cheetah_discrete.pkl"
-)
+# experiment_name = "hyperparam_sweep-cheetah_disc"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/cheetah/discrete"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-cheetah_discrete.pkl"
+# )
 
 # Experiment to choose continuous walker
 experiment_name = "hyperparam_sweep-walker_cont"
@@ -72,11 +72,11 @@ hyperparameter_path = (
 )
 
 # Experiment to choose discrete walker
-experiment_name = "hyperparam_sweep-walker_disc"
-experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/walker/discrete"
-hyperparameter_path = (
-    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-walker_discrete.pkl"
-)
+# experiment_name = "hyperparam_sweep-walker_disc"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/walker/discrete"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-walker_discrete.pkl"
+# )
 
 
 save_path = f"./results-{experiment_name}"
@@ -186,6 +186,7 @@ fig, axes = plt.subplots(
 aucs_per_seed = {}
 top_k_per_seed = []
 agg_auc_list = {}
+all_top_ks = np.zeros(num_hyperparamss)
 for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.items()):
     aucs_per_seed[env_seed] = []
     for hyperparam_i in range(num_hyperparamss):
@@ -194,6 +195,7 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
         )
     aucs_per_seed[env_seed] = np.array(aucs_per_seed[env_seed])
     top_k_idxes = np.argsort(aucs_per_seed[env_seed])[-top_k:]
+    all_top_ks[np.argsort(aucs_per_seed[env_seed])] += np.arange(num_hyperparamss)
 
     if num_cols == num_rows == 1:
         ax = axes
@@ -279,6 +281,7 @@ for idx, top_param_idx in enumerate(top_hyperparam):
     print(f"RANK {top_k - idx} - PARAM: {top_param_idx}")
     for key, val in zip(hyperparam_keys, hyperparams_comb[top_param_idx]):
         print("{}: {}".format(key, val))
+print(np.argsort(all_top_ks)[-top_k:])
 
 # Plot return based on environmental parameter
 # max_return_means = []
