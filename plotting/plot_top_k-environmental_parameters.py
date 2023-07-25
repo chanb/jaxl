@@ -22,13 +22,13 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 
 # Experiment to filter from 32 configurations to 8 configurations
-# experiment_name = "single_hyperparameter_robustness"
-# experiment_dir = (
-#     "/Users/chanb/research/personal/mtil_results/data/single_hyperparam_robustness/cheetah"
-# )
-# hyperparameter_path = (
-#     "/Users/chanb/research/personal/mtil_results/data/single_hyperparam_robustness/hyperparameters-single_hyperparam_robustness-cheetah_discrete.pkl"
-# )
+experiment_name = "cheetah_sweep"
+experiment_dir = (
+    "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/cheetah/discrete"
+)
+hyperparameter_path = (
+    "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/hyperparameters-cheetah_sweep-cheetah_discrete.pkl"
+)
 
 # Experiment to choose continuous cheetah
 # experiment_name = "hyperparam_search-cheetah_cont"
@@ -59,9 +59,9 @@ doc_width_pt = 452.9679
 # )
 
 # Experiment to choose continuous pendulum
-experiment_name = "hyperparam_search-pendulum_cont"
-experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/pendulum_cont/continuous"
-hyperparameter_path = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-pendulum_cont.pkl"
+# experiment_name = "hyperparam_search-pendulum_cont"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/pendulum_cont/continuous"
+# hyperparameter_path = "/Users/chanb/research/personal/mtil_results/data/hyperparam_search/hyperparameter_configs/hyperparameters-single_hyperparam_robustness-pendulum_cont.pkl"
 
 # Experiment to choose discrete pendulum
 # experiment_name = "hyperparam_search-pendulum_disc"
@@ -76,7 +76,7 @@ os.makedirs(save_path, exist_ok=True)
 
 plot_reference = False
 reference_config_path = "/Users/chanb/research/personal/mtil_results/data/search_expert/cheetah/discrete/scripts/0/variant-71.json"
-top_k = False
+top_k = 8
 smoothing = 20
 num_evaluation_episodes = 5
 env_seed = 9999
@@ -272,11 +272,13 @@ hyperparam_total_auc = list(total_aucs.values())
 total_aucs_sort_idxes = np.argsort(hyperparam_total_auc)
 print(np.stack((hyperparam_list, hyperparam_total_auc)).T[total_aucs_sort_idxes])
 
-top_hyperparam = np.array(hyperparam_list)[total_aucs_sort_idxes][-1]
-print(top_hyperparam)
+top_hyperparam = np.array(hyperparam_list)[total_aucs_sort_idxes][-top_k:]
 hyperparams_comb = list(itertools.product(*hyperparamss[:-2]))
-for key, val in zip(hyperparam_keys, hyperparams_comb[top_hyperparam]):
-    print("{}: {}".format(key, val))
+for idx, top_param_idx in enumerate(top_hyperparam):
+    print("=" * 50)
+    print(f"RANK {top_k - idx} - PARAM: {top_param_idx}")
+    for key, val in zip(hyperparam_keys, hyperparams_comb[top_param_idx]):
+        print("{}: {}".format(key, val))
 
 # Plot return based on environmental parameter
 # max_return_means = []
