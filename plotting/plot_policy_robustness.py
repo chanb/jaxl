@@ -99,19 +99,19 @@ else:
     for variant_i, variant_name in enumerate(dirs_to_load):
         variant_path = os.path.join(experiment_dir, variant_name)
         for agent_path, _, filenames in os.walk(variant_path):
-                for filename in filenames:
-                    if filename != "config.json":
-                        continue
-                    agent_paths[variant_name] = agent_path
+            for filename in filenames:
+                if filename != "config.json":
+                    continue
+                agent_paths[variant_name] = agent_path
 
-                    agent_config_path = os.path.join(agent_path, "config.json")
-                    with open(agent_config_path, "r") as f:
-                        agent_config_dict = json.load(f)
-                        default_env_seed = agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
-                            "env_seed"
-                        ]
-                        default_env_seeds[variant_name] = default_env_seed
-    
+                agent_config_path = os.path.join(agent_path, "config.json")
+                with open(agent_config_path, "r") as f:
+                    agent_config_dict = json.load(f)
+                    default_env_seed = agent_config_dict["learner_config"][
+                        "env_config"
+                    ]["env_kwargs"]["env_seed"]
+                    default_env_seeds[variant_name] = default_env_seed
+
     all_env_seeds = [*env_seeds, *default_env_seeds.values()]
 
     for variant_i, variant_name in enumerate(agent_paths):
@@ -136,9 +136,7 @@ else:
                     f"{save_path}/videos/variant_{variant_name}/env_seed_{env_seed}",
                     disable_logger=True,
                 )
-            params = checkpoint_manager.restore(
-                checkpoint_manager.latest_step()
-            )
+            params = checkpoint_manager.restore(checkpoint_manager.latest_step())
             model_dict = params[CONST_MODEL_DICT]
             agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
             agent_obs_rms = False

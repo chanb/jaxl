@@ -514,8 +514,16 @@
 <section id="jaxl-evaluate-rl-agents-module">
 <h2>jaxl.evaluate_rl_agents module<a class="headerlink" href="#jaxl-evaluate-rl-agents-module" title="Permalink to this heading">¶</a></h2>
 </section>
-<section id="jaxl-gather-expert-data-module">
-<h2>jaxl.gather_expert_data module<a class="headerlink" href="#jaxl-gather-expert-data-module" title="Permalink to this heading">¶</a></h2>
+<section id="module-jaxl.gather_expert_data">
+<span id="jaxl-gather-expert-data-module"></span><h2>jaxl.gather_expert_data module<a class="headerlink" href="#module-jaxl.gather_expert_data" title="Permalink to this heading">¶</a></h2>
+<p>This script is the entrypoint for evaluating RL-trained policies.
+XXX: Try not to modify this.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.gather_expert_data.main">
+<span class="sig-prename descclassname"><span class="pre">jaxl.gather_expert_data.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FlagValues</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.gather_expert_data.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Orchestrates the evaluation.</p>
+</dd></dl>
+
 </section>
 <section id="module-jaxl.learning_utils">
 <span id="jaxl-learning-utils-module"></span><h2>jaxl.learning_utils module<a class="headerlink" href="#module-jaxl.learning_utils" title="Permalink to this heading">¶</a></h2>
@@ -584,25 +592,8 @@ int,</p>
 </dd></dl>
 
 </section>
-<section id="module-jaxl.main">
-<span id="jaxl-main-module"></span><h2>jaxl.main module<a class="headerlink" href="#module-jaxl.main" title="Permalink to this heading">¶</a></h2>
-<p>This script is the entrypoint for any experiment.
-XXX: Try not to modify this.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="jaxl.main.main">
-<span class="sig-prename descclassname"><span class="pre">jaxl.main.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.main.main" title="Permalink to this definition">¶</a></dt>
-<dd><p>Orchestrates the experiment.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>config_path</strong> (<em>str</em>) – the experiment configuration file path</p></li>
-<li><p><strong>run_seed</strong> (<em>int:</em><em> (</em><em>Default value = None</em><em>)</em>) – the seed to initialize the random number generators</p></li>
-<li><p><strong>device</strong> (<em>str:</em><em> (</em><em>Default value = cpu</em><em>)</em>) – the JAX device to use, supports [<cite>cpu</cite>, <cite>gpu:&lt;device_ids&gt;</cite>]</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="jaxl-main-module">
+<h2>jaxl.main module<a class="headerlink" href="#jaxl-main-module" title="Permalink to this heading">¶</a></h2>
 </section>
 <section id="module-jaxl.utils">
 <span id="jaxl-utils-module"></span><h2>jaxl.utils module<a class="headerlink" href="#module-jaxl.utils" title="Permalink to this heading">¶</a></h2>

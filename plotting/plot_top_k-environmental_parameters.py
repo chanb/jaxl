@@ -26,9 +26,7 @@ experiment_name = "cheetah_sweep"
 experiment_dir = (
     "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/cheetah/discrete"
 )
-hyperparameter_path = (
-    "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/hyperparameters-cheetah_sweep-cheetah_discrete.pkl"
-)
+hyperparameter_path = "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/hyperparameters-cheetah_sweep-cheetah_discrete.pkl"
 
 # Experiment to choose continuous cheetah
 # experiment_name = "hyperparam_search-cheetah_cont"
@@ -264,7 +262,7 @@ if num_cols > num_blanks > 0:
 
 fig.supylabel("Expected Return")
 fig.supxlabel("Training Episode")
-fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)
+fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=1000)
 
 total_aucs = {k: np.mean(v) for k, v in agg_auc_list.items()}
 hyperparam_list = list(total_aucs.keys())
