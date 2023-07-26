@@ -37,10 +37,10 @@ rng = np.random.RandomState(seed)
 
 rollout_seed = 9999
 env_seed_range = 1000
-num_envs_to_test = 1
+num_envs_to_test = 5
 num_agents_to_test = 5
 
-num_evaluation_episodes = 100
+num_evaluation_episodes = 50
 record_video = False
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
@@ -164,10 +164,10 @@ for row_i, task in enumerate(tasks):
             (task, control_mode)
         ]
 
-        all_env_seeds = [*env_seeds, *default_env_seeds.values()]
+        all_env_seeds = [*default_env_seeds.values(), *env_seeds]
         seeds_to_plot = np.array(all_env_seeds)
-        sort_idxes = np.argsort(seeds_to_plot)
-        seeds_to_plot = seeds_to_plot[sort_idxes]
+        # sort_idxes = np.argsort(seeds_to_plot)
+        # seeds_to_plot = seeds_to_plot[sort_idxes]
 
         if num_cols == num_rows == 1:
             ax = axes
@@ -185,18 +185,20 @@ for row_i, task in enumerate(tasks):
             means = np.array(means)
             stds = np.array(stds)
 
+
+            variant_idx = np.where(seeds_to_plot == default_env_seeds[variant_name])[0]
             ax.plot(
                 np.arange(len(means)),
-                means[sort_idxes],
-                label="env-{}".format(default_env_seeds[variant_name]),
-                markevery=np.where(seeds_to_plot == default_env_seeds[variant_name])[0],
+                means,
+                label="env-{}".format(np.arange(len(means))[variant_idx[0]]),
+                markevery=variant_idx,
                 marker="*",
                 linewidth=1.0,
             )
             ax.fill_between(
                 np.arange(len(means)),
-                means[sort_idxes] + stds[sort_idxes],
-                means[sort_idxes] - stds[sort_idxes],
+                means + stds,
+                means - stds,
                 alpha=0.3,
             )
 
