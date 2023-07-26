@@ -40,7 +40,7 @@ env_seed_range = 1000
 num_envs_to_test = 1
 num_agents_to_test = 5
 
-num_evaluation_episodes = 10
+num_evaluation_episodes = 100
 record_video = False
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
@@ -133,7 +133,7 @@ for (task, control_mode) in product(tasks, control_modes):
 
                 episodic_returns_per_variant.setdefault(env_seed, [])
                 episodic_returns_per_variant[env_seed].append(
-                    np.mean(agent_rollout.episodic_returns)
+                    agent_rollout.episodic_returns
                 )
             result_per_variant[variant_name] = episodic_returns_per_variant
             env_configs[variant_name] = env_config["modified_attributes"]
@@ -141,17 +141,18 @@ for (task, control_mode) in product(tasks, control_modes):
         with open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "wb") as f:
             pickle.dump((result_per_variant, env_configs, default_env_seeds), f)
 
-    all_res[(task, control_mode)] = (result_per_variant, env_configs, default_env_seeds)
+    all_res[(task, control_mode)] = (result_per_variant, env_configs, default_env_seeds, env_seeds)
 
 # Plot main return
 num_rows = len(tasks)
 num_cols = len(control_modes)
-fig, axes = plt.subplots(num_rows, num_cols, figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)))
+fig, axes = plt.subplots(num_rows, num_cols, figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)), layout="constrained")
 
 for row_i, task in enumerate(tasks):
     for col_i, control_mode in enumerate(control_modes):
-        (result_per_variant, env_configs, default_env_seeds) = all_res[(task, control_mode)]
+        (result_per_variant, env_configs, default_env_seeds, env_seeds) = all_res[(task, control_mode)]
 
+        all_env_seeds = [*env_seeds, *default_env_seeds.values()]
         seeds_to_plot = np.array(all_env_seeds)
         sort_idxes = np.argsort(seeds_to_plot)
         seeds_to_plot = seeds_to_plot[sort_idxes]
@@ -175,7 +176,7 @@ for row_i, task in enumerate(tasks):
             ax.plot(
                 seeds_to_plot,
                 means[sort_idxes],
-                label="seed-{}".format(default_env_seeds[variant_name]),
+                label="env-{}".format(default_env_seeds[variant_name]),
                 markevery=np.where(seeds_to_plot == default_env_seeds[variant_name])[0],
                 marker="*",
                 linewidth=1.0,
@@ -201,7 +202,8 @@ for row_i, task in enumerate(tasks):
             fontsize="5",
         )
 
-    fig.tight_layout()
+fig.supylabel("Expected Return")
+fig.supxlabel("Environment Variant")
 fig.savefig(
     f"{save_path}/policy_robustness.pdf", format="pdf", bbox_inches="tight", dpi=600
 )
