@@ -32,6 +32,19 @@ SINGLE_SWEEP = {
             ],
         },
     },
+    "bc": {
+        "continuous": {
+            "loss": "gaussian",
+        },
+        "discrete": {
+            "loss": "categorical",
+        },
+        "general": {
+            "max_grad_norm": [False, 0.5],
+            "l2": [0.0, 0.2, 0.002],
+            "batch_size": [128, 256, 512],
+        },
+    },
 }
 
 

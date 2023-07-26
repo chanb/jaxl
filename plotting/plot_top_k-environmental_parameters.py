@@ -65,11 +65,11 @@ hyperparameter_path = (
 # )
 
 # Experiment to choose continuous walker
-experiment_name = "hyperparam_sweep-walker_cont"
-experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/walker/continuous"
-hyperparameter_path = (
-    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-walker_continuous.pkl"
-)
+# experiment_name = "hyperparam_sweep-walker_cont"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/walker/continuous"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-walker_continuous.pkl"
+# )
 
 # Experiment to choose discrete walker
 # experiment_name = "hyperparam_sweep-walker_disc"
@@ -268,11 +268,12 @@ fig.supylabel("Expected Return")
 fig.supxlabel("Training Episode")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=1000)
 
-total_aucs = {k: np.mean(v) for k, v in agg_auc_list.items()}
-hyperparam_list = list(total_aucs.keys())
-hyperparam_total_auc = list(total_aucs.values())
-total_aucs_sort_idxes = np.argsort(hyperparam_total_auc)
-print(np.stack((hyperparam_list, hyperparam_total_auc)).T[total_aucs_sort_idxes])
+total_aucs_means = {k: np.mean(np.array(v) / 10000) for k, v in agg_auc_list.items()}
+total_aucs_stds = {k: np.std(np.array(v) / 10000) for k, v in agg_auc_list.items()}
+hyperparam_list = list(total_aucs_means.keys())
+hyperparam_total_auc_means = list(total_aucs_means.values())
+hyperparam_total_auc_stds = list(total_aucs_stds.values())
+total_aucs_sort_idxes = np.argsort(hyperparam_total_auc_means)
 
 top_hyperparam = np.array(hyperparam_list)[total_aucs_sort_idxes][-top_k:]
 hyperparams_comb = list(itertools.product(*hyperparamss[:-2]))
@@ -282,38 +283,4 @@ for idx, top_param_idx in enumerate(top_hyperparam):
     for key, val in zip(hyperparam_keys, hyperparams_comb[top_param_idx]):
         print("{}: {}".format(key, val))
 print(np.argsort(all_top_ks)[-top_k:])
-
-# Plot return based on environmental parameter
-# max_return_means = []
-# max_return_stds = []
-# modified_attributes = {}
-# for variant_name in env_configs:
-#     env_config = env_configs[variant_name]
-#     returns = result_per_variant[variant_name]
-
-#     max_return_mean = -np.inf
-#     max_return_std = 0.0
-#     for val in returns.values():
-#         mean = np.mean(val)
-#         std = np.std(val)
-#         if max_return_mean < mean:
-#             max_return_mean = mean
-#             max_return_std = std
-
-#     max_return_means.append(max_return_mean)
-#     max_return_stds.append(max_return_std)
-
-#     for attr_name, attr_val in flatten_dict(env_config):
-#         if isinstance(attr_val, Iterable):
-#             for val_i in range(len(attr_val)):
-#                 modified_attributes.setdefault(f"{attr_name}.{val_i}", [])
-#                 modified_attributes[f"{attr_name}.{val_i}"].append(attr_val[val_i])
-#         else:
-#             modified_attributes.setdefault(attr_name, [])
-#             modified_attributes[attr_name].append(attr_val)
-
-# max_return_means = np.array(max_return_means)
-# max_return_stds = np.array(max_return_stds)
-
-# for attr_name, attr_vals in modified_attributes.items():
-#     modified_attributes[attr_name] = np.array(attr_vals)
+print(np.stack((hyperparam_list, hyperparam_total_auc_means, hyperparam_total_auc_stds)).T[np.argsort(hyperparam_list)])

@@ -24,14 +24,14 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 
 # Pendulum continuous expert
-experiment_name = "pendulum_cont"
-experiment_dir = "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/continuous/runs/0/"
+# experiment_name = "pendulum_cont"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/continuous/runs/0/"
 
 # Pendulum discrete expert
-experiment_name = "pendulum_disc"
-experiment_dir = (
-    "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/discrete/runs/0/"
-)
+# experiment_name = "pendulum_disc"
+# experiment_dir = (
+#     "/Users/chanb/research/personal/mtil_results/data/experts/pendulum/discrete/runs/0/"
+# )
 
 # Cheetah continuous expert
 # experiment_name = "cheetah_cont"
@@ -52,10 +52,10 @@ experiment_dir = (
 # )
 
 # Walker discrete expert
-# experiment_name = "walker_disc"
-# experiment_dir = (
-#     "/Users/chanb/research/personal/mtil_results/data/experts/walker/discrete/runs/0/"
-# )
+experiment_name = "walker_disc"
+experiment_dir = (
+    "/Users/chanb/research/personal/mtil_results/data/experts/walker/discrete/runs/0/"
+)
 
 save_path = f"./results_policy_robustness-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)
@@ -109,7 +109,7 @@ else:
                     agent_config_dict = json.load(f)
                     default_env_seed = agent_config_dict["learner_config"][
                         "env_config"
-                    ]["env_kwargs"]["env_seed"]
+                    ]["env_kwargs"]["seed"]
                     default_env_seeds[variant_name] = default_env_seed
 
     all_env_seeds = [*env_seeds, *default_env_seeds.values()]
@@ -183,7 +183,7 @@ for variant_name, returns in result_per_variant.items():
     ax.plot(
         seeds_to_plot,
         means[sort_idxes],
-        label=variant_name,
+        label="seed-{}".format(default_env_seeds[variant_name]),
         markevery=np.where(seeds_to_plot == default_env_seeds[variant_name])[0],
         marker="*",
         linewidth=1.0,
