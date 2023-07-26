@@ -35,9 +35,11 @@ SINGLE_SWEEP = {
     "bc": {
         "continuous": {
             "loss": "gaussian",
+            "hyperparameters": {},
         },
         "discrete": {
             "loss": "categorical",
+            "hyperparameters": {},
         },
         "general": {
             "max_grad_norm": [False, 0.5],

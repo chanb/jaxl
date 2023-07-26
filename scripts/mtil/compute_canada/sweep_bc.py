@@ -11,7 +11,7 @@ python sweep_bc.py \
     --exp_name=cheetah \
     --discrete_control \
     --num_runs=3 \
-    --data_dir=${HOME}/scratch/data/expert_data/cheetah/discrete \
+    --data_dir=${HOME}/scratch/data/single_sweep_bc/cheetah/discrete \
     --dataset_variant=0 \
     --dataset_variant=1 \
     --dataset_variant=2 \
@@ -71,7 +71,7 @@ flags.DEFINE_integer(
 flags.DEFINE_boolean(
     "discrete_control", default=False, help="Whether or not to use discrete control"
 )
-flags.DEFINE_string("run_time", default="05:00:00", help="The run time per variant")
+flags.DEFINE_string("run_time", default="10:00:00", help="The run time per variant")
 flags.DEFINE_integer("num_runs", default=1, help="The number of runs per variation")
 flags.DEFINE_string(
     "data_dir",
@@ -142,7 +142,6 @@ def main(config):
         raise ValueError(f"{algo} not supported")
 
     # Set action-space specific hyperparameters
-    template["train_config"]["num_epochs"] = config.num_epochs
     control_mode = "discrete" if config.discrete_control else "continuous"
     for key, val in hyperparam_set[algo][control_mode].items():
         if key == "hyperparameters":
@@ -215,8 +214,8 @@ def main(config):
             hyperparam_map("variant_seed")
         )
 
-        variant = "{}-variant_seed_{}".format(
-            hyperparam_map("dataset_path").split(".")[0], hyperparam_map("variant_seed")
+        variant = "variant_{}-{}-_seed_{}".format(
+            idx, os.path.basename(hyperparam_map("dataset_path").split(".")[0]), hyperparam_map("variant_seed")
         )
         template["logging_config"]["experiment_name"] = variant
         template["logging_config"]["save_path"] = curr_run_dir

@@ -11,7 +11,7 @@ python sweep_bc.py \
     --run_seed=0 \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/pendulum/continuous \
+    --data_dir=${HOME}/scratch/data/expert_data/pendulum_cont \
     --dataset_variant=0 \
     --dataset_variant=1 \
     --dataset_variant=2 \
@@ -24,7 +24,7 @@ python sweep_bc.py \
     --run_seed=0 \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/pendulum/discrete \
+    --data_dir=${HOME}/scratch/data/expert_data/pendulum_disc \
     --dataset_variant=0 \
     --dataset_variant=1 \
     --dataset_variant=2 \
@@ -38,7 +38,7 @@ python sweep_bc.py \
     --run_seed=0 \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/cheetah/continuous \
+    --data_dir=${HOME}/scratch/data/expert_data/cheetah_cont \
     --dataset_variant=0 \
     --dataset_variant=1 \
     --dataset_variant=2 \
@@ -51,7 +51,7 @@ python sweep_bc.py \
     --run_seed=0 \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/cheetah/discrete \
+    --data_dir=${HOME}/scratch/data/expert_data/cheetah_disc \
     --dataset_variant=0 \
     --dataset_variant=1 \
     --dataset_variant=2 \
@@ -65,7 +65,7 @@ python sweep_bc.py \
     --run_seed=0 \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/walker/continuous \
+    --data_dir=${HOME}/scratch/data/expert_data/walker_cont \
     --dataset_variant=0 \
     --dataset_variant=1 \
     --dataset_variant=2 \
@@ -78,7 +78,7 @@ python sweep_bc.py \
     --run_seed=0 \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/walker/discrete \
+    --data_dir=${HOME}/scratch/data/expert_data/walker_disc \
     --dataset_variant=0 \
     --dataset_variant=1 \
     --dataset_variant=2 \
