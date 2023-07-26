@@ -215,7 +215,9 @@ def main(config):
         )
 
         variant = "variant_{}-{}-_seed_{}".format(
-            idx, os.path.basename(hyperparam_map("dataset_path").split(".")[0]), hyperparam_map("variant_seed")
+            idx,
+            os.path.basename(hyperparam_map("dataset_path").split(".")[0]),
+            hyperparam_map("variant_seed"),
         )
         template["logging_config"]["experiment_name"] = variant
         template["logging_config"]["save_path"] = curr_run_dir

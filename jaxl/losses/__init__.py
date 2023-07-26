@@ -12,7 +12,11 @@ from jaxl.models.common import Model
 
 
 def get_loss_function(
-    model: Model, loss: str, loss_setting: SimpleNamespace
+    model: Model,
+    loss: str,
+    loss_setting: SimpleNamespace,
+    *args,
+    **kwargs,
 ) -> Callable[..., chex.Array]:
     """
     Gets a loss function.
@@ -37,7 +41,7 @@ def get_loss_function(
         make_loss_function = make_weight_decay
     else:
         raise NotImplementedError
-    return make_loss_function(model, loss_setting)
+    return make_loss_function(model, loss_setting, *args, **kwargs)
 
 
 def make_aggregate_loss(

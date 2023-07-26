@@ -1,0 +1,57 @@
+{
+    "logging_config": {
+        "save_path": "./logs/cheetah_continuous",
+        "experiment_name": "bc",
+        "log_interval": 1,
+        "checkpoint_interval": null
+    },
+    "model_config": {
+        "architecture": "mlp",
+        "layers": [
+            64,
+            64
+        ],
+        "activation": "tanh"
+    },
+    "optimizer_config": {
+        "optimizer": "adam",
+        "lr": {
+            "scheduler": "constant_schedule",
+            "scheduler_kwargs": {
+                "value": 0.0003
+            }
+        },
+        "max_grad_norm": false
+    },
+    "learner_config": {
+        "task": "imitation_learning",
+        "buffer_config": {
+            "load_buffer": "/home/chanb/scratch/data/expert_data/cheetah_cont/variant-0-07-25-23_10_03_25-d25e1eff-905b-4fd6-85de-3bc9ca1d615a-num_samples_100000-subsampling_length_1000.gzip",
+            "buffer_type": "default"
+        },
+        "seeds": {
+            "model_seed": 927,
+            "buffer_seed": 927
+        },
+        "learner": "bc",
+        "num_updates_per_epoch": 100,
+        "batch_size": 128,
+        "obs_rms": false,
+        "losses": [
+            "gaussian",
+            "l2"
+        ],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean"
+            },
+            {
+                "coefficient": 0.0
+            }
+        ]
+    },
+    "train_config": {
+        "num_epochs": 10000
+    }
+}

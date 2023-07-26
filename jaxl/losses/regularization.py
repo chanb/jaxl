@@ -12,6 +12,8 @@ from jaxl.models.common import Model
 def make_weight_decay(
     model: Model,
     loss_setting: SimpleNamespace,
+    *args,
+    **kwargs,
 ) -> Callable[
     [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
     Tuple[chex.Array, Dict],

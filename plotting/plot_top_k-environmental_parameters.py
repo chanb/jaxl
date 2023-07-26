@@ -225,7 +225,9 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
                 )
             )
 
-        agg_auc_list[hyperparam_i].append(np.mean(result_per_hyperparam[hyperparam_i], axis=1))
+        agg_auc_list[hyperparam_i].append(
+            np.mean(result_per_hyperparam[hyperparam_i], axis=1)
+        )
         smoothed_returns_mean = np.mean(smoothed_returns, axis=0)
         smoothed_returns_std = np.std(smoothed_returns, axis=0)
         num_episodes = np.arange(len(smoothed_returns_mean))
@@ -283,4 +285,8 @@ for idx, top_param_idx in enumerate(top_hyperparam):
     for key, val in zip(hyperparam_keys, hyperparams_comb[top_param_idx]):
         print("{}: {}".format(key, val))
 print(np.argsort(all_top_ks)[-top_k:])
-print(np.stack((hyperparam_list, hyperparam_total_auc_means, hyperparam_total_auc_stds)).T[np.argsort(hyperparam_list)])
+print(
+    np.stack(
+        (hyperparam_list, hyperparam_total_auc_means, hyperparam_total_auc_stds)
+    ).T[np.argsort(hyperparam_list)]
+)

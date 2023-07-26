@@ -50,7 +50,7 @@ assert num_agents_to_test > 0, f"num_agents_to_test needs to be at least 1"
 
 all_res = {}
 
-for (task, control_mode) in product(tasks, control_modes):
+for task, control_mode in product(tasks, control_modes):
     print(task, control_mode)
     experiment_dir = os.path.join(expert_dir, task, control_mode, "runs/0")
     variants = np.array(os.listdir(experiment_dir))
@@ -141,16 +141,28 @@ for (task, control_mode) in product(tasks, control_modes):
         with open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "wb") as f:
             pickle.dump((result_per_variant, env_configs, default_env_seeds), f)
 
-    all_res[(task, control_mode)] = (result_per_variant, env_configs, default_env_seeds, env_seeds)
+    all_res[(task, control_mode)] = (
+        result_per_variant,
+        env_configs,
+        default_env_seeds,
+        env_seeds,
+    )
 
 # Plot main return
 num_rows = len(tasks)
 num_cols = len(control_modes)
-fig, axes = plt.subplots(num_rows, num_cols, figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)), layout="constrained")
+fig, axes = plt.subplots(
+    num_rows,
+    num_cols,
+    figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
+    layout="constrained",
+)
 
 for row_i, task in enumerate(tasks):
     for col_i, control_mode in enumerate(control_modes):
-        (result_per_variant, env_configs, default_env_seeds, env_seeds) = all_res[(task, control_mode)]
+        (result_per_variant, env_configs, default_env_seeds, env_seeds) = all_res[
+            (task, control_mode)
+        ]
 
         all_env_seeds = [*env_seeds, *default_env_seeds.values()]
         seeds_to_plot = np.array(all_env_seeds)
@@ -174,7 +186,7 @@ for row_i, task in enumerate(tasks):
             stds = np.array(stds)
 
             ax.plot(
-                seeds_to_plot,
+                np.arange(len(means)),
                 means[sort_idxes],
                 label="env-{}".format(default_env_seeds[variant_name]),
                 markevery=np.where(seeds_to_plot == default_env_seeds[variant_name])[0],
@@ -182,7 +194,7 @@ for row_i, task in enumerate(tasks):
                 linewidth=1.0,
             )
             ax.fill_between(
-                seeds_to_plot,
+                np.arange(len(means)),
                 means[sort_idxes] + stds[sort_idxes],
                 means[sort_idxes] - stds[sort_idxes],
                 alpha=0.3,
