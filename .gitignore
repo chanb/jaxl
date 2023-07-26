@@ -8,6 +8,7 @@ __pycache__/
 **/results-*
 **/logs
 **/videos
+**/*.dat
 
 # C extensions
 *.so
