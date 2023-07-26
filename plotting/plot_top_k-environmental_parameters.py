@@ -37,11 +37,11 @@ doc_width_pt = 452.9679
 # hyperparameter_path = "/Users/chanb/research/personal/mtil_results/data/cheetah_sweep/hyperparameters-cheetah_sweep-cheetah_discrete.pkl"
 
 # Experiment to choose continuous pendulum
-experiment_name = "hyperparam_sweep-pendulum_cont"
-experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/pendulum/continuous"
-hyperparameter_path = (
-    "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-pendulum_continuous.pkl"
-)
+# experiment_name = "hyperparam_sweep-pendulum_cont"
+# experiment_dir = "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/pendulum/continuous"
+# hyperparameter_path = (
+#     "/Users/chanb/research/personal/mtil_results/data/hyperparam_sweep/hyperparameters-hyperparam_sweep-pendulum_continuous.pkl"
+# )
 
 # Experiment to choose discrete pendulum
 # experiment_name = "hyperparam_sweep-pendulum_disc"
@@ -225,7 +225,7 @@ for ax_i, (env_seed, result_per_hyperparam) in enumerate(result_per_variant.item
                 )
             )
 
-        agg_auc_list[hyperparam_i].append(np.sum(result_per_hyperparam[hyperparam_i]))
+        agg_auc_list[hyperparam_i].append(np.mean(result_per_hyperparam[hyperparam_i], axis=1))
         smoothed_returns_mean = np.mean(smoothed_returns, axis=0)
         smoothed_returns_std = np.std(smoothed_returns, axis=0)
         num_episodes = np.arange(len(smoothed_returns_mean))
@@ -268,8 +268,8 @@ fig.supylabel("Expected Return")
 fig.supxlabel("Training Episode")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=1000)
 
-total_aucs_means = {k: np.mean(np.array(v) / 10000) for k, v in agg_auc_list.items()}
-total_aucs_stds = {k: np.std(np.array(v) / 10000) for k, v in agg_auc_list.items()}
+total_aucs_means = {k: np.mean(np.array(v)) for k, v in agg_auc_list.items()}
+total_aucs_stds = {k: np.std(np.array(v)) for k, v in agg_auc_list.items()}
 hyperparam_list = list(total_aucs_means.keys())
 hyperparam_total_auc_means = list(total_aucs_means.values())
 hyperparam_total_auc_stds = list(total_aucs_stds.values())
