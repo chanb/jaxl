@@ -26,7 +26,8 @@ doc_width_pt = 452.9679
 
 
 expert_dir = "/Users/chanb/research/personal/mtil_results/data/experts"
-tasks = ["pendulum", "cheetah", "walker"]
+# tasks = ["pendulum", "cheetah", "walker"]
+tasks = ["pendulum"]
 control_modes = ["discrete", "continuous"]
 
 save_path = f"./results_policy_robustness"
@@ -39,7 +40,7 @@ env_seed_range = 1000
 num_envs_to_test = 5
 num_agents_to_test = 5
 
-num_evaluation_episodes = 10
+num_evaluation_episodes = 30
 record_video = True
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
@@ -110,9 +111,8 @@ for task, control_mode in product(tasks, control_modes):
                 if record_video:
                     env = RecordVideoV0(
                         env,
-                        f"{save_path}/videos/{task}-{control_mode}-variant_{variant_name}/env_seed_{env_seed}",
+                        f"{save_path}/videos/{task}-{control_mode}-variant_{variant_name}-default_seed_{default_env_seeds[variant_name]}/env_seed_{env_seed}",
                         disable_logger=True,
-                        episode_trigger=lambda x: True
                     )
                 print(env_seed, env.get_config()["modified_attributes"])
                 params = checkpoint_manager.restore(checkpoint_manager.latest_step())
