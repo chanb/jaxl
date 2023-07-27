@@ -1,4 +1,4 @@
-from flax.core import FrozenDict
+from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple
 
@@ -74,6 +74,10 @@ class PPO(OnPolicyLearner):
 
         self._pi = get_policy(self._model[CONST_POLICY], config)
         self._vf = self._model[CONST_VF]
+        if self._obs_rms:
+            self._obs_rms.set_state(self._obs_rms_state)
+            if self._config.load_pretrain.freeze_obs_rms:
+                self.update_obs_rms_and_normalize = lambda x, _: x
 
         if self._config.vf_loss_setting.clip_param:
             _vf_loss = make_ppo_vf_loss(self._vf, self._config.vf_loss_setting)
@@ -233,6 +237,19 @@ class PPO(OnPolicyLearner):
         pi_params = self._model[CONST_POLICY].init(model_keys[0], dummy_x)
         vf_params = self._model[CONST_VF].init(model_keys[1], dummy_x)
 
+        if getattr(self._config, "load_pretrain", False):
+            checkpoint_manager = CheckpointManager(
+                self._config.load_pretrain.checkpoint_path,
+                PyTreeCheckpointer(),
+            )
+            all_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+            if CONST_POLICY in self._config.load_pretrain.load_components:
+                pi_params = all_params[CONST_MODEL_DICT][CONST_MODEL][CONST_POLICY]
+            if CONST_VF in self._config.load_pretrain.load_components:
+                vf_params = all_params[CONST_MODEL_DICT][CONST_MODEL][CONST_VF]
+            if getattr(self._config, CONST_OBS_RMS, False):
+                self._obs_rms_state = all_params[CONST_OBS_RMS]
+
         pi_opt, pi_opt_state = get_optimizer(
             self._optimizer_config.policy, self._model[CONST_POLICY], pi_params
         )
@@ -363,7 +380,6 @@ class PPO(OnPolicyLearner):
         total_rollout_time = 0
         total_update_time = 0
         stop_update = False
-        old_model_dict = self.model_dict
         for _ in range(self._num_update_steps):
             auxes.append({})
             tic = timeit.default_timer()

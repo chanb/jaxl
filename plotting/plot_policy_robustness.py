@@ -185,7 +185,6 @@ for row_i, task in enumerate(tasks):
             means = np.array(means)
             stds = np.array(stds)
 
-
             variant_idx = np.where(seeds_to_plot == default_env_seeds[variant_name])[0]
             ax.plot(
                 np.arange(len(seeds_to_plot)),
