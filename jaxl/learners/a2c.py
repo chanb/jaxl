@@ -16,6 +16,7 @@ from jaxl.models import (
     get_model,
     get_optimizer,
     get_policy,
+    get_update_function,
     policy_output_dim,
 )
 from jaxl.utils import l2_norm
@@ -169,6 +170,9 @@ class A2C(OnPolicyLearner):
         Makes the training step for both actor update and critic update.
         """
 
+        pi_update = get_update_function(self._model[CONST_POLICY])
+        vf_update = get_update_function(self._model[CONST_VF])
+
         def _joint_step(
             model_dict: Dict[str, Any],
             obss: chex.Array,
@@ -211,21 +215,19 @@ class A2C(OnPolicyLearner):
                 CONST_VF: l2_norm(grads[CONST_VF]),
             }
 
-            updates, pi_opt_state = self._optimizer[CONST_POLICY].update(
+            pi_params, pi_opt_state = pi_update(
+                self._optimizer[CONST_POLICY],
                 grads[CONST_POLICY],
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
             )
-            pi_params = optax.apply_updates(
-                model_dict[CONST_MODEL][CONST_POLICY], updates
-            )
 
-            updates, vf_opt_state = self._optimizer[CONST_VF].update(
+            vf_params, vf_opt_state = vf_update(
+                self._optimizer[CONST_VF],
                 grads[CONST_VF],
                 model_dict[CONST_OPT_STATE][CONST_VF],
                 model_dict[CONST_MODEL][CONST_VF],
             )
-            vf_params = optax.apply_updates(model_dict[CONST_MODEL][CONST_VF], updates)
 
             return {
                 CONST_MODEL: {

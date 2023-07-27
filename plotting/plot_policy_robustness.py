@@ -27,21 +27,21 @@ doc_width_pt = 452.9679
 
 expert_dir = "/Users/chanb/research/personal/mtil_results/data/experts"
 # tasks = ["pendulum", "cheetah", "walker"]
-tasks = ["pendulum"]
+tasks = ["cheetah", "walker"]
 control_modes = ["discrete", "continuous"]
 
 save_path = f"./results_policy_robustness"
 os.makedirs(save_path, exist_ok=True)
 
-seed = 42
+seed = 1000
 
-rollout_seed = 9999
+rollout_seed = 1000
 env_seed_range = 1000
 num_envs_to_test = 15
 num_agents_to_test = 5
 
-num_evaluation_episodes = 3
-record_video = True
+num_evaluation_episodes = 30
+record_video = False
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
 assert num_envs_to_test > 0, f"num_envs_to_test needs to be at least 1"

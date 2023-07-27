@@ -146,6 +146,7 @@ def get_model(
         return MLP(
             model_config.layers + list(np.prod(output_dim, keepdims=True)),
             getattr(model_config, "activation", CONST_RELU),
+            getattr(model_config, "output_activation", CONST_IDENTITY),
         )
     elif model_config.architecture == CONST_ENCODER_PREDICTOR:
         encoder = get_model(input_dim, model_config.encoder_dim, model_config.encoder)
@@ -219,3 +220,70 @@ def policy_output_dim(output_dim: chex.Array, config: SimpleNamespace) -> chex.A
     if config.policy_distribution == CONST_GAUSSIAN:
         return [*output_dim[:-1], output_dim[-1] * 2]
     return output_dim
+
+
+def get_update_function(
+    model: Model,
+) -> Callable[
+    [
+        optax.GradientTransformation,
+        Union[Dict[str, Any], chex.Array],
+        optax.OptState,
+        optax.Params,
+    ],
+    Tuple[Any, Any],
+]:
+    """
+    Gets the update function based on the model architecture
+
+    :param model: the model
+    :type model: Model
+    :return: the update function
+    :rtype: Callable[
+        [optax.GradientTransformation,
+        Union[Dict[str, Any], chex.Array],
+        optax.OptState,
+        optax.Params],
+        Tuple[Any, Any]
+    ]
+
+    """
+
+    if isinstance(model, EncoderPredictorModel):
+
+        def update_encoder_predictor(optimizer, grads, opt_state, params):
+            updates, encoder_opt_state = optimizer[CONST_ENCODER].update(
+                grads[CONST_ENCODER],
+                opt_state[CONST_ENCODER],
+                params[CONST_ENCODER],
+            )
+            encoder_params = optax.apply_updates(params[CONST_ENCODER], updates)
+
+            updates, predictor_opt_state = optimizer[CONST_PREDICTOR].update(
+                grads[CONST_PREDICTOR],
+                opt_state[CONST_PREDICTOR],
+                params[CONST_PREDICTOR],
+            )
+            predictor_params = optax.apply_updates(params[CONST_PREDICTOR], updates)
+
+            return {
+                CONST_ENCODER: encoder_params,
+                CONST_PREDICTOR: predictor_params,
+            }, {
+                CONST_ENCODER: encoder_opt_state,
+                CONST_PREDICTOR: predictor_opt_state,
+            }
+
+        return update_encoder_predictor
+    else:
+
+        def update_default(optimizer, grads, opt_state, params):
+            updates, opt_state = optimizer.update(
+                grads,
+                opt_state,
+                params,
+            )
+            params = optax.apply_updates(params, updates)
+            return params, opt_state
+
+        return update_default

@@ -10,10 +10,11 @@ class MLPModule(nn.Module):
     # The number of hidden units in each hidden layer.
     layers: Sequence[int]
     activation: Callable
+    output_activation: Callable
 
     @nn.compact
     def __call__(self, x: chex.Array) -> chex.Array:
         for layer in self.layers[:-1]:
             x = self.activation(nn.Dense(layer)(x))
-        x = nn.Dense(self.layers[-1])(x)
+        x = self.output_activation(nn.Dense(self.layers[-1])(x))
         return x

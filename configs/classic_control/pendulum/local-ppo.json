@@ -7,11 +7,18 @@
     },
     "model_config": {
         "policy": {
-            "architecture": "mlp",
-            "layers": [
-                64,
-                64
-            ]
+            "architecture": "encoder_predictor",
+            "predictor": {
+                "architecture": "mlp",
+                "layers": []
+            },
+            "encoder": {
+                "architecture": "mlp",
+                "layers": [64],
+                "activation": "tanh",
+                "output_activation": "tanh"
+            },
+            "encoder_dim": [64]
         },
         "vf": {
             "architecture": "mlp",
@@ -23,14 +30,26 @@
     },
     "optimizer_config": {
         "policy": {
-            "optimizer": "adam",
-            "lr": {
-                "scheduler": "constant_schedule",
-                "scheduler_kwargs": {
-                    "value": 0.0003
-                }
+            "predictor": {
+                "optimizer": "adam",
+                "lr": {
+                    "scheduler": "constant_schedule",
+                    "scheduler_kwargs": {
+                        "value": 0.0003
+                    }
+                },
+                "max_grad_norm": 0.5
             },
-            "max_grad_norm": 0.5
+            "encoder": {
+                "optimizer": "adam",
+                "lr": {
+                    "scheduler": "constant_schedule",
+                    "scheduler_kwargs": {
+                        "value": 0.0003
+                    }
+                },
+                "max_grad_norm": 0.5
+            }  
         },
         "vf": {
             "optimizer": "adam",
@@ -50,7 +69,7 @@
             "env_name": "ParameterizedPendulum-v0",
             "env_kwargs": {
                 "seed": 2,
-                "use_default": false,
+                "use_default": true,
                 "discrete_control": true,
                 "control_mode": "discrete"
             }

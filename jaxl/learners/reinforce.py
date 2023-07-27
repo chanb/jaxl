@@ -16,6 +16,7 @@ from jaxl.models import (
     get_model,
     get_optimizer,
     get_policy,
+    get_update_function,
     policy_output_dim,
 )
 from jaxl.utils import l2_norm
@@ -88,6 +89,8 @@ class REINFORCE(OnPolicyLearner):
         Makes the training step for policy update.
         """
 
+        update_function = get_update_function(self._model)
+
         def _policy_step(
             model_dict: Dict[str, Any],
             obss: chex.Array,
@@ -125,13 +128,15 @@ class REINFORCE(OnPolicyLearner):
                 jnp.zeros(rets.shape),
             )
             aux[CONST_AGG_LOSS] = agg_loss
-            updates, opt_state = self._optimizer.update(
+
+            params, opt_state = update_function(
+                self._optimizer,
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
             )
+
             aux[CONST_GRAD_NORM] = {CONST_POLICY: l2_norm(grads)}
-            params = optax.apply_updates(model_dict[CONST_MODEL][CONST_POLICY], updates)
             return {
                 CONST_MODEL: {CONST_POLICY: params},
                 CONST_OPT_STATE: {CONST_POLICY: opt_state},

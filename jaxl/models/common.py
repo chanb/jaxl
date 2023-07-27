@@ -26,7 +26,13 @@ def get_activation(activation: str) -> Callable:
         activation in VALID_ACTIVATION
     ), f"{activation} is not supported (one of {VALID_ACTIVATION})"
 
-    if activation == CONST_RELU:
+    if activation == CONST_IDENTITY:
+
+        def identity(x: Any) -> Any:
+            return x
+
+        return identity
+    elif activation == CONST_RELU:
         return nn.relu
     elif activation == CONST_TANH:
         return nn.tanh
@@ -338,8 +344,15 @@ class EnsembleModel(Model):
 class MLP(Model):
     """A multilayer perceptron."""
 
-    def __init__(self, layers: Sequence[int], activation: str = CONST_RELU) -> None:
-        self.model = MLPModule(layers, get_activation(activation))
+    def __init__(
+        self,
+        layers: Sequence[int],
+        activation: str = CONST_RELU,
+        output_activation: str = CONST_IDENTITY,
+    ) -> None:
+        self.model = MLPModule(
+            layers, get_activation(activation), get_activation(output_activation)
+        )
         self.forward = jax.jit(self.make_forward())
 
     def init(

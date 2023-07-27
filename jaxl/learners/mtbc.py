@@ -20,6 +20,7 @@ from jaxl.losses import get_loss_function, make_aggregate_loss
 from jaxl.models import (
     get_model,
     get_optimizer,
+    get_update_function,
     EncoderPredictorModel,
     EnsembleModel,
 )
@@ -230,6 +231,8 @@ class MTBC(OfflineLearner):
         Makes the training step for model update.
         """
 
+        update_function = get_update_function(self._model)
+
         def _train_step(
             model_dict: Dict[str, Any],
             train_x: chex.Array,
@@ -266,41 +269,16 @@ class MTBC(OfflineLearner):
                 CONST_ENCODER: l2_norm(grads[CONST_ENCODER]),
             }
 
-            updates, predictor_opt_state = self._optimizer[CONST_POLICY][
-                CONST_PREDICTOR
-            ].update(
-                grads[CONST_PREDICTOR],
-                model_dict[CONST_OPT_STATE][CONST_POLICY][CONST_PREDICTOR],
-                model_dict[CONST_MODEL][CONST_POLICY][CONST_PREDICTOR],
-            )
-            predictor_params = optax.apply_updates(
-                model_dict[CONST_MODEL][CONST_POLICY][CONST_PREDICTOR], updates
-            )
-
-            updates, encoder_opt_state = self._optimizer[CONST_POLICY][
-                CONST_ENCODER
-            ].update(
-                grads[CONST_ENCODER],
-                model_dict[CONST_OPT_STATE][CONST_POLICY][CONST_ENCODER],
-                model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER],
-            )
-            encoder_params = optax.apply_updates(
-                model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER], updates
+            params, opt_state = update_function(
+                self._optimizer[CONST_POLICY],
+                grads,
+                model_dict[CONST_OPT_STATE][CONST_POLICY],
+                model_dict[CONST_MODEL][CONST_POLICY],
             )
 
             return {
-                CONST_MODEL: {
-                    CONST_POLICY: {
-                        CONST_PREDICTOR: predictor_params,
-                        CONST_ENCODER: encoder_params,
-                    }
-                },
-                CONST_OPT_STATE: {
-                    CONST_POLICY: {
-                        CONST_PREDICTOR: predictor_opt_state,
-                        CONST_ENCODER: encoder_opt_state,
-                    }
-                },
+                CONST_MODEL: {CONST_POLICY: {params}},
+                CONST_OPT_STATE: {CONST_POLICY: {opt_state}},
             }, aux
 
         return _train_step

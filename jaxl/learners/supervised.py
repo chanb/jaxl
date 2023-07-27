@@ -10,7 +10,7 @@ import optax
 from jaxl.constants import *
 from jaxl.learners.learner import OfflineLearner
 from jaxl.losses import get_loss_function, make_aggregate_loss
-from jaxl.models import get_model, get_optimizer
+from jaxl.models import get_model, get_optimizer, get_update_function
 from jaxl.utils import parse_dict
 
 
@@ -81,6 +81,8 @@ class SupervisedLearner(OfflineLearner):
         Makes the training step for model update.
         """
 
+        update_function = get_update_function(self._model)
+
         def _train_step(
             model_dict: Dict[str, Any],
             train_x: chex.Array,
@@ -112,10 +114,14 @@ class SupervisedLearner(OfflineLearner):
                 train_y,
             )
             aux[CONST_AGG_LOSS] = agg_loss
-            updates, opt_state = self._optimizer.update(
-                grads, model_dict[CONST_OPT_STATE], model_dict[CONST_MODEL]
+
+            params, opt_state = update_function(
+                self._optimizer,
+                grads,
+                model_dict[CONST_OPT_STATE],
+                model_dict[CONST_MODEL],
             )
-            params = optax.apply_updates(model_dict[CONST_MODEL], updates)
+
             return {CONST_MODEL: params, CONST_OPT_STATE: opt_state}, aux
 
         return _train_step
