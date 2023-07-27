@@ -26,10 +26,11 @@ doc_width_pt = 452.9679
 
 
 expert_dir = "/Users/chanb/research/personal/mtil_results/data/experts"
-tasks = ["pendulum", "cheetah", "walker"]
+# tasks = ["pendulum", "cheetah", "walker"]
+tasks = ["pendulum"]
 control_modes = ["discrete", "continuous"]
 
-save_path = f"./results_policy_robustness"
+save_path = f"./results_policy_robustness-pendulum"
 os.makedirs(save_path, exist_ok=True)
 
 seed = 1000
@@ -39,8 +40,8 @@ env_seed_range = 1000
 num_envs_to_test = 5
 num_agents_to_test = 5
 
-num_evaluation_episodes = 30
-record_video = True
+num_evaluation_episodes = 10
+record_video = False
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
 assert num_envs_to_test > 0, f"num_envs_to_test needs to be at least 1"
@@ -65,7 +66,7 @@ for task, control_mode in product(tasks, control_modes):
 
     dirs_to_load = variants[variants_sample_idxes]
     if os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl"):
-        (result_per_variant, env_configs, default_env_seeds) = pickle.load(
+        (result_per_variant, env_configs, default_env_seeds, all_env_configs) = pickle.load(
             open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "rb")
         )
     else:
@@ -73,6 +74,7 @@ for task, control_mode in product(tasks, control_modes):
         env_configs = {}
         default_env_seeds = {}
         agent_paths = {}
+        all_env_configs = {}
         for variant_i, variant_name in enumerate(dirs_to_load):
             variant_path = os.path.join(experiment_dir, variant_name)
             for agent_path, _, filenames in os.walk(variant_path):
@@ -113,7 +115,9 @@ for task, control_mode in product(tasks, control_modes):
                         f"{save_path}/videos/{task}-{control_mode}-variant_{variant_name}-default_seed_{default_env_seeds[variant_name]}/env_seed_{env_seed}",
                         disable_logger=True,
                     )
-                print(env_seed, env.get_config()["modified_attributes"])
+                if variant_i == 0:
+                    all_env_configs[env_seed] = env.get_config()["modified_attributes"]
+                    print(env_seed, env.get_config()["modified_attributes"])
                 params = checkpoint_manager.restore(checkpoint_manager.latest_step())
                 model_dict = params[CONST_MODEL_DICT]
                 agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
@@ -141,13 +145,14 @@ for task, control_mode in product(tasks, control_modes):
             env_configs[variant_name] = env_config["modified_attributes"]
 
         with open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "wb") as f:
-            pickle.dump((result_per_variant, env_configs, default_env_seeds), f)
+            pickle.dump((result_per_variant, env_configs, default_env_seeds, all_env_configs), f)
 
     all_res[(task, control_mode)] = (
         result_per_variant,
         env_configs,
         default_env_seeds,
         env_seeds,
+        all_env_configs,
     )
 
 # Plot main return
@@ -162,12 +167,15 @@ fig, axes = plt.subplots(
 
 for row_i, task in enumerate(tasks):
     for col_i, control_mode in enumerate(control_modes):
-        (result_per_variant, env_configs, default_env_seeds, env_seeds) = all_res[
+        (result_per_variant, env_configs, default_env_seeds, env_seeds, all_env_configs) = all_res[
             (task, control_mode)
         ]
 
         all_env_seeds = [*default_env_seeds.values(), *env_seeds]
         seeds_to_plot = np.array(all_env_seeds)
+
+        torques = np.array([all_env_configs[env_seed]["max_torque"] for env_seed in all_env_seeds])
+        sort_idxes = np.argsort(torques)
 
         if num_cols == num_rows == 1:
             ax = axes
@@ -185,27 +193,32 @@ for row_i, task in enumerate(tasks):
             means = np.array(means)
             stds = np.array(stds)
 
-            variant_idx = np.where(seeds_to_plot == default_env_seeds[variant_name])[0]
+            variant_idx = np.where(seeds_to_plot[sort_idxes] == default_env_seeds[variant_name])[0]
             ax.plot(
-                np.arange(len(seeds_to_plot)),
-                means,
-                label="env-{}".format(np.arange(len(means))[variant_idx[0]]),
-                markevery=variant_idx,
-                marker="*",
-                linewidth=1.0,
+                # np.arange(len(seeds_to_plot)),
+                torques[sort_idxes],
+                means[sort_idxes],
+                label="{:.3f}".format(torques[variant_idx[0]]),
+                marker="^",
+                ms=3.0,
+                linewidth=0.75,
             )
             ax.fill_between(
-                np.arange(len(seeds_to_plot)),
-                means + stds,
-                means - stds,
+                # np.arange(len(seeds_to_plot)),
+                torques[sort_idxes],
+                means[sort_idxes] + stds[sort_idxes],
+                means[sort_idxes] - stds[sort_idxes],
                 alpha=0.3,
             )
 
-        if col_i == 0:
-            ax.set_ylabel(task)
         if row_i == len(tasks) - 1:
             ax.set_xlabel(control_mode)
+        handles, labels = ax.get_legend_handles_labels()
+        order = sorted(labels)
+        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+        # ax.legend(handles, labels)
         ax.legend(
+            handles, labels,
             bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
             loc="lower left",
             ncols=math.ceil(num_agents_to_test / 2),
@@ -216,7 +229,7 @@ for row_i, task in enumerate(tasks):
         )
 
 fig.supylabel("Expected Return")
-fig.supxlabel("Environment Variant")
+fig.supxlabel("Maximum Torque")
 fig.savefig(
     f"{save_path}/policy_robustness.pdf", format="pdf", bbox_inches="tight", dpi=600
 )
