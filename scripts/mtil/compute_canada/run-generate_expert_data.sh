@@ -10,8 +10,8 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=20 \
     --subsampling_lengths=200 \
+    --subsampling_lengths=20 \
     --run_time=05:00:00 \
     --runs_dir=${HOME}/scratch/data/experts/pendulum/continuous/runs \
     --exp_name=pendulum_cont
@@ -22,8 +22,8 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=20 \
     --subsampling_lengths=200 \
+    --subsampling_lengths=20 \
     --run_time=05:00:00 \
     --runs_dir=${HOME}/scratch/data/experts/pendulum/discrete/runs \
     --exp_name=pendulum_disc
@@ -34,8 +34,8 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=20 \
     --subsampling_lengths=1000 \
+    --subsampling_lengths=20 \
     --run_time=05:00:00 \
     --runs_dir=${HOME}/scratch/data/experts/cheetah/continuous/runs \
     --exp_name=cheetah_cont
@@ -46,8 +46,8 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=20 \
     --subsampling_lengths=1000 \
+    --subsampling_lengths=20 \
     --run_time=05:00:00 \
     --runs_dir=${HOME}/scratch/data/experts/cheetah/discrete/runs \
     --exp_name=cheetah_disc
@@ -58,7 +58,6 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=20 \
     --subsampling_lengths=1000 \
     --run_time=05:00:00 \
     --runs_dir=${HOME}/scratch/data/experts/walker/continuous/runs \
@@ -70,7 +69,6 @@ python generate_expert_data.py \
     --run_seed=0 \
     --env_seed=9999 \
     --num_samples=100000 \
-    --subsampling_lengths=20 \
     --subsampling_lengths=1000 \
     --run_time=05:00:00 \
     --runs_dir=${HOME}/scratch/data/experts/walker/discrete/runs \
