@@ -5,6 +5,13 @@ def set_ppo(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=N
     if key is not None:
         if key == "objective":
             template["learner_config"]["pi_loss_setting"]["objective"] = val
+        if key == "load_pretrain":
+            pretrain_config = {
+                "checkpoint_path": val,
+                "load_components": ["policy", "vf"],
+                "freeze_obs_rms": False,
+            }
+            template["learner_config"]["load_pretrain"] = pretrain_config
     elif hyperparam_keys is not None:
         if "model" in hyperparam_keys:
             template["model_config"]["policy"]["layers"] = hyperparam_map("model")

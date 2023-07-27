@@ -130,7 +130,10 @@ PENDULUM_CONTINUOUS = {
         "continuous": {
             "policy_distribution": "gaussian",
             "objective": "clip",
-            "hyperparameters": {"clip_param": [0.1]},
+            "load_pretrain": "/home/chanb/scratch/pretrained_ppo/pendulum_continuous/models",
+            "hyperparameters": {
+                "clip_param": [0.2],
+            },
         },
         "general": {
             "buffer_size": [2048],
@@ -138,14 +141,9 @@ PENDULUM_CONTINUOUS = {
             "opt_batch_size": [256],
             "opt_epochs": [200],
             "ent_coef": [
-                {
-                    "scheduler": "linear_schedule",
-                    "scheduler_kwargs": {
-                        "init_value": 0.002,
-                        "end_value": 0.0,
-                        "transition_begin": 0,
-                        "transition_steps": 100,
-                    },
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 0.0
                 },
             ],
         },
@@ -157,12 +155,13 @@ PENDULUM_DISCRETE = {
         "discrete": {
             "policy_distribution": "softmax",
             "objective": "reverse_kl",
+            "load_pretrain": "/home/chanb/scratch/pretrained_ppo/pendulum_discrete/models",
             "hyperparameters": {"beta": [0.002]},
         },
         "general": {
             "buffer_size": [2048],
-            "max_grad_norm": [0.5],
-            "opt_batch_size": [256],
+            "max_grad_norm": [False],
+            "opt_batch_size": [128],
             "opt_epochs": [200],
             "ent_coef": [
                 {
@@ -179,18 +178,22 @@ CHEETAH_CONTINUOUS = {
         "continuous": {
             "policy_distribution": "gaussian",
             "objective": "clip",
+            "load_pretrain": "/home/chanb/scratch/pretrained_ppo/cheetah_continuous/models",
             "hyperparameters": {"clip_param": [0.1]},
         },
         "general": {
             "buffer_size": [2048],
             "max_grad_norm": [0.5],
-            "opt_batch_size": [128],
+            "opt_batch_size": [64],
             "opt_epochs": [200],
             "ent_coef": [
-                {
-                    "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {"value": 0.0},
-                }
+                "scheduler": "linear_schedule",
+                "scheduler_kwargs": {
+                    "init_value": 0.002,
+                    "end_value": 0.0,
+                    "transition_begin": 0,
+                    "transition_steps": 100
+                },
             ],
         },
     },
@@ -201,12 +204,13 @@ CHEETAH_DISCRETE = {
         "discrete": {
             "policy_distribution": "softmax",
             "objective": "reverse_kl",
-            "hyperparameters": {"beta": [0.02]},
+            "load_pretrain": "/home/chanb/scratch/pretrained_ppo/cheetah_discrete/models",
+            "hyperparameters": {"beta": [0.002]},
         },
         "general": {
             "buffer_size": [2048],
             "max_grad_norm": [0.5],
-            "opt_batch_size": [128],
+            "opt_batch_size": [256],
             "opt_epochs": [200],
             "ent_coef": [
                 {
@@ -228,17 +232,21 @@ WALKER_CONTINUOUS = {
         "continuous": {
             "policy_distribution": "gaussian",
             "objective": "clip",
+            "load_pretrain": "/home/chanb/scratch/pretrained_ppo/walker_continuous/models",
             "hyperparameters": {"clip_param": [0.1]},
         },
         "general": {
             "buffer_size": [2048],
-            "max_grad_norm": [0.5],
-            "opt_batch_size": [128],
+            "max_grad_norm": [false],
+            "opt_batch_size": [64],
             "opt_epochs": [200],
             "ent_coef": [
-                {
-                    "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {"value": 0.0},
+                "scheduler": "linear_schedule",
+                "scheduler_kwargs": {
+                    "init_value": 0.002,
+                    "end_value": 0.0,
+                    "transition_begin": 0,
+                    "transition_steps": 100
                 }
             ],
         },
@@ -250,11 +258,12 @@ WALKER_DISCRETE = {
         "discrete": {
             "policy_distribution": "softmax",
             "objective": "reverse_kl",
+            "load_pretrain": "/home/chanb/scratch/pretrained_ppo/walker_discrete/models",
             "hyperparameters": {"beta": [0.002]},
         },
         "general": {
             "buffer_size": [2048],
-            "max_grad_norm": [0.5],
+            "max_grad_norm": [False],
             "opt_batch_size": [128],
             "opt_epochs": [200],
             "ent_coef": [
