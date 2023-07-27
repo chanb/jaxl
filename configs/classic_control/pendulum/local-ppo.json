@@ -68,8 +68,8 @@
             "env_type": "gym",
             "env_name": "ParameterizedPendulum-v0",
             "env_kwargs": {
-                "seed": 2,
-                "use_default": true,
+                "seed": 0,
+                "use_default": false,
                 "discrete_control": true,
                 "control_mode": "discrete"
             }

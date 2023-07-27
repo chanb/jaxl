@@ -74,7 +74,7 @@ class PPO(OnPolicyLearner):
 
         self._pi = get_policy(self._model[CONST_POLICY], config)
         self._vf = self._model[CONST_VF]
-        if self._obs_rms:
+        if self._obs_rms and hasattr(self, "_obs_rms_state"):
             self._obs_rms.set_state(self._obs_rms_state)
             if self._config.load_pretrain.freeze_obs_rms:
                 self.update_obs_rms_and_normalize = lambda x, _: x

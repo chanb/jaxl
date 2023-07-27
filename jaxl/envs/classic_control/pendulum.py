@@ -12,7 +12,7 @@ from gymnasium.envs.classic_control import utils
 from gymnasium.error import DependencyNotInstalled
 
 
-DEFAULT_X = np.pi / 1.5
+DEFAULT_X = np.pi
 DEFAULT_Y = 1.0
 
 
@@ -116,18 +116,18 @@ class ParameterizedPendulumEnv(gym.Env):
         **kwargs,
     ):
         self.max_speed = 8
-        self.max_torque = 2.0
+        
         self.l = 1.0
         self.g = 9.8
         self.dt = 0.05
+        self.m = 1.0
         if use_default:
-            self.m = 1.0
+            self.max_torque = 2.0
         else:
             self._rng = np.random.RandomState(seed)
-            # self.m = sample_data(0.5, 4.5, self._rng)
-            self.m = sample_data(4.0, 4.5, self._rng)
+            self.max_torque = sample_data(0.01, 3.0, self._rng)
         self.modified_attributes = {
-            "m": self.m,
+            "max_torque": self.max_torque,
         }
 
         self.render_mode = render_mode
@@ -143,7 +143,7 @@ class ParameterizedPendulumEnv(gym.Env):
         #   to update to follow the gymnasium api
         self.control_mode = control_mode
         if self.control_mode != "continuous":
-            actions = ([2.0] ** np.arange(-3, 2)[:, None]).flatten()
+            actions = ([self.max_torque] ** np.arange(-3, 2)[:, None]).flatten()
             action_map = np.concatenate([-actions, [0], actions])
             self.action_space = spaces.Discrete(len(action_map))
 
@@ -198,7 +198,7 @@ class ParameterizedPendulumEnv(gym.Env):
             y = utils.verify_number_and_cast(y)
             high = np.array([x, y])
         low = -high  # We enforce symmetric limits.
-        self.state = (-1) ** self.np_random.integers(0, 2, (2,)) * self.np_random.uniform(low=np.array([0.0, 0.0]), high=high)
+        self.state = self.np_random.uniform(low=low, high=high)
         self.last_u = None
 
         if self.render_mode == "human":

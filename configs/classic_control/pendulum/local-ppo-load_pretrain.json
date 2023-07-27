@@ -65,7 +65,7 @@
     "learner_config": {
         "task": "reinforcement_learning",
         "load_pretrain": {
-            "checkpoint_path": "/Users/chanb/research/personal/jaxl/jaxl/logs/pendulum/ppo/07-26-23_20_12_27-ca033bc5-c5f2-43cc-b486-d70a3d8f424c/models",
+            "checkpoint_path": "/Users/chanb/research/personal/jaxl/jaxl/logs/pendulum/ppo/07-26-23_22_40_22-021e6c8b-54d0-4d77-b223-a5c1fa09e38a/models",
             "load_components": ["policy", "vf"],
             "freeze_obs_rms": false
         },
@@ -73,7 +73,7 @@
             "env_type": "gym",
             "env_name": "ParameterizedPendulum-v0",
             "env_kwargs": {
-                "seed": 2,
+                "seed": 0,
                 "use_default": false,
                 "discrete_control": true,
                 "control_mode": "discrete"

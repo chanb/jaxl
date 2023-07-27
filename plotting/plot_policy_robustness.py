@@ -26,8 +26,8 @@ doc_width_pt = 452.9679
 
 
 expert_dir = "/Users/chanb/research/personal/mtil_results/data/experts"
-# tasks = ["pendulum", "cheetah", "walker"]
-tasks = ["cheetah", "walker"]
+tasks = ["pendulum", "cheetah", "walker"]
+# tasks = ["pendulum"]
 control_modes = ["discrete", "continuous"]
 
 save_path = f"./results_policy_robustness"
@@ -37,11 +37,11 @@ seed = 1000
 
 rollout_seed = 1000
 env_seed_range = 1000
-num_envs_to_test = 15
+num_envs_to_test = 5
 num_agents_to_test = 5
 
-num_evaluation_episodes = 30
-record_video = False
+num_evaluation_episodes = 10
+record_video = True
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
 assert num_envs_to_test > 0, f"num_envs_to_test needs to be at least 1"
@@ -113,6 +113,7 @@ for task, control_mode in product(tasks, control_modes):
                         env,
                         f"{save_path}/videos/{task}-{control_mode}-variant_{variant_name}/env_seed_{env_seed}",
                         disable_logger=True,
+                        episode_trigger=lambda x: True
                     )
                 print(env_seed, env.get_config()["modified_attributes"])
                 params = checkpoint_manager.restore(checkpoint_manager.latest_step())
@@ -137,6 +138,7 @@ for task, control_mode in product(tasks, control_modes):
                 episodic_returns_per_variant[env_seed].append(
                     agent_rollout.episodic_returns
                 )
+                env.close()
             result_per_variant[variant_name] = episodic_returns_per_variant
             env_configs[variant_name] = env_config["modified_attributes"]
 
