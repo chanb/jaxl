@@ -26,22 +26,22 @@ doc_width_pt = 452.9679
 
 
 expert_dir = "/Users/chanb/research/personal/mtil_results/data/experts"
-tasks = ["pendulum", "cheetah", "walker"]
+# tasks = ["pendulum", "cheetah", "walker"]
+tasks = ["pendulum"]
 control_modes = ["discrete", "continuous"]
 
 save_path = f"./results_policy_robustness"
 os.makedirs(save_path, exist_ok=True)
 
-seed = 0
-rng = np.random.RandomState(seed)
+seed = 42
 
 rollout_seed = 9999
 env_seed_range = 1000
-num_envs_to_test = 5
+num_envs_to_test = 15
 num_agents_to_test = 5
 
-num_evaluation_episodes = 50
-record_video = False
+num_evaluation_episodes = 3
+record_video = True
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
 assert num_envs_to_test > 0, f"num_envs_to_test needs to be at least 1"
@@ -52,6 +52,7 @@ all_res = {}
 
 for task, control_mode in product(tasks, control_modes):
     print(task, control_mode)
+    rng = np.random.RandomState(seed)
     experiment_dir = os.path.join(expert_dir, task, control_mode, "runs/0")
     variants = np.array(os.listdir(experiment_dir))
     num_variants = len(variants)
@@ -89,7 +90,7 @@ for task, control_mode in product(tasks, control_modes):
                         ]["env_kwargs"]["seed"]
                         default_env_seeds[variant_name] = default_env_seed
 
-        all_env_seeds = [*env_seeds, *default_env_seeds.values()]
+        all_env_seeds = [*default_env_seeds.values(), *env_seeds]
 
         for variant_i, variant_name in enumerate(agent_paths):
             print(f"Processing variant {variant_i + 1} / {num_agents_to_test}")
@@ -110,9 +111,10 @@ for task, control_mode in product(tasks, control_modes):
                 if record_video:
                     env = RecordVideoV0(
                         env,
-                        f"{save_path}/videos/variant_{variant_name}/env_seed_{env_seed}",
+                        f"{save_path}/videos/{task}-{control_mode}-variant_{variant_name}/env_seed_{env_seed}",
                         disable_logger=True,
                     )
+                print(env_seed, env.get_config()["modified_attributes"])
                 params = checkpoint_manager.restore(checkpoint_manager.latest_step())
                 model_dict = params[CONST_MODEL_DICT]
                 agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
@@ -166,8 +168,6 @@ for row_i, task in enumerate(tasks):
 
         all_env_seeds = [*default_env_seeds.values(), *env_seeds]
         seeds_to_plot = np.array(all_env_seeds)
-        # sort_idxes = np.argsort(seeds_to_plot)
-        # seeds_to_plot = seeds_to_plot[sort_idxes]
 
         if num_cols == num_rows == 1:
             ax = axes
@@ -188,7 +188,7 @@ for row_i, task in enumerate(tasks):
 
             variant_idx = np.where(seeds_to_plot == default_env_seeds[variant_name])[0]
             ax.plot(
-                np.arange(len(means)),
+                np.arange(len(seeds_to_plot)),
                 means,
                 label="env-{}".format(np.arange(len(means))[variant_idx[0]]),
                 markevery=variant_idx,
@@ -196,7 +196,7 @@ for row_i, task in enumerate(tasks):
                 linewidth=1.0,
             )
             ax.fill_between(
-                np.arange(len(means)),
+                np.arange(len(seeds_to_plot)),
                 means + stds,
                 means - stds,
                 alpha=0.3,

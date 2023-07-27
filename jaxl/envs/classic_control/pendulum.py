@@ -124,7 +124,7 @@ class ParameterizedPendulumEnv(gym.Env):
             self.m = 1.0
         else:
             self._rng = np.random.RandomState(seed)
-            self.m = sample_data(0.5, 5.0, self._rng)
+            self.m = sample_data(0.5, 4.5, self._rng)
         self.modified_attributes = {
             "m": self.m,
         }
