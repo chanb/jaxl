@@ -141,10 +141,12 @@ PENDULUM_CONTINUOUS = {
             "opt_batch_size": [256],
             "opt_epochs": [200],
             "ent_coef": [
-                "scheduler": "constant_schedule",
-                "scheduler_kwargs": {
-                    "value": 0.0
-                },
+                {
+                    "scheduler": "constant_schedule",
+                    "scheduler_kwargs": {
+                        "value": 0.0
+                    },
+                }
             ],
         },
     },
@@ -187,13 +189,15 @@ CHEETAH_CONTINUOUS = {
             "opt_batch_size": [64],
             "opt_epochs": [200],
             "ent_coef": [
-                "scheduler": "linear_schedule",
-                "scheduler_kwargs": {
-                    "init_value": 0.002,
-                    "end_value": 0.0,
-                    "transition_begin": 0,
-                    "transition_steps": 100
-                },
+                {
+                    "scheduler": "linear_schedule",
+                    "scheduler_kwargs": {
+                        "init_value": 0.002,
+                        "end_value": 0.0,
+                        "transition_begin": 0,
+                        "transition_steps": 100
+                    },
+                }
             ],
         },
     },
@@ -237,16 +241,18 @@ WALKER_CONTINUOUS = {
         },
         "general": {
             "buffer_size": [2048],
-            "max_grad_norm": [false],
+            "max_grad_norm": [False],
             "opt_batch_size": [64],
             "opt_epochs": [200],
             "ent_coef": [
-                "scheduler": "linear_schedule",
-                "scheduler_kwargs": {
-                    "init_value": 0.002,
-                    "end_value": 0.0,
-                    "transition_begin": 0,
-                    "transition_steps": 100
+                {
+                    "scheduler": "linear_schedule",
+                    "scheduler_kwargs": {
+                        "init_value": 0.002,
+                        "end_value": 0.0,
+                        "transition_begin": 0,
+                        "transition_steps": 100
+                    }
                 }
             ],
         },
