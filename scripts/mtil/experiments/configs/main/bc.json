@@ -3,7 +3,7 @@
         "save_path": "<TO_MODIFY>",
         "experiment_name": "<TO_MODIFY>",
         "log_interval": 1,
-        "checkpoint_interval": 1000
+        "checkpoint_interval": 10000
     },
     "model_config": {
         "architecture": "mlp",
@@ -46,6 +46,6 @@
         ]
     },
     "train_config": {
-        "num_epochs": 10000
+        "num_epochs": 100000
     }
 }
