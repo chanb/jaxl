@@ -51,7 +51,7 @@
             "env_type": "gym",
             "env_name": "DMCWalker-v0",
             "env_kwargs": {
-                "use_default": false,
+                "use_default": true,
                 "seed": 42,
                 "control_mode": "discrete"
             }
@@ -71,7 +71,7 @@
         "gae_lambda": 0.95,
         "normalize_advantage": true,
         "eps": 1e-05,
-        "obs_rms": true,
+        "obs_rms": false,
         "value_rms": false,
         "policy_distribution": "softmax",
         "temperature": 1.0,

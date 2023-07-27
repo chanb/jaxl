@@ -12,7 +12,7 @@ from gymnasium.envs.classic_control import utils
 from gymnasium.error import DependencyNotInstalled
 
 
-DEFAULT_X = np.pi
+DEFAULT_X = np.pi / 1.5
 DEFAULT_Y = 1.0
 
 
@@ -198,7 +198,7 @@ class ParameterizedPendulumEnv(gym.Env):
             y = utils.verify_number_and_cast(y)
             high = np.array([x, y])
         low = -high  # We enforce symmetric limits.
-        self.state = self.np_random.uniform(low=low, high=high)
+        self.state = (-1) ** self.np_random.integers(0, 2, (2,)) * self.np_random.uniform(low=np.array([0.0, 0.0]), high=high)
         self.last_u = None
 
         if self.render_mode == "human":
