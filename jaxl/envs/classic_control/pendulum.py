@@ -125,7 +125,7 @@ class ParameterizedPendulumEnv(gym.Env):
             self.max_torque = 2.0
         else:
             self._rng = np.random.RandomState(seed)
-            self.max_torque = sample_data(0.01, 3.0, self._rng)
+            self.max_torque = sample_data(0.01, 4.0, self._rng)
         self.modified_attributes = {
             "max_torque": self.max_torque,
         }
@@ -143,7 +143,7 @@ class ParameterizedPendulumEnv(gym.Env):
         #   to update to follow the gymnasium api
         self.control_mode = control_mode
         if self.control_mode != "continuous":
-            actions = (self.max_torque / 2) * ([2] ** np.arange(-3, 2)[:, None]).flatten()
+            actions = (self.max_torque / 2) * ([2.0] ** np.arange(-3, 2)[:, None]).flatten()
             action_map = np.concatenate([-actions, [0], actions])
             self.action_space = spaces.Discrete(len(action_map))
 
