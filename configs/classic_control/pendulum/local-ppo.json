@@ -30,7 +30,7 @@
                     "value": 0.0003
                 }
             },
-            "max_grad_norm": false
+            "max_grad_norm": 0.5
         },
         "vf": {
             "optimizer": "adam",
@@ -40,7 +40,7 @@
                     "value": 0.0003
                 }
             },
-            "max_grad_norm": false
+            "max_grad_norm": 0.5
         }
     },
     "learner_config": {
@@ -62,7 +62,7 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 512
+            "buffer_size": 2048
         },
         "num_steps_per_epoch": 2048,
         "learner": "ppo",
@@ -74,8 +74,10 @@
         "obs_rms": true,
         "value_rms": false,
         "policy_distribution": "softmax",
-        "opt_batch_size": 64,
-        "opt_epochs": 10,
+        "opt_batch_size": 128,
+        "opt_epochs": 200,
+        "update_before_early_stopping": false,
+        "kl_threshold": 0.015,
         "ent_loss_setting": {
             "scheduler": "constant_schedule",
             "scheduler_kwargs": {
@@ -90,7 +92,8 @@
         "pi_loss_setting": {
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2
+            "objective": "reverse_kl",
+            "beta": 0.02
         }
     },
     "train_config": {
