@@ -213,6 +213,7 @@ class EvaluationRollout(Rollout):
         buffer: ReplayBuffer,
         num_samples: int,
         subsampling_length: int,
+        max_episode_length: int = None,
         use_tqdm: bool = True,
     ):
         """
@@ -224,6 +225,7 @@ class EvaluationRollout(Rollout):
         :param buffer: the buffer to store the transitions with
         :param num_sampels: the number of samples to store
         :param subsampling_length: the length of the subtrajectory per episode
+        :param max_episode_length: the maximum episode length
         :param use_tqdm: whether or not to show progress bar
         :type params: Union[optax.Params, Dict[str, Any]]
         :type policy: Policy
@@ -231,6 +233,7 @@ class EvaluationRollout(Rollout):
         :type buffer: ReplayBuffer
         :type num_samples: int
         :type subsampling_length: int
+        :type max_episode_length: int (DefaultValue = None)
         :type use_tqdm: bool (DefaultValue = False)
 
         """
@@ -247,6 +250,18 @@ class EvaluationRollout(Rollout):
             self._reset_key = jrandom.split(self._reset_key, 1)[0]
             self._curr_obs, self._curr_info = self._env.reset(seed=seed)
             self._curr_h_state = policy.reset()
+
+            termination_step = None
+            if (
+                max_episode_length is not None
+                and max_episode_length > subsampling_length
+            ):
+                termination_step = jrandom.randint(
+                    jrandom.split(self._reset_key, 1)[0],
+                    (1,),
+                    subsampling_length,
+                    max_episode_length,
+                ).item()
 
             curr_episode = []
             done = False
@@ -273,6 +288,8 @@ class EvaluationRollout(Rollout):
                 self._episode_lengths[-1] += 1
 
                 done = terminated or truncated
+                if termination_step is not None:
+                    done = done or len(curr_episode) == termination_step
 
                 curr_episode.append(
                     (
@@ -293,14 +310,18 @@ class EvaluationRollout(Rollout):
 
             idx_start = 0
             idx_end = len(curr_episode)
-            if subsampling_length < len(curr_episode):
-                idx_start = jrandom.randint(
-                    self._reset_key,
-                    (),
-                    minval=0,
-                    maxval=len(curr_episode) - subsampling_length,
-                )
-                idx_end = idx_start + subsampling_length
+            if termination_step is not None:
+                idx_start = termination_step - subsampling_length
+                idx_end = termination_step
+            else:
+                if subsampling_length < len(curr_episode):
+                    idx_start = jrandom.randint(
+                        self._reset_key,
+                        (),
+                        minval=0,
+                        maxval=len(curr_episode) - subsampling_length,
+                    )
+                    idx_end = idx_start + subsampling_length
 
             for idx in range(idx_start, idx_end):
                 buffer.push(*curr_episode[idx])

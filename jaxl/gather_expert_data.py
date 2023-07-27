@@ -60,6 +60,12 @@ flags.DEFINE_boolean(
     help="Whether or not to record video. Only enabled when save_stats=True",
     required=False,
 )
+flags.DEFINE_integer(
+    "max_episode_length",
+    default=None,
+    help="Maximum episode length",
+    required=False,
+)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -83,6 +89,9 @@ def main(
     assert (
         config.num_samples > 0
     ), f"num_samples should be at least 1, got {config.num_samples}"
+    assert (
+        config.max_episode_length is None or config.max_episode_length > 0
+    ), f"max_episode_length should be at least 1, got {config.max_episode_length}"
 
     policy, policy_params, obs_rms, buffer, env, env_seed = load_evaluation_components(
         config.run_path, config.num_samples
@@ -104,6 +113,7 @@ def main(
         buffer,
         config.num_samples,
         config.subsampling_length,
+        config.max_episode_length,
     )
     if config.save_buffer:
         print("Saving buffer with {} transitions".format(len(buffer)))

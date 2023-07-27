@@ -116,7 +116,7 @@ class ParameterizedPendulumEnv(gym.Env):
         **kwargs,
     ):
         self.max_speed = 8
-        
+
         self.l = 1.0
         self.g = 9.8
         self.dt = 0.05
@@ -143,7 +143,9 @@ class ParameterizedPendulumEnv(gym.Env):
         #   to update to follow the gymnasium api
         self.control_mode = control_mode
         if self.control_mode != "continuous":
-            actions = (self.max_torque / 2) * ([2.0] ** np.arange(-3, 2)[:, None]).flatten()
+            actions = (self.max_torque / 2) * (
+                [2.0] ** np.arange(-3, 2)[:, None]
+            ).flatten()
             action_map = np.concatenate([-actions, [0], actions])
             self.action_space = spaces.Discrete(len(action_map))
 
@@ -173,7 +175,9 @@ class ParameterizedPendulumEnv(gym.Env):
 
         u = self.process_action(u)
         self.last_u = u  # for rendering
-        costs = angle_normalize(th) ** 2 + 0.1 * thdot**2 # + 0.001 * (u**2) # Remove action cost
+        costs = (
+            angle_normalize(th) ** 2 + 0.1 * thdot**2
+        )  # + 0.001 * (u**2) # Remove action cost
 
         newthdot = thdot + (3 * g / (2 * l) * np.sin(th) + 3.0 / (m * l**2) * u) * dt
         newthdot = np.clip(newthdot, -self.max_speed, self.max_speed)

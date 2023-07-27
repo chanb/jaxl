@@ -143,9 +143,7 @@ PENDULUM_CONTINUOUS = {
             "ent_coef": [
                 {
                     "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {
-                        "value": 0.0
-                    },
+                    "scheduler_kwargs": {"value": 0.0},
                 }
             ],
         },
@@ -195,7 +193,7 @@ CHEETAH_CONTINUOUS = {
                         "init_value": 0.002,
                         "end_value": 0.0,
                         "transition_begin": 0,
-                        "transition_steps": 100
+                        "transition_steps": 100,
                     },
                 }
             ],
@@ -251,8 +249,8 @@ WALKER_CONTINUOUS = {
                         "init_value": 0.002,
                         "end_value": 0.0,
                         "transition_begin": 0,
-                        "transition_steps": 100
-                    }
+                        "transition_steps": 100,
+                    },
                 }
             ],
         },

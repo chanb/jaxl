@@ -25,7 +25,7 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 
 
-expert_dir = "/Users/chanb/research/personal/mtil_results/data/experts"
+expert_dir = "/Users/chanb/research/personal/mtil_results/data_without_pretrain/experts"
 # tasks = ["pendulum", "cheetah", "walker"]
 tasks = ["pendulum"]
 control_modes = ["discrete", "continuous"]
@@ -66,7 +66,12 @@ for task, control_mode in product(tasks, control_modes):
 
     dirs_to_load = variants[variants_sample_idxes]
     if os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl"):
-        (result_per_variant, env_configs, default_env_seeds, all_env_configs) = pickle.load(
+        (
+            result_per_variant,
+            env_configs,
+            default_env_seeds,
+            all_env_configs,
+        ) = pickle.load(
             open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "rb")
         )
     else:
@@ -117,7 +122,12 @@ for task, control_mode in product(tasks, control_modes):
                     )
                 if variant_i == 0:
                     all_env_configs[env_seed] = env.get_config()["modified_attributes"]
-                    print(env_seed, env.get_config()["modified_attributes"])
+                print(
+                    variant_name,
+                    default_env_seeds[variant_name],
+                    env_seed,
+                    env.get_config()["modified_attributes"],
+                )
                 params = checkpoint_manager.restore(checkpoint_manager.latest_step())
                 model_dict = params[CONST_MODEL_DICT]
                 agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
@@ -145,7 +155,9 @@ for task, control_mode in product(tasks, control_modes):
             env_configs[variant_name] = env_config["modified_attributes"]
 
         with open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "wb") as f:
-            pickle.dump((result_per_variant, env_configs, default_env_seeds, all_env_configs), f)
+            pickle.dump(
+                (result_per_variant, env_configs, default_env_seeds, all_env_configs), f
+            )
 
     all_res[(task, control_mode)] = (
         result_per_variant,
@@ -167,14 +179,20 @@ fig, axes = plt.subplots(
 
 for row_i, task in enumerate(tasks):
     for col_i, control_mode in enumerate(control_modes):
-        (result_per_variant, env_configs, default_env_seeds, env_seeds, all_env_configs) = all_res[
-            (task, control_mode)
-        ]
+        (
+            result_per_variant,
+            env_configs,
+            default_env_seeds,
+            env_seeds,
+            all_env_configs,
+        ) = all_res[(task, control_mode)]
 
         all_env_seeds = [*default_env_seeds.values(), *env_seeds]
         seeds_to_plot = np.array(all_env_seeds)
 
-        torques = np.array([all_env_configs[env_seed]["max_torque"] for env_seed in all_env_seeds])
+        torques = np.array(
+            [all_env_configs[env_seed]["max_torque"] for env_seed in all_env_seeds]
+        )
         sort_idxes = np.argsort(torques)
 
         if num_cols == num_rows == 1:
@@ -193,7 +211,9 @@ for row_i, task in enumerate(tasks):
             means = np.array(means)
             stds = np.array(stds)
 
-            variant_idx = np.where(seeds_to_plot[sort_idxes] == default_env_seeds[variant_name])[0]
+            variant_idx = np.where(
+                seeds_to_plot[sort_idxes] == default_env_seeds[variant_name]
+            )[0]
             ax.plot(
                 # np.arange(len(seeds_to_plot)),
                 torques[sort_idxes],
@@ -218,7 +238,8 @@ for row_i, task in enumerate(tasks):
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
         # ax.legend(handles, labels)
         ax.legend(
-            handles, labels,
+            handles,
+            labels,
             bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
             loc="lower left",
             ncols=math.ceil(num_agents_to_test / 2),

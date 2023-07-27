@@ -108,7 +108,9 @@ def main(config):
     ), f"{config.config_template} is not a file"
     with open(config.config_template, "r") as f:
         template = json.load(f)
-    assert config.env_file is None or os.path.isfile(config.env_file), f"{config.env_file} is not a file"
+    assert config.env_file is None or os.path.isfile(
+        config.env_file
+    ), f"{config.env_file} is not a file"
 
     assert (
         config.num_epochs > 0
@@ -156,7 +158,9 @@ def main(config):
     }
 
     if config.env_file:
-        template["learner_config"]["env_config"]["env_kwargs"]["parameter_config_path"] = config.env_file
+        template["learner_config"]["env_config"]["env_kwargs"][
+            "parameter_config_path"
+        ] = config.env_file
 
     template["logging_config"]["checkpoint_interval"] = config.checkpoint_interval
     if config.checkpoint_interval:
