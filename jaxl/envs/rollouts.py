@@ -238,30 +238,32 @@ class EvaluationRollout(Rollout):
 
         """
         num_episodes = math.ceil(num_samples / subsampling_length)
-        drop_last = num_samples % subsampling_length
+
+        termination_steps = None
+        if (
+            max_episode_length is not None
+            and max_episode_length > subsampling_length
+        ):
+            termination_steps = jrandom.randint(
+                jrandom.split(self._reset_key, 1)[0],
+                (num_episodes,),
+                subsampling_length,
+                max_episode_length,
+            )
 
         it = range(num_episodes)
         if use_tqdm:
             it = tqdm(it)
-        for _ in it:
+        for ep_i in it:
+            termination_step = None
+            if termination_steps is not None:
+                termination_step = termination_steps[ep_i]
             self._episodic_returns.append(0)
             self._episode_lengths.append(0)
             seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
             self._reset_key = jrandom.split(self._reset_key, 1)[0]
             self._curr_obs, self._curr_info = self._env.reset(seed=seed)
             self._curr_h_state = policy.reset()
-
-            termination_step = None
-            if (
-                max_episode_length is not None
-                and max_episode_length > subsampling_length
-            ):
-                termination_step = jrandom.randint(
-                    jrandom.split(self._reset_key, 1)[0],
-                    (1,),
-                    subsampling_length,
-                    max_episode_length,
-                ).item()
 
             curr_episode = []
             done = False
