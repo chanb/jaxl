@@ -91,6 +91,11 @@ flags.DEFINE_integer(
     default=None,
     help="The frequency to checkpoint the model",
 )
+flags.DEFINE_string(
+    "env_file",
+    default=None,
+    help="The environment config file",
+)
 
 
 NUM_FILES_PER_DIRECTORY = 100
@@ -103,6 +108,7 @@ def main(config):
     ), f"{config.config_template} is not a file"
     with open(config.config_template, "r") as f:
         template = json.load(f)
+    assert config.env_file is None or os.path.isfile(config.env_file), f"{config.env_file} is not a file"
 
     assert (
         config.num_epochs > 0
@@ -148,6 +154,9 @@ def main(config):
         "use_default": config.use_default_env,
         "control_mode": control_mode,
     }
+
+    if config.env_file:
+        template["learner_config"]["env_config"]["env_kwargs"]["parameter_config_path"] = config.env_file
 
     template["logging_config"]["checkpoint_interval"] = config.checkpoint_interval
     if config.checkpoint_interval:
