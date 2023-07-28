@@ -23,7 +23,7 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 experiment_name = "objective_comparison"
 experiment_dir = (
-    f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
+    f"./logs"
 )
 save_path = f"./results-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)
