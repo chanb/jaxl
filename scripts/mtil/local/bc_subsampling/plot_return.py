@@ -22,13 +22,13 @@ plt.rcParams.update(pgf_with_latex)
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
 experiment_name = "bc_subsampling"
-experiment_dir = f"./logs"
+experiment_dir = f"/Users/chanb/research/personal/jaxl/scripts/mtil/local/bc_subsampling/logs/bc_subsampling/pendulum_continuous"
 save_path = f"./results-{experiment_name}"
 reference_agent_path = "/Users/chanb/research/personal/mtil_results/data_from_pretrain/pretrained_ppo/pendulum_continuous"
 
 num_evaluation_episodes = 30
 env_seed = 9999
-record_video = False
+record_video = True
 
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
@@ -45,9 +45,9 @@ else:
     if os.path.isfile(env_config_path):
         env_config = pickle.load(open(env_config_path, "rb"))
 
+    num_variants = len(os.listdir(experiment_dir))
     for variant_i, variant_name in enumerate(os.listdir(experiment_dir)):
-        if (variant_i + 1) % 10 == 0:
-            print(f"Processed {variant_i + 1} variants")
+        print(f"Processing {variant_i + 1} / {num_variants} variants")
         variant_path = os.path.join(experiment_dir, variant_name)
         episodic_returns_per_variant = {}
         entropies = {}
@@ -57,7 +57,7 @@ else:
                     continue
 
                 env, policy = get_evaluation_components(
-                    agent_path, ref_agent_path=reference_agent_path
+                    agent_path, use_default=True, ref_agent_path=reference_agent_path
                 )
 
                 checkpoint_manager = CheckpointManager(
@@ -96,6 +96,7 @@ else:
                     episodic_returns_per_variant[checkpoint_step].append(
                         np.mean(agent_rollout.episodic_returns)
                     )
+                    env.close()
 
         result_per_variant[variant_name] = entropies
         result_per_variant[variant_name] = episodic_returns_per_variant
