@@ -164,10 +164,9 @@ for idx, returns_per_seed in enumerate([default_episodic_returns, variant_episod
         alpha=0.3,
     )
 ax.legend()
-ax.set_xlabel(control_mode)
+ax.set_xlabel("Maximum Torque")
+ax.set_ylabel("Expected Return")
 
-fig.supylabel("Expected Return")
-fig.supxlabel("Maximum Torque")
 fig.savefig(
     f"{save_path}/policy_robustness.pdf", format="pdf", bbox_inches="tight", dpi=600
 )

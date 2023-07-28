@@ -20,7 +20,7 @@ num_runs = 5
 
 seeds = rng.randint(0, 1000, num_runs)
 
-os.makedirs("./configs")
+os.makedirs("./configs", exist_ok=True)
 sh_content = ""
 sh_content += "#!/bin/bash\n"
 sh_content += "source /Users/chanb/research/personal/jaxl/.venv/bin/activate\n"

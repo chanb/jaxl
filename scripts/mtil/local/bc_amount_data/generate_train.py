@@ -9,14 +9,9 @@ rng = np.random.RandomState(run_seed)
 
 envs = {
     "pendulum_continuous": {
-        "config": "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_subsampling/pendulum_cont.json",
+        "config": "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_amount_data/pendulum_cont.json",
         "expert_data_prefixes": "/Users/chanb/research/personal/jaxl/scripts/mtil/local/demonstrations/expert_buffer-default-pendulum_continuous",
-        "subsamplings": [1, 20, 200],
-    },
-    "cheetah_discrete": {
-        "config": "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_subsampling/cheetah_disc.json",
-        "expert_data_prefixes": "/Users/chanb/research/personal/jaxl/scripts/mtil/local/demonstrations/expert_buffer-default-cheetah_discrete",
-        "subsamplings": [1, 20, 1000],
+        "buffer_sizes": [2500, 5000, 7500, 10000],
     },
 }
 
@@ -33,20 +28,24 @@ for env_name, env_config in envs.items():
     with open(env_config["config"], "r") as f:
         template = json.load(f)
 
-    for subsampling, seed in product(env_config["subsamplings"], seeds):
-        template["logging_config"]["experiment_name"] = f"subsampling_{subsampling}"
+    for buffer_size, seed in product(env_config["buffer_sizes"], seeds):
+        template["logging_config"]["experiment_name"] = f"buffer_size_{buffer_size}"
         template["learner_config"]["buffer_config"][
             "load_buffer"
         ] = "{}-subsampling_{}.gzip".format(
-            env_config["expert_data_prefixes"], subsampling
+            env_config["expert_data_prefixes"], 200
         )
+        template["learner_config"]["buffer_config"][
+            "set_size"
+        ] = buffer_size
+
         template["learner_config"]["seeds"] = {
             "model_seed": int(seed),
             "buffer_seed": int(seed),
         }
 
-        out_path = "configs/{}-subsampling_{}-seed_{}".format(
-            env_name, subsampling, seed
+        out_path = "configs/{}-buffer_size_{}-seed_{}".format(
+            env_name, buffer_size, seed
         )
         with open(f"{out_path}.json", "w+") as f:
             json.dump(template, f)
