@@ -23,8 +23,8 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 experiment_name = "bc_amount_data"
 save_path = f"./results-{experiment_name}"
-experiment_dir = f"./logs/bc_amount_data/cheetah_discrete"
-reference_agent_path = "/Users/chanb/research/personal/mtil_results/data_from_pretrain/pretrained_ppo/cheetah_discrete"
+experiment_dir = f"./logs/bc_amount_data/pendulum_continuous"
+reference_agent_path = "../expert_policies/pendulum_continuous"
 
 num_evaluation_episodes = 10
 env_seed = 9999

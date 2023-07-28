@@ -23,8 +23,8 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 experiment_name = "bc_subsampling"
 save_path = f"./results-{experiment_name}"
-experiment_dir = f"/Users/chanb/research/personal/jaxl/scripts/mtil/local/bc_subsampling/logs/bc_subsampling/cheetah_discrete"
-reference_agent_path = "/Users/chanb/research/personal/mtil_results/data_from_pretrain/pretrained_ppo/cheetah_discrete"
+experiment_dir = f"./logs/bc_subsampling/cheetah_discrete"
+reference_agent_path = "../expert_policies/cheetah_discrete"
 
 num_evaluation_episodes = 50
 env_seed = 9999
@@ -135,6 +135,4 @@ ax.legend()
 
 
 fig.supxlabel("Iterations")
-fig.savefig(
-    f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600
-)
+fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)
