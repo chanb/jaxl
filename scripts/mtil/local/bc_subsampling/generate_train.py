@@ -22,7 +22,7 @@ envs = {
 
 num_runs = 5
 
-seeds = rng.randint(0, 1000, 5)
+seeds = rng.randint(0, 1000, num_runs)
 
 os.makedirs("./configs")
 sh_content = ""

@@ -27,7 +27,7 @@ doc_width_pt = 452.9679
 
 expert_dir = "/Users/chanb/research/personal/mtil_results/data_without_pretrain/experts"
 tasks = ["pendulum"]
-control_modes = ["discrete", "continuous"]
+control_modes = ["continuous"]
 
 save_path = f"./results_policy_robustness-pendulum"
 os.makedirs(save_path, exist_ok=True)
@@ -41,7 +41,7 @@ pretrain_dir = (
     "/Users/chanb/research/personal/mtil_results/data_from_pretrain/pretrained_ppo/"
 )
 
-num_evaluation_episodes = 10
+num_evaluation_episodes = 50
 record_video = False
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
@@ -183,7 +183,7 @@ for row_i, task in enumerate(tasks):
             ms=3.0,
             linewidth=0.75,
         )
-        ax.axvline(2.0, label="trained")
+        ax.axvline(2.0, label="trained", linewidth=0.5, linestyle="--", c="black")
         ax.fill_between(
             torques[sort_idxes],
             means[sort_idxes] + stds[sort_idxes],

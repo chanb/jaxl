@@ -125,7 +125,8 @@ class ParameterizedPendulumEnv(gym.Env):
             self.max_torque = 2.0
         else:
             self._rng = np.random.RandomState(seed)
-            self.max_torque = sample_data(0.01, 4.0, self._rng)
+            # self.max_torque = sample_data(0.01, 4.0, self._rng)
+            self.max_torque = sample_data(0.00001, 2.0, self._rng)
         self.modified_attributes = {
             "max_torque": self.max_torque,
         }

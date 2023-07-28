@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/dmc/cheetah/objective_comparison",
+        "save_path": "./logs",
         "experiment_name": "reverse_kl-tanh",
         "log_interval": 1,
         "checkpoint_interval": 25
