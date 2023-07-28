@@ -72,14 +72,18 @@ def get_config(agent_path, env_seed=None, use_default=False, ref_agent_path=None
             agent_config_dict["learner_config"][
                 "policy_distribution"
             ] = ref_agent_config_dict["learner_config"]["policy_distribution"]
+            if agent_config_dict["learner_config"][
+                "policy_distribution"
+            ] == CONST_GAUSSIAN:
+                agent_config_dict["learner_config"][
+                    "policy_distribution"
+                ] = CONST_DETERMINISTIC
 
         agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
             "render_mode"
         ] = "rgb_array"
         if "policy_distribution" not in agent_config_dict[
             "learner_config"
-        ] or agent_config_dict["learner_config"]["policy_distribution"] in [
-            CONST_GAUSSIAN
         ]:
             agent_config_dict["learner_config"][
                 "policy_distribution"

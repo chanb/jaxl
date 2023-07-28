@@ -25,8 +25,9 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 
 
-expert_dir = "/Users/chanb/research/personal/mtil_results/data/experts"
-tasks = ["pendulum", "cheetah", "walker"]
+expert_dir = "/Users/chanb/research/personal/mtil_results/data_from_pretrain/experts"
+# tasks = ["pendulum", "cheetah", "walker"]
+tasks = ["pendulum_no_act_cost", "cheetah_hard"]
 control_modes = ["discrete", "continuous"]
 
 save_path = f"./results_policy_robustness"
