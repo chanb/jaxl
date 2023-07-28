@@ -36,7 +36,7 @@ num_envs_to_test = 9
 default_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness_pendulum/logs/pendulum-default"
 variant_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness_pendulum/logs/pendulum-env_seed_769"
 
-num_evaluation_episodes = 10
+num_evaluation_episodes = 50
 record_video = False
 
 assert num_envs_to_test > 0, f"num_envs_to_test needs to be at least 1"
@@ -137,8 +137,9 @@ torques = np.array(
     ]
 )
 sort_idxes = np.argsort(torques)
+linestyles = ["--", "-."]
 
-for returns_per_seed in (default_episodic_returns, variant_episodic_returns):
+for idx, returns_per_seed in enumerate([default_episodic_returns, variant_episodic_returns]):
     means = []
     stds = []
     for val in returns_per_seed.values():
@@ -147,14 +148,15 @@ for returns_per_seed in (default_episodic_returns, variant_episodic_returns):
     means = np.array(means)
     stds = np.array(stds)
 
+    ax.axvline(torques[idx], linestyle="--", linewidth=0.5, color="black", alpha=0.5)
     ax.plot(
         torques[sort_idxes],
         means[sort_idxes],
         marker="^",
         ms=3.0,
         linewidth=0.75,
+        label="torque @ {:.2f}".format(torques[idx])
     )
-    ax.axvline(2.0, label="trained", linewidth=0.5, linestyle="--", c="black")
     ax.fill_between(
         torques[sort_idxes],
         means[sort_idxes] + stds[sort_idxes],

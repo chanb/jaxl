@@ -26,9 +26,9 @@ experiment_dir = f"/Users/chanb/research/personal/jaxl/scripts/mtil/local/bc_sub
 save_path = f"./results-{experiment_name}"
 reference_agent_path = "/Users/chanb/research/personal/mtil_results/data_from_pretrain/pretrained_ppo/pendulum_continuous"
 
-num_evaluation_episodes = 30
+num_evaluation_episodes = 50
 env_seed = 9999
-record_video = True
+record_video = False
 
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
