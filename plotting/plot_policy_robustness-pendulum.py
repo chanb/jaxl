@@ -26,7 +26,6 @@ doc_width_pt = 452.9679
 
 
 expert_dir = "/Users/chanb/research/personal/mtil_results/data_without_pretrain/experts"
-# tasks = ["pendulum", "cheetah", "walker"]
 tasks = ["pendulum"]
 control_modes = ["discrete", "continuous"]
 
@@ -37,16 +36,16 @@ seed = 1000
 
 rollout_seed = 1000
 env_seed_range = 1000
-num_envs_to_test = 5
-num_agents_to_test = 5
+num_envs_to_test = 9
+pretrain_dir = (
+    "/Users/chanb/research/personal/mtil_results/data_from_pretrain/pretrained_ppo/"
+)
 
 num_evaluation_episodes = 10
 record_video = False
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
 assert num_envs_to_test > 0, f"num_envs_to_test needs to be at least 1"
-assert num_agents_to_test > 0, f"num_agents_to_test needs to be at least 1"
-
 
 all_res = {}
 
@@ -56,113 +55,79 @@ for task, control_mode in product(tasks, control_modes):
     experiment_dir = os.path.join(expert_dir, task, control_mode, "runs/0")
     variants = np.array(os.listdir(experiment_dir))
     num_variants = len(variants)
-    variants_sample_idxes = rng.randint(0, num_variants, size=num_agents_to_test)
-    while len(np.unique(variants_sample_idxes)) != num_agents_to_test:
-        variants_sample_idxes = rng.randint(0, num_variants, size=num_agents_to_test)
 
     env_seeds = rng.randint(0, env_seed_range, size=num_envs_to_test)
     while len(np.unique(env_seeds)) != num_envs_to_test:
         env_seeds = rng.randint(0, env_seed_range, size=num_envs_to_test)
 
-    dirs_to_load = variants[variants_sample_idxes]
+    default_agent_path = os.path.join(pretrain_dir, "{}_{}".format(task, control_mode))
     if os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl"):
         (
-            result_per_variant,
-            env_configs,
-            default_env_seeds,
+            episodic_returns_per_seed,
+            env_seeds,
             all_env_configs,
         ) = pickle.load(
             open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "rb")
         )
     else:
-        result_per_variant = {}
-        env_configs = {}
-        default_env_seeds = {}
-        agent_paths = {}
         all_env_configs = {}
-        for variant_i, variant_name in enumerate(dirs_to_load):
-            variant_path = os.path.join(experiment_dir, variant_name)
-            for agent_path, _, filenames in os.walk(variant_path):
-                for filename in filenames:
-                    if filename != "config.json":
-                        continue
-                    agent_paths[variant_name] = agent_path
+        episodic_returns_per_seed = {}
+        all_env_seeds = [None, *env_seeds]
 
-                    agent_config_path = os.path.join(agent_path, "config.json")
-                    with open(agent_config_path, "r") as f:
-                        agent_config_dict = json.load(f)
-                        default_env_seed = agent_config_dict["learner_config"][
-                            "env_config"
-                        ]["env_kwargs"]["seed"]
-                        default_env_seeds[variant_name] = default_env_seed
+        env_config_path = os.path.join(default_agent_path, "env_config.pkl")
+        env_config = None
+        if os.path.isfile(env_config_path):
+            env_config = pickle.load(open(env_config_path, "rb"))
 
-        all_env_seeds = [*default_env_seeds.values(), *env_seeds]
+        checkpoint_manager = CheckpointManager(
+            os.path.join(default_agent_path, "models"),
+            PyTreeCheckpointer(),
+        )
 
-        for variant_i, variant_name in enumerate(agent_paths):
-            print(f"Processing variant {variant_i + 1} / {num_agents_to_test}")
-            agent_path = agent_paths[variant_name]
-            env_config_path = os.path.join(agent_path, "env_config.pkl")
-            env_config = None
-            if os.path.isfile(env_config_path):
-                env_config = pickle.load(open(env_config_path, "rb"))
+        for env_seed in all_env_seeds:
+            env, policy = (
+                get_evaluation_components(default_agent_path, None, True)
+                if env_seed is None
+                else get_evaluation_components(default_agent_path, env_seed, False)
+            )
+            if record_video:
+                env = RecordVideoV0(
+                    env,
+                    f"{save_path}/videos/{task}-{control_mode}/env_seed_{env_seed}",
+                    disable_logger=True,
+                )
+            all_env_configs[env_seed] = env.get_config()["modified_attributes"]
+            print(
+                env_seed,
+                env.get_config()["modified_attributes"],
+            )
+            params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+            model_dict = params[CONST_MODEL_DICT]
+            agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
+            agent_obs_rms = False
+            if CONST_OBS_RMS in params:
+                agent_obs_rms = RunningMeanStd()
+                agent_obs_rms.set_state(params[CONST_OBS_RMS])
 
-            checkpoint_manager = CheckpointManager(
-                os.path.join(agent_path, "models"),
-                PyTreeCheckpointer(),
+            agent_rollout = EvaluationRollout(env, seed=rollout_seed)
+            agent_rollout.rollout(
+                agent_policy_params,
+                policy,
+                agent_obs_rms,
+                num_evaluation_episodes,
+                None,
+                use_tqdm=False,
             )
 
-            episodic_returns_per_variant = {}
-            for env_seed in all_env_seeds:
-                env, policy = get_evaluation_components(agent_path, env_seed)
-                if record_video:
-                    env = RecordVideoV0(
-                        env,
-                        f"{save_path}/videos/{task}-{control_mode}-variant_{variant_name}-default_seed_{default_env_seeds[variant_name]}/env_seed_{env_seed}",
-                        disable_logger=True,
-                    )
-                if variant_i == 0:
-                    all_env_configs[env_seed] = env.get_config()["modified_attributes"]
-                print(
-                    variant_name,
-                    default_env_seeds[variant_name],
-                    env_seed,
-                    env.get_config()["modified_attributes"],
-                )
-                params = checkpoint_manager.restore(checkpoint_manager.latest_step())
-                model_dict = params[CONST_MODEL_DICT]
-                agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
-                agent_obs_rms = False
-                if CONST_OBS_RMS in params:
-                    agent_obs_rms = RunningMeanStd()
-                    agent_obs_rms.set_state(params[CONST_OBS_RMS])
-
-                agent_rollout = EvaluationRollout(env, seed=rollout_seed)
-                agent_rollout.rollout(
-                    agent_policy_params,
-                    policy,
-                    agent_obs_rms,
-                    num_evaluation_episodes,
-                    None,
-                    use_tqdm=False,
-                )
-
-                episodic_returns_per_variant.setdefault(env_seed, [])
-                episodic_returns_per_variant[env_seed].append(
-                    agent_rollout.episodic_returns
-                )
-                env.close()
-            result_per_variant[variant_name] = episodic_returns_per_variant
-            env_configs[variant_name] = env_config["modified_attributes"]
+            episodic_returns_per_seed.setdefault(env_seed, [])
+            episodic_returns_per_seed[env_seed].append(agent_rollout.episodic_returns)
+            env.close()
 
         with open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "wb") as f:
-            pickle.dump(
-                (result_per_variant, env_configs, default_env_seeds, all_env_configs), f
-            )
+            pickle.dump((episodic_returns_per_seed, env_seeds, all_env_configs), f)
 
     all_res[(task, control_mode)] = (
-        result_per_variant,
-        env_configs,
-        default_env_seeds,
+        episodic_returns_per_seed,
         env_seeds,
         all_env_configs,
     )
@@ -180,18 +145,19 @@ fig, axes = plt.subplots(
 for row_i, task in enumerate(tasks):
     for col_i, control_mode in enumerate(control_modes):
         (
-            result_per_variant,
-            env_configs,
-            default_env_seeds,
+            episodic_returns_per_seed,
             env_seeds,
             all_env_configs,
         ) = all_res[(task, control_mode)]
 
-        all_env_seeds = [*default_env_seeds.values(), *env_seeds]
+        all_env_seeds = [None, *env_seeds]
         seeds_to_plot = np.array(all_env_seeds)
 
         torques = np.array(
-            [all_env_configs[env_seed]["max_torque"] for env_seed in all_env_seeds]
+            [
+                2.0 if env_seed is None else all_env_configs[env_seed]["max_torque"]
+                for env_seed in all_env_seeds
+            ]
         )
         sort_idxes = np.argsort(torques)
 
@@ -202,52 +168,32 @@ for row_i, task in enumerate(tasks):
         else:
             ax = axes[row_i, col_i]
 
-        for variant_name, returns in result_per_variant.items():
-            means = []
-            stds = []
-            for val in returns.values():
-                means.append(np.mean(val))
-                stds.append(np.std(val))
-            means = np.array(means)
-            stds = np.array(stds)
+        means = []
+        stds = []
+        for val in episodic_returns_per_seed.values():
+            means.append(np.mean(val))
+            stds.append(np.std(val))
+        means = np.array(means)
+        stds = np.array(stds)
 
-            variant_idx = np.where(
-                seeds_to_plot[sort_idxes] == default_env_seeds[variant_name]
-            )[0]
-            ax.plot(
-                # np.arange(len(seeds_to_plot)),
-                torques[sort_idxes],
-                means[sort_idxes],
-                label="{:.3f}".format(torques[variant_idx[0]]),
-                marker="^",
-                ms=3.0,
-                linewidth=0.75,
-            )
-            ax.fill_between(
-                # np.arange(len(seeds_to_plot)),
-                torques[sort_idxes],
-                means[sort_idxes] + stds[sort_idxes],
-                means[sort_idxes] - stds[sort_idxes],
-                alpha=0.3,
-            )
+        ax.plot(
+            torques[sort_idxes],
+            means[sort_idxes],
+            marker="^",
+            ms=3.0,
+            linewidth=0.75,
+        )
+        ax.axvline(2.0, label="trained")
+        ax.fill_between(
+            torques[sort_idxes],
+            means[sort_idxes] + stds[sort_idxes],
+            means[sort_idxes] - stds[sort_idxes],
+            alpha=0.3,
+        )
+        ax.legend()
 
         if row_i == len(tasks) - 1:
             ax.set_xlabel(control_mode)
-        handles, labels = ax.get_legend_handles_labels()
-        order = sorted(labels)
-        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
-        # ax.legend(handles, labels)
-        ax.legend(
-            handles,
-            labels,
-            bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
-            loc="lower left",
-            ncols=math.ceil(num_agents_to_test / 2),
-            mode="expand",
-            borderaxespad=0.0,
-            frameon=True,
-            fontsize="5",
-        )
 
 fig.supylabel("Expected Return")
 fig.supxlabel("Maximum Torque")
