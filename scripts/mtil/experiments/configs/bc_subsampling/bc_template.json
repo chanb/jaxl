@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/bc_subsampling/pendulum_continuous",
+        "save_path": "<TO_MODIFY>",
         "experiment_name": "<TO_MODIFY>",
         "log_interval": 1,
         "checkpoint_interval": 100
@@ -35,7 +35,7 @@
         "num_updates_per_epoch": 100,
         "batch_size": 128,
         "obs_rms": false,
-        "losses": ["gaussian", "l2"],
+        "losses": ["<TO_MODIFY>", "l2"],
         "loss_settings": [
             {
                 "coefficient": 1.0,

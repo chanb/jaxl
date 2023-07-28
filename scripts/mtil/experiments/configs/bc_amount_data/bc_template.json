@@ -1,16 +1,13 @@
 {
     "logging_config": {
-        "save_path": "./logs/bc_subsampling/cheetah_discrete",
+        "save_path": "<TO_MODIFY>",
         "experiment_name": "<TO_MODIFY>",
         "log_interval": 1,
         "checkpoint_interval": 100
     },
     "model_config": {
         "architecture": "mlp",
-        "layers": [
-            64,
-            64
-        ],
+        "layers": [64, 64],
         "activation": "tanh"
     },
     "optimizer_config": {
@@ -18,7 +15,7 @@
         "lr": {
             "scheduler": "constant_schedule",
             "scheduler_kwargs": {
-                "value": 0.0003
+                "value": 3e-4
             }
         },
         "max_grad_norm": false
@@ -28,7 +25,7 @@
         "buffer_config": {
             "load_buffer": "<TO_MODIFY>",
             "buffer_type": "default",
-            "set_size": 10000
+            "set_size": "<TO_MODIFY>"
         },
         "seeds": {
             "model_seed": 42,
@@ -38,10 +35,7 @@
         "num_updates_per_epoch": 100,
         "batch_size": 128,
         "obs_rms": false,
-        "losses": [
-            "categorical",
-            "l2"
-        ],
+        "losses": ["<TO_MODIFY>", "l2"],
         "loss_settings": [
             {
                 "coefficient": 1.0,

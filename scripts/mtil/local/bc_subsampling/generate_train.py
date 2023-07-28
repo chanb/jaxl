@@ -9,19 +9,21 @@ rng = np.random.RandomState(run_seed)
 
 envs = {
     "pendulum_continuous": {
-        "config": "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_subsampling/pendulum_cont.json",
-        "expert_data_prefixes": "/Users/chanb/research/personal/jaxl/scripts/mtil/local/demonstrations/expert_buffer-default-pendulum_continuous",
         "subsamplings": [1, 20, 200],
     },
     "cheetah_discrete": {
-        "config": "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_subsampling/cheetah_disc.json",
-        "expert_data_prefixes": "/Users/chanb/research/personal/jaxl/scripts/mtil/local/demonstrations/expert_buffer-default-cheetah_discrete",
         "subsamplings": [1, 20, 1000],
     },
 }
 
+data_dir = "./logs/demonstrations"
+config_template = "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_subsampling/bc_template.json"
+
 num_runs = 5
 seeds = rng.randint(0, 1000, num_runs)
+
+with open(config_template, "r") as f:
+    template = json.load(f)
 
 os.makedirs("./configs", exist_ok=True)
 sh_content = ""
@@ -30,15 +32,20 @@ sh_content += "source /Users/chanb/research/personal/jaxl/.venv/bin/activate\n"
 for env_name, env_config in envs.items():
     print(f"Processing {env_name}")
 
-    with open(env_config["config"], "r") as f:
-        template = json.load(f)
+    template["logging_config"]["save_path"] = "./logs/bc_subsampling/{}".format(
+        env_name
+    )
+    if env_name.split("_")[1] == "discrete":
+        template["learner_config"]["losses"][0] = "categorical"
+    elif env_name.split("_")[1] == "continuous":
+        template["learner_config"]["losses"][0] = "gaussian"
 
     for subsampling, seed in product(env_config["subsamplings"], seeds):
         template["logging_config"]["experiment_name"] = f"subsampling_{subsampling}"
         template["learner_config"]["buffer_config"][
             "load_buffer"
-        ] = "{}-subsampling_{}.gzip".format(
-            env_config["expert_data_prefixes"], subsampling
+        ] = "{}/expert_buffer-default-{}-num_samples_100000-subsampling_{}.gzip".format(
+            data_dir, env_name, env_config["max_episode_length"]
         )
         template["learner_config"]["seeds"] = {
             "model_seed": int(seed),
