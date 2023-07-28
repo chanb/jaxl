@@ -1,0 +1,58 @@
+{
+    "logging_config": {
+        "save_path": "./logs/bc_subsampling/cheetah_discrete",
+        "experiment_name": "<TO_MODIFY>",
+        "log_interval": 1,
+        "checkpoint_interval": 100
+    },
+    "model_config": {
+        "architecture": "mlp",
+        "layers": [
+            64,
+            64
+        ],
+        "activation": "tanh"
+    },
+    "optimizer_config": {
+        "optimizer": "adam",
+        "lr": {
+            "scheduler": "constant_schedule",
+            "scheduler_kwargs": {
+                "value": 0.0003
+            }
+        },
+        "max_grad_norm": false
+    },
+    "learner_config": {
+        "task": "imitation_learning",
+        "buffer_config": {
+            "load_buffer": "<TO_MODIFY>",
+            "buffer_type": "default",
+            "set_size": 10000
+        },
+        "seeds": {
+            "model_seed": 42,
+            "buffer_seed": 42
+        },
+        "learner": "bc",
+        "num_updates_per_epoch": 100,
+        "batch_size": 128,
+        "obs_rms": false,
+        "losses": [
+            "categorical",
+            "l2"
+        ],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean"
+            },
+            {
+                "coefficient": 0.0
+            }
+        ]
+    },
+    "train_config": {
+        "num_epochs": 1000
+    }
+}
