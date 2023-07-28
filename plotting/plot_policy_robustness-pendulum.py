@@ -3,17 +3,14 @@ from itertools import product
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
 import _pickle as pickle
-import json
-import math
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 from jaxl.constants import *
 from jaxl.envs.rollouts import EvaluationRollout
-from jaxl.utils import RunningMeanStd, flatten_dict
-from plot_utils import set_size, pgf_with_latex, get_evaluation_components
+from jaxl.utils import RunningMeanStd
+from jaxl.plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
 # Use the seborn style

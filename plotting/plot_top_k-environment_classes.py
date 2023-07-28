@@ -8,7 +8,7 @@ import numpy as np
 import os
 
 from jaxl.constants import *
-from plot_utils import set_size, pgf_with_latex
+from jaxl.plot_utils import set_size, pgf_with_latex
 
 
 doc_width_pt = 452.9679

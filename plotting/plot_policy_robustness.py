@@ -13,7 +13,7 @@ import os
 from jaxl.constants import *
 from jaxl.envs.rollouts import EvaluationRollout
 from jaxl.utils import RunningMeanStd, flatten_dict
-from plot_utils import set_size, pgf_with_latex, get_evaluation_components
+from jaxl.plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
 # Use the seborn style

@@ -58,10 +58,18 @@ pgf_with_latex = {  # setup matplotlib to use latex for output
 }
 
 
-def get_config(agent_path, env_seed=None, use_default=False):
+def get_config(agent_path, env_seed=None, use_default=False, ref_agent_path=None):
     agent_config_path = os.path.join(agent_path, "config.json")
     with open(agent_config_path, "r") as f:
         agent_config_dict = json.load(f)
+
+        if ref_agent_path is not None:
+            with open(os.path.join(ref_agent_path, "config.json"), "r") as f2:
+                ref_agent_config_dict = json.load(f2)
+            agent_config_dict["learner_config"]["env_config"] = ref_agent_config_dict[
+                "learner_config"
+            ]["env_config"]
+
         agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
             "render_mode"
         ] = "rgb_array"
@@ -88,8 +96,10 @@ def get_config(agent_path, env_seed=None, use_default=False):
     }
 
 
-def get_evaluation_components(agent_path, env_seed=None, use_default=False):
-    agent_config, aux = get_config(agent_path, env_seed, use_default)
+def get_evaluation_components(
+    agent_path, env_seed=None, use_default=False, ref_agent_path=None
+):
+    agent_config, aux = get_config(agent_path, env_seed, use_default, ref_agent_path)
     env = get_environment(agent_config.learner_config.env_config)
 
     input_dim = env.observation_space.shape
