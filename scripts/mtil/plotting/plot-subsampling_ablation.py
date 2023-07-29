@@ -16,8 +16,65 @@ plt.rcParams.update(pgf_with_latex)
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
 
+configs = []
+
+task = "pendulum"
+control_mode = "continuous"
+subsamplings = [1, 20, 200]
+num_samples_to_gather = [125, 250, 500, 1000, 1500, 2000, 2500]
+save_path = f"../local/bc_subsampling"
+expert_buffer = "../local/bc_subsampling/logs/demonstrations/expert_buffer-default-pendulum_continuous-num_samples_10000-subsampling_200.gzip"
+
+configs.append(
+    (
+        task,
+        control_mode,
+        subsamplings,
+        num_samples_to_gather,
+        save_path,
+        expert_buffer,
+    )
+)
+
+task = "cheetah"
+control_mode = "discrete"
+subsamplings = [1, 20, 1000]
+num_samples_to_gather = [1000, 2500, 5000, 10000]
+save_path = f"../local/bc_subsampling"
+expert_buffer = "../local/bc_subsampling/logs/demonstrations/expert_buffer-default-cheetah_discrete-num_samples_10000-subsampling_1000.gzip"
+
+configs.append(
+    (
+        task,
+        control_mode,
+        subsamplings,
+        num_samples_to_gather,
+        save_path,
+        expert_buffer,
+    )
+)
+
+task = "cheetah"
+control_mode = "continuous"
+subsamplings = [1, 20, 1000]
+num_samples_to_gather = [1000, 2500, 5000, 10000]
+save_path = f"../local/bc_subsampling"
+expert_buffer = "../local/bc_subsampling/logs/demonstrations/expert_buffer-default-cheetah_continuous-num_samples_10000-subsampling_1000.gzip"
+
+configs.append(
+    (
+        task,
+        control_mode,
+        subsamplings,
+        num_samples_to_gather,
+        save_path,
+        expert_buffer,
+    )
+)
+
+
 num_rows = 1
-num_cols = 2
+num_cols = len(configs)
 fig, axes = plt.subplots(
     num_rows,
     num_cols,
@@ -60,45 +117,6 @@ def get_result(
     per_sample_means = np.array(per_sample_means).T
     per_sample_stds = np.array(per_sample_stds).T
     return per_sample_means, per_sample_stds
-
-
-configs = []
-
-task = "pendulum"
-control_mode = "continuous"
-subsamplings = [1, 20, 200]
-num_samples_to_gather = [125, 250, 500, 1000, 1500, 2000, 2500]
-save_path = f"../local/bc_subsampling"
-expert_buffer = "../local/bc_subsampling/logs/demonstrations/expert_buffer-default-pendulum_continuous-num_samples_10000-subsampling_200.gzip"
-
-configs.append(
-    (
-        task,
-        control_mode,
-        subsamplings,
-        num_samples_to_gather,
-        save_path,
-        expert_buffer,
-    )
-)
-
-task = "cheetah"
-control_mode = "discrete"
-subsamplings = [1, 20, 1000]
-num_samples_to_gather = [500, 1000, 2000, 2500, 5000]
-save_path = f"../local/bc_subsampling"
-expert_buffer = "../local/bc_subsampling/logs/demonstrations/expert_buffer-default-cheetah_discrete-num_samples_10000-subsampling_1000.gzip"
-
-configs.append(
-    (
-        task,
-        control_mode,
-        subsamplings,
-        num_samples_to_gather,
-        save_path,
-        expert_buffer,
-    )
-)
 
 for idx, config in enumerate(configs):
     (

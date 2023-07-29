@@ -11,17 +11,17 @@ envs = {
     # "pendulum_continuous": {
     #     "subsamplings": [1, 20, 200],
     # },
-    # "cheetah_discrete": {
-    #     "subsamplings": [1, 20, 1000],
-    # },
-    "cheetah_continuous": {
+    "cheetah_discrete": {
         "subsamplings": [1, 20, 1000],
     },
+    # "cheetah_continuous": {
+    #     "subsamplings": [1, 20, 1000],
+    # },
 }
 
 data_dir = "./logs/demonstrations"
 config_template = "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_subsampling/bc_template.json"
-buffer_size = 5000
+buffer_size = 7500
 
 num_runs = 5
 seeds = rng.randint(0, 1000, num_runs)

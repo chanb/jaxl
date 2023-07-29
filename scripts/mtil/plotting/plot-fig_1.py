@@ -100,7 +100,7 @@ num_sampless = sorted(
         int(variant_name.split("buffer_size_")[-1])
         for variant_name in result_per_variant.keys()
     ]
-)[:6]
+)[:8]
 means = []
 stds = []
 
