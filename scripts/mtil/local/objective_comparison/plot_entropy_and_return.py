@@ -1,17 +1,15 @@
 from gymnasium.experimental.wrappers import RecordVideoV0
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
-from typing import Iterable
 
 import _pickle as pickle
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 from jaxl.constants import *
 from jaxl.envs.rollouts import EvaluationRollout
-from jaxl.utils import RunningMeanStd, flatten_dict
-from plot_utils import set_size, pgf_with_latex, get_evaluation_components
+from jaxl.utils import RunningMeanStd
+from jaxl.plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
 # Use the seborn style
@@ -23,7 +21,7 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 experiment_name = "objective_comparison"
 experiment_dir = (
-    f"/Users/chanb/research/personal/jaxl/jaxl/logs/dmc/cheetah/{experiment_name}"
+    f"./logs"
 )
 save_path = f"./results-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)

@@ -1,55 +1,37 @@
 {
     "logging_config": {
-        "save_path": "./logs/pendulum",
+        "save_path": "./logs/pendulum-env_seed_105-far",
         "experiment_name": "ppo",
         "log_interval": 1,
         "checkpoint_interval": 100
     },
     "model_config": {
         "policy": {
-            "architecture": "encoder_predictor",
-            "predictor": {
-                "architecture": "mlp",
-                "layers": []
-            },
-            "encoder": {
-                "architecture": "mlp",
-                "layers": [64],
-                "activation": "tanh",
-                "output_activation": "tanh"
-            },
-            "encoder_dim": [64]
+            "architecture": "mlp",
+            "layers": [
+                64, 64
+            ],
+            "activation": "tanh"
         },
         "vf": {
             "architecture": "mlp",
             "layers": [
                 64,
                 64
-            ]
+            ],
+            "activation": "tanh"
         }
     },
     "optimizer_config": {
         "policy": {
-            "predictor": {
-                "optimizer": "adam",
-                "lr": {
-                    "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {
-                        "value": 0.0003
-                    }
-                },
-                "max_grad_norm": 0.5
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 0.0003
+                }
             },
-            "encoder": {
-                "optimizer": "adam",
-                "lr": {
-                    "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {
-                        "value": 0.0003
-                    }
-                },
-                "max_grad_norm": 0.5
-            }  
+            "max_grad_norm": 0.5
         },
         "vf": {
             "optimizer": "adam",
@@ -65,7 +47,7 @@
     "learner_config": {
         "task": "reinforcement_learning",
         "load_pretrain": {
-            "checkpoint_path": "/Users/chanb/research/personal/jaxl/jaxl/logs/pendulum/ppo/07-26-23_22_40_22-021e6c8b-54d0-4d77-b223-a5c1fa09e38a/models",
+            "checkpoint_path": "/Users/chanb/research/personal/mtil_results/data_from_pretrain/pretrained_ppo/pendulum_continuous/models",
             "load_components": ["policy", "vf"],
             "freeze_obs_rms": false
         },
@@ -73,10 +55,9 @@
             "env_type": "gym",
             "env_name": "ParameterizedPendulum-v0",
             "env_kwargs": {
-                "seed": 0,
+                "seed": 540,
                 "use_default": false,
-                "discrete_control": true,
-                "control_mode": "discrete"
+                "control_mode": "continuous"
             }
         },
         "seeds": {
@@ -97,7 +78,7 @@
         "eps": 1e-05,
         "obs_rms": true,
         "value_rms": false,
-        "policy_distribution": "softmax",
+        "policy_distribution": "gaussian",
         "opt_batch_size": 128,
         "opt_epochs": 200,
         "update_before_early_stopping": false,
@@ -116,8 +97,9 @@
         "pi_loss_setting": {
             "coefficient": 1.0,
             "reduction": "mean",
-            "objective": "reverse_kl",
-            "beta": 0.0002
+            "objective": "clip",
+            "clip_param": 0.2,
+            "beta": 0.0
         }
     },
     "train_config": {

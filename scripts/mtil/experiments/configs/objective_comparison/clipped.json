@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/dmc/cheetah/objective_comparison",
+        "save_path": "./logs",
         "experiment_name": "clipped-tanh",
         "log_interval": 1,
         "checkpoint_interval": 25

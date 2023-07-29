@@ -9,11 +9,11 @@ python generate_expert_data.py \
     --out_dir=${HOME}/scratch/data/expert_data \
     --run_seed=0 \
     --env_seed=9999 \
-    --num_samples=10000 \
+    --num_samples=100000 \
     --subsampling_lengths=1 \
     --run_time=05:00:00 \
     --max_episode_length=200 \
-    --runs_dir=${HOME}/scratch/data/experts/pendulum/continuous/runs \
+    --runs_dir=${HOME}/scratch/data/experts/pendulum_no_act_cost/continuous/runs \
     --exp_name=pendulum_cont
 
 python generate_expert_data.py \
@@ -21,11 +21,11 @@ python generate_expert_data.py \
     --out_dir=${HOME}/scratch/data/expert_data \
     --run_seed=0 \
     --env_seed=9999 \
-    --num_samples=10000 \
+    --num_samples=100000 \
     --subsampling_lengths=1 \
     --run_time=05:00:00 \
     --max_episode_length=200 \
-    --runs_dir=${HOME}/scratch/data/experts/pendulum/discrete/runs \
+    --runs_dir=${HOME}/scratch/data/experts/pendulum_no_act_cost/discrete/runs \
     --exp_name=pendulum_disc
 
 python generate_expert_data.py \
@@ -33,7 +33,7 @@ python generate_expert_data.py \
     --out_dir=${HOME}/scratch/data/expert_data \
     --run_seed=0 \
     --env_seed=9999 \
-    --num_samples=10000 \
+    --num_samples=100000 \
     --subsampling_lengths=1 \
     --run_time=05:00:00 \
     --max_episode_length=1000 \
@@ -45,7 +45,7 @@ python generate_expert_data.py \
     --out_dir=${HOME}/scratch/data/expert_data \
     --run_seed=0 \
     --env_seed=9999 \
-    --num_samples=10000 \
+    --num_samples=100000 \
     --subsampling_lengths=1 \
     --run_time=05:00:00 \
     --max_episode_length=1000 \
@@ -57,7 +57,7 @@ python generate_expert_data.py \
     --out_dir=${HOME}/scratch/data/expert_data \
     --run_seed=0 \
     --env_seed=9999 \
-    --num_samples=10000 \
+    --num_samples=100000 \
     --subsampling_lengths=1 \
     --run_time=05:00:00 \
     --max_episode_length=1000 \
@@ -69,7 +69,7 @@ python generate_expert_data.py \
     --out_dir=${HOME}/scratch/data/expert_data \
     --run_seed=0 \
     --env_seed=9999 \
-    --num_samples=10000 \
+    --num_samples=100000 \
     --subsampling_lengths=1 \
     --run_time=05:00:00 \
     --max_episode_length=1000 \

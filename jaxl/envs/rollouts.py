@@ -240,10 +240,7 @@ class EvaluationRollout(Rollout):
         num_episodes = math.ceil(num_samples / subsampling_length)
 
         termination_steps = None
-        if (
-            max_episode_length is not None
-            and max_episode_length > subsampling_length
-        ):
+        if max_episode_length is not None and max_episode_length > subsampling_length:
             termination_steps = jrandom.randint(
                 jrandom.split(self._reset_key, 1)[0],
                 (num_episodes,),

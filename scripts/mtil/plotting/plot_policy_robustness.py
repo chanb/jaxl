@@ -13,7 +13,7 @@ import os
 from jaxl.constants import *
 from jaxl.envs.rollouts import EvaluationRollout
 from jaxl.utils import RunningMeanStd, flatten_dict
-from plot_utils import set_size, pgf_with_latex, get_evaluation_components
+from jaxl.plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
 # Use the seborn style
@@ -25,8 +25,9 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 
 
-expert_dir = "/Users/chanb/research/personal/mtil_results/data/experts"
-tasks = ["pendulum", "cheetah", "walker"]
+expert_dir = "/Users/chanb/research/personal/mtil_results/data_from_pretrain/experts"
+# tasks = ["pendulum", "cheetah", "walker"]
+tasks = ["pendulum_no_act_cost", "cheetah", "walker"]
 control_modes = ["discrete", "continuous"]
 
 save_path = f"./results_policy_robustness"
@@ -160,6 +161,7 @@ fig, axes = plt.subplots(
     layout="constrained",
 )
 
+task_renames = ["pendulum", "cheetah", "walker"]
 for row_i, task in enumerate(tasks):
     for col_i, control_mode in enumerate(control_modes):
         (result_per_variant, env_configs, default_env_seeds, env_seeds) = all_res[
@@ -202,7 +204,7 @@ for row_i, task in enumerate(tasks):
             )
 
         if col_i == 0:
-            ax.set_ylabel(task)
+            ax.set_ylabel(task_renames[row_i])
         if row_i == len(tasks) - 1:
             ax.set_xlabel(control_mode)
         ax.legend(

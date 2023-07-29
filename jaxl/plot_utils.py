@@ -1,6 +1,8 @@
 import json
 import os
 
+import jaxl.envs
+
 from jaxl.constants import *
 from jaxl.envs import get_environment
 from jaxl.models import get_model, get_policy, policy_output_dim
@@ -58,14 +60,33 @@ pgf_with_latex = {  # setup matplotlib to use latex for output
 }
 
 
-def get_config(agent_path, env_seed=None):
+def get_config(agent_path, env_seed=None, use_default=False, ref_agent_path=None):
     agent_config_path = os.path.join(agent_path, "config.json")
     with open(agent_config_path, "r") as f:
         agent_config_dict = json.load(f)
+
+        if ref_agent_path is not None:
+            with open(os.path.join(ref_agent_path, "config.json"), "r") as f2:
+                ref_agent_config_dict = json.load(f2)
+            agent_config_dict["learner_config"]["env_config"] = ref_agent_config_dict[
+                "learner_config"
+            ]["env_config"]
+            agent_config_dict["learner_config"][
+                "policy_distribution"
+            ] = ref_agent_config_dict["learner_config"]["policy_distribution"]
+            if agent_config_dict["learner_config"][
+                "policy_distribution"
+            ] == CONST_GAUSSIAN:
+                agent_config_dict["learner_config"][
+                    "policy_distribution"
+                ] = CONST_DETERMINISTIC
+
         agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
             "render_mode"
         ] = "rgb_array"
-        if "policy_distribution" not in agent_config_dict["learner_config"]:
+        if "policy_distribution" not in agent_config_dict[
+            "learner_config"
+        ]:
             agent_config_dict["learner_config"][
                 "policy_distribution"
             ] = CONST_DETERMINISTIC
@@ -74,6 +95,18 @@ def get_config(agent_path, env_seed=None):
             agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
                 "seed"
             ] = env_seed
+
+        agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+            "use_default"
+        ] = use_default
+
+        if "parameter_config_path" in agent_config_dict["learner_config"]["env_config"]["env_kwargs"]:
+            curr_config_path = agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+                "parameter_config_path"
+            ]
+            agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+                "parameter_config_path"
+            ] = os.path.join(os.path.dirname(jaxl.envs.__file__), curr_config_path.split("/envs/")[-1])
 
         set_dict_value(agent_config_dict, "vmap_all", False)
         (multitask, num_models) = get_dict_value(agent_config_dict, "num_models")
@@ -84,8 +117,10 @@ def get_config(agent_path, env_seed=None):
     }
 
 
-def get_evaluation_components(agent_path, env_seed=None):
-    agent_config, aux = get_config(agent_path, env_seed)
+def get_evaluation_components(
+    agent_path, env_seed=None, use_default=False, ref_agent_path=None
+):
+    agent_config, aux = get_config(agent_path, env_seed, use_default, ref_agent_path)
     env = get_environment(agent_config.learner_config.env_config)
 
     input_dim = env.observation_space.shape
