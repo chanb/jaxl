@@ -13,7 +13,7 @@ python generate_expert_data.py \
     --subsampling_lengths=1 \
     --run_time=05:00:00 \
     --max_episode_length=200 \
-    --runs_dir=${HOME}/scratch/data/experts/pendulum/continuous/runs \
+    --runs_dir=${HOME}/scratch/data/experts/pendulum_no_act_cost/continuous/runs \
     --exp_name=pendulum_cont
 
 python generate_expert_data.py \
@@ -25,7 +25,7 @@ python generate_expert_data.py \
     --subsampling_lengths=1 \
     --run_time=05:00:00 \
     --max_episode_length=200 \
-    --runs_dir=${HOME}/scratch/data/experts/pendulum/discrete/runs \
+    --runs_dir=${HOME}/scratch/data/experts/pendulum_no_act_cost/discrete/runs \
     --exp_name=pendulum_disc
 
 python generate_expert_data.py \
