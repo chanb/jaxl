@@ -21,10 +21,12 @@ plt.rcParams.update(pgf_with_latex)
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
+buffer_size = 5000
+env_name = "cheetah_continuous"
 experiment_name = "bc_subsampling"
-save_path = f"./results-{experiment_name}"
-experiment_dir = f"./logs/bc_subsampling/cheetah_discrete"
-reference_agent_path = "../expert_policies/cheetah_discrete"
+save_path = f"./results-{experiment_name}-size_{buffer_size}-{env_name}"
+experiment_dir = f"./logs/bc_subsampling/{env_name}-size_{buffer_size}"
+reference_agent_path = f"../expert_policies/{env_name}"
 
 num_evaluation_episodes = 50
 env_seed = 9999
@@ -33,7 +35,7 @@ record_video = False
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
 os.makedirs(save_path, exist_ok=True)
-if os.path.isdir(f"{save_path}/returns.pkl"):
+if os.path.isfile(f"{save_path}/returns.pkl"):
     (result_per_variant, env_configs) = pickle.load(
         open(f"{save_path}/returns.pkl", "rb")
     )

@@ -1,6 +1,8 @@
 import json
 import os
 
+import jaxl.envs
+
 from jaxl.constants import *
 from jaxl.envs import get_environment
 from jaxl.models import get_model, get_policy, policy_output_dim
@@ -97,6 +99,14 @@ def get_config(agent_path, env_seed=None, use_default=False, ref_agent_path=None
         agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
             "use_default"
         ] = use_default
+
+        if "parameter_config_path" in agent_config_dict["learner_config"]["env_config"]["env_kwargs"]:
+            curr_config_path = agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+                "parameter_config_path"
+            ]
+            agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+                "parameter_config_path"
+            ] = os.path.join(os.path.dirname(jaxl.envs.__file__), curr_config_path.split("/envs/")[-1])
 
         set_dict_value(agent_config_dict, "vmap_all", False)
         (multitask, num_models) = get_dict_value(agent_config_dict, "num_models")

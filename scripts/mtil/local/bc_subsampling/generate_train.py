@@ -8,16 +8,20 @@ run_seed = 0
 rng = np.random.RandomState(run_seed)
 
 envs = {
-    "pendulum_continuous": {
-        "subsamplings": [1, 20, 200],
-    },
-    "cheetah_discrete": {
+    # "pendulum_continuous": {
+    #     "subsamplings": [1, 20, 200],
+    # },
+    # "cheetah_discrete": {
+    #     "subsamplings": [1, 20, 1000],
+    # },
+    "cheetah_continuous": {
         "subsamplings": [1, 20, 1000],
     },
 }
 
 data_dir = "./logs/demonstrations"
 config_template = "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_subsampling/bc_template.json"
+buffer_size = 5000
 
 num_runs = 5
 seeds = rng.randint(0, 1000, num_runs)
@@ -32,8 +36,8 @@ sh_content += "source /Users/chanb/research/personal/jaxl/.venv/bin/activate\n"
 for env_name, env_config in envs.items():
     print(f"Processing {env_name}")
 
-    template["logging_config"]["save_path"] = "./logs/bc_subsampling/{}".format(
-        env_name
+    template["logging_config"]["save_path"] = "./logs/bc_subsampling/{}-size_{}".format(
+        env_name, buffer_size
     )
     if env_name.split("_")[1] == "discrete":
         template["learner_config"]["losses"][0] = "categorical"
@@ -44,9 +48,10 @@ for env_name, env_config in envs.items():
         template["logging_config"]["experiment_name"] = f"subsampling_{subsampling}"
         template["learner_config"]["buffer_config"][
             "load_buffer"
-        ] = "{}/expert_buffer-default-{}-num_samples_100000-subsampling_{}.gzip".format(
-            data_dir, env_name, env_config["max_episode_length"]
+        ] = "{}/expert_buffer-default-{}-num_samples_10000-subsampling_{}.gzip".format(
+            data_dir, env_name, subsampling
         )
+        template["learner_config"]["buffer_config"]["set_size"] = buffer_size
         template["learner_config"]["seeds"] = {
             "model_seed": int(seed),
             "buffer_seed": int(seed),
