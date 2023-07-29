@@ -59,6 +59,12 @@ flags.DEFINE_integer(
     help="The number of demonstration samples to store",
     required=True,
 )
+flags.DEFINE_integer(
+    "max_episode_length",
+    default=None,
+    help="The maximum episode length",
+    required=False,
+)
 flags.DEFINE_multi_integer(
     "subsampling_lengths",
     default=None,
