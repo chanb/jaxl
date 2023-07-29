@@ -68,39 +68,31 @@ def plot_all(task, control_mode):
                         os.path.join(agent_path, "models"),
                         PyTreeCheckpointer(),
                     )
-                    for checkpoint_step in checkpoint_manager.all_steps():
-                        if (
-                            record_video
-                            and checkpoint_step == checkpoint_manager.latest_step()
-                        ):
-                            env = RecordVideoV0(
-                                env,
-                                f"{save_path}/videos/variant_{variant_name}/model_id_{checkpoint_step}",
-                                disable_logger=True,
-                            )
-                        params = checkpoint_manager.restore(checkpoint_step)
-                        model_dict = params[CONST_MODEL_DICT]
-                        agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
-                        agent_obs_rms = False
-                        if CONST_OBS_RMS in params:
-                            agent_obs_rms = RunningMeanStd()
-                            agent_obs_rms.set_state(params[CONST_OBS_RMS])
 
-                        agent_rollout = EvaluationRollout(env, seed=env_seed)
-                        agent_rollout.rollout(
-                            agent_policy_params,
-                            policy,
-                            agent_obs_rms,
-                            num_evaluation_episodes,
-                            None,
-                            use_tqdm=False,
-                        )
+                    checkpoint_step = checkpoint_manager.latest_step()
+                    params = checkpoint_manager.restore(checkpoint_step)
+                    model_dict = params[CONST_MODEL_DICT]
+                    agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
+                    agent_obs_rms = False
+                    if CONST_OBS_RMS in params:
+                        agent_obs_rms = RunningMeanStd()
+                        agent_obs_rms.set_state(params[CONST_OBS_RMS])
 
-                        episodic_returns_per_variant.setdefault(checkpoint_step, [])
-                        episodic_returns_per_variant[checkpoint_step].append(
-                            np.mean(agent_rollout.episodic_returns)
-                        )
-                        env.close()
+                    agent_rollout = EvaluationRollout(env, seed=env_seed)
+                    agent_rollout.rollout(
+                        agent_policy_params,
+                        policy,
+                        agent_obs_rms,
+                        num_evaluation_episodes,
+                        None,
+                        use_tqdm=False,
+                    )
+
+                    episodic_returns_per_variant.setdefault(checkpoint_step, [])
+                    episodic_returns_per_variant[checkpoint_step].append(
+                        np.mean(agent_rollout.episodic_returns)
+                    )
+                    env.close()
 
             result_per_variant[variant_name] = entropies
             result_per_variant[variant_name] = episodic_returns_per_variant
@@ -148,6 +140,9 @@ def plot_all(task, control_mode):
     )
 
 
-for task in ["pendulum", "cheetah", "walker"]:
-    for control_mode in ["discrete", "continuous"]:
+# for task in ["pendulum", "cheetah", "walker"]:
+#     for control_mode in ["discrete", "continuous"]:
+
+for task in ["pendulum"]:
+    for control_mode in ["discrete"]:
         plot_all(task, control_mode)

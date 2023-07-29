@@ -71,7 +71,7 @@ flags.DEFINE_integer(
 flags.DEFINE_boolean(
     "discrete_control", default=False, help="Whether or not to use discrete control"
 )
-flags.DEFINE_string("run_time", default="03:00:00", help="The run time per variant")
+flags.DEFINE_string("run_time", default="01:00:00", help="The run time per variant")
 flags.DEFINE_integer("num_runs", default=1, help="The number of runs per variation")
 flags.DEFINE_string(
     "data_dir",
@@ -96,6 +96,12 @@ flags.DEFINE_integer(
     default=None,
     help="The frequency to checkpoint the model",
 )
+flags.DEFINE_integer(
+    "num_samples",
+    default=None,
+    required=True,
+    help="The number of transitions from the buffer",
+)
 
 
 NUM_FILES_PER_DIRECTORY = 100
@@ -109,6 +115,9 @@ def main(config):
     with open(config.config_template, "r") as f:
         template = json.load(f)
 
+    assert (
+        config.num_samples > 0
+    ), f"num_samples needs to be at least 1, got {config.num_samples}"
     assert (
         config.num_runs > 0
     ), f"num_runs needs to be at least 1, got {config.num_runs}"
@@ -140,6 +149,8 @@ def main(config):
         template_setter = set_bc
     else:
         raise ValueError(f"{algo} not supported")
+
+    template["learner_config"]["buffer_config"]["set_size"] = config.num_samples
 
     # Set action-space specific hyperparameters
     control_mode = "discrete" if config.discrete_control else "continuous"

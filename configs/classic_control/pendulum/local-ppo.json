@@ -1,55 +1,38 @@
 {
     "logging_config": {
-        "save_path": "./logs/pendulum",
-        "experiment_name": "ppo",
+        "save_path": "./logs/pendulum_discrete",
+        "experiment_name": "ppo-bigger_act_space",
         "log_interval": 1,
         "checkpoint_interval": 100
     },
     "model_config": {
         "policy": {
-            "architecture": "encoder_predictor",
-            "predictor": {
-                "architecture": "mlp",
-                "layers": []
-            },
-            "encoder": {
-                "architecture": "mlp",
-                "layers": [64],
-                "activation": "tanh",
-                "output_activation": "tanh"
-            },
-            "encoder_dim": [64]
+            "architecture": "mlp",
+            "layers": [
+                64,
+                64
+            ],
+            "activation": "tanh"
         },
         "vf": {
             "architecture": "mlp",
             "layers": [
                 64,
                 64
-            ]
+            ],
+            "activation": "tanh"
         }
     },
     "optimizer_config": {
         "policy": {
-            "predictor": {
-                "optimizer": "adam",
-                "lr": {
-                    "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {
-                        "value": 0.0003
-                    }
-                },
-                "max_grad_norm": 0.5
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 0.0003
+                }
             },
-            "encoder": {
-                "optimizer": "adam",
-                "lr": {
-                    "scheduler": "constant_schedule",
-                    "scheduler_kwargs": {
-                        "value": 0.0003
-                    }
-                },
-                "max_grad_norm": 0.5
-            }  
+            "max_grad_norm": false
         },
         "vf": {
             "optimizer": "adam",
@@ -59,7 +42,7 @@
                     "value": 0.0003
                 }
             },
-            "max_grad_norm": 0.5
+            "max_grad_norm": false
         }
     },
     "learner_config": {
@@ -116,6 +99,6 @@
         }
     },
     "train_config": {
-        "num_epochs": 1000
+        "num_epochs": 2500
     }
 }

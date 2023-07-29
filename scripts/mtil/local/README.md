@@ -26,3 +26,14 @@ We assume the working directory is the directory containing this README:
 ├── policy_robustness_pendulum/
 └── README.md
 ```
+
+# Experiment Log
+## BC vs MTBC
+We hold out 10 environment variants for each experiment.
+- Held-out environments: $\{0, \dots, 9\}$
+- Training environments: $\{10, \dots, 99\}$
+
+In general, we perform experiments such that the total amount of data matches the BC data ablation study (i.e. the empirical estimate of the minimum samples required to successfully imitate expert policies.)
+
+## Number of Training Tasks
+- Fix a specific

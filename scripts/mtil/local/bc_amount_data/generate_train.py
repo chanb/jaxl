@@ -8,30 +8,30 @@ run_seed = 0
 rng = np.random.RandomState(run_seed)
 
 envs = {
-    "pendulum_continuous": {
-        "buffer_sizes": [1500, 1750],
-        "max_episode_length": 200,
-    },
+    # "pendulum_continuous": {
+    #     "buffer_sizes": [1500, 1750],
+    #     "max_episode_length": 200,
+    # },
     "pendulum_discrete": {
-        "buffer_sizes": [1500, 1750],
+        "buffer_sizes": [100000],
         "max_episode_length": 200,
     },
-    "cheetah_continuous": {
-        "buffer_sizes": [1500, 1750],
-        "max_episode_length": 1000,
-    },
-    "cheetah_discrete": {
-        "buffer_sizes": [1500, 1750],
-        "max_episode_length": 1000,
-    },
-    "walker_continuous": {
-        "buffer_sizes": [1500, 1750],
-        "max_episode_length": 1000,
-    },
-    "walker_discrete": {
-        "buffer_sizes": [1500, 1750],
-        "max_episode_length": 1000,
-    },
+    # "cheetah_continuous": {
+    #     "buffer_sizes": [1500, 1750],
+    #     "max_episode_length": 1000,
+    # },
+    # "cheetah_discrete": {
+    #     "buffer_sizes": [1500, 1750],
+    #     "max_episode_length": 1000,
+    # },
+    # "walker_continuous": {
+    #     "buffer_sizes": [1500, 1750],
+    #     "max_episode_length": 1000,
+    # },
+    # "walker_discrete": {
+    #     "buffer_sizes": [1500, 1750],
+    #     "max_episode_length": 1000,
+    # },
 }
 data_dir = "./logs/demonstrations"
 config_template = "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_amount_data/bc_template.json"
