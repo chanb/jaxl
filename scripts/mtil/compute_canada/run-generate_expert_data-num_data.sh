@@ -61,4 +61,3 @@ sbatch run_all-generate_expert_data-cheetah_cont.sh
 sbatch run_all-generate_expert_data-cheetah_disc.sh
 sbatch run_all-generate_expert_data-pendulum_cont.sh
 sbatch run_all-generate_expert_data-pendulum_disc.sh
-

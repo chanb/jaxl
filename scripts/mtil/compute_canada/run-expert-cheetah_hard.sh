@@ -12,6 +12,8 @@ python sweep_rl.py \
     --num_envs=100 \
     --num_runs=1 \
     --checkpoint_interval=250 \
+    --num_epochs=500 \
+    --run_time=02:30:00 \
     --hyperparam_set=cheetah_cont \
     --env_name=DMCCheetah-v0 \
     --exp_name=cheetah_hard \
@@ -25,6 +27,8 @@ python sweep_rl.py \
     --num_envs=100 \
     --num_runs=1 \
     --checkpoint_interval=250 \
+    --num_epochs=500 \
+    --run_time=02:30:00 \
     --hyperparam_set=cheetah_disc \
     --discrete_control \
     --env_name=DMCCheetah-v0 \
