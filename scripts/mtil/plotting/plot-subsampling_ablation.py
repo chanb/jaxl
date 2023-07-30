@@ -118,7 +118,7 @@ def get_result(
     per_sample_stds = np.array(per_sample_stds).T
     return per_sample_means, per_sample_stds
 
-for idx, config in enumerate(configs):
+for ax_idx, config in enumerate(configs):
     (
         task,
         control_mode,
@@ -142,12 +142,12 @@ for idx, config in enumerate(configs):
         save_path,
     )
 
-    ax = axes[idx]
+    ax = axes[ax_idx]
     ax.axhline(
         expert_mean,
         color="black",
         alpha=0.5,
-        label="$\pi^*$",
+        label="$\pi^*$" if ax_idx == 0 else "",
         linewidth=0.5,
         linestyle="--",
     )
@@ -159,13 +159,16 @@ for idx, config in enumerate(configs):
         color="black",
     )
     for idx, (means, stds) in enumerate(zip(per_sample_means, per_sample_stds)):
+        label = ""
+        if ax_idx == 0:
+            label = "{}".format(subsamplings[idx]) if idx + 1 != len(per_sample_means) else "full episode"
         ax.plot(
             num_samples_to_gather,
             means,
             marker="^",
             ms=3.0,
             linewidth=0.75,
-            label="{}".format(subsamplings[idx]),
+            label=label,
         )
         ax.fill_between(
             num_samples_to_gather,
@@ -173,20 +176,20 @@ for idx, config in enumerate(configs):
             means - stds,
             alpha=0.3,
         )
-    ax.legend(
-        bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
-        loc="lower left",
-        ncols=4,
-        mode="expand",
-        borderaxespad=0.0,
-        frameon=True,
-        fontsize="5",
-    )
     ax.set_xlim(num_samples_to_gather[0], num_samples_to_gather[-1])
     ax.set_xlabel("{} {}".format(task, control_mode))
 
-    fig.supylabel("Expected Return")
-    fig.supxlabel("Amount of Transitions")
-    fig.savefig(
-        f"./subsampling_ablation.pdf", format="pdf", bbox_inches="tight", dpi=600
-    )
+fig.legend(
+    bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
+    loc="lower center",
+    ncols=4,
+    borderaxespad=0.0,
+    frameon=True,
+    fontsize="5",
+)
+
+fig.supylabel("Expected Return")
+fig.supxlabel("Amount of Transitions")
+fig.savefig(
+    f"./subsampling_ablation.pdf", format="pdf", bbox_inches="tight", dpi=600
+)

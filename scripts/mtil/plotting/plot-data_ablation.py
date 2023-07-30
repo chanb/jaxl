@@ -35,11 +35,11 @@ configs.append(
     )
 )
 
-task = "pendulum"
-control_mode = "continuous"
-num_samples_to_gather = [100, 500, 1000, 1500, 2000, 2500]
+task = "cheetah"
+control_mode = "discrete"
+num_samples_to_gather = [100, 500, 1000, 2500, 5000, 7500, 10000]
 save_path = f"../local/bc_amount_data/agg_results"
-expert_buffer = "../local/bc_amount_data/logs/demonstrations/expert_buffer-default-pendulum_continuous-num_samples_100000-subsampling_200.gzip"
+expert_buffer = "../local/bc_amount_data/logs/demonstrations/expert_buffer-default-cheetah_discrete-num_samples_100000-subsampling_1000.gzip"
 
 configs.append(
     (
@@ -51,11 +51,27 @@ configs.append(
     )
 )
 
-task = "cheetah"
+task = "walker"
 control_mode = "discrete"
-num_samples_to_gather = [100, 500, 1000, 2500, 5000, 7500, 10000]
+num_samples_to_gather = [100, 500, 1000, 2500, 5000]
 save_path = f"../local/bc_amount_data/agg_results"
-expert_buffer = "../local/bc_amount_data/logs/demonstrations/expert_buffer-default-cheetah_discrete-num_samples_100000-subsampling_1000.gzip"
+expert_buffer = "../local/bc_amount_data/logs/demonstrations/expert_buffer-default-walker_discrete-num_samples_100000-subsampling_1000.gzip"
+
+configs.append(
+    (
+        task,
+        control_mode,
+        num_samples_to_gather,
+        save_path,
+        expert_buffer,
+    )
+)
+
+task = "pendulum"
+control_mode = "continuous"
+num_samples_to_gather = [100, 500, 1000, 1500, 2000, 2500]
+save_path = f"../local/bc_amount_data/agg_results"
+expert_buffer = "../local/bc_amount_data/logs/demonstrations/expert_buffer-default-pendulum_continuous-num_samples_100000-subsampling_200.gzip"
 
 configs.append(
     (
@@ -84,22 +100,6 @@ configs.append(
 )
 
 task = "walker"
-control_mode = "discrete"
-num_samples_to_gather = [100, 500, 1000, 2500, 5000]
-save_path = f"../local/bc_amount_data/agg_results"
-expert_buffer = "../local/bc_amount_data/logs/demonstrations/expert_buffer-default-walker_discrete-num_samples_100000-subsampling_1000.gzip"
-
-configs.append(
-    (
-        task,
-        control_mode,
-        num_samples_to_gather,
-        save_path,
-        expert_buffer,
-    )
-)
-
-task = "walker"
 control_mode = "continuous"
 num_samples_to_gather = [100, 500, 1000, 2500, 5000, 7500, 10000]
 save_path = f"../local/bc_amount_data/agg_results"
@@ -116,8 +116,8 @@ configs.append(
 )
 
 
-num_rows = math.ceil(len(configs) / 2)
-num_cols = 2
+num_rows = math.ceil(len(configs) / 3)
+num_cols = 3
 fig, axes = plt.subplots(
     num_rows,
     num_cols,
@@ -210,9 +210,15 @@ for idx, config in enumerate(configs):
         alpha=0.3,
     )
     ax.set_xlim(num_samples_to_gather[0], num_samples_to_gather[-1])
-    ax.set_xlabel("{} {}".format(task, control_mode))
     if idx == 0:
         ax.legend()
+
+    row_i = idx // num_cols
+    col_i = idx % num_cols
+    if col_i == 0:
+        ax.set_ylabel(f"{control_mode}")
+    if row_i + 1 == num_rows:
+        ax.set_xlabel(f"{task}")
 
 fig.supylabel("Expected Return")
 fig.supxlabel("Amount of Transitions")

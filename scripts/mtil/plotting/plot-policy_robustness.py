@@ -26,9 +26,14 @@ doc_width_pt = 452.9679
 
 
 expert_dir = "/Users/chanb/research/personal/mtil_results/data_from_pretrain/experts"
-# tasks = ["pendulum", "cheetah", "walker"]
-tasks = ["pendulum_no_act_cost", "cheetah", "walker"]
+
+# tasks = ["pendulum_no_act_cost", "cheetah", "walker"]
+# task_renames = ["pendulum", "cheetah", "walker"]
+
+tasks = ["cheetah", "cheetah_hard"]
+task_renames = ["small range", "large range"]
 control_modes = ["discrete", "continuous"]
+
 
 save_path = f"./results_policy_robustness"
 os.makedirs(save_path, exist_ok=True)
@@ -152,8 +157,8 @@ for task, control_mode in product(tasks, control_modes):
     )
 
 # Plot main return
-num_rows = len(tasks)
-num_cols = len(control_modes)
+num_rows = len(control_modes)
+num_cols = len(tasks)
 fig, axes = plt.subplots(
     num_rows,
     num_cols,
@@ -161,9 +166,8 @@ fig, axes = plt.subplots(
     layout="constrained",
 )
 
-task_renames = ["pendulum", "cheetah", "walker"]
-for row_i, task in enumerate(tasks):
-    for col_i, control_mode in enumerate(control_modes):
+for row_i, control_mode in enumerate(control_modes):
+    for col_i, task in enumerate(tasks):
         (result_per_variant, env_configs, default_env_seeds, env_seeds) = all_res[
             (task, control_mode)
         ]
@@ -191,7 +195,7 @@ for row_i, task in enumerate(tasks):
             ax.plot(
                 np.arange(len(seeds_to_plot)),
                 means,
-                label="env-{}".format(np.arange(len(means))[variant_idx[0]]),
+                label="env-{}".format(np.arange(len(means))[variant_idx[0]]) if row_i + col_i == 0 else "",
                 markevery=variant_idx,
                 marker="*",
                 linewidth=1.0,
@@ -204,18 +208,19 @@ for row_i, task in enumerate(tasks):
             )
 
         if col_i == 0:
-            ax.set_ylabel(task_renames[row_i])
-        if row_i == len(tasks) - 1:
-            ax.set_xlabel(control_mode)
-        ax.legend(
-            bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
-            loc="lower left",
-            ncols=math.ceil(num_agents_to_test / 2),
-            mode="expand",
-            borderaxespad=0.0,
-            frameon=True,
-            fontsize="5",
-        )
+            ax.set_ylabel(control_mode)
+        if row_i + 1 == num_rows:
+            ax.set_xlabel(task_renames[col_i])
+
+
+fig.legend(
+    bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
+    loc="lower center",
+    ncols=num_agents_to_test,
+    borderaxespad=0.0,
+    frameon=True,
+    fontsize="5",
+)
 
 fig.supylabel("Expected Return")
 fig.supxlabel("Environment Variant")
