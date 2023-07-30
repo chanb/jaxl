@@ -213,7 +213,7 @@ def main(config):
 
         # The i'th hyperparameter config
         hyperparam_i = idx // num_env_model_variations
-        variant_name = "hyperparam_{}/env_{}".format(hyperparam_i, env_seed)
+        variant_name = "hyperparam_{}/env_seed_{}".format(hyperparam_i, env_seed)
         curr_script_dir = os.path.join(base_script_dir, variant_name)
         curr_run_dir = os.path.join(base_run_dir, variant_name)
         os.makedirs(curr_run_dir, exist_ok=True)
