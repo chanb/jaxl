@@ -44,6 +44,7 @@ max_episode_length = 200
 
 all_res = {}
 
+
 def get_params(agent_path):
     checkpoint_manager = CheckpointManager(
         os.path.join(agent_path, "models"),
@@ -63,19 +64,14 @@ def get_data(agent_path, target_agent_path, env_variant_seed):
     all_env_configs = {}
     episodic_returns_per_seed = {}
 
-    env, policy = (
-        get_evaluation_components(target_agent_path, env_variant_seed, False)
-    )
-    
+    env, policy = get_evaluation_components(target_agent_path, env_variant_seed, False)
+
     policy_params, policy_obs_rms = get_params(agent_path)
     target_params, target_obs_rms = get_params(target_agent_path)
 
     buffer_size = max_episode_length * num_evaluation_episodes
 
-    buffer_config = {
-        "buffer_type": "default",
-        "buffer_size": buffer_size
-    }
+    buffer_config = {"buffer_type": "default", "buffer_size": buffer_size}
 
     buffer = get_buffer(
         parse_dict(buffer_config),
@@ -99,16 +95,13 @@ def get_data(agent_path, target_agent_path, env_variant_seed):
     env.close()
     return episodic_returns_per_seed, all_env_configs
 
+
 if os.path.isfile(f"{save_path}/{task}_{control_mode}-approx_kl_{seed}.pkl"):
     results = pickle.load(
         open(f"{save_path}/{task}_{control_mode}-approx_kl_{seed}.pkl", "rb")
     )
 else:
-    results = get_data(
-        default_agent_path,
-        variant_agent_path,
-        env_seed
-    )
+    results = get_data(default_agent_path, variant_agent_path, env_seed)
 
     with open(f"{save_path}/{task}_{control_mode}-approx_kl_{seed}.pkl", "wb") as f:
         pickle.dump(results, f)
@@ -136,7 +129,9 @@ torques = np.array(
 sort_idxes = np.argsort(torques)
 linestyles = ["--", "-."]
 
-for idx, returns_per_seed in enumerate([default_episodic_returns, variant_episodic_returns]):
+for idx, returns_per_seed in enumerate(
+    [default_episodic_returns, variant_episodic_returns]
+):
     means = []
     stds = []
     for val in returns_per_seed.values():
@@ -152,7 +147,7 @@ for idx, returns_per_seed in enumerate([default_episodic_returns, variant_episod
         marker="^",
         ms=3.0,
         linewidth=0.75,
-        label="torque @ {:.2f}".format(torques[idx])
+        label="torque @ {:.2f}".format(torques[idx]),
     )
     ax.fill_between(
         torques[sort_idxes],

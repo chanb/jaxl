@@ -49,6 +49,7 @@ env_seeds = rng.randint(0, env_seed_range, size=num_envs_to_test)
 while len(np.unique(env_seeds)) != num_envs_to_test:
     env_seeds = rng.randint(0, env_seed_range, size=num_envs_to_test)
 
+
 def get_data(agent_path):
     all_env_configs = {}
     episodic_returns_per_seed = {}
@@ -98,15 +99,14 @@ def get_data(agent_path):
         env.close()
     return episodic_returns_per_seed, all_env_configs
 
+
 if os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl"):
     (
         default_episodic_returns,
         variant_episodic_returns,
         env_seeds,
         all_env_configs,
-    ) = pickle.load(
-        open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "rb")
-    )
+    ) = pickle.load(open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "rb"))
 else:
     all_env_seeds = [None, 769, *env_seeds]
 
@@ -114,7 +114,15 @@ else:
     variant_episodic_returns, _ = get_data(variant_agent_path)
 
     with open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "wb") as f:
-        pickle.dump((default_episodic_returns, variant_episodic_returns, env_seeds, all_env_configs), f)
+        pickle.dump(
+            (
+                default_episodic_returns,
+                variant_episodic_returns,
+                env_seeds,
+                all_env_configs,
+            ),
+            f,
+        )
 
 # Plot main return
 num_rows = 1
@@ -139,7 +147,9 @@ torques = np.array(
 sort_idxes = np.argsort(torques)
 linestyles = ["--", "-."]
 
-for idx, returns_per_seed in enumerate([default_episodic_returns, variant_episodic_returns]):
+for idx, returns_per_seed in enumerate(
+    [default_episodic_returns, variant_episodic_returns]
+):
     means = []
     stds = []
     for val in returns_per_seed.values():
@@ -155,7 +165,7 @@ for idx, returns_per_seed in enumerate([default_episodic_returns, variant_episod
         marker="^",
         ms=3.0,
         linewidth=0.75,
-        label="torque @ {:.2f}".format(torques[idx])
+        label="torque @ {:.2f}".format(torques[idx]),
     )
     ax.fill_between(
         torques[sort_idxes],

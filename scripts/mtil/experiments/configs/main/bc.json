@@ -27,6 +27,15 @@
             "buffer_type": "default",
             "set_size": "<TO_MODIFY>"
         },
+        "env_config": {
+            "env_type": "gym",
+            "env_name": "<TO_MODIFY>",
+            "env_kwargs": {
+                "seed": "<TO_MODIFY>",
+                "use_default": "<TO_MODIFY>",
+                "control_mode": "<TO_MODIFY>"
+            }
+        },
         "seeds": {
             "model_seed": 42,
             "buffer_seed": 42

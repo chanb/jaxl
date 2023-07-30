@@ -20,9 +20,7 @@ plt.rcParams.update(pgf_with_latex)
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
 experiment_name = "objective_comparison"
-experiment_dir = (
-    f"./logs"
-)
+experiment_dir = f"./logs"
 save_path = f"./results-{experiment_name}"
 os.makedirs(save_path, exist_ok=True)
 

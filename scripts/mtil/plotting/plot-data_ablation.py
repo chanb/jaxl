@@ -137,9 +137,7 @@ def get_result(
 
     curr_res_path = os.path.join(
         save_path,
-        "results-bc_amount_data-{}_{}".format(
-            task, control_mode
-        ),
+        "results-bc_amount_data-{}_{}".format(task, control_mode),
         "returns.pkl",
     )
     assert os.path.isfile(curr_res_path)
@@ -156,6 +154,7 @@ def get_result(
     per_sample_means = np.array(per_sample_means)
     per_sample_stds = np.array(per_sample_stds)
     return per_sample_means, per_sample_stds
+
 
 for idx, config in enumerate(configs):
     (
@@ -201,7 +200,7 @@ for idx, config in enumerate(configs):
         marker="^",
         ms=3.0,
         linewidth=0.75,
-        label="BC" if idx == 0 else ""
+        label="BC" if idx == 0 else "",
     )
     ax.fill_between(
         num_samples_to_gather,
@@ -222,6 +221,4 @@ for idx, config in enumerate(configs):
 
 fig.supylabel("Expected Return")
 fig.supxlabel("Amount of Transitions")
-fig.savefig(
-    f"./data_ablation.pdf", format="pdf", bbox_inches="tight", dpi=600
-)
+fig.savefig(f"./data_ablation.pdf", format="pdf", bbox_inches="tight", dpi=600)

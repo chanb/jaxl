@@ -118,6 +118,7 @@ def get_result(
     per_sample_stds = np.array(per_sample_stds).T
     return per_sample_means, per_sample_stds
 
+
 for ax_idx, config in enumerate(configs):
     (
         task,
@@ -161,7 +162,11 @@ for ax_idx, config in enumerate(configs):
     for idx, (means, stds) in enumerate(zip(per_sample_means, per_sample_stds)):
         label = ""
         if ax_idx == 0:
-            label = "{}".format(subsamplings[idx]) if idx + 1 != len(per_sample_means) else "full episode"
+            label = (
+                "{}".format(subsamplings[idx])
+                if idx + 1 != len(per_sample_means)
+                else "full episode"
+            )
         ax.plot(
             num_samples_to_gather,
             means,
@@ -190,6 +195,4 @@ fig.legend(
 
 fig.supylabel("Expected Return")
 fig.supxlabel("Amount of Transitions")
-fig.savefig(
-    f"./subsampling_ablation.pdf", format="pdf", bbox_inches="tight", dpi=600
-)
+fig.savefig(f"./subsampling_ablation.pdf", format="pdf", bbox_inches="tight", dpi=600)

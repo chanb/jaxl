@@ -192,6 +192,12 @@ def main(config):
         hyperparam_idx = hyperparam_keys.index(key)
         return hyperparams[hyperparam_idx]
 
+    env_map = {
+        "pendulum": "ParameterizedPendulum-v0",
+        "cheetah": "DMCCheetah-v0",
+        "walker": "DMCWalker-v0",
+    }
+
     # Create config per setting
     base_script_dir = os.path.join(
         config.out_dir, config.exp_name, control_mode, "scripts"
@@ -217,6 +223,16 @@ def main(config):
         template["learner_config"]["buffer_config"]["load_buffer"] = hyperparam_map(
             "dataset_path"
         )
+
+        # Construct env config for easier evaluation
+        template["learner_config"]["env_config"]["env_name"] = env_map[config.exp_name]
+        template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = False
+        template["learner_config"]["env_config"]["env_kwargs"]["seed"] = int(
+            hyperparam_map("dataset_path").split("-")[1]
+        )
+        template["learner_config"]["env_config"]["env_kwargs"][
+            "control_mode"
+        ] = control_mode
 
         template["learner_config"]["seeds"]["buffer_seed"] = int(
             hyperparam_map("variant_seed")
