@@ -23,7 +23,7 @@ python sweep_bc.py \
     --dataset_variant=7 \
     --dataset_variant=8 \
     --dataset_variant=9 \
-    --num_samples=5000 \
+    --num_samples=7500 \
     --exp_name=walker
 
 
@@ -45,7 +45,7 @@ python sweep_bc.py \
     --dataset_variant=7 \
     --dataset_variant=8 \
     --dataset_variant=9 \
-    --num_samples=5000 \
+    --num_samples=2500 \
     --discrete_control \
     --exp_name=walker
 

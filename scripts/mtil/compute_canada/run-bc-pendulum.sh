@@ -23,7 +23,7 @@ python sweep_bc.py \
     --dataset_variant=7 \
     --dataset_variant=8 \
     --dataset_variant=9 \
-    --num_samples=5000 \
+    --num_samples=2000 \
     --exp_name=pendulum
 
 
