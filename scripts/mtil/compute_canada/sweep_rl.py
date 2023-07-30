@@ -250,7 +250,7 @@ def main(config):
         f.writelines(dat_content)
 
     os.makedirs(
-        "/home/chanb/scratch/run_reports/{}-{}_{}".format(
+        "/home/chanb/scratch/run_reports/rl-{}-{}_{}".format(
             config.hyperparam_set, config.exp_name, control_mode
         ),
         exist_ok=True,
@@ -263,7 +263,7 @@ def main(config):
     sbatch_content += "#SBATCH --mem=3G\n"
     sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
     sbatch_content += (
-        "#SBATCH --output=/home/chanb/scratch/run_reports/{}-{}_{}/%j.out\n".format(
+        "#SBATCH --output=/home/chanb/scratch/run_reports/rl-{}-{}_{}/%j.out\n".format(
             config.hyperparam_set, config.exp_name, control_mode
         )
     )
