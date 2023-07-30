@@ -13,7 +13,7 @@ python sweep_finetune_mtbc.py \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_cont \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc/walker/continuous \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/walker/continuous \
     --num_heldouts=10 \
     --num_samples=1100 \
     --exp_name=walker
@@ -27,7 +27,7 @@ python sweep_finetune_mtbc.py \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_disc \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc/walker/discrete \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/walker/discrete \
     --num_heldouts=10 \
     --num_samples=100 \
     --discrete_control \

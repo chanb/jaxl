@@ -14,7 +14,7 @@ python sweep_finetune_mtbc.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/cheetah_cont \
     --num_heldouts=10 \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc/cheetah/continuous \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/cheetah/continuous \
     --num_samples=200 \
     --exp_name=cheetah
 
@@ -28,7 +28,7 @@ python sweep_finetune_mtbc.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/cheetah_disc \
     --num_heldouts=10 \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc/cheetah/discrete \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/cheetah/discrete \
     --num_samples=200 \
     --discrete_control \
     --exp_name=cheetah

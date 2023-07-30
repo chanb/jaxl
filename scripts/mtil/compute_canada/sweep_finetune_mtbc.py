@@ -190,7 +190,7 @@ def main(config):
         dataset_path = hyperparam_map("dataset_path")
         dataset_name = os.path.basename(dataset_path[:-5])
 
-        for run_path, _, filenames in os.walk(config.runs_dir):
+        for run_path, _, filenames in os.walk(config.pretrain_dir):
             for filename in filenames:
                 if filename != "config.json":
                     continue
@@ -198,11 +198,10 @@ def main(config):
                 with open(os.path.join(run_path, "config.json"), "r") as f:
                     curr_run_config = json.load(f)
                     num_tasks = len(curr_run_config["learner_config"]["buffer_configs"])
-            
+                    pretrain_model_seed = curr_run_config["learner_config"]["seeds"]["model_seed"]
 
-                num_tasks = int(hyperparam_map("num_tasks_variant"))
-                curr_script_dir = os.path.join(base_script_dir, dataset_name, num_tasks)
-                curr_run_dir = os.path.join(base_run_dir, dataset_name, num_tasks)
+                curr_script_dir = os.path.join(base_script_dir, dataset_name, f"{num_tasks}/pretrained_model_seed_{pretrain_model_seed}")
+                curr_run_dir = os.path.join(base_run_dir, dataset_name, f"{num_tasks}/pretrained_model_seed_{pretrain_model_seed}")
                 os.makedirs(curr_script_dir, exist_ok=True)
                 os.makedirs(curr_run_dir, exist_ok=True)
 
