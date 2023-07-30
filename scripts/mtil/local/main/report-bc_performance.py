@@ -16,10 +16,11 @@ rollout_seed = 9999
 record_video = False
 
 def plot_all(task, control_mode):
-    bc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/bc_main"
+    exp_id = "bc_less_data"
+    bc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/{exp_id}"
     expert_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/experts"
     experiment_name = "bc_performance-{}_{}".format(task, control_mode)
-    save_path = f"./results-{experiment_name}"
+    save_path = f"./{exp_id}-results-{experiment_name}"
     curr_bc_dir = os.path.join(bc_dir, task, control_mode, "runs")
     curr_expert_dir = os.path.join(expert_dir, task, control_mode)
 
