@@ -21,7 +21,7 @@ configs = []
 
 task = "pendulum"
 control_mode = "discrete"
-num_samples_to_gather = [100, 500, 1000, 1500, 2000, 2500]
+num_samples_to_gather = [100, 500, 1000, 1500, 2000, 2500, 3000, 5000, 7500]
 save_path = f"../local/bc_amount_data"
 expert_buffer = "../local/bc_amount_data/logs/demonstrations/expert_buffer-default-pendulum_discrete-num_samples_100000-subsampling_200.gzip"
 

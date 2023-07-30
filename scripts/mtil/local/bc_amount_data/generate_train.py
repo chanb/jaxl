@@ -13,7 +13,7 @@ envs = {
     #     "max_episode_length": 200,
     # },
     "pendulum_discrete": {
-        "buffer_sizes": [100000],
+        "buffer_sizes": [3000, 7500],
         "max_episode_length": 200,
     },
     # "cheetah_continuous": {

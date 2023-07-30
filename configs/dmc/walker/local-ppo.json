@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/dmc/walker/discrete",
-        "experiment_name": "variant-19",
+        "save_path": "./logs/walker_continuous",
+        "experiment_name": "ppo-same_hyper",
         "log_interval": 1,
         "checkpoint_interval": false
     },
@@ -53,7 +53,7 @@
             "env_kwargs": {
                 "use_default": true,
                 "seed": 42,
-                "control_mode": "discrete"
+                "control_mode": "continuous"
             }
         },
         "seeds": {
@@ -73,17 +73,20 @@
         "eps": 1e-05,
         "obs_rms": true,
         "value_rms": false,
-        "policy_distribution": "softmax",
+        "policy_distribution": "gaussian",
         "temperature": 1.0,
         "min_std": 1e-06,
-        "opt_batch_size": 128,
+        "opt_batch_size": 64,
         "opt_epochs": 200,
         "kl_threshold": false,
         "update_before_early_stopping": false,
         "ent_loss_setting": {
-            "scheduler": "constant_schedule",
+            "scheduler": "linear_schedule",
             "scheduler_kwargs": {
-                "value": 0.0
+                "init_value": 0.002,
+                "end_value": 0.0,
+                "transition_begin": 0,
+                "transition_steps": 100
             }
         },
         "vf_loss_setting": {
@@ -92,10 +95,10 @@
             "clip_param": false
         },
         "pi_loss_setting": {
-            "objective": "reverse_kl",
+            "objective": "clip",
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.0,
+            "clip_param": 0.1,
             "beta": 0.02
         }
     },

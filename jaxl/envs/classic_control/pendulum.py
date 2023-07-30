@@ -144,7 +144,7 @@ class ParameterizedPendulumEnv(gym.Env):
         self.control_mode = control_mode
         if self.control_mode != "continuous":
             actions = (self.max_torque / 2) * (
-                [2.0] ** np.arange(-4, 2)[:, None]
+                [2.0] ** np.arange(-3, 2)[:, None]
             ).flatten()
             action_map = np.concatenate([-actions, [0], actions])
             self.action_space = spaces.Discrete(len(action_map))

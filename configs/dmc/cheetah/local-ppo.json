@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/pendulum_continuous",
+        "save_path": "./logs/cheetah_continuous",
         "experiment_name": "ppo-same_hyper",
         "log_interval": 1,
         "checkpoint_interval": false
@@ -49,7 +49,7 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "ParameterizedPendulum-v0",
+            "env_name": "DMCCheetah-v0",
             "env_kwargs": {
                 "use_default": true,
                 "seed": 42,
@@ -76,14 +76,17 @@
         "policy_distribution": "gaussian",
         "temperature": 1.0,
         "min_std": 1e-06,
-        "opt_batch_size": 256,
+        "opt_batch_size": 64,
         "opt_epochs": 200,
         "kl_threshold": false,
         "update_before_early_stopping": false,
         "ent_loss_setting": {
-            "scheduler": "constant_schedule",
+            "scheduler": "linear_schedule",
             "scheduler_kwargs": {
-                "value": 0.0
+                "init_value": 0.002,
+                "end_value": 0.0,
+                "transition_begin": 0,
+                "transition_steps": 100
             }
         },
         "vf_loss_setting": {
@@ -95,7 +98,7 @@
             "objective": "clip",
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2,
+            "clip_param": 0.1,
             "beta": 0.02
         }
     },
