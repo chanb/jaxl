@@ -206,7 +206,7 @@ class MTBC(OfflineLearner):
         encoder_path = getattr(self._config, "load_encoder", False)
         if encoder_path:
             checkpoint_manager = CheckpointManager(
-                self._config.load_pretrain.checkpoint_path,
+                self._config.load_encoder,
                 PyTreeCheckpointer(),
             )
             all_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
