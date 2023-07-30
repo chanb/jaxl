@@ -200,8 +200,9 @@ def main(config):
                     num_tasks = len(curr_run_config["learner_config"]["buffer_configs"])
                     pretrain_model_seed = curr_run_config["learner_config"]["seeds"]["model_seed"]
 
-                curr_script_dir = os.path.join(base_script_dir, dataset_name, f"{num_tasks}/pretrained_model_seed_{pretrain_model_seed}")
-                curr_run_dir = os.path.join(base_run_dir, dataset_name, f"{num_tasks}/pretrained_model_seed_{pretrain_model_seed}")
+                variant_name = os.path.basename(os.path.dirname(run_path))
+                curr_script_dir = os.path.join(base_script_dir, dataset_name, f"{variant_name}/pretrained_model_seed_{pretrain_model_seed}")
+                curr_run_dir = os.path.join(base_run_dir, dataset_name, f"{variant_name}/pretrained_model_seed_{pretrain_model_seed}")
                 os.makedirs(curr_script_dir, exist_ok=True)
                 os.makedirs(curr_run_dir, exist_ok=True)
 
