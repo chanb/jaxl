@@ -198,7 +198,7 @@ def main(config):
     for idx, hyperparams in enumerate(itertools.product(*hyperparamss)):
         hyperparam_map = partial(map_key_to_hyperparameter, hyperparams)
         dataset_path = hyperparam_map("dataset_path")
-        dataset_name = os.path.basename(dataset_path[:-4])
+        dataset_name = os.path.basename(dataset_path[:-5])
         curr_script_dir = os.path.join(base_script_dir, dataset_name)
         curr_run_dir = os.path.join(base_run_dir, dataset_name)
         os.makedirs(curr_script_dir, exist_ok=True)

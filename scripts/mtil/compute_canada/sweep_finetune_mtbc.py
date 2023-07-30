@@ -188,7 +188,7 @@ def main(config):
         )
 
         dataset_path = hyperparam_map("dataset_path")
-        dataset_name = os.path.basename(dataset_path[:-4])
+        dataset_name = os.path.basename(dataset_path[:-5])
 
         for run_path, _, filenames in os.walk(config.runs_dir):
             for filename in filenames:
