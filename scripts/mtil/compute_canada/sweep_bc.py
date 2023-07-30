@@ -220,7 +220,7 @@ def main(config):
         template["learner_config"]["env_config"]["env_name"] = dataset_info[0]
         template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = False
         template["learner_config"]["env_config"]["env_kwargs"]["seed"] = int(
-            dataset_info21].split("env_seed_")[-1]
+            dataset_info[2].split("env_seed_")[-1]
         )
         template["learner_config"]["env_config"]["env_kwargs"][
             "control_mode"
