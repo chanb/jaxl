@@ -146,6 +146,7 @@ class MTBC(OfflineLearner):
             losses[loss] = (
                 get_loss_function(self._model.predictor.model, loss, loss_setting_ns),
                 loss_setting_ns.coefficient,
+                num_classes=self._buffers[0].output_dim[-1],
             )
         self._pi_loss = jax.jit(make_aggregate_loss(losses))
 
@@ -275,8 +276,8 @@ class MTBC(OfflineLearner):
             )
 
             return {
-                CONST_MODEL: {CONST_POLICY: {params}},
-                CONST_OPT_STATE: {CONST_POLICY: {opt_state}},
+                CONST_MODEL: {CONST_POLICY: params},
+                CONST_OPT_STATE: {CONST_POLICY: opt_state},
             }, aux
 
         return _train_step
