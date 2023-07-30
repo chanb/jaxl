@@ -144,9 +144,13 @@ class MTBC(OfflineLearner):
         for loss, loss_setting in zip(self._config.losses, self._config.loss_settings):
             loss_setting_ns = parse_dict(loss_setting)
             losses[loss] = (
-                get_loss_function(self._model.predictor.model, loss, loss_setting_ns),
+                get_loss_function(
+                    self._model.predictor.model,
+                    loss
+                    loss_setting_ns,
+                    num_classes=self._buffers[0].output_dim[-1],
+                ),
                 loss_setting_ns.coefficient,
-                num_classes=self._buffers[0].output_dim[-1],
             )
         self._pi_loss = jax.jit(make_aggregate_loss(losses))
 
