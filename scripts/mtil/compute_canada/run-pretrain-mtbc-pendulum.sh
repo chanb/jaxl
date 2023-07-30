@@ -7,8 +7,8 @@ source ~/jaxl_env/bin/activate
 
 python sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/bc_main \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_bc.json \
+    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
@@ -21,8 +21,8 @@ python sweep_bc.py \
 
 python sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/bc_main \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_bc.json \
+    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
@@ -34,5 +34,5 @@ python sweep_bc.py \
     --exp_name=pendulum
 
 chmod +x run_all-*.sh
-sbatch run_all-mtbc-single_sweep-pendulum_continuous.sh
-sbatch run_all-mtbc-single_sweep-pendulum_discrete.sh
+sbatch run_all-pretrain-mtbc-single_sweep-pendulum_continuous.sh
+sbatch run_all-pretrain-mtbc-single_sweep-pendulum_discrete.sh
