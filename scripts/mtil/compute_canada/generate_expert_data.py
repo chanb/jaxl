@@ -110,8 +110,12 @@ def main(config: FlagValues):
                 run_config = json.load(f)
 
             env_name = run_config["learner_config"]["env_config"]["env_name"]
-            env_seed = run_config["learner_config"]["env_config"]["env_kwargs"].get("seed", "default")
-            control_mode = run_config["learner_config"]["env_config"]["env_kwargs"].get("control_mode", "default")
+            env_seed = run_config["learner_config"]["env_config"]["env_kwargs"].get(
+                "seed", "default"
+            )
+            control_mode = run_config["learner_config"]["env_config"]["env_kwargs"].get(
+                "control_mode", "default"
+            )
             model_seed = run_config["learner_config"]["seeds"]["model_seed"]
 
             for subsampling_length in config.subsampling_lengths:

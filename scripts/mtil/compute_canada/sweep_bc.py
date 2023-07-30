@@ -79,11 +79,11 @@ flags.DEFINE_string(
     required=True,
     help="The directory storing the expert datasets",
 )
-flags.DEFINE_multi_integer(
-    "dataset_variant",
+flags.DEFINE_integer(
+    "num_heldouts",
     default=None,
     required=True,
-    help="The dataset to use, indexed by the variant",
+    help="The amount of datasets to use",
 )
 flags.DEFINE_string(
     "hyperparam_set",
@@ -126,14 +126,13 @@ def main(config):
     ), f"{config.hyperparam_set} not in {HYPERPARAM_SETS.keys()}"
 
     assert os.path.isdir(config.data_dir), f"{config.data_dir} is not a directory"
+    assert (
+        config.num_heldouts > 0
+    ), f"num_heldouts needs to be at least 1, got {config.num_heldouts}"
 
     # Gather expert datasets
     dataset_paths = []
-    for data_path in os.listdir(config.data_dir):
-        curr_variant = int(data_path.split("-")[1])
-        if curr_variant not in config.dataset_variant:
-            continue
-
+    for data_path in os.listdir(config.data_dir)[: config.num_heldouts]:
         dataset_paths.append(os.path.join(config.data_dir, data_path))
     dataset_paths = sorted(dataset_paths)
 
@@ -217,15 +216,19 @@ def main(config):
 
         # Construct env config for easier evaluation
         dataset_info = dataset_name.split(".")
-        template["learner_config"]["env_config"]["env_name"] = dataset_info[0]
-        template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = False
-        template["learner_config"]["env_config"]["env_kwargs"]["seed"] = int(
-            dataset_info[2].split("env_seed_")[-1]
-        )
-        template["learner_config"]["env_config"]["env_kwargs"][
-            "control_mode"
-        ] = control_mode
-        assert control_mode == dataset_info[1].split("control_mode_")[-1], "control mode is inconsistent with dataset"
+        env_config = {
+            "env_type": "gym",
+            "env_name": dataset_info[0],
+            "env_kwargs": {
+                "use_default": False,
+                "seed": int(dataset_info[2].split("env_seed_")[-1]),
+                "control_mode": control_mode,
+            },
+        }
+        assert (
+            control_mode == dataset_info[1].split("control_mode_")[-1]
+        ), "control mode is inconsistent with dataset"
+        template["learner_config"]["env_config"] = env_config
 
         model_seed = int(hyperparam_map("model_seed"))
         template["learner_config"]["seeds"]["buffer_seed"] = model_seed
@@ -244,7 +247,7 @@ def main(config):
         dat_content += "config_path={}.json \n".format(out_path)
 
     dat_path = os.path.join(
-        f"./export-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat"
+        f"./export-bc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat"
     )
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
