@@ -189,12 +189,6 @@ def main(config):
         hyperparam_idx = hyperparam_keys.index(key)
         return hyperparams[hyperparam_idx]
 
-    env_map = {
-        "pendulum": "ParameterizedPendulum-v0",
-        "cheetah": "DMCCheetah-v0",
-        "walker": "DMCWalker-v0",
-    }
-
     # Create config per setting
     base_script_dir = os.path.join(
         config.out_dir, config.exp_name, control_mode, "scripts"
@@ -204,7 +198,8 @@ def main(config):
     num_runs = 0
     for idx, hyperparams in enumerate(itertools.product(*hyperparamss)):
         hyperparam_map = partial(map_key_to_hyperparameter, hyperparams)
-        dataset_name = os.path.basename(hyperparam_map("dataset_path").split(".")[0])
+        dataset_path = hyperparam_map("dataset_path")
+        dataset_name = os.path.basename(dataset_path[:-4])
         curr_script_dir = os.path.join(base_script_dir, dataset_name)
         curr_run_dir = os.path.join(base_run_dir, dataset_name)
         os.makedirs(curr_script_dir, exist_ok=True)
@@ -221,14 +216,16 @@ def main(config):
         )
 
         # Construct env config for easier evaluation
-        template["learner_config"]["env_config"]["env_name"] = env_map[config.exp_name]
+        dataset_info = dataset_name.split(".")
+        template["learner_config"]["env_config"]["env_name"] = dataset_info[0]
         template["learner_config"]["env_config"]["env_kwargs"]["use_default"] = False
         template["learner_config"]["env_config"]["env_kwargs"]["seed"] = int(
-            hyperparam_map("dataset_path").split("-")[1]
+            dataset_info21].split("env_seed_")[-1]
         )
         template["learner_config"]["env_config"]["env_kwargs"][
             "control_mode"
         ] = control_mode
+        assert control_mode == dataset_info[1].split("control_mode_")[-1], "control mode is inconsistent with dataset"
 
         model_seed = int(hyperparam_map("model_seed"))
         template["learner_config"]["seeds"]["buffer_seed"] = model_seed

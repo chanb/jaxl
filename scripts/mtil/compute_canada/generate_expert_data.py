@@ -21,6 +21,7 @@ from absl import app, flags
 from absl.flags import FlagValues
 
 import jax
+import json
 import os
 
 
@@ -105,14 +106,18 @@ def main(config: FlagValues):
             if filename != "config.json":
                 continue
 
-            save_id = os.path.basename(
-                os.path.abspath(os.path.join(run_path, os.pardir))
-            )
+            with open(os.path.join(run_path, "config.json"), "r") as f:
+                run_config = json.load(f)
+
+            env_name = run_config["learner_config"]["env_config"]["env_name"]
+            env_seed = run_config["learner_config"]["env_config"]["env_kwargs"].get("seed", "default")
+            control_mode = run_config["learner_config"]["env_config"]["env_kwargs"].get("control_mode", "default")
+            model_seed = run_config["learner_config"]["seeds"]["model_seed"]
 
             for subsampling_length in config.subsampling_lengths:
                 save_buffer = os.path.join(
                     out_dir,
-                    f"{save_id}-{os.path.basename(run_path)}-num_samples_{config.num_samples}-subsampling_length_{subsampling_length}.gzip",
+                    f"{env_name}.control_mode_{control_mode}.env_seed_{env_seed}.model_seed_{model_seed}.num_samples_{config.num_samples}.subsampling_length_{subsampling_length}.gzip",
                 )
                 dat_content += "export num_samples={} env_seed={} run_seed={} ".format(
                     config.num_samples,
