@@ -14,25 +14,30 @@
                 "layers": []
             },
             "num_models": 1,
-            "input_dim": 128,
+            "input_dim": 64,
             "vmap_all": true
         },
         "encoder": {
             "architecture": "mlp",
-            "layers": [128]
+            "layers": [64],
+            "activation": "tanh",
+            "output_activation": "tanh"
         },
-        "encoder_dim": [128]
+        "encoder_dim": [64]
     },
     "optimizer_config": {
         "predictor": {
             "optimizer": "adam",
-            "lr": 3e-4,
-            "max_grad_norm": 10.0
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 3e-4
+                }
+            },
+            "max_grad_norm": false
         },
         "encoder": {
-            "optimizer": "frozen",
-            "lr": 3e-4,
-            "max_grad_norm": 10.0
+            "optimizer": "frozen"
         }
     },
     "learner_config": {
@@ -59,7 +64,7 @@
                 "reduction": "mean"
             },
             {
-                "coefficient": 0.0002
+                "coefficient": 0.0
             }
         ],
         "load_encoder": "<TO_MODIFY>"
