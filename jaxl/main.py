@@ -85,7 +85,7 @@ def main(config_path: str, run_seed: int = None, device: str = CONST_CPU):
     if config.logging_config.save_path:
         optional_prefix = ""
         if config.logging_config.experiment_name:
-            optional_prefix += f"{config.logging_config.experiment_name}/"
+            optional_prefix += f"{config.logging_config.experiment_name}-"
         time_tag = datetime.strftime(datetime.now(), "%m-%d-%y_%H_%M_%S")
         run_id = str(uuid.uuid4())
         save_path = os.path.join(

@@ -3,7 +3,7 @@
         "save_path": "<TO_MODIFY>",
         "experiment_name": "<TO_MODIFY>",
         "log_interval": 1,
-        "checkpoint_interval": 10000
+        "checkpoint_interval": false
     },
     "model_config": {
         "architecture": "encoder_predictor",
@@ -34,7 +34,7 @@
                     "value": 3e-4
                 }
             },
-            "max_grad_norm": 10.0
+            "max_grad_norm": false
         },
         "encoder": {
             "optimizer": "adam",
@@ -44,7 +44,7 @@
                     "value": 3e-4
                 }
             },
-            "max_grad_norm": 10.0
+            "max_grad_norm": false
         }
     },
     "learner_config": {
@@ -65,11 +65,11 @@
                 "reduction": "mean"
             },
             {
-                "coefficient": 0.0002
+                "coefficient": 0.0
             }
         ]
     },
     "train_config": {
-        "num_epochs": 100000
+        "num_epochs": 1000
     }
 }

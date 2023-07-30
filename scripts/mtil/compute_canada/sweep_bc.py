@@ -104,9 +104,6 @@ flags.DEFINE_integer(
 )
 
 
-NUM_FILES_PER_DIRECTORY = 100
-
-
 def main(config):
     assert os.path.isfile(config.main_path), f"{config.main_path} is not a file"
     assert os.path.isfile(
@@ -165,18 +162,18 @@ def main(config):
         template["logging_config"]["checkpoint_interval"] = False
 
     rng = np.random.RandomState(config.run_seed)
-    variant_seeds = rng.permutation(2**10)[: config.num_runs]
+    model_seeds = rng.permutation(2**10)[: config.num_runs]
 
     # Hyperparameter list
     hyperparamss = (
         list(hyperparam_set[algo]["general"].values())
         + list(hyperparam_set[algo][control_mode]["hyperparameters"].values())
-        + [variant_seeds, dataset_paths]
+        + [model_seeds, dataset_paths]
     )
     hyperparam_keys = (
         list(hyperparam_set[algo]["general"].keys())
         + list(hyperparam_set[algo][control_mode]["hyperparameters"].keys())
-        + ["variant_seed", "dataset_path"]
+        + ["model_seed", "dataset_path"]
     )
 
     with open(
@@ -207,12 +204,11 @@ def main(config):
     num_runs = 0
     for idx, hyperparams in enumerate(itertools.product(*hyperparamss)):
         hyperparam_map = partial(map_key_to_hyperparameter, hyperparams)
-        dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
-        curr_script_dir = os.path.join(base_script_dir, dir_i)
-        curr_run_dir = os.path.join(base_run_dir, dir_i)
-        if idx % NUM_FILES_PER_DIRECTORY == 0:
-            os.makedirs(curr_run_dir, exist_ok=True)
-            os.makedirs(curr_script_dir, exist_ok=True)
+        dataset_name = os.path.basename(hyperparam_map("dataset_path").split(".")[0])
+        curr_script_dir = os.path.join(base_script_dir, dataset_name)
+        curr_run_dir = os.path.join(base_run_dir, dataset_name)
+        os.makedirs(curr_script_dir, exist_ok=True)
+        os.makedirs(curr_run_dir, exist_ok=True)
 
         template_setter(
             template=template,
@@ -234,18 +230,11 @@ def main(config):
             "control_mode"
         ] = control_mode
 
-        template["learner_config"]["seeds"]["buffer_seed"] = int(
-            hyperparam_map("variant_seed")
-        )
-        template["learner_config"]["seeds"]["model_seed"] = int(
-            hyperparam_map("variant_seed")
-        )
+        model_seed = int(hyperparam_map("model_seed"))
+        template["learner_config"]["seeds"]["buffer_seed"] = model_seed
+        template["learner_config"]["seeds"]["model_seed"] = model_seed
 
-        variant = "variant_{}-{}-_seed_{}".format(
-            idx,
-            os.path.basename(hyperparam_map("dataset_path").split(".")[0]),
-            hyperparam_map("variant_seed"),
-        )
+        variant = "model_seed_{}".format(model_seed)
         template["logging_config"]["experiment_name"] = variant
         template["logging_config"]["save_path"] = curr_run_dir
 

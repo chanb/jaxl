@@ -98,9 +98,6 @@ flags.DEFINE_string(
 )
 
 
-NUM_FILES_PER_DIRECTORY = 100
-
-
 def main(config):
     assert os.path.isfile(config.main_path), f"{config.main_path} is not a file"
     assert os.path.isfile(
@@ -201,14 +198,9 @@ def main(config):
     base_run_dir = os.path.join(config.out_dir, config.exp_name, control_mode, "runs")
     dat_content = ""
     num_runs = 0
+    num_env_model_variations = int(config.num_envs * config.num_runs)
     for idx, hyperparams in enumerate(itertools.product(*hyperparamss)):
         hyperparam_map = partial(map_key_to_hyperparameter, hyperparams)
-        dir_i = str(idx // NUM_FILES_PER_DIRECTORY)
-        curr_script_dir = os.path.join(base_script_dir, dir_i)
-        curr_run_dir = os.path.join(base_run_dir, dir_i)
-        if idx % NUM_FILES_PER_DIRECTORY == 0:
-            os.makedirs(curr_run_dir, exist_ok=True)
-            os.makedirs(curr_script_dir, exist_ok=True)
 
         template_setter(
             template=template,
@@ -216,22 +208,27 @@ def main(config):
             hyperparam_map=hyperparam_map,
         )
 
+        env_seed = int(hyperparam_map("env_seed"))
+        model_seed = int(hyperparam_map("model_seed"))
+
+        # The i'th hyperparameter config
+        hyperparam_i = idx // num_env_model_variations
+        variant_name = "hyperparam_{}/env_{}".format(hyperparam_i, env_seed)
+        curr_script_dir = os.path.join(base_script_dir, variant_name)
+        curr_run_dir = os.path.join(base_run_dir, variant_name)
+        os.makedirs(curr_run_dir, exist_ok=True)
+        os.makedirs(curr_script_dir, exist_ok=True)
+
         if "buffer_size" in hyperparam_keys:
             template["learner_config"]["buffer_config"]["buffer_size"] = hyperparam_map(
                 "buffer_size"
             )
 
-        template["learner_config"]["env_config"]["env_kwargs"]["seed"] = int(
-            hyperparam_map("env_seed")
-        )
-        template["learner_config"]["seeds"]["env_seed"] = int(
-            hyperparam_map("env_seed")
-        )
-        template["learner_config"]["seeds"]["model_seed"] = int(
-            hyperparam_map("model_seed")
-        )
+        template["learner_config"]["env_config"]["env_kwargs"]["seed"] = env_seed
+        template["learner_config"]["seeds"]["env_seed"] = env_seed
+        template["learner_config"]["seeds"]["model_seed"] = model_seed
 
-        variant = f"variant-{idx}"
+        variant = f"model_seed_{model_seed}"
         template["logging_config"]["experiment_name"] = variant
         template["logging_config"]["save_path"] = curr_run_dir
 
@@ -244,7 +241,7 @@ def main(config):
         dat_content += "config_path={}.json \n".format(out_path)
 
     dat_path = os.path.join(
-        f"./export-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat"
+        f"./export-rl-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat"
     )
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
