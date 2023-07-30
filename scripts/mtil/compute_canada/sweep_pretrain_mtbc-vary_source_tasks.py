@@ -44,6 +44,12 @@ flags.DEFINE_string(
     required=True,
 )
 flags.DEFINE_integer(
+    "num_variations",
+    default=0,
+    help="The number of experiments of varying source tasks",
+    required=False,
+)
+flags.DEFINE_integer(
     "run_seed",
     default=0,
     help="The run seed",
@@ -60,10 +66,10 @@ flags.DEFINE_string(
     required=True,
     help="The directory storing the expert datasets",
 )
-flags.DEFINE_string(
-    "pretrain_dir",
+flags.DEFINE_list(
+    "num_tasks_variants",
     default=None,
-    help="Directory to load the pretrained representations from",
+    help="A list of number of tasks",
     required=True,
 )
 flags.DEFINE_integer(
@@ -90,7 +96,6 @@ flags.DEFINE_integer(
 
 def main(config):
     assert os.path.isfile(config.main_path), f"{config.main_path} is not a file"
-    assert os.path.isdir(config.pretrain_dir), f"{config.pretrain_dir} is not a directory"
     assert os.path.isfile(
         config.config_template
     ), f"{config.config_template} is not a file"
@@ -104,6 +109,9 @@ def main(config):
         config.num_runs > 0
     ), f"num_runs needs to be at least 1, got {config.num_runs}"
     assert (
+        config.num_variations > 0
+    ), f"num_variations needs to be at least 1, got {config.num_variations}"
+    assert (
         len(config.run_time.split(":")) == 3
     ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
     assert (
@@ -115,9 +123,14 @@ def main(config):
         config.num_heldouts > 0
     ), f"num_heldouts needs to be at least 1, got {config.num_heldouts}"
 
+    num_tasks_variants = np.array(
+        [int(num_tasks) for num_tasks in config.num_tasks_variants]
+    )
+    assert np.all(num_tasks_variants > 0), f"need at least one task for MTBC"
+
     # Gather expert datasets
     dataset_paths = []
-    for data_path in os.listdir(config.data_dir)[:config.num_heldouts]:
+    for data_path in os.listdir(config.data_dir)[config.num_heldouts :]:
         dataset_paths.append(os.path.join(config.data_dir, data_path))
     dataset_paths = sorted(dataset_paths)
 
@@ -145,23 +158,24 @@ def main(config):
 
     rng = np.random.RandomState(config.run_seed)
     model_seeds = rng.permutation(2**10)[: config.num_runs]
+    dataset_sample_seeds = rng.permutation(2**10)[: config.num_variations]
 
     # Hyperparameter list
     hyperparamss = (
         list(hyperparam_set[algo]["general"].values())
         + list(hyperparam_set[algo][control_mode]["hyperparameters"].values())
-        + [model_seeds, dataset_paths]
+        + [model_seeds, dataset_sample_seeds, num_tasks_variants]
     )
     hyperparam_keys = (
         list(hyperparam_set[algo]["general"].keys())
         + list(hyperparam_set[algo][control_mode]["hyperparameters"].keys())
-        + ["model_seed", "dataset_path"]
+        + ["model_seed", "dataset_sample_seed", "num_tasks_variant"]
     )
 
     with open(
         os.path.join(
             config.out_dir,
-            f"hyperparameters-finetune_mtbc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.pkl",
+            f"hyperparameters-pretrain_mtbc-vary_source_tasks-{config.hyperparam_set}-{config.exp_name}_{control_mode}.pkl",
         ),
         "wb",
     ) as f:
@@ -187,77 +201,69 @@ def main(config):
             hyperparam_map=hyperparam_map,
         )
 
-        dataset_path = hyperparam_map("dataset_path")
-        dataset_name = os.path.basename(dataset_path[:-5])
+        dataset_sample_seed = int(hyperparam_map("dataset_sample_seed"))
+        num_tasks = int(hyperparam_map("num_tasks_variant"))
+        variant_name = "num_tasks_{}.dataset_sample_seed_{}".format(num_tasks, dataset_sample_seed)
+        curr_script_dir = os.path.join(base_script_dir, variant_name)
+        curr_run_dir = os.path.join(base_run_dir, variant_name)
+        os.makedirs(curr_script_dir, exist_ok=True)
+        os.makedirs(curr_run_dir, exist_ok=True)
 
-        for run_path, _, filenames in os.walk(config.pretrain_dir):
-            for filename in filenames:
-                if filename != "config.json":
-                    continue
+        template["learner_config"]["buffer_configs"] = []
+        template["learner_config"]["env_configs"] = []
 
-                with open(os.path.join(run_path, "config.json"), "r") as f:
-                    curr_run_config = json.load(f)
-                    num_tasks = len(curr_run_config["learner_config"]["buffer_configs"])
-                    pretrain_model_seed = curr_run_config["learner_config"]["seeds"]["model_seed"]
+        dataset_rng = np.random.RandomState(dataset_sample_seed)
+        randomized_dataset_paths = dataset_rng.permutation(dataset_paths)
+        for task_i in range(num_tasks):
+            template["learner_config"]["buffer_configs"].append(
+                {
+                    "load_buffer": randomized_dataset_paths[task_i],
+                    "buffer_type": "default",
+                    "set_size": config.num_samples // num_tasks,
+                }
+            )
 
-                variant_name = os.path.basename(os.path.dirname(run_path))
-                curr_script_dir = os.path.join(base_script_dir, dataset_name, f"{variant_name}/pretrained_model_seed_{pretrain_model_seed}")
-                curr_run_dir = os.path.join(base_run_dir, dataset_name, f"{variant_name}/pretrained_model_seed_{pretrain_model_seed}")
-                os.makedirs(curr_script_dir, exist_ok=True)
-                os.makedirs(curr_run_dir, exist_ok=True)
+            dataset_info = randomized_dataset_paths[task_i].split(".")
+            env_config = {
+                "env_type": "gym",
+                "env_name": dataset_info[0],
+                "env_kwargs": {
+                    "use_default": False,
+                    "seed": int(dataset_info[2].split("env_seed_")[-1]),
+                    "control_mode": control_mode,
+                },
+            }
+            assert (
+                control_mode == dataset_info[1].split("control_mode_")[-1]
+            ), "control mode is inconsistent with dataset"
+            template["learner_config"]["env_configs"].append(env_config)
 
-                template["learner_config"]["buffer_configs"] = [
-                    {
-                        "load_buffer": dataset_path,
-                        "buffer_type": "default",
-                        "set_size": config.num_samples // num_tasks,
-                    }
-                ]
+        template["model_config"]["predictor"]["num_models"] = num_tasks
 
-                dataset_info = dataset_path.split(".")
-                template["learner_config"]["env_configs"] = [
-                    {
-                        "env_type": "gym",
-                        "env_name": dataset_info[0],
-                        "env_kwargs": {
-                            "use_default": False,
-                            "seed": int(dataset_info[2].split("env_seed_")[-1]),
-                            "control_mode": control_mode,
-                        },
-                    }
-                ]
+        model_seed = int(hyperparam_map("model_seed"))
+        template["learner_config"]["seeds"]["buffer_seed"] = model_seed
+        template["learner_config"]["seeds"]["model_seed"] = model_seed
 
-                assert (
-                    control_mode == dataset_info[1].split("control_mode_")[-1]
-                ), "control mode is inconsistent with dataset"
+        variant = "model_seed_{}".format(model_seed)
+        template["logging_config"]["experiment_name"] = variant
+        template["logging_config"]["save_path"] = curr_run_dir
 
-                model_seed = int(hyperparam_map("model_seed"))
-                template["learner_config"]["seeds"]["buffer_seed"] = model_seed
-                template["learner_config"]["seeds"]["model_seed"] = model_seed
-                template["learner_config"]["load_encoder"] = os.path.join(
-                    run_path, "models"
-                )
+        out_path = os.path.join(curr_script_dir, variant)
+        with open(f"{out_path}.json", "w+") as f:
+            json.dump(template, f)
 
-                variant = "model_seed_{}".format(model_seed)
-                template["logging_config"]["experiment_name"] = variant
-                template["logging_config"]["save_path"] = curr_run_dir
-
-                out_path = os.path.join(curr_script_dir, variant)
-                with open(f"{out_path}.json", "w+") as f:
-                    json.dump(template, f)
-
-                num_runs += 1
-                dat_content += "export run_seed={} ".format(config.run_seed)
-                dat_content += "config_path={}.json \n".format(out_path)
+        num_runs += 1
+        dat_content += "export run_seed={} ".format(config.run_seed)
+        dat_content += "config_path={}.json \n".format(out_path)
 
     dat_path = os.path.join(
-        f"./export-finetune-mtbc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat"
+        f"./export-pretrain-mtbc-vary_source_tasks-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat"
     )
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
     os.makedirs(
-        "/home/chanb/scratch/run_reports/finetune-mtbc-{}-{}_{}".format(
+        "/home/chanb/scratch/run_reports/pretrain-mtbc-vary_source_tasks-{}-{}_{}".format(
             config.hyperparam_set, config.exp_name, control_mode
         ),
         exist_ok=True,
@@ -269,7 +275,7 @@ def main(config):
     sbatch_content += "#SBATCH --cpus-per-task=1\n"
     sbatch_content += "#SBATCH --mem=3G\n"
     sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
-    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/finetune-mtbc-{}-{}_{}/%j.out\n".format(
+    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/pretrain-mtbc-vary_source_tasks-{}-{}_{}/%j.out\n".format(
         config.hyperparam_set, config.exp_name, control_mode
     )
     sbatch_content += "module load python/3.9\n"
@@ -288,7 +294,7 @@ def main(config):
 
     with open(
         os.path.join(
-            f"./run_all-finetune-mtbc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"
+            f"./run_all-pretrain-mtbc-vary_source_tasks-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"
         ),
         "w+",
     ) as f:
