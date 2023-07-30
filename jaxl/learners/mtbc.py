@@ -146,7 +146,7 @@ class MTBC(OfflineLearner):
             losses[loss] = (
                 get_loss_function(
                     self._model.predictor.model,
-                    loss
+                    loss,
                     loss_setting_ns,
                     num_classes=self._buffers[0].output_dim[-1],
                 ),
