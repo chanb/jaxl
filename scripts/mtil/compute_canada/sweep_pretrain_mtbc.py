@@ -15,7 +15,7 @@ import numpy as np
 import os
 
 from search_config import HYPERPARAM_SETS
-from utils import set_bc
+from utils import set_mtbc
 
 
 FLAGS = flags.FLAGS
@@ -66,7 +66,7 @@ flags.DEFINE_list(
     help="A list of number of tasks",
     required=True,
 )
-flags.DEFINE_string(
+flags.DEFINE_integer(
     "num_heldouts", default=None, required=True, help="The set of held-out tasks"
 )
 flags.DEFINE_string(
@@ -130,8 +130,8 @@ def main(config):
     hyperparam_set = HYPERPARAM_SETS[config.hyperparam_set]
 
     algo = template["learner_config"]["learner"]
-    if algo == "bc":
-        template_setter = set_bc
+    if algo == "mtbc":
+        template_setter = set_mtbc
     else:
         raise ValueError(f"{algo} not supported")
 

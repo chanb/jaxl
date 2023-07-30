@@ -47,6 +47,21 @@ SINGLE_SWEEP = {
             "batch_size": [128],
         },
     },
+    "mtbc": {
+        "continuous": {
+            "loss": "gaussian",
+            "hyperparameters": {},
+        },
+        "discrete": {
+            "loss": "categorical",
+            "hyperparameters": {},
+        },
+        "general": {
+            "max_grad_norm": [False],
+            "l2": [0.0],
+            "batch_size": [128],
+        },
+    },
 }
 
 PENDULUM_CONTINUOUS = {
