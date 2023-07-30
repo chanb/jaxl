@@ -5,7 +5,7 @@ module load mujoco
 source ~/jaxl_env/bin/activate
 
 
-python sweep_bc.py \
+python sweep_pretrain_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_bc.json \
     --out_dir=${HOME}/scratch/data/pretrain_mtbc_main \
@@ -19,7 +19,7 @@ python sweep_bc.py \
     --exp_name=pendulum
 
 
-python sweep_bc.py \
+python sweep_pretrain_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_bc.json \
     --out_dir=${HOME}/scratch/data/pretrain_mtbc_main \

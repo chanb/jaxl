@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/inverted_double_pendulum",
-        "experiment_name": "test_mtbc",
+        "save_path": "<TO_MODIFY>",
+        "experiment_name": "<TO_MODIFY>",
         "log_interval": 1,
         "checkpoint_interval": false
     },
@@ -40,7 +40,8 @@
         "buffer_configs": [
             {
                 "load_buffer": "<TO_MODIFY>",
-                "buffer_type": "default"
+                "buffer_type": "default",
+                "set_size": "<TO_MODIFY>"
             }
         ],
         "seeds": {
@@ -49,9 +50,9 @@
         },
         "learner": "mtbc",
         "num_updates_per_epoch": 100,
-        "batch_size": 64,
+        "batch_size": 128,
         "obs_rms": false,
-        "losses": ["gaussian", "l2"],
+        "losses": ["<TO_MODIFY>", "l2"],
         "loss_settings": [
             {
                 "coefficient": 1.0,
@@ -64,6 +65,6 @@
         "load_encoder": "<TO_MODIFY>"
     },
     "train_config": {
-        "num_epochs": 10000
+        "num_epochs": 1000
     }
 }

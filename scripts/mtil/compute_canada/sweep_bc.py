@@ -178,7 +178,7 @@ def main(config):
     with open(
         os.path.join(
             config.out_dir,
-            f"hyperparameters-{config.hyperparam_set}-{config.exp_name}_{control_mode}.pkl",
+            f"hyperparameters-bc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.pkl",
         ),
         "wb",
     ) as f:

@@ -122,10 +122,6 @@ def main(config):
     # Gather expert datasets
     dataset_paths = []
     for data_path in os.listdir(config.data_dir)[config.num_heldouts :]:
-        curr_variant = int(data_path.split("-")[1])
-        if curr_variant not in config.dataset_variant:
-            continue
-
         dataset_paths.append(os.path.join(config.data_dir, data_path))
     dataset_paths = sorted(dataset_paths)
 
@@ -152,24 +148,24 @@ def main(config):
         template["logging_config"]["checkpoint_interval"] = False
 
     rng = np.random.RandomState(config.run_seed)
-    variant_seeds = rng.permutation(2**10)[: config.num_runs]
+    model_seeds = rng.permutation(2**10)[: config.num_runs]
 
     # Hyperparameter list
     hyperparamss = (
         list(hyperparam_set[algo]["general"].values())
         + list(hyperparam_set[algo][control_mode]["hyperparameters"].values())
-        + [variant_seeds, num_tasks_variants]
+        + [model_seeds, num_tasks_variants]
     )
     hyperparam_keys = (
         list(hyperparam_set[algo]["general"].keys())
         + list(hyperparam_set[algo][control_mode]["hyperparameters"].keys())
-        + ["variant_seed", "num_tasks_variant"]
+        + ["model_seed", "num_tasks_variant"]
     )
 
     with open(
         os.path.join(
             config.out_dir,
-            f"hyperparameters-{config.hyperparam_set}-{config.exp_name}_{control_mode}.pkl",
+            f"hyperparameters-pretrain_mtbc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.pkl",
         ),
         "wb",
     ) as f:
@@ -209,6 +205,7 @@ def main(config):
             template["learner_config"]["buffer_configs"].append(
                 {
                     "load_buffer": dataset_paths[task_i],
+                    "buffer_type": "default",
                     "set_size": config.num_samples // num_tasks,
                 }
             )
@@ -247,13 +244,13 @@ def main(config):
         dat_content += "config_path={}.json \n".format(out_path)
 
     dat_path = os.path.join(
-        f"./export-mtbc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat"
+        f"./export-pretrain-mtbc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.dat"
     )
     with open(dat_path, "w+") as f:
         f.writelines(dat_content)
 
     os.makedirs(
-        "/home/chanb/scratch/run_reports/mtbc-{}-{}_{}".format(
+        "/home/chanb/scratch/run_reports/pretrain-mtbc-{}-{}_{}".format(
             config.hyperparam_set, config.exp_name, control_mode
         ),
         exist_ok=True,
@@ -265,7 +262,7 @@ def main(config):
     sbatch_content += "#SBATCH --cpus-per-task=1\n"
     sbatch_content += "#SBATCH --mem=3G\n"
     sbatch_content += "#SBATCH --array=1-{}\n".format(num_runs)
-    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/mtbc-{}-{}_{}/%j.out\n".format(
+    sbatch_content += "#SBATCH --output=/home/chanb/scratch/run_reports/pretrain-mtbc-{}-{}_{}/%j.out\n".format(
         config.hyperparam_set, config.exp_name, control_mode
     )
     sbatch_content += "module load python/3.9\n"
@@ -284,7 +281,7 @@ def main(config):
 
     with open(
         os.path.join(
-            f"./run_all-mtbc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"
+            f"./run_all-pretrain-mtbc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"
         ),
         "w+",
     ) as f:
