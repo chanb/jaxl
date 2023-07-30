@@ -1,4 +1,4 @@
-from orbax.checkpoint import PyTreeCheckpointer
+from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union
 
@@ -56,28 +56,30 @@ class MTBC(OfflineLearner):
 
         if getattr(config, CONST_OBS_RMS, False):
             self._obs_rms = RunningMeanStd(shape=self._buffers[0].input_dim)
-
-            for buffer in self._buffers:
-                # We compute the statistics offline by iterating through the whole buffer once
-                num_batches = math.ceil(len(buffer) / self._config.batch_size)
-                last_batch_remainder = len(buffer) % self._config.batch_size
-                for batch_i in range(num_batches):
-                    if batch_i + 1 == num_batches:
-                        batch_size = last_batch_remainder
-                        sample_idxes = np.arange(
-                            batch_i * self._config.batch_size,
-                            batch_i * self._config.batch_size + last_batch_remainder,
+            if hasattr(self, "_obs_rms_state"):
+                self._obs_rms.set_state(self._obs_rms_state)
+            else:
+                for buffer in self._buffers:
+                    # We compute the statistics offline by iterating through the whole buffer once
+                    num_batches = math.ceil(len(buffer) / self._config.batch_size)
+                    last_batch_remainder = len(buffer) % self._config.batch_size
+                    for batch_i in range(num_batches):
+                        if batch_i + 1 == num_batches:
+                            batch_size = last_batch_remainder
+                            sample_idxes = np.arange(
+                                batch_i * self._config.batch_size,
+                                batch_i * self._config.batch_size + last_batch_remainder,
+                            )
+                        else:
+                            batch_size = self._config.batch_size
+                            sample_idxes = np.arange(
+                                batch_i * self._config.batch_size,
+                                (batch_i + 1) * self._config.batch_size,
+                            )
+                        obss, _, _, _, _, _, _, _, _, _ = buffer.sample(
+                            batch_size, sample_idxes
                         )
-                    else:
-                        batch_size = self._config.batch_size
-                        sample_idxes = np.arange(
-                            batch_i * self._config.batch_size,
-                            (batch_i + 1) * self._config.batch_size,
-                        )
-                    obss, _, _, _, _, _, _, _, _, _ = buffer.sample(
-                        batch_size, sample_idxes
-                    )
-                    self._obs_rms.update(obss)
+                        self._obs_rms.update(obss)
 
         def loss(
             model_dicts: Dict[str, Any],
@@ -192,39 +194,35 @@ class MTBC(OfflineLearner):
         ), "We expect the predictor to be an EnsembleModel"
 
         dummy_input = self._generate_dummy_x(input_dim)
-        params = {
-            CONST_POLICY: self._model.init(
-                jrandom.PRNGKey(self._config.seeds.model_seed), dummy_input
+        params = self._model.init(
+            jrandom.PRNGKey(self._config.seeds.model_seed), dummy_input
+        )
+
+        encoder_path = getattr(self._config, "load_encoder", False)
+        if encoder_path:
+            checkpoint_manager = CheckpointManager(
+                self._config.load_pretrain.checkpoint_path,
+                PyTreeCheckpointer(),
             )
-        }
+            all_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+            params[CONST_ENCODER] = all_params[CONST_MODEL_DICT][CONST_MODEL][CONST_POLICY][CONST_ENCODER]
+            if getattr(self._config, CONST_OBS_RMS, False):
+                self._obs_rms_state = all_params[CONST_OBS_RMS]
 
         opt, opt_state = get_optimizer(
-            self._optimizer_config, self._model, params[CONST_POLICY]
+            self._optimizer_config, self._model, params
         )
         self._optimizer = {
             CONST_POLICY: opt,
         }
         self._model_dict = {
-            CONST_MODEL: params,
+            CONST_MODEL: {
+                CONST_POLICY: params,
+            },
             CONST_OPT_STATE: {
                 CONST_POLICY: opt_state,
             },
         }
-
-        encoder_path = getattr(self._config, "load_encoder", False)
-        if encoder_path:
-            assert os.path.isdir(encoder_path), f"{encoder_path} does not exist"
-
-            checkpointer = PyTreeCheckpointer()
-            loaded_model_dict = checkpointer.restore(encoder_path)
-            self._model_dict[CONST_MODEL][CONST_POLICY][
-                CONST_ENCODER
-            ] = loaded_model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER]
-            self._model_dict[CONST_OPT_STATE][CONST_POLICY][
-                CONST_ENCODER
-            ] = self._optimizer[CONST_POLICY][CONST_ENCODER].init(
-                self._model_dict[CONST_MODEL][CONST_POLICY][CONST_ENCODER]
-            )
 
     def make_train_step(self):
         """
