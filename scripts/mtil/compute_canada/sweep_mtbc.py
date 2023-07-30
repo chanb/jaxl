@@ -84,7 +84,7 @@ flags.DEFINE_integer(
     "num_samples",
     default=None,
     required=True,
-    help="Amount of data to use from each buffer",
+    help="Amount of total data to use",
 )
 
 
@@ -138,8 +138,6 @@ def main(config):
         template_setter = set_bc
     else:
         raise ValueError(f"{algo} not supported")
-
-    template["learner_config"]["buffer_config"]["set_size"] = config.num_samples
 
     # Set action-space specific hyperparameters
     control_mode = "discrete" if config.discrete_control else "continuous"
@@ -211,7 +209,7 @@ def main(config):
             template["learner_config"]["buffer_configs"].append(
                 {
                     "load_buffer": dataset_paths[task_i],
-                    "set_size": config.num_samples,
+                    "set_size": config.num_samples // num_tasks,
                 }
             )
 
@@ -286,7 +284,7 @@ def main(config):
 
     with open(
         os.path.join(
-            f"./run_all-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"
+            f"./run_all-mtbc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"
         ),
         "w+",
     ) as f:

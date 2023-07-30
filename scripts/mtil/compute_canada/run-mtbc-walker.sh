@@ -12,10 +12,11 @@ python sweep_bc.py \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/cheetah_cont \
+    --data_dir=${HOME}/scratch/data/expert_data/walker_cont \
     --num_heldouts=10 \
-    --num_samples=5000 \
-    --exp_name=cheetah
+    --num_tasks_variants=1,2,4,8,16 \
+    --num_samples=6400 \
+    --exp_name=walker
 
 
 python sweep_bc.py \
@@ -25,12 +26,13 @@ python sweep_bc.py \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/cheetah_disc \
+    --data_dir=${HOME}/scratch/data/expert_data/walker_disc \
     --num_heldouts=10 \
-    --num_samples=5000 \
+    --num_tasks_variants=1,2,4,8,16 \
+    --num_samples=2400 \
     --discrete_control \
-    --exp_name=cheetah
+    --exp_name=walker
 
 chmod +x run_all-*.sh
-sbatch run_all-bc-single_sweep-cheetah_continuous.sh
-sbatch run_all-bc-single_sweep-cheetah_discrete.sh
+sbatch run_all-mtbc-single_sweep-walker_continuous.sh
+sbatch run_all-mtbc-single_sweep-walker_discrete.sh

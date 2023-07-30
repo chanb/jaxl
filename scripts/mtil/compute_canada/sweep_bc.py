@@ -286,7 +286,7 @@ def main(config):
 
     with open(
         os.path.join(
-            f"./run_all-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"
+            f"./run_all-bc-{config.hyperparam_set}-{config.exp_name}_{control_mode}.sh"
         ),
         "w+",
     ) as f:

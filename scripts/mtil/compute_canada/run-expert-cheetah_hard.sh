@@ -36,5 +36,5 @@ python sweep_rl.py \
     --env_file=/home/chanb/src/jaxl/jaxl/envs/dmc/configs/cheetah_hard.json
 
 chmod +x run_all-*.sh
-sbatch run_all-cheetah_cont-cheetah_hard_continuous.sh
-sbatch run_all-cheetah_disc-cheetah_hard_discrete.sh
+sbatch run_all-rl-cheetah_cont-cheetah_hard_continuous.sh
+sbatch run_all-rl-cheetah_disc-cheetah_hard_discrete.sh

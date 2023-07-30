@@ -80,9 +80,9 @@ python sweep_rl.py \
     --exp_name=walker
 
 chmod +x run_all-*.sh
-sbatch run_all-single_sweep-cheetah_continuous.sh
-sbatch run_all-single_sweep-cheetah_discrete.sh
-sbatch run_all-single_sweep-walker_continuous.sh
-sbatch run_all-single_sweep-walker_discrete.sh
-sbatch run_all-single_sweep-pendulum_continuous.sh
-sbatch run_all-single_sweep-pendulum_discrete.sh
+sbatch run_all-rl-single_sweep-cheetah_continuous.sh
+sbatch run_all-rl-single_sweep-cheetah_discrete.sh
+sbatch run_all-rl-single_sweep-walker_continuous.sh
+sbatch run_all-rl-single_sweep-walker_discrete.sh
+sbatch run_all-rl-single_sweep-pendulum_continuous.sh
+sbatch run_all-rl-single_sweep-pendulum_discrete.sh
