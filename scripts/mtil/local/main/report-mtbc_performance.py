@@ -51,10 +51,11 @@ def get_returns(agent_path, reference_agent_path=None):
 
 
 def plot_all(task, control_mode):
-    mtbc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/finetune_mtbc_main"
+    exp_id = "finetune_mtbc_main-more_target_data"
+    mtbc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/{exp_id}"
     expert_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/experts"
     experiment_name = "mtbc_performance-{}_{}".format(task, control_mode)
-    save_path = f"./results-{experiment_name}"
+    save_path = f"./{exp_id}-results-{experiment_name}"
     curr_mtbc_dir = os.path.join(mtbc_dir, task, control_mode, "runs")
     curr_expert_dir = os.path.join(expert_dir, task, control_mode)
 
@@ -74,6 +75,8 @@ def plot_all(task, control_mode):
         bc_paths = {}
         env_seeds = []
         for bc_variant_name in os.listdir(curr_mtbc_dir):
+            if bc_variant_name == ".DS_Store":
+                continue
             env_seeds.append(bc_variant_name.split(".")[2])
             bc_paths[env_seeds[-1]] = os.path.join(curr_mtbc_dir, bc_variant_name)
 
@@ -100,31 +103,31 @@ def plot_all(task, control_mode):
             env_configs[env_seed] = env_config
 
             bc_dir = bc_paths[env_seed]
-            num_datasets = len(os.listdir(bc_dir))
+            num_variants = len(os.listdir(bc_dir))
 
             episodic_returns = {}
-            for dataset_i, dataset_name in enumerate(["expert", *os.listdir(bc_dir)]):
-                print(f"Processing {dataset_name} ({dataset_i + 1} / {num_datasets + 1} datasets)")
+            for variant_i, variant_name in enumerate(["expert", *os.listdir(bc_dir)]):
+                print(f"Processing {variant_name} ({variant_i + 1} / {num_variants + 1} variants)")
 
-                if dataset_name == "expert":
+                if variant_name == "expert":
                     agent_path = reference_agent_path
-                    episodic_returns.setdefault(dataset_name, [])
-                    episodic_returns[dataset_name].append(
+                    episodic_returns.setdefault(variant_name, [])
+                    episodic_returns[variant_name].append(
                         np.mean(get_returns(agent_path))
                     )
                 else:
-                    episodic_returns.setdefault(dataset_name, {})
-                    dataset_path = os.path.join(bc_dir, dataset_name)
-                    for variant in os.listdir(dataset_path):
-                        variant_path = os.path.join(dataset_path, variant)
+                    episodic_returns.setdefault(variant_name, {})
+                    variant_path = os.path.join(bc_dir, variant_name)
+                    for variant in os.listdir(variant_path):
+                        variant_path = os.path.join(variant_path, variant)
 
                         for agent_path, _, filenames in os.walk(variant_path):
                             for filename in filenames:
                                 if filename != "config.json":
                                     continue
 
-                                episodic_returns[dataset_name].setdefault(variant, [])
-                                episodic_returns[dataset_name][variant].append(
+                                episodic_returns[variant_name].setdefault(variant, [])
+                                episodic_returns[variant_name][variant].append(
                                     np.mean(get_returns(agent_path, reference_agent_path))
                                 )
 
@@ -135,22 +138,28 @@ def plot_all(task, control_mode):
 
     # Report performance
     final_result = {}
-    for env_seed, returns in result_per_env.items():
-        means = []
-        for variant in returns:
-            if variant == "expert":
+    for env_seed, variants in result_per_env.items():
+        means = {}
+        for variant_name in variants:
+            if variant_name == "expert":
                 continue
 
-            means.append(returns[variant])
+            means[variant_name] = []
+            for rets in variants[variant_name].values():
+                means[variant_name].append(rets)
 
         final_result[env_seed] = {
-            "expert": np.mean(returns["expert"]),
-            "bc": (np.mean(means), np.std(means))
+            "expert": np.mean(variants["expert"]),
+            **{"{}".format(variant): (np.mean(mean), np.std(mean)) for variant, mean in means.items()}
         }
     pprint(final_result)
 
+    with open(f"{save_path}/final_result.pkl", "wb") as f:
+        pickle.dump(final_result, f)
 
-for task in ["pendulum", "cheetah", "walker"]:
+# for task in ["pendulum", "cheetah", "walker"]:
+
+for task in ["pendulum"]:
     for control_mode in ["discrete", "continuous"]:
         print(task, control_mode)
         plot_all(task, control_mode)

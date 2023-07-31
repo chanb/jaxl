@@ -134,8 +134,12 @@ def plot_all(task, control_mode):
         }
     pprint(final_result)
 
+    with open(f"{save_path}/final_result.pkl", "wb") as f:
+        pickle.dump(final_result, f)
 
-for task in ["pendulum", "cheetah", "walker"]:
+
+# for task in ["pendulum", "cheetah", "walker"]:
+for task in ["pendulum"]:
     for control_mode in ["discrete", "continuous"]:
         print(task, control_mode)
         plot_all(task, control_mode)
