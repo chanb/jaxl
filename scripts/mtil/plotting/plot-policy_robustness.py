@@ -25,13 +25,14 @@ plt.rcParams.update(pgf_with_latex)
 doc_width_pt = 452.9679
 
 
-expert_dir = "/Users/chanb/research/personal/mtil_results/data_from_pretrain/experts"
+expert_dir = "/Users/chanb/research/personal/mtil_results/final_results/preliminary/policy_robustness/experts"
 
-# tasks = ["pendulum_no_act_cost", "cheetah", "walker"]
-# task_renames = ["pendulum", "cheetah", "walker"]
+tasks = ["pendulum_no_act_cost", "cheetah", "walker"]
+task_renames = ["pendulum", "cheetah", "walker"]
 
-tasks = ["cheetah", "cheetah_hard"]
-task_renames = ["small range", "large range"]
+# tasks = ["cheetah", "cheetah_hard"]
+# task_renames = ["small range", "large range"]
+
 control_modes = ["discrete", "continuous"]
 
 
