@@ -139,7 +139,7 @@ def plot_all(task, control_mode):
 
 
 # for task in ["pendulum", "cheetah", "walker"]:
-for task in ["pendulum"]:
+for task in ["cheetah"]:
     for control_mode in ["discrete", "continuous"]:
         print(task, control_mode)
         plot_all(task, control_mode)
