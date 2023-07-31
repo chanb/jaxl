@@ -34,5 +34,5 @@ python sweep_finetune_mtbc.py \
     --exp_name=pendulum
 
 chmod +x run_all-*.sh
-sbatch run_all-finetune-mtbc-single_sweep-pendulum_continuous.sh
-sbatch run_all-finetune-mtbc-single_sweep-pendulum_discrete.sh
+# sbatch run_all-finetune-mtbc-single_sweep-pendulum_continuous.sh
+# sbatch run_all-finetune-mtbc-single_sweep-pendulum_discrete.sh
