@@ -51,7 +51,7 @@ def get_returns(agent_path, reference_agent_path=None):
 
 
 def plot_all(task, control_mode):
-    exp_id = "finetune_mtbc_main-more_target_data"
+    exp_id = "finetune_mtbc_main"
     mtbc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/{exp_id}"
     expert_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/experts"
     experiment_name = "mtbc_performance-{}_{}".format(task, control_mode)

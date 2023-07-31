@@ -73,19 +73,19 @@ def get_result(
         "final_result.pkl",
     )
 
-    bc_half_data_path = os.path.join(
-        save_path,
-        "bc_half_data-results-bc_performance-{}_{}".format(
-            task, control_mode
-        ),
-        "final_result.pkl",
-    )
+    # bc_half_data_path = os.path.join(
+    #     save_path,
+    #     "bc_half_data-results-bc_performance-{}_{}".format(
+    #         task, control_mode
+    #     ),
+    #     "final_result.pkl",
+    # )
 
     named_paths = {
         "mtbc": mtbc_path,
         "bc": bc_path,
         "bc_less_data": bc_less_data_path,
-        "bc_half_data": bc_half_data_path,
+        # "bc_half_data": bc_half_data_path,
     }
 
     results = {}
@@ -135,7 +135,7 @@ for config in configs:
         layout="constrained",
     )
 
-    named_keys = ["mtbc", "bc", "bc_less_data", "bc_half_data", "expert"]
+    named_keys = ["mtbc", "bc", "bc_less_data", "expert"]
     styles = {
         "expert": {
             "color": "black",
@@ -205,6 +205,7 @@ for config in configs:
                     )
             ax.set_xlim(curr_env_result["mtbc"]["num_tasks"][0], curr_env_result["mtbc"]["num_tasks"][-1])
             ax.xaxis.set_major_locator(tck.MultipleLocator(4))
+            ax.set_title(f"{env_seed}")
 
     fig.legend(
         bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
