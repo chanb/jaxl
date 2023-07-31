@@ -18,7 +18,7 @@ python sweep_pretrain_mtbc.py \
     --num_samples=5000 \
     --exp_name=cheetah \
     --samples_per_task \
-    --run_time=00:30:00 \
+    --run_time=01:30:00 \
     --num_epochs=5000
 
 
@@ -36,7 +36,7 @@ python sweep_pretrain_mtbc.py \
     --discrete_control \
     --exp_name=cheetah \
     --samples_per_task \
-    --run_time=00:30:00 \
+    --run_time=01:30:00 \
     --num_epochs=5000
 
 chmod +x run_all-*.sh
