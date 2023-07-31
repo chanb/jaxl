@@ -1,6 +1,7 @@
 import _pickle as pickle
 import math
 import matplotlib.pyplot as plt
+import matplotlib.ticker as tck
 import numpy as np
 import os
 
@@ -72,10 +73,19 @@ def get_result(
         "final_result.pkl",
     )
 
+    bc_half_data_path = os.path.join(
+        save_path,
+        "bc_half_data-results-bc_performance-{}_{}".format(
+            task, control_mode
+        ),
+        "final_result.pkl",
+    )
+
     named_paths = {
         "mtbc": mtbc_path,
         "bc": bc_path,
-        "bc_less_data": bc_less_data_path
+        "bc_less_data": bc_less_data_path,
+        "bc_half_data": bc_half_data_path,
     }
 
     results = {}
@@ -117,7 +127,7 @@ for config in configs:
     )
 
     num_rows = math.ceil(len(results)) // 2
-    num_cols = len(results)
+    num_cols = 2
     fig, axes = plt.subplots(
         num_rows,
         num_cols,
@@ -125,7 +135,28 @@ for config in configs:
         layout="constrained",
     )
 
-    named_keys = ["mtbc", "bc", "bc_less_data", "expert"]
+    named_keys = ["mtbc", "bc", "bc_less_data", "bc_half_data", "expert"]
+    styles = {
+        "expert": {
+            "color": "black",
+            "linewidth": 0.5,
+        },
+        "bc": {
+            "color": "blue",
+            "linewidth": 0.5,
+            "linestyle": "--",
+        },
+        "bc_less_data": {
+            "color": "red",
+            "linewidth": 0.5,
+            "linestyle": "--",
+        },
+        "bc_half_data": {
+            "color": "orange",
+            "linewidth": 0.5,
+            "linestyle": "--",
+        }
+    }
     for ax_idx, env_seed in enumerate(results):
         curr_env_result = results[env_seed]
 
@@ -144,7 +175,7 @@ for config in configs:
                 ax.plot(
                     vals["num_tasks"],
                     vals["means"],
-                    label=name
+                    label=name if ax_idx == 0 else ""
                 )
                 ax.fill_between(
                     vals["num_tasks"],
@@ -156,19 +187,24 @@ for config in configs:
                 if isinstance(vals, dict):
                     ax.axhline(
                         vals["means"],
-                        label=name
+                        label=name if ax_idx == 0 else "",
+                        **styles[name]
                     )
                     ax.fill_between(
                         curr_env_result["mtbc"]["num_tasks"],
                         vals["means"] + vals["stds"],
                         vals["means"] - vals["stds"],
                         alpha=0.3,
+                        color=styles[name]["color"],
                     )
                 else:
                     ax.axhline(
                         vals,
-                        label=name
+                        label=name if ax_idx == 0 else "",
+                        **styles[name]
                     )
+            ax.set_xlim(curr_env_result["mtbc"]["num_tasks"][0], curr_env_result["mtbc"]["num_tasks"][-1])
+            ax.xaxis.set_major_locator(tck.MultipleLocator(4))
 
     fig.legend(
         bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
