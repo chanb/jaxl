@@ -1,0 +1,75 @@
+{
+    "logging_config": {
+        "save_path": "<TO_MODIFY>",
+        "experiment_name": "<TO_MODIFY>",
+        "log_interval": 1,
+        "checkpoint_interval": false
+    },
+    "model_config": {
+        "architecture": "encoder_predictor",
+        "predictor": {
+            "architecture": "ensemble",
+            "model": {
+                "architecture": "mlp",
+                "layers": []
+            },
+            "num_models": "<TO_MODIFY>",
+            "input_dim": 128,
+            "vmap_all": true
+        },
+        "encoder": {
+            "architecture": "mlp",
+            "layers": [128],
+            "activation": "tanh",
+            "output_activation": "tanh"
+        },
+        "encoder_dim": [128]
+    },
+    "optimizer_config": {
+        "predictor": {
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 3e-4
+                }
+            },
+            "max_grad_norm": false
+        },
+        "encoder": {
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 3e-4
+                }
+            },
+            "max_grad_norm": false
+        }
+    },
+    "learner_config": {
+        "task": "imitation_learning",
+        "buffer_configs": "<TO_MODIFY>",
+        "seeds": {
+            "model_seed": 42,
+            "buffer_seed": 42
+        },
+        "learner": "mtbc",
+        "num_updates_per_epoch": 100,
+        "batch_size": 128,
+        "obs_rms": false,
+        "losses": ["<TO_MODIFY>", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean"
+            },
+            {
+                "coefficient": 0.0
+            }
+        ]
+    },
+    "train_config": {
+        "num_epochs": 1000
+    }
+}
