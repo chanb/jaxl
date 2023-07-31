@@ -14,7 +14,7 @@ python sweep_finetune_mtbc.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/pendulum_cont \
     --num_heldouts=10 \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/pendulum/continuous \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-more_time/pendulum/continuous \
     --num_samples=400 \
     --exp_name=pendulum
 
@@ -28,7 +28,7 @@ python sweep_finetune_mtbc.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/pendulum_disc \
     --num_heldouts=10 \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/pendulum/discrete \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-more_time/pendulum/discrete \
     --num_samples=200 \
     --discrete_control \
     --exp_name=pendulum

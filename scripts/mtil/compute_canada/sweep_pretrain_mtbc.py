@@ -52,7 +52,6 @@ flags.DEFINE_integer(
 flags.DEFINE_boolean(
     "discrete_control", default=False, help="Whether or not to use discrete control"
 )
-flags.DEFINE_string("run_time", default="00:20:00", help="The run time per variant")
 flags.DEFINE_integer("num_runs", default=1, help="The number of runs per variation")
 flags.DEFINE_string(
     "data_dir",
@@ -85,6 +84,18 @@ flags.DEFINE_integer(
     default=None,
     required=True,
     help="Amount of total data to use",
+)
+flags.DEFINE_boolean(
+    "samples_per_task",
+    default=False,
+    help="Whether or not to treat num_samples as the number of sample per task",
+)
+flags.DEFINE_string("run_time", default="00:20:00", help="The run time per variant")
+flags.DEFINE_integer(
+    "num_epochs",
+    default=1000,
+    required=False,
+    help="The amount of training iterations",
 )
 
 
@@ -206,7 +217,7 @@ def main(config):
                 {
                     "load_buffer": dataset_paths[task_i],
                     "buffer_type": "default",
-                    "set_size": config.num_samples // num_tasks,
+                    "set_size": config.num_samples if config.samples_per_task else config.num_samples // num_tasks,
                 }
             )
 
