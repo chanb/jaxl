@@ -15,7 +15,7 @@ python sweep_finetune_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/cheetah_cont \
     --num_heldouts=10 \
     --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/cheetah/continuous \
-    --num_samples=200 \
+    --num_samples=1000 \
     --exp_name=cheetah
 
 
@@ -29,7 +29,7 @@ python sweep_finetune_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/cheetah_disc \
     --num_heldouts=10 \
     --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/cheetah/discrete \
-    --num_samples=200 \
+    --num_samples=1000 \
     --discrete_control \
     --exp_name=cheetah
 
