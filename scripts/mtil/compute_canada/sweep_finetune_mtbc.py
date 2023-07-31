@@ -132,6 +132,7 @@ def main(config):
         raise ValueError(f"{algo} not supported")
 
     # Set action-space specific hyperparameters
+    algo = f"finetune_{algo}"
     control_mode = "discrete" if config.discrete_control else "continuous"
     for key, val in hyperparam_set[algo][control_mode].items():
         if key == "hyperparameters":

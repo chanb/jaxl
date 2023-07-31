@@ -15,8 +15,11 @@ python sweep_pretrain_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/cheetah_cont \
     --num_heldouts=10 \
     --num_tasks_variants=1,2,4,8,16 \
-    --num_samples=4800 \
-    --exp_name=cheetah
+    --num_samples=5000 \
+    --exp_name=cheetah \
+    --samples_per_task \
+    --run_time=00:30:00 \
+    --num_epochs=5000
 
 
 python sweep_pretrain_mtbc.py \
@@ -29,9 +32,12 @@ python sweep_pretrain_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/cheetah_disc \
     --num_heldouts=10 \
     --num_tasks_variants=1,2,4,8,16 \
-    --num_samples=4800 \
+    --num_samples=5000 \
     --discrete_control \
-    --exp_name=cheetah
+    --exp_name=cheetah \
+    --samples_per_task \
+    --run_time=00:30:00 \
+    --num_epochs=5000
 
 chmod +x run_all-*.sh
 sbatch run_all-pretrain-mtbc-single_sweep-cheetah_continuous.sh

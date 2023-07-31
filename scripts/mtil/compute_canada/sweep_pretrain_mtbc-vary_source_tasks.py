@@ -143,6 +143,7 @@ def main(config):
         template_setter = set_mtbc
     else:
         raise ValueError(f"{algo} not supported")
+    algo = f"pretrain_{algo}"
 
     # Set action-space specific hyperparameters
     control_mode = "discrete" if config.discrete_control else "continuous"

@@ -114,6 +114,9 @@ def main(config):
         config.num_runs > 0
     ), f"num_runs needs to be at least 1, got {config.num_runs}"
     assert (
+        config.num_epochs > 0
+    ), f"num_epochs needs to be at least 1, got {config.num_epochs}"
+    assert (
         len(config.run_time.split(":")) == 3
     ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
     assert (
@@ -145,6 +148,7 @@ def main(config):
         template_setter = set_mtbc
     else:
         raise ValueError(f"{algo} not supported")
+    algo = f"pretrain_{algo}"
 
     # Set action-space specific hyperparameters
     control_mode = "discrete" if config.discrete_control else "continuous"
@@ -154,6 +158,7 @@ def main(config):
 
         template_setter(template=template, key=key, val=val)
 
+    template["train_config"]["num_epochs"] = config.num_epochs
     template["logging_config"]["checkpoint_interval"] = config.checkpoint_interval
     if config.checkpoint_interval:
         template["logging_config"]["checkpoint_interval"] = False

@@ -47,7 +47,22 @@ SINGLE_SWEEP = {
             "batch_size": [128],
         },
     },
-    "mtbc": {
+    "pretrain_mtbc": {
+        "continuous": {
+            "loss": "gaussian",
+            "hyperparameters": {},
+        },
+        "discrete": {
+            "loss": "categorical",
+            "hyperparameters": {},
+        },
+        "general": {
+            "max_grad_norm": [False],
+            "l2": [0.0002],
+            "batch_size": [128],
+        },
+    },
+    "finetune_mtbc": {
         "continuous": {
             "loss": "gaussian",
             "hyperparameters": {},
