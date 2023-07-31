@@ -1,0 +1,11 @@
+{
+  "joint": {
+    "shoulder": {
+      "damping": {
+        "default": [0.05],
+        "min": [0.025],
+        "max": [0.075]
+      }
+    }
+  }
+}

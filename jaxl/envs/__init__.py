@@ -134,3 +134,12 @@ register(
         )
     },
 )
+register(
+    id="DMCAcrobot-v0",
+    entry_point="jaxl.envs.dmc.acrobot:AcrobotEnv",
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "dmc/configs/acrobot.json"
+        )
+    },
+)
