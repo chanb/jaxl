@@ -219,7 +219,7 @@ def main(config):
                 template["learner_config"]["env_configs"] = [
                     {
                         "env_type": "gym",
-                        "env_name": dataset_info[0],
+                        "env_name": dataset_info[0].split("/")[-1],
                         "env_kwargs": {
                             "use_default": False,
                             "seed": int(dataset_info[2].split("env_seed_")[-1]),
