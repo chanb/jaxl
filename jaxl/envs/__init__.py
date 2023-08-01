@@ -152,3 +152,12 @@ register(
         )
     },
 )
+register(
+    id="DMCBringBall-v0",
+    entry_point="jaxl.envs.dmc.bring_ball:BringBallEnv",
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "dmc/configs/bring_ball.json"
+        )
+    },
+)

@@ -1,0 +1,32 @@
+{
+  "joint": {
+    "arm_root": {
+      "damping": {
+        "default": [2],
+        "min": [1],
+        "max": [3]
+      }
+    },
+    "arm_shoulder": {
+      "damping": {
+        "default": [1.5],
+        "min": [1],
+        "max": [2]
+      }
+    },
+    "arm_elbow": {
+      "damping": {
+        "default": [1],
+        "min": [0.5],
+        "max": [1.5]
+      }
+    },
+    "arm_wrist": {
+      "damping": {
+        "default": [0.5],
+        "min": [0.25],
+        "max": [0.75]
+      }
+    }
+  }
+}

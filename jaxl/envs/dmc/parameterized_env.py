@@ -160,7 +160,7 @@ class ParameterizedDMCEnv(gym.Env):
     def _get_obs(self, timestep: TimeStep):
         return np.concatenate(
             [
-                val if isinstance(val, Iterable) else np.array([val])
+                val.flatten() if isinstance(val, np.ndarray) else np.array([val])
                 for val in jax.tree_util.tree_leaves(timestep.observation)
             ],
             axis=0,
