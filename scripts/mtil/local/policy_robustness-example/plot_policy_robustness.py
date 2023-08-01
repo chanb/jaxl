@@ -22,10 +22,10 @@ plt.rcParams.update(pgf_with_latex)
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
 
-task = "pendulum"
+task = "cartpole"
 control_mode = "continuous"
 
-save_path = f"./results_policy_robustness-pendulum"
+save_path = f"./results_policy_robustness-{task}"
 os.makedirs(save_path, exist_ok=True)
 
 seed = 999

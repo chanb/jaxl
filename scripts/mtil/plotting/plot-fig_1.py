@@ -29,7 +29,7 @@ control_mode = "continuous"
 
 
 # Torque plot ====================================================================
-save_path = f"../local/policy_robustness_pendulum/results_policy_robustness-pendulum"
+save_path = f"../local/policy_robustness-example/results_policy_robustness-cartpole"
 seed = 999
 
 assert os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl")

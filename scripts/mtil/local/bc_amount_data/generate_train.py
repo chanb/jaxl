@@ -8,14 +8,18 @@ run_seed = 0
 rng = np.random.RandomState(run_seed)
 
 envs = {
-    "pendulum_continuous": {
-        "buffer_sizes": [100, 500, 1000, 1500, 2000, 2500],
-        "max_episode_length": 200,
-    },
-    "pendulum_discrete": {
+    "cartpole_continuous": {
         "buffer_sizes": [100, 500, 1000, 1500, 2000, 2500, 3000, 5000, 7500],
-        "max_episode_length": 200,
+        "max_episode_length": 1000,
     },
+    # "pendulum_continuous": {
+    #     "buffer_sizes": [100, 500, 1000, 1500, 2000, 2500],
+    #     "max_episode_length": 200,
+    # },
+    # "pendulum_discrete": {
+    #     "buffer_sizes": [100, 500, 1000, 1500, 2000, 2500, 3000, 5000, 7500],
+    #     "max_episode_length": 200,
+    # },
     # "cheetah_continuous": {
     #     "buffer_sizes": [1500, 1750],
     #     "max_episode_length": 1000,

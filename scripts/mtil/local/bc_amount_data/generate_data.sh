@@ -25,13 +25,13 @@ mkdir -p logs/demonstrations
 #     --subsampling_length=200 \
 #     --max_episode_length=200
 
-python /Users/chanb/research/personal/jaxl/jaxl/gather_expert_data.py \
-    --run_path=/Users/chanb/research/personal/jaxl/scripts/mtil/local/expert_policies/pendulum_discrete/ \
-    --save_buffer=./logs/demonstrations/expert_buffer-default-pendulum_discrete-num_samples_100000-subsampling_200.gzip \
-    --num_samples=100000 \
-    --env_seed=1000 \
-    --subsampling_length=200 \
-    --max_episode_length=200
+# python /Users/chanb/research/personal/jaxl/jaxl/gather_expert_data.py \
+#     --run_path=/Users/chanb/research/personal/jaxl/scripts/mtil/local/expert_policies/pendulum_discrete/ \
+#     --save_buffer=./logs/demonstrations/expert_buffer-default-pendulum_discrete-num_samples_100000-subsampling_200.gzip \
+#     --num_samples=100000 \
+#     --env_seed=1000 \
+#     --subsampling_length=200 \
+#     --max_episode_length=200
 
 # python /Users/chanb/research/personal/jaxl/jaxl/gather_expert_data.py \
 #     --run_path=/Users/chanb/research/personal/jaxl/scripts/mtil/local/expert_policies/walker_continuous/ \
@@ -48,3 +48,12 @@ python /Users/chanb/research/personal/jaxl/jaxl/gather_expert_data.py \
 #     --env_seed=1000 \
 #     --subsampling_length=1000 \
 #     --max_episode_length=1000
+
+
+python /Users/chanb/research/personal/jaxl/jaxl/gather_expert_data.py \
+    --run_path=/Users/chanb/research/personal/jaxl/scripts/mtil/local/expert_policies/cartpole_continuous/ \
+    --save_buffer=./logs/demonstrations/expert_buffer-default-cartpole_continuous-num_samples_100000-subsampling_1000.gzip \
+    --num_samples=100000 \
+    --env_seed=1000 \
+    --subsampling_length=1000 \
+    --max_episode_length=1000

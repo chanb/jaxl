@@ -142,8 +142,8 @@ class Bring(base.Task):
             data.qpos["finger"] = data.qpos["thumb"]
 
             # Randomise target location.
-            target_x = uniform(-0.4, 0.4)
-            target_z = uniform(0.1, 0.4)
+            target_x = uniform(0.2, 0.4)
+            target_z = uniform(0.1, 0.3)
             target_angle = uniform(-np.pi, np.pi)
 
             model.body_pos[self._target, ["x", "z"]] = target_x, target_z
@@ -172,10 +172,10 @@ class Bring(base.Task):
                     grasp_direction[1], grasp_direction[0]
                 )
             else:
-                object_x = uniform(-0.5, 0.5)
-                object_z = uniform(0, 0.7)
+                object_x = uniform(-0.3, -0.25)
+                object_z = uniform(0, 0.3)
                 object_angle = uniform(0, 2 * np.pi)
-                data.qvel[self._object + "_x"] = uniform(-5, 5)
+                data.qvel[self._object + "_x"] = uniform(-0.1, 0.1)
 
             data.qpos[self._object_joints] = object_x, object_z, object_angle
 
@@ -193,9 +193,9 @@ class Bring(base.Task):
         obs["touch"] = physics.touch()
         if self._fully_observable:
             obs["hand_pos"] = physics.body_2d_pose("hand")
-            obs["object_pos"] = physics.body_2d_pose(self._object)
+            obs["hand_ball_deta"] = physics.body_2d_pose(self._object, orientation=False) - physics.body_2d_pose("hand", orientation=False)
+            obs["ball_target_delta"] = physics.body_2d_pose(self._target, orientation=False) - physics.body_2d_pose(self._object, orientation=False)
             obs["object_vel"] = physics.joint_vel(self._object_joints)
-            obs["target_pos"] = physics.body_2d_pose(self._target)
         return obs
 
     def _is_close(self, distance):
