@@ -7,7 +7,7 @@ source ~/jaxl_env/bin/activate
 
 python sweep_finetune_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/finetune_mtbc.json \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/mtbc_architecture/finetune_mtbc.json \
     --out_dir=${HOME}/scratch/data/finetune_mtbc_mtbc_architecture \
     --run_seed=0 \
     --num_runs=1 \
@@ -21,7 +21,7 @@ python sweep_finetune_mtbc.py \
 
 python sweep_finetune_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/finetune_mtbc.json \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/mtbc_architecture/finetune_mtbc.json \
     --out_dir=${HOME}/scratch/data/finetune_mtbc_mtbc_architecture \
     --run_seed=0 \
     --num_runs=1 \
