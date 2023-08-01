@@ -1,25 +1,6 @@
 """
 This script performs hyperparameter search on multiple environment variations.
 
-Example command:
-# DMCCheetah-v0
-python sweep_bc.py \
-    --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/sweep_bc \
-    --run_seed=0 \
-    --exp_name=cheetah \
-    --discrete_control \
-    --num_runs=3 \
-    --data_dir=${HOME}/scratch/data/single_sweep_bc/cheetah/discrete \
-    --dataset_variant=0 \
-    --dataset_variant=1 \
-    --dataset_variant=2 \
-    --dataset_variant=3 \
-    --dataset_variant=4 \
-    --dataset_variant=5
-
-
 Then, to generate the data, run the generated script run_all-*.sh ${run_seed}
 """
 

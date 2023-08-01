@@ -5,29 +5,29 @@ module load mujoco
 source ~/jaxl_env/bin/activate
 
 
-python sweep_bc.py \
+python ../sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/bc_less_data \
+    --out_dir=${HOME}/scratch/data/bc_main \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_cont \
     --num_heldouts=10 \
-    --num_samples=1100 \
+    --num_samples=7500 \
     --exp_name=walker
 
 
-python sweep_bc.py \
+python ../sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/bc_less_data \
+    --out_dir=${HOME}/scratch/data/bc_main \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_disc \
     --num_heldouts=10 \
-    --num_samples=100 \
+    --num_samples=2500 \
     --discrete_control \
     --exp_name=walker
 

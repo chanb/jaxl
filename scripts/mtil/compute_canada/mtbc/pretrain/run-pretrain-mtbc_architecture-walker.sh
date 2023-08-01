@@ -5,10 +5,10 @@ module load mujoco
 source ~/jaxl_env/bin/activate
 
 
-python sweep_pretrain_mtbc.py \
+python ../../sweep_pretrain_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_mtbc.json \
-    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/mtbc_architecture/pretrain_mtbc.json \
+    --out_dir=${HOME}/scratch/data/pretrain_mtbc_mtbc_architecture \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
@@ -18,14 +18,14 @@ python sweep_pretrain_mtbc.py \
     --num_samples=6400 \
     --exp_name=walker \
     --samples_per_task \
-    --run_time=01:30:00 \
+    --run_time=02:30:00 \
     --num_epochs=5000
 
 
-python sweep_pretrain_mtbc.py \
+python ../../sweep_pretrain_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_mtbc.json \
-    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/mtbc_architecture/pretrain_mtbc.json \
+    --out_dir=${HOME}/scratch/data/pretrain_mtbc_mtbc_architecture \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
@@ -36,7 +36,7 @@ python sweep_pretrain_mtbc.py \
     --discrete_control \
     --exp_name=walker \
     --samples_per_task \
-    --run_time=01:30:00 \
+    --run_time=02:30:00 \
     --num_epochs=5000
 
 chmod +x run_all-*.sh

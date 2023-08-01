@@ -5,32 +5,32 @@ module load mujoco
 source ~/jaxl_env/bin/activate
 
 
-python sweep_bc.py \
+python ../sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/bc_main \
+    --out_dir=${HOME}/scratch/data/bc_less_data \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/walker_cont \
+    --data_dir=${HOME}/scratch/data/expert_data/cheetah_cont \
     --num_heldouts=10 \
-    --num_samples=7500 \
-    --exp_name=walker
+    --num_samples=1000 \
+    --exp_name=cheetah
 
 
-python sweep_bc.py \
+python ../sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/bc_main \
+    --out_dir=${HOME}/scratch/data/bc_less_data \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/walker_disc \
+    --data_dir=${HOME}/scratch/data/expert_data/cheetah_disc \
     --num_heldouts=10 \
-    --num_samples=2500 \
+    --num_samples=1000 \
     --discrete_control \
-    --exp_name=walker
+    --exp_name=cheetah
 
 chmod +x run_all-*.sh
-sbatch run_all-bc-single_sweep-walker_continuous.sh
-sbatch run_all-bc-single_sweep-walker_discrete.sh
+sbatch run_all-bc-single_sweep-cheetah_continuous.sh
+sbatch run_all-bc-single_sweep-cheetah_discrete.sh
