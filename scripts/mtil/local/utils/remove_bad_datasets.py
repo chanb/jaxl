@@ -4,10 +4,11 @@ import numpy as np
 import os
 
 
-dir_to_filter = "/Users/chanb/research/personal/mtil_results/final_results/data/expert_data/walker_disc"
+# dir_to_filter = "/Users/chanb/research/personal/mtil_results/final_results/data/expert_data/walker_disc"
+# dir_to_filter = "/home/chanb/scratch/data/expert_data/pendulum_cont"
 
 # pendulum
-# required_min = -800
+# required_min = -500
 
 # cheetah
 # required_min = 200
