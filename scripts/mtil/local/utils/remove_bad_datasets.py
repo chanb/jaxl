@@ -6,7 +6,14 @@ import os
 
 dir_to_filter = "/Users/chanb/research/personal/mtil_results/final_results/data/expert_data/walker_disc"
 
-required_min = -np.inf
+# pendulum
+# required_min = -800
+
+# cheetah
+# required_min = 200
+
+# walker
+# required_min = 300
 
 assert os.path.isdir(dir_to_filter)
 
