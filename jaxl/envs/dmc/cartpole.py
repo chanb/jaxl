@@ -41,88 +41,90 @@ SUITE = containers.TaggedTasks()
 
 
 class Physics(mujoco.Physics):
-  """Physics simulation with additional features for the Cartpole domain."""
+    """Physics simulation with additional features for the Cartpole domain."""
 
-  def cart_position(self):
-    """Returns the position of the cart."""
-    return self.named.data.qpos['slider'][0]
+    def cart_position(self):
+        """Returns the position of the cart."""
+        return self.named.data.qpos["slider"][0]
 
-  def angular_vel(self):
-    """Returns the angular velocity of the pole."""
-    return self.data.qvel[1:]
+    def angular_vel(self):
+        """Returns the angular velocity of the pole."""
+        return self.data.qvel[1:]
 
-  def pole_angle_cosine(self):
-    """Returns the cosine of the pole angle."""
-    return self.named.data.xmat[2:, 'zz']
+    def pole_angle_cosine(self):
+        """Returns the cosine of the pole angle."""
+        return self.named.data.xmat[2:, "zz"]
 
-  def bounded_position(self):
-    """Returns the state, with pole angle split into sin/cos."""
-    return np.hstack((self.cart_position(),
-                      self.named.data.xmat[2:, ['zz', 'xz']].ravel()))
+    def bounded_position(self):
+        """Returns the state, with pole angle split into sin/cos."""
+        return np.hstack(
+            (self.cart_position(), self.named.data.xmat[2:, ["zz", "xz"]].ravel())
+        )
 
 
 class Balance(base.Task):
-  """A Cartpole `Task` to balance the pole.
+    """A Cartpole `Task` to balance the pole.
 
-  State is initialized either close to the target configuration or at a random
-  configuration.
-  """
-  _CART_RANGE = (-.25, .25)
-  _ANGLE_COSINE_RANGE = (.995, 1)
-
-  def __init__(self, random=None):
-    """Initializes an instance of `Balance`.
-
-    Args:
-      swing_up: A `bool`, which if `True` sets the cart to the middle of the
-        slider and the pole pointing towards the ground. Otherwise, sets the
-        cart to a random position on the slider and the pole to a random
-        near-vertical position.
-      sparse: A `bool`, whether to return a sparse or a smooth reward.
-      random: Optional, either a `numpy.random.RandomState` instance, an
-        integer seed for creating a new `RandomState`, or None to select a seed
-        automatically (default).
+    State is initialized either close to the target configuration or at a random
+    configuration.
     """
-    super().__init__(random=random)
 
-  def initialize_episode(self, physics):
-    """Sets the state of the environment at the start of each episode.
+    _CART_RANGE = (-0.25, 0.25)
+    _ANGLE_COSINE_RANGE = (0.995, 1)
 
-    Initializes the cart and pole according to `swing_up`, and in both cases
-    adds a small random initial velocity to break symmetry.
+    def __init__(self, random=None):
+        """Initializes an instance of `Balance`.
 
-    Args:
-      physics: An instance of `Physics`.
-    """
-    nv = physics.model.nv
-    physics.named.data.qpos['slider'] = .01*self.random.randn()
-    physics.named.data.qpos['hinge_1'] = np.pi + .01*self.random.randn()
-    physics.named.data.qpos[2:] = .1*self.random.randn(nv - 2)
-    physics.named.data.qvel[:] = 0.01 * self.random.randn(physics.model.nv)
-    super().initialize_episode(physics)
+        Args:
+          swing_up: A `bool`, which if `True` sets the cart to the middle of the
+            slider and the pole pointing towards the ground. Otherwise, sets the
+            cart to a random position on the slider and the pole to a random
+            near-vertical position.
+          sparse: A `bool`, whether to return a sparse or a smooth reward.
+          random: Optional, either a `numpy.random.RandomState` instance, an
+            integer seed for creating a new `RandomState`, or None to select a seed
+            automatically (default).
+        """
+        super().__init__(random=random)
 
-  def get_observation(self, physics):
-    """Returns an observation of the (bounded) physics state."""
-    obs = collections.OrderedDict()
-    obs['position'] = physics.bounded_position()
-    obs['velocity'] = physics.velocity()
-    return obs
+    def initialize_episode(self, physics):
+        """Sets the state of the environment at the start of each episode.
 
-  def _get_reward(self, physics):
-    upright = (physics.pole_angle_cosine() + 1) / 2
-    centered = rewards.tolerance(physics.cart_position(), margin=2)
-    centered = (1 + centered) / 2
-    small_control = rewards.tolerance(physics.control(), margin=1,
-                                    value_at_margin=0,
-                                    sigmoid='quadratic')[0]
-    small_control = (4 + small_control) / 5
-    small_velocity = rewards.tolerance(physics.angular_vel(), margin=5).min()
-    small_velocity = (1 + small_velocity) / 2
-    return upright.mean() * small_control * small_velocity * centered
+        Initializes the cart and pole according to `swing_up`, and in both cases
+        adds a small random initial velocity to break symmetry.
 
-  def get_reward(self, physics):
-    """Returns a sparse or a smooth reward, as specified in the constructor."""
-    return self._get_reward(physics)
+        Args:
+          physics: An instance of `Physics`.
+        """
+        nv = physics.model.nv
+        physics.named.data.qpos["slider"] = 0.01 * self.random.randn()
+        physics.named.data.qpos["hinge_1"] = np.pi + 0.01 * self.random.randn()
+        physics.named.data.qpos[2:] = 0.1 * self.random.randn(nv - 2)
+        physics.named.data.qvel[:] = 0.01 * self.random.randn(physics.model.nv)
+        super().initialize_episode(physics)
+
+    def get_observation(self, physics):
+        """Returns an observation of the (bounded) physics state."""
+        obs = collections.OrderedDict()
+        obs["position"] = physics.bounded_position()
+        obs["velocity"] = physics.velocity()
+        return obs
+
+    def _get_reward(self, physics):
+        upright = (physics.pole_angle_cosine() + 1) / 2
+        centered = rewards.tolerance(physics.cart_position(), margin=2)
+        centered = (1 + centered) / 2
+        small_control = rewards.tolerance(
+            physics.control(), margin=1, value_at_margin=0, sigmoid="quadratic"
+        )[0]
+        small_control = (4 + small_control) / 5
+        small_velocity = rewards.tolerance(physics.angular_vel(), margin=5).min()
+        small_velocity = (1 + small_velocity) / 2
+        return upright.mean() * small_control * small_velocity * centered
+
+    def get_reward(self, physics):
+        """Returns a sparse or a smooth reward, as specified in the constructor."""
+        return self._get_reward(physics)
 
 
 class CartpoleEnv(ParameterizedDMCEnv):
@@ -153,7 +155,8 @@ class CartpoleEnv(ParameterizedDMCEnv):
         self.task = Balance(random=rng)
         environment_kwargs = environment_kwargs or {}
         self.env = control.Environment(
-            physics, self.task, time_limit=time_limit, **environment_kwargs)
+            physics, self.task, time_limit=time_limit, **environment_kwargs
+        )
 
         super().__init__(
             width,
