@@ -35,7 +35,7 @@ env_seed_range = 1000
 num_envs_to_test = 8
 
 default_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_09_01_54-2ae9e079-f3d6-4def-be16-204ce4c44442"
-variant_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_09_24_19-18bb6aa7-7a27-4b97-99fb-4fc3e6d34d9c"
+variant_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_10_07_12-308c3889-7e91-406b-9b1d-a9cfd723defb"
 
 variant_env_seed = json.load(open(os.path.join(variant_agent_path, "config.json"), "r"))["learner_config"]["env_config"]["env_kwargs"]["seed"]
 
