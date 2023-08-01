@@ -54,7 +54,7 @@ while len(np.unique(env_seeds)) != num_envs_to_test:
     env_seeds = rng.randint(10, env_seed_range, size=num_envs_to_test)
 
 
-def get_data(agent_path):
+def get_data(agent_path, all_env_seeds):
     all_env_configs = {}
     episodic_returns_per_seed = {}
 
@@ -115,8 +115,8 @@ if os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl"):
 else:
     all_env_seeds = [None, variant_env_seed, *env_seeds]
 
-    default_episodic_returns, all_env_configs = get_data(default_agent_path)
-    variant_episodic_returns, _ = get_data(variant_agent_path)
+    default_episodic_returns, all_env_configs = get_data(default_agent_path, all_env_seeds)
+    variant_episodic_returns, _ = get_data(variant_agent_path, all_env_seeds)
 
     with open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "wb") as f:
         pickle.dump(

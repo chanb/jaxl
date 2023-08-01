@@ -28,7 +28,7 @@ task = "cartpole"
 control_mode = "continuous"
 
 
-# Torque plot ====================================================================
+# Stiffness plot ====================================================================
 save_path = f"../local/policy_robustness-example/results_policy_robustness-cartpole"
 seed = 999
 
@@ -36,20 +36,21 @@ assert os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl")
 (
     default_episodic_returns,
     variant_episodic_returns,
+    variant_env_seed,
     env_seeds,
     all_env_configs,
 ) = pickle.load(open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "rb"))
 
-all_env_seeds = [None, 769, *env_seeds]
+all_env_seeds = [None, variant_env_seed, *env_seeds]
 seeds_to_plot = np.array(all_env_seeds)
 
-torques = np.array(
+stiffness = np.array(
     [
-        2.0 if env_seed is None else all_env_configs[env_seed]["max_torque"]
+        0.0 if env_seed is None else all_env_configs[env_seed]["joint"]["hinge_1"]["stiffness"][0]
         for env_seed in all_env_seeds
     ]
 )
-sort_idxes = np.argsort(torques)
+sort_idxes = np.argsort(stiffness)
 linestyles = ["--", "-."]
 
 ax = axes[0]
@@ -64,28 +65,28 @@ for idx, returns_per_seed in enumerate(
     means = np.array(means)
     stds = np.array(stds)
 
-    ax.axvline(torques[idx], linestyle="--", linewidth=0.5, color="black", alpha=0.5)
+    ax.axvline(stiffness[idx], linestyle="--", linewidth=0.5, color="black", alpha=0.5)
     ax.plot(
-        torques[sort_idxes],
+        stiffness[sort_idxes],
         means[sort_idxes],
         marker="^",
         ms=3.0,
         linewidth=0.75,
-        label="torque @ {:.2f}".format(torques[idx]),
+        label="stiffness @ {:.2f}".format(stiffness[idx]),
     )
     ax.fill_between(
-        torques[sort_idxes],
+        stiffness[sort_idxes],
         means[sort_idxes] + stds[sort_idxes],
         means[sort_idxes] - stds[sort_idxes],
         alpha=0.3,
     )
 ax.legend()
-ax.set_xlim(min(torques), max(torques))
-ax.set_xlabel("Maximum Torque")
-# Torque plot ====================================================================
+ax.set_xlim(min(stiffness), max(stiffness))
+ax.set_xlabel("Joint Stiffness")
+# Stiffness plot ====================================================================
 
-default_expert_mean = means[0]
-default_expert_std = stds[0]
+default_expert_mean = np.mean(default_episodic_returns[None])
+default_expert_std = np.std(default_episodic_returns[None])
 
 # BC plot ====================================================================
 experiment_name = "bc_amount_data-{}_{}".format(task, control_mode)

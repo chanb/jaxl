@@ -1,0 +1,113 @@
+{
+    "logging_config": {
+        "save_path": "./logs/cartpole_continuous",
+        "experiment_name": "ppo",
+        "log_interval": 1,
+        "checkpoint_interval": false
+    },
+    "model_config": {
+        "policy": {
+            "architecture": "mlp",
+            "layers": [
+                64,
+                64
+            ],
+            "activation": "tanh"
+        },
+        "vf": {
+            "architecture": "mlp",
+            "layers": [
+                64,
+                64
+            ],
+            "activation": "tanh"
+        }
+    },
+    "optimizer_config": {
+        "policy": {
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 0.0003
+                }
+            },
+            "max_grad_norm": false
+        },
+        "vf": {
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 0.0003
+                }
+            },
+            "max_grad_norm": false
+        }
+    },
+    "learner_config": {
+        "task": "reinforcement_learning",
+        "load_pretrain": {
+            "checkpoint_path": "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_09_01_54-2ae9e079-f3d6-4def-be16-204ce4c44442/models",
+            "load_components": ["policy", "vf"],
+            "freeze_obs_rms": false
+        },
+        "env_config": {
+            "env_type": "gym",
+            "env_name": "DMCCartpole-v0",
+            "env_kwargs": {
+                "use_default": false,
+                "seed": 4,
+                "control_mode": "continuous"
+            }
+        },
+        "seeds": {
+            "model_seed": 42,
+            "buffer_seed": 42,
+            "env_seed": 42
+        },
+        "buffer_config": {
+            "buffer_type": "default",
+            "buffer_size": 2048
+        },
+        "num_steps_per_epoch": 2048,
+        "learner": "ppo",
+        "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "normalize_advantage": true,
+        "eps": 1e-05,
+        "obs_rms": true,
+        "value_rms": false,
+        "policy_distribution": "gaussian",
+        "temperature": 1.0,
+        "min_std": 1e-06,
+        "opt_batch_size": 64,
+        "opt_epochs": 200,
+        "kl_threshold": false,
+        "update_before_early_stopping": false,
+        "ent_loss_setting": {
+            "scheduler": "linear_schedule",
+            "scheduler_kwargs": {
+                "init_value": 0.002,
+                "end_value": 0.0,
+                "transition_begin": 0,
+                "transition_steps": 100
+            }
+        },
+        "vf_loss_setting": {
+            "coefficient": 0.5,
+            "reduction": "mean",
+            "clip_param": false
+        },
+        "pi_loss_setting": {
+            "objective": "clip",
+            "coefficient": 1.0,
+            "reduction": "mean",
+            "clip_param": 0.1,
+            "beta": 0.02
+        }
+    },
+    "train_config": {
+        "num_epochs": 450
+    }
+}

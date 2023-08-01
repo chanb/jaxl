@@ -29,7 +29,7 @@ record_video = False
 def plot_all(task, control_mode):
     experiment_name = "bc_amount_data-{}_{}".format(task, control_mode)
     save_path = f"./results-{experiment_name}"
-    experiment_dir = f"./logs/bc_amount_data-model_architecture/{task}_{control_mode}"
+    experiment_dir = f"./logs/bc_amount_data/{task}_{control_mode}"
     reference_agent_path = f"../expert_policies/{task}_{control_mode}"
 
     assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
