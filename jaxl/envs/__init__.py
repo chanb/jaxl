@@ -143,3 +143,12 @@ register(
         )
     },
 )
+register(
+    id="DMCCartpole-v0",
+    entry_point="jaxl.envs.dmc.cartpole:CartpoleEnv",
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "dmc/configs/cartpole.json"
+        )
+    },
+)

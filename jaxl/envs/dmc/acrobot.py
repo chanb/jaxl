@@ -113,7 +113,6 @@ class AcrobotEnv(ParameterizedDMCEnv):
         self,
         parameter_config_path,
         time_limit: int = _DEFAULT_TIME_LIMIT,
-        control_timestep: float = None,
         seed: Union[int, None] = None,
         use_default: bool = False,
         control_mode: str = "default",
