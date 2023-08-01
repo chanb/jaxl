@@ -50,6 +50,8 @@ def plot_all(task, control_mode):
         num_variants = len(os.listdir(experiment_dir))
         for variant_i, variant_name in enumerate(os.listdir(experiment_dir)):
             print(f"Processing {variant_i + 1} / {num_variants} variants")
+            if int(variant_name.split("buffer_size_")[-1]) < 50000:
+                continue
             variant_path = os.path.join(experiment_dir, variant_name)
             episodic_returns_per_variant = {}
             entropies = {}

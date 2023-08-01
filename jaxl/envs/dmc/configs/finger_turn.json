@@ -1,0 +1,16 @@
+{
+  "joint": {
+    "spinner": {
+      "frictionloss": {
+        "default": [0.1],
+        "min": [0.0],
+        "max": [0.5]
+      },
+      "damping": {
+        "default": [0.5],
+        "min": [0.25],
+        "max": [0.75]
+      }
+    }
+  }
+}

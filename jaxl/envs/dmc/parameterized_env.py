@@ -144,9 +144,9 @@ class ParameterizedDMCEnv(gym.Env):
                 def process_action(action):
                     return action_map[int(action)]
             else:
-                actions = (
-                    [2.0] ** np.arange(-4, 1)[:, None]
-                ).flatten()
+                actions = np.concatenate(((
+                    [2.5] ** np.arange(-4, 0)[:, None]
+                ).flatten(), [0.6, 0.8, 1.0]))
                 action_map = np.concatenate([-actions, [0], actions])
                 self.agent_action_space = spaces.Discrete(len(action_map))
 

@@ -8,8 +8,12 @@ run_seed = 0
 rng = np.random.RandomState(run_seed)
 
 envs = {
+    # "cartpole_continuous": {
+    #     "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000, 25000, 50000],
+    #     "max_episode_length": 1000,
+    # },
     "cartpole_continuous": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000, 25000, 50000],
+        "buffer_sizes": [100000],
         "max_episode_length": 1000,
     },
     # "pendulum_continuous": {
@@ -38,7 +42,7 @@ envs = {
     # },
 }
 data_dir = "./logs/demonstrations"
-config_template = "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/mtbc_architecture/bc_template.json"
+config_template = "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_amount_data/bc_template.json"
 
 num_runs = 5
 seeds = rng.randint(0, 1000, num_runs)
@@ -59,7 +63,7 @@ for env_name, env_config in envs.items():
         template["learner_config"]["losses"][0] = "gaussian"
 
     for buffer_size, seed in product(env_config["buffer_sizes"], seeds):
-        template["logging_config"]["save_path"] = "./logs/bc_amount_data-model_architecture/{}/buffer_size_{}".format(
+        template["logging_config"]["save_path"] = "./logs/bc_amount_data/{}/buffer_size_{}".format(
             env_name, buffer_size
         )
         template["logging_config"]["experiment_name"] = ""

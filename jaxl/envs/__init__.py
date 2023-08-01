@@ -161,3 +161,18 @@ register(
         )
     },
 )
+register(
+    id="DMCFingerTurn-v0",
+    entry_point="jaxl.envs.dmc.finger_turn:FingerTurnEnv",
+    kwargs={
+        "parameter_config_path": os.path.join(
+            os.path.dirname(__file__), "dmc/configs/finger_turn.json"
+        )
+    },
+)
+register(
+    id="ParameterizedFrozenLake-v0",
+    entry_point="jaxl.envs.toy_text.frozen_lake:FrozenLakeEnv",
+    max_episode_steps=200,
+    kwargs={},
+)
