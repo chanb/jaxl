@@ -3,6 +3,7 @@ from itertools import product
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
 import _pickle as pickle
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -35,6 +36,8 @@ num_envs_to_test = 8
 
 default_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_09_01_54-2ae9e079-f3d6-4def-be16-204ce4c44442"
 variant_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_09_24_19-18bb6aa7-7a27-4b97-99fb-4fc3e6d34d9c"
+
+variant_env_seed = json.load(open(os.path.join(variant_agent_path, "config.json"), "r"))["learner_config"]["env_config"]["env_kwargs"]["seed"]
 
 num_evaluation_episodes = 50
 record_video = False
@@ -109,7 +112,7 @@ if os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl"):
         all_env_configs,
     ) = pickle.load(open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "rb"))
 else:
-    all_env_seeds = [None, 769, *env_seeds]
+    all_env_seeds = [None, variant_env_seed, *env_seeds]
 
     default_episodic_returns, all_env_configs = get_data(default_agent_path)
     variant_episodic_returns, _ = get_data(variant_agent_path)
@@ -136,12 +139,12 @@ fig, ax = plt.subplots(
 )
 
 print(all_env_configs.items())
-all_env_seeds = [None, 769, *env_seeds]
+all_env_seeds = [None, variant_env_seed, *env_seeds]
 seeds_to_plot = np.array(all_env_seeds)
 
 stiffness = np.array(
     [
-        2.0 if env_seed is None else all_env_configs[env_seed]["max_torque"]
+        0.0 if env_seed is None else all_env_configs[env_seed]["joint"]["hinge_1"]["stiffness"][0]
         for env_seed in all_env_seeds
     ]
 )

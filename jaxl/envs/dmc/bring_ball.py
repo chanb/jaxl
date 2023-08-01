@@ -38,8 +38,8 @@ from jaxl.envs.dmc.parameterized_env import (
 _CLOSE = 0.01  # (Meters) Distance below which a thing is considered close.
 _CONTROL_TIMESTEP = 0.01  # (Seconds)
 _TIME_LIMIT = 10  # (Seconds)
-_P_IN_HAND = 0.1  # Probabillity of object-in-hand initial state
-_P_IN_TARGET = 0.1  # Probabillity of object-in-target initial state
+_P_IN_HAND = 0.2  # Probabillity of object-in-hand initial state
+_P_IN_TARGET = 0.0  # Probabillity of object-in-target initial state
 _ARM_JOINTS = [
     "arm_root",
     "arm_shoulder",
@@ -91,6 +91,12 @@ class Physics(mujoco.Physics):
     def site_distance(self, site1, site2):
         site1_to_site2 = np.diff(self.named.data.site_xpos[[site2, site1]], axis=0)
         return np.linalg.norm(site1_to_site2)
+
+    def body_site_distance(self, body, site):
+        body_to_site = np.diff(
+            [self.named.data.xpos[body], self.named.data.site_xpos[site]], axis=0
+        )
+        return np.linalg.norm(body_to_site)
 
 
 class Bring(base.Task):
@@ -195,19 +201,11 @@ class Bring(base.Task):
     def _is_close(self, distance):
         return rewards.tolerance(distance, (0, _CLOSE), _CLOSE * 2)
 
-    def _peg_reward(self, physics):
-        """Returns a reward for bringing the peg prop to the target."""
-        grasp = self._is_close(physics.site_distance("peg_grasp", "grasp"))
-        pinch = self._is_close(physics.site_distance("peg_pinch", "pinch"))
-        grasping = (grasp + pinch) / 2
-        bring = self._is_close(physics.site_distance("peg", "target_peg"))
-        bring_tip = self._is_close(physics.site_distance("target_peg_tip", "peg_tip"))
-        bringing = (bring + bring_tip) / 2
-        return max(bringing, grasping / 3)
-
     def _ball_reward(self, physics):
         """Returns a reward for bringing the ball prop to the target."""
-        return self._is_close(physics.site_distance("ball", "target_ball"))
+        return self._is_close(
+            physics.site_distance("ball", "target_ball")
+        ) + self._is_close(physics.body_site_distance("hand", "ball"))
 
     def get_reward(self, physics):
         """Returns a reward to the agent."""
@@ -219,7 +217,6 @@ class BringBallEnv(ParameterizedDMCEnv):
         self,
         parameter_config_path,
         time_limit: int = _TIME_LIMIT,
-        control_timestep: float = None,
         seed: Union[int, None] = None,
         use_default: bool = False,
         control_mode: str = "default",
