@@ -8,12 +8,12 @@ run_seed = 0
 rng = np.random.RandomState(run_seed)
 
 envs = {
-    # "pendulum_continuous": {
-    #     "buffer_sizes": [1500, 1750],
-    #     "max_episode_length": 200,
-    # },
+    "pendulum_continuous": {
+        "buffer_sizes": [100, 500, 1000, 1500, 2000, 2500],
+        "max_episode_length": 200,
+    },
     "pendulum_discrete": {
-        "buffer_sizes": [3000, 7500],
+        "buffer_sizes": [100, 500, 1000, 1500, 2000, 2500, 3000, 5000, 7500],
         "max_episode_length": 200,
     },
     # "cheetah_continuous": {
@@ -34,7 +34,7 @@ envs = {
     # },
 }
 data_dir = "./logs/demonstrations"
-config_template = "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_amount_data/bc_template.json"
+config_template = "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/mtbc_architecture/bc_template.json"
 
 num_runs = 5
 seeds = rng.randint(0, 1000, num_runs)
@@ -49,16 +49,16 @@ sh_content += "source /Users/chanb/research/personal/jaxl/.venv/bin/activate\n"
 for env_name, env_config in envs.items():
     print(f"Processing {env_name}")
 
-    template["logging_config"]["save_path"] = "./logs/bc_amount_data/{}".format(
-        env_name
-    )
     if env_name.split("_")[-1] == "discrete":
         template["learner_config"]["losses"][0] = "categorical"
     elif env_name.split("_")[-1] == "continuous":
         template["learner_config"]["losses"][0] = "gaussian"
 
     for buffer_size, seed in product(env_config["buffer_sizes"], seeds):
-        template["logging_config"]["experiment_name"] = f"buffer_size_{buffer_size}"
+        template["logging_config"]["save_path"] = "./logs/bc_amount_data-model_architecture/{}/buffer_size_{}".format(
+            env_name, buffer_size
+        )
+        template["logging_config"]["experiment_name"] = ""
         template["learner_config"]["buffer_config"][
             "load_buffer"
         ] = "{}/expert_buffer-default-{}-num_samples_100000-subsampling_{}.gzip".format(

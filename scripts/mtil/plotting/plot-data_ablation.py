@@ -145,6 +145,7 @@ def get_result(
 
     for num_samples in num_samples_to_gather:
         variant_name = "buffer_size_{}".format(num_samples)
+        print(result_per_variant.keys())
         rets = result_per_variant[variant_name]
 
         last_iteration = max(rets.keys())

@@ -126,7 +126,6 @@ def plot_all(task, control_mode):
                                 if filename != "config.json":
                                     continue
 
-                                print(agent_path)
                                 episodic_returns[variant_name].setdefault(variant, [])
                                 episodic_returns[variant_name][variant].append(
                                     np.mean(get_returns(agent_path, reference_agent_path))
