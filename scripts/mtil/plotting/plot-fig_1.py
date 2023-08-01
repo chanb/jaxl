@@ -24,7 +24,7 @@ fig, axes = plt.subplots(
     layout="constrained",
 )
 
-task = "pendulum"
+task = "cartpole"
 control_mode = "continuous"
 
 

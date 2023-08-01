@@ -108,6 +108,7 @@ if os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl"):
     (
         default_episodic_returns,
         variant_episodic_returns,
+        variant_env_seed,
         env_seeds,
         all_env_configs,
     ) = pickle.load(open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "rb"))
@@ -122,6 +123,7 @@ else:
             (
                 default_episodic_returns,
                 variant_episodic_returns,
+                variant_env_seed,
                 env_seeds,
                 all_env_configs,
             ),
