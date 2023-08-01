@@ -119,13 +119,14 @@ def plot_all(task, control_mode):
                     episodic_returns.setdefault(variant_name, {})
                     variant_path = os.path.join(bc_dir, variant_name)
                     for variant in os.listdir(variant_path):
-                        variant_path = os.path.join(variant_path, variant)
+                        runs_path = os.path.join(variant_path, variant)
 
-                        for agent_path, _, filenames in os.walk(variant_path):
+                        for agent_path, _, filenames in os.walk(runs_path):
                             for filename in filenames:
                                 if filename != "config.json":
                                     continue
 
+                                print(agent_path)
                                 episodic_returns[variant_name].setdefault(variant, [])
                                 episodic_returns[variant_name][variant].append(
                                     np.mean(get_returns(agent_path, reference_agent_path))
