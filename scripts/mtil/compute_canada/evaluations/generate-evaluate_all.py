@@ -73,6 +73,7 @@ dat_path = os.path.join(
 with open(dat_path, "w+") as f:
     f.writelines(dat_content)
 
+os.makedirs("/home/chanb/scratch/run_reports/evaluate_all", exist_ok=True)
 sbatch_content = ""
 sbatch_content += "#!/bin/bash\n"
 sbatch_content += "#SBATCH --account=def-schuurma\n"
