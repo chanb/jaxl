@@ -319,7 +319,7 @@ class FrozenLakeEnv(Env):
         return {"modified_attributes": self.modified_attributes}
 
     def get_obs(self):
-        return np.concatenate((np.eye(self.n_s, dtype=np.float32)[self.s], [self.goal]))
+        return np.concatenate((np.eye(self.n_s)[self.s], [self.goal / self.n_s])).astype(np.float32)
 
     def step(
         self, action: ActType

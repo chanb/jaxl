@@ -21,8 +21,8 @@ plt.rcParams.update(pgf_with_latex)
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
-buffer_size = 2500
-env_name = "cheetah_continuous"
+buffer_size = 7500
+env_name = "cartpole_continuous"
 experiment_name = "bc_subsampling"
 save_path = f"./results-{experiment_name}-size_{buffer_size}-{env_name}"
 experiment_dir = f"./logs/bc_subsampling/{env_name}-size_{buffer_size}"

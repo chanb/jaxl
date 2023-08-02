@@ -11,12 +11,15 @@ envs = {
     # "pendulum_continuous": {
     #     "subsamplings": [1, 20, 200],
     # },
-    "cheetah_discrete": {
-        "subsamplings": [1, 20, 1000],
-    },
+    # "cheetah_discrete": {
+    #     "subsamplings": [1, 20, 1000],
+    # },
     # "cheetah_continuous": {
     #     "subsamplings": [1, 20, 1000],
     # },
+    "cartpole_continuous": {
+        "subsamplings": [1, 20, 1000],
+    },
 }
 
 data_dir = "./logs/demonstrations"
