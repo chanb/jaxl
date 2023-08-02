@@ -64,7 +64,13 @@ flags.DEFINE_string(
 )
 
 
-def get_returns(agent_path, env_seed, rollout_seed, num_evaluation_episodes, reference_agent_path=None):
+def get_returns(
+    agent_path,
+    env_seed,
+    rollout_seed,
+    num_evaluation_episodes,
+    reference_agent_path=None,
+):
     env, policy = get_evaluation_components(
         agent_path,
         env_seed,
@@ -99,12 +105,18 @@ def get_returns(agent_path, env_seed, rollout_seed, num_evaluation_episodes, ref
 
 
 def main(config):
-    assert config.num_evaluation_episodes > 0, "num_evaluation_episodes needs to be at least 1"
-    assert config.reference_agent_path is None or os.path.isdir(config.reference_agent_path), f"{config.reference_agent_path} is not a directory"
+    assert (
+        config.num_evaluation_episodes > 0
+    ), "num_evaluation_episodes needs to be at least 1"
+    assert config.reference_agent_path is None or os.path.isdir(
+        config.reference_agent_path
+    ), f"{config.reference_agent_path} is not a directory"
     assert os.path.isdir(config.runs_path), f"{config.runs_path} is not a directory"
     assert os.path.isdir(config.save_dir), f"{config.save_dir} is not a directory"
 
-    assert (config.variant_name == "expert") == (config.reference_agent_path == config.runs_path)
+    assert (config.variant_name == "expert") == (
+        config.reference_agent_path == config.runs_path
+    )
 
     env_seed_int = int(config.env_seed.split("env_seed_")[-1])
     if config.variant_name == "expert":
@@ -118,7 +130,9 @@ def main(config):
 
                 result.append(
                     np.mean(
-                        get_returns(agent_path, env_seed_int, config.reference_agent_path)
+                        get_returns(
+                            agent_path, env_seed_int, config.reference_agent_path
+                        )
                     )
                 )
     save_path = os.path.join(config.save_dir, config.env_seed, config.variant_name)

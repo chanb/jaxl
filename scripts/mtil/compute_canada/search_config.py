@@ -101,8 +101,8 @@ CARTPOLE_CONTINUOUS = {
                         "init_value": 0.002,
                         "end_value": 0.0,
                         "transition_begin": 0,
-                        "transition_steps": 100
-                    }
+                        "transition_steps": 100,
+                    },
                 }
             ],
         },
@@ -129,8 +129,8 @@ FROZENLAKE_DISCRETE = {
                         "init_value": 0.002,
                         "end_value": 0.0,
                         "transition_begin": 0,
-                        "transition_steps": 100
-                    }
+                        "transition_steps": 100,
+                    },
                 }
             ],
         },

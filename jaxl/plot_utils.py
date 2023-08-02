@@ -122,9 +122,7 @@ def get_config(agent_path, env_seed=None, ref_agent_path=None):
     }
 
 
-def get_evaluation_components(
-    agent_path, env_seed=None, ref_agent_path=None
-):
+def get_evaluation_components(agent_path, env_seed=None, ref_agent_path=None):
     agent_config, aux = get_config(agent_path, env_seed, ref_agent_path)
     env = get_environment(agent_config.learner_config.env_config)
 

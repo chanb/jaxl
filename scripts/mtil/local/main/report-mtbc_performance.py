@@ -136,7 +136,11 @@ def plot_all(task, control_mode):
                                 episodic_returns[variant_name].setdefault(variant, [])
                                 episodic_returns[variant_name][variant].append(
                                     np.mean(
-                                        get_returns(agent_path, env_seed_int, reference_agent_path)
+                                        get_returns(
+                                            agent_path,
+                                            env_seed_int,
+                                            reference_agent_path,
+                                        )
                                     )
                                 )
 

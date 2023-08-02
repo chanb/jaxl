@@ -51,7 +51,9 @@ for task in tasks:
             num_variants = len(os.listdir(trained_dir))
 
             episodic_returns = {}
-            for variant_i, variant_name in enumerate(["expert", *os.listdir(trained_dir)]):
+            for variant_i, variant_name in enumerate(
+                ["expert", *os.listdir(trained_dir)]
+            ):
                 num_runs += 1
                 print(
                     f"Processing {variant_name} ({variant_i + 1} / {num_variants + 1} variants)"
@@ -59,17 +61,27 @@ for task in tasks:
 
                 if variant_name == "expert":
                     dat_content += "export env_seed={} rollout_seed={} num_evaluation_episodes={} variant_name={} runs_path={} reference_agent_path={} save_dir={}\n".format(
-                        env_seed, rollout_seed, num_evaluation_episodes, variant_name, reference_agent_path, reference_agent_path, curr_save_dir
+                        env_seed,
+                        rollout_seed,
+                        num_evaluation_episodes,
+                        variant_name,
+                        reference_agent_path,
+                        reference_agent_path,
+                        curr_save_dir,
                     )
                 else:
                     variant_path = os.path.join(trained_dir, variant_name)
                     dat_content += "export env_seed={} rollout_seed={} num_evaluation_episodes={} variant_name={} runs_path={} reference_agent_path={} save_dir={}\n".format(
-                        env_seed, rollout_seed, num_evaluation_episodes, variant_name, variant_path, reference_agent_path, curr_save_dir
+                        env_seed,
+                        rollout_seed,
+                        num_evaluation_episodes,
+                        variant_name,
+                        variant_path,
+                        reference_agent_path,
+                        curr_save_dir,
                     )
 
-dat_path = os.path.join(
-    f"./export-evaluate_all-{exp_name}.dat"
-)
+dat_path = os.path.join(f"./export-evaluate_all-{exp_name}.dat")
 with open(dat_path, "w+") as f:
     f.writelines(dat_content)
 
@@ -95,7 +107,9 @@ sbatch_content += "echo ${SLURM_ARRAY_TASK_ID}\n"
 sbatch_content += 'echo "Current working directory is `pwd`"\n'
 sbatch_content += 'echo "Running on hostname `hostname`"\n'
 sbatch_content += 'echo "Starting run at: `date`"\n'
-sbatch_content += "python3 {} \\\n".format(os.path.join(os.path.dirname(__file__), "run_evaluation.py"))
+sbatch_content += "python3 {} \\\n".format(
+    os.path.join(os.path.dirname(__file__), "run_evaluation.py")
+)
 sbatch_content += "  --env_seed=${env_seed} \\\n"
 sbatch_content += "  --rollout_seed=${rollout_seed} \\\n"
 sbatch_content += "  --num_evaluation_episodes=${num_evaluation_episodes} \\\n"
@@ -106,9 +120,7 @@ sbatch_content += "  --save_dir=${save_dir}\n"
 sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
 with open(
-    os.path.join(
-        f"./run_all-evaluate_all-{exp_name}.sh"
-    ),
+    os.path.join(f"./run_all-evaluate_all-{exp_name}.sh"),
     "w+",
 ) as f:
     f.writelines(sbatch_content)
