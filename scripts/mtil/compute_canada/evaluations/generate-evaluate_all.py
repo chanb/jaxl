@@ -1,10 +1,10 @@
 import os
 
-tasks = []
-control_modes = []
+tasks = ["pendulum", "cheetah", "walker"]
+control_modes = ["discrete", "continuous"]
 
 exp_name = "finetune_mtbc_main"
-run_time = "02:00:00"
+run_time = "01:00:00"
 num_evaluation_episodes = 30
 rollout_seed = 9999
 
