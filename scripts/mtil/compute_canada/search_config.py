@@ -79,6 +79,64 @@ SINGLE_SWEEP = {
     },
 }
 
+CARTPOLE_CONTINUOUS = {
+    "ppo": {
+        "continuous": {
+            "policy_distribution": "gaussian",
+            "objective": "clip",
+            "load_pretrain": "/home/chanb/scratch/pretrained_ppo/cartpole_continuous/models",
+            "hyperparameters": {
+                "clip_param": [0.1],
+            },
+        },
+        "general": {
+            "buffer_size": [2048],
+            "max_grad_norm": [False],
+            "opt_batch_size": [64],
+            "opt_epochs": [200],
+            "ent_coef": [
+                {
+                    "scheduler": "linear_schedule",
+                    "scheduler_kwargs": {
+                        "init_value": 0.002,
+                        "end_value": 0.0,
+                        "transition_begin": 0,
+                        "transition_steps": 100
+                    }
+                }
+            ],
+        },
+    },
+}
+
+FROZENLAKE_DISCRETE = {
+    "ppo": {
+        "discrete": {
+            "policy_distribution": "softmax",
+            "objective": "reverse_kl",
+            "load_pretrain": "/home/chanb/scratch/pretrained_ppo/frozenlake_discrete/models",
+            "hyperparameters": {"beta": [0.002]},
+        },
+        "general": {
+            "buffer_size": [2048],
+            "max_grad_norm": [0.5],
+            "opt_batch_size": [256],
+            "opt_epochs": [200],
+            "ent_coef": [
+                {
+                    "scheduler": "linear_schedule",
+                    "scheduler_kwargs": {
+                        "init_value": 0.002,
+                        "end_value": 0.0,
+                        "transition_begin": 0,
+                        "transition_steps": 100
+                    }
+                }
+            ],
+        },
+    },
+}
+
 PENDULUM_CONTINUOUS = {
     "ppo": {
         "continuous": {
@@ -247,4 +305,6 @@ HYPERPARAM_SETS = {
     "cheetah_disc": CHEETAH_DISCRETE,
     "walker_cont": WALKER_CONTINUOUS,
     "walker_disc": WALKER_DISCRETE,
+    "frozenlake_disc": FROZENLAKE_DISCRETE,
+    "cartpole_cont": CARTPOLE_CONTINUOUS,
 }

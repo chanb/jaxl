@@ -14,6 +14,35 @@ python ../sweep_rl.py \
     --checkpoint_interval=250 \
     --num_epochs=500 \
     --run_time=02:30:00 \
+    --hyperparam_set=cartpole_cont \
+    --env_name=DMCCartpole-v0 \
+    --exp_name=cartpole
+
+python ../sweep_rl.py \
+    --main_path=${JAXL_PATH}/jaxl/main.py \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
+    --out_dir=${HOME}/scratch/data/experts \
+    --run_seed=0 \
+    --num_envs=100 \
+    --num_runs=1 \
+    --checkpoint_interval=250 \
+    --num_epochs=500 \
+    --run_time=02:30:00 \
+    --hyperparam_set=frozenlake_disc \
+    --discrete_control \
+    --env_name=ParameterizedFrozenLake-v0 \
+    --exp_name=frozenlake
+
+python ../sweep_rl.py \
+    --main_path=${JAXL_PATH}/jaxl/main.py \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/ppo.json \
+    --out_dir=${HOME}/scratch/data/experts \
+    --run_seed=0 \
+    --num_envs=100 \
+    --num_runs=1 \
+    --checkpoint_interval=250 \
+    --num_epochs=500 \
+    --run_time=02:30:00 \
     --hyperparam_set=pendulum_cont \
     --env_name=ParameterizedPendulum-v0 \
     --exp_name=pendulum

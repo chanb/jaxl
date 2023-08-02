@@ -21,7 +21,7 @@ configs = []
 
 task = "pendulum"
 control_mode = "continuous"
-save_path = f"../local/main"
+save_path = f"./main"
 
 configs.append(
     (
@@ -33,7 +33,7 @@ configs.append(
 
 task = "pendulum"
 control_mode = "discrete"
-save_path = f"../local/main"
+save_path = f"./main"
 
 configs.append(
     (
