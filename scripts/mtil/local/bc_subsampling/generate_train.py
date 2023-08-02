@@ -8,16 +8,22 @@ run_seed = 0
 rng = np.random.RandomState(run_seed)
 
 envs = {
-    "frozenlake_discrete": {
-        "subsamplings": [1, 20, 200],
-    },
-    "cheetah_discrete": {
+    # "frozenlake_discrete": {
+    #     "subsamplings": [1, 20, 200],
+    # },
+    # "cheetah_discrete": {
+    #     "subsamplings": [1, 20, 1000],
+    # },
+    # "cheetah_continuous": {
+    #     "subsamplings": [1, 20, 1000],
+    # },
+    # "cartpole_continuous": {
+    #     "subsamplings": [1, 20, 1000],
+    # },
+    "walker_discrete": {
         "subsamplings": [1, 20, 1000],
     },
-    "cheetah_continuous": {
-        "subsamplings": [1, 20, 1000],
-    },
-    "cartpole_continuous": {
+    "walker_continuous": {
         "subsamplings": [1, 20, 1000],
     },
 }

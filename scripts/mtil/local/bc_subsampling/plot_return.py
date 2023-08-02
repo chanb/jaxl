@@ -3,6 +3,7 @@ from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 import _pickle as pickle
 import gzip
 import math
+import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -17,6 +18,7 @@ from jaxl.plot_utils import set_size, pgf_with_latex, get_evaluation_components
 plt.style.use("seaborn")
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
+colors = pl.cm.jet(np.linspace(0, 1, 10))
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
@@ -150,7 +152,7 @@ for ax_i, (env_name, result) in enumerate(results.items()):
         linestyle="--",
     )
 
-    for subsampling, res in result.items():
+    for plot_i, (subsampling, res) in enumerate(result.items()):
         np_res = np.array(res)
         buffer_sizes, returns = np_res[:, 0], np_res[:, 1]
         unique_buffer_sizes = np.unique(buffer_sizes)
@@ -165,8 +167,14 @@ for ax_i, (env_name, result) in enumerate(results.items()):
         means = np.array(means)
         stds = np.array(stds)
 
+        label = ""
+        if ax_i == 0:
+            if subsampling == max(result.keys()):
+                label = "full"
+            else:
+                label = subsampling
         ax.plot(
-            unique_buffer_sizes, means, marker="x", label=f"{subsampling}" if ax_i == 0 else ""
+            unique_buffer_sizes, means, marker="x", label=label
         )
         ax.fill_between(
             unique_buffer_sizes,
@@ -179,5 +187,5 @@ for ax_i, (env_name, result) in enumerate(results.items()):
         ax.legend()
 
 fig.supylabel("Expected Return")
-fig.supxlabel("Buffer Size")
+fig.supxlabel("Amount of Transitions")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)
