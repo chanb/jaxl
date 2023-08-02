@@ -48,53 +48,50 @@ else:
 
             variant_name = os.path.basename(os.path.dirname(agent_path))
             variant_info = variant_name.split("-")
-            env_name = variant_info[0]
-            control_mode = variant_info[1]
-            buffer_size = int(variant_info[2].split("buffer_size_")[-1])
+            (env_name, control_mode) = variant_info[0].split("_")
+            buffer_size = int(variant_info[1].split("size_")[-1])
             subsampling = int(
                 os.path.basename(agent_path).split("-")[0].split("subsampling_")[-1]
             )
 
-        reference_agent_path = f"../expert_policies/{env_name}"
+            reference_agent_path = f"../expert_policies/{env_name}_{control_mode}"
 
-        results[(env_name, control_mode)].setdefault({})
-        results[(env_name, control_mode)][subsampling].setdefault([])
+            results.setdefault((env_name, control_mode), {})
+            results[(env_name, control_mode)].setdefault(subsampling, [])
+            env_config_path = os.path.join(reference_agent_path, "env_config.pkl")
+            env_config = None
+            if os.path.isfile(env_config_path):
+                env_config = pickle.load(open(env_config_path, "rb"))
+            env_configs[(env_name, control_mode)] = env_config
 
-        reference_agent_path = f"../expert_policies/{env_name}"
-        env_config_path = os.path.join(reference_agent_path, "env_config.pkl")
-        env_config = None
-        if os.path.isfile(env_config_path):
-            env_config = pickle.load(open(env_config_path, "rb"))
-        env_configs[(env_name, control_mode)] = env_config
+            env, policy = get_evaluation_components(
+                agent_path, use_default=True, ref_agent_path=reference_agent_path
+            )
+            checkpoint_manager = CheckpointManager(
+                os.path.join(agent_path, "models"),
+                PyTreeCheckpointer(),
+            )
+            params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+            model_dict = params[CONST_MODEL_DICT]
+            agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
+            agent_obs_rms = False
+            if CONST_OBS_RMS in params:
+                agent_obs_rms = RunningMeanStd()
+                agent_obs_rms.set_state(params[CONST_OBS_RMS])
 
-        env, policy = get_evaluation_components(
-            agent_path, use_default=True, ref_agent_path=reference_agent_path
-        )
-        checkpoint_manager = CheckpointManager(
-            os.path.join(agent_path, "models"),
-            PyTreeCheckpointer(),
-        )
-        params = checkpoint_manager.restore(checkpoint_manager.latest_step())
-        model_dict = params[CONST_MODEL_DICT]
-        agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
-        agent_obs_rms = False
-        if CONST_OBS_RMS in params:
-            agent_obs_rms = RunningMeanStd()
-            agent_obs_rms.set_state(params[CONST_OBS_RMS])
-
-        agent_rollout = EvaluationRollout(env, seed=env_seed)
-        agent_rollout.rollout(
-            agent_policy_params,
-            policy,
-            agent_obs_rms,
-            num_evaluation_episodes,
-            None,
-            use_tqdm=False,
-        )
-        results[(env_name, control_mode)][subsampling].append(
-            (buffer_size, np.mean(agent_rollout.episodic_returns))
-        )
-        env.close()
+            agent_rollout = EvaluationRollout(env, seed=env_seed)
+            agent_rollout.rollout(
+                agent_policy_params,
+                policy,
+                agent_obs_rms,
+                num_evaluation_episodes,
+                None,
+                use_tqdm=False,
+            )
+            results[(env_name, control_mode)][subsampling].append(
+                (buffer_size, np.mean(agent_rollout.episodic_returns))
+            )
+            env.close()
 
     with open(f"{save_path}/results.pkl", "wb") as f:
         pickle.dump((results, env_configs), f)
@@ -110,6 +107,18 @@ fig, axes = plt.subplots(
     figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
     layout="constrained",
 )
+
+
+map_env = {
+    "frozenlake": "Frozen Lake",
+    "cheetah": "Cheetah Run",
+    "walker": "Walker Walk",
+    "cartpole": "Cartpole Swing Up",
+}
+map_control = {
+    "discrete": "Discrete",
+    "continuous": "Continuous",
+}
 
 for ax_i, (env_name, result) in enumerate(results.items()):
     if axes.ndim == 2:
@@ -138,6 +147,7 @@ for ax_i, (env_name, result) in enumerate(results.items()):
             alpha=0.3,
         )
 
+        ax.set_x_title("{} {}".format(map_control[env_name[0]], map_control[env_name[1]]))
         ax.legend()
 
 fig.supylabel("Expected Return")

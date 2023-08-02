@@ -19,7 +19,7 @@ LEFT = 0
 DOWN = 1
 RIGHT = 2
 UP = 3
-STAY = 5
+STAY = 4
 
 MAPS = {
     "4x4": ["SFFF", "FHFH", "FFFH", "HFFG"],
@@ -284,19 +284,16 @@ class FrozenLakeEnv(Env):
                 for a in range(nA):
                     li = self.P[s][a]
                     letter = desc[row, col]
-                    if letter in b"G":
-                        li.append((1.0, s, 1.0, False))
-                    else:
-                        if self.slip_prob[1] < 1 and a != STAY:
-                            for slip_dir, b in enumerate([(a - 1) % 4, a, (a + 1) % 4]):
-                                li.append(
-                                    (
-                                        self.slip_prob[slip_dir],
-                                        *update_probability_matrix(row, col, b),
-                                    )
+                    if self.slip_prob[1] < 1 and a != STAY:
+                        for slip_dir, b in enumerate([(a - 1) % 4, a, (a + 1) % 4]):
+                            li.append(
+                                (
+                                    self.slip_prob[slip_dir],
+                                    *update_probability_matrix(row, col, b),
                                 )
-                        else:
-                            li.append((1.0, *update_probability_matrix(row, col, a)))
+                            )
+                    else:
+                        li.append((1.0, *update_probability_matrix(row, col, a)))
 
         self.observation_space = spaces.Box(low=0, high=1, shape=(nS + 1,))
         self.action_space = spaces.Discrete(nA)
@@ -335,7 +332,7 @@ class FrozenLakeEnv(Env):
         i = categorical_sample([t[0] for t in transitions], self.np_random)
         p, s, r, t = transitions[i]
         self.s = s
-        self.lastaction = action
+        self.lastaction = self.lastaction if action == STAY else action
 
         if self.render_mode == "human":
             self.render()

@@ -9,23 +9,23 @@ rng = np.random.RandomState(run_seed)
 
 envs = {
     "cartpole_continuous": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000, 25000, 50000, 100000],
+        "buffer_sizes": [1000, 2500, 5000, 10000, 25000, 50000, 100000],
         "max_episode_length": 1000,
     },
     "cheetah_continuous": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000, 25000, 50000, 100000],
+        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
         "max_episode_length": 1000,
     },
     "cheetah_discrete": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000, 25000, 50000, 100000],
+        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
         "max_episode_length": 1000,
     },
     "walker_continuous": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000, 25000, 50000, 100000],
+        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
         "max_episode_length": 1000,
     },
     "walker_discrete": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000, 25000, 50000, 100000],
+        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
         "max_episode_length": 1000,
     },
 }
