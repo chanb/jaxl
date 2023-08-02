@@ -153,25 +153,23 @@ for ax_i, (env_name, result) in enumerate(results.items()):
     for subsampling, res in result.items():
         np_res = np.array(res)
         buffer_sizes, returns = np_res[:, 0], np_res[:, 1]
-        sort_idxes = np.argsort(buffer_sizes)
-        buffer_sizes = buffer_sizes[sort_idxes]
-        returns = returns[sort_idxes]
+        unique_buffer_sizes = np.unique(buffer_sizes)
 
         means = []
         stds = []
 
-        for buffer_size in buffer_sizes:
-            means.append(np.mean(returns))
-            stds.append(np.std(returns))
+        for buffer_size in unique_buffer_sizes:
+            means.append(np.mean(returns[buffer_sizes == buffer_size]))
+            stds.append(np.std(returns[buffer_sizes == buffer_size]))
 
         means = np.array(means)
         stds = np.array(stds)
 
         ax.plot(
-            buffer_sizes, means, marker="x", label=f"{subsampling}" if ax_i == 0 else ""
+            unique_buffer_sizes, means, marker="x", label=f"{subsampling}" if ax_i == 0 else ""
         )
         ax.fill_between(
-            buffer_sizes,
+            unique_buffer_sizes,
             means + stds,
             means - stds,
             alpha=0.3,
