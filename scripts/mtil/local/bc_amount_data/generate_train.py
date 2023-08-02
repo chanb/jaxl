@@ -63,9 +63,9 @@ for env_name, env_config in envs.items():
         template["learner_config"]["losses"][0] = "gaussian"
 
     for buffer_size, seed in product(env_config["buffer_sizes"], seeds):
-        template["logging_config"]["save_path"] = "./logs/bc_amount_data/{}/buffer_size_{}".format(
-            env_name, buffer_size
-        )
+        template["logging_config"][
+            "save_path"
+        ] = "./logs/bc_amount_data/{}/buffer_size_{}".format(env_name, buffer_size)
         template["logging_config"]["experiment_name"] = ""
         template["learner_config"]["buffer_config"][
             "load_buffer"

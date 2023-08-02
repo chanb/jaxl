@@ -52,8 +52,12 @@ def get_returns(agent_path, reference_agent_path=None):
 
 def plot_all(task, control_mode):
     exp_id = "finetune_mtbc_main"
-    mtbc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/{exp_id}"
-    expert_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/experts"
+    mtbc_dir = (
+        f"/Users/chanb/research/personal/mtil_results/final_results/data/{exp_id}"
+    )
+    expert_dir = (
+        f"/Users/chanb/research/personal/mtil_results/final_results/data/experts"
+    )
     experiment_name = "mtbc_performance-{}_{}".format(task, control_mode)
     save_path = f"./{exp_id}-results-{experiment_name}"
     curr_mtbc_dir = os.path.join(mtbc_dir, task, control_mode, "runs")
@@ -90,7 +94,7 @@ def plot_all(task, control_mode):
                     continue
 
                 expert_paths[env_seed] = expert_dir
-            
+
         for env_i, env_seed in enumerate(env_seeds):
             print(f"Processing {env_seed} ({env_i} / {len(env_seeds)} envs)")
 
@@ -107,7 +111,9 @@ def plot_all(task, control_mode):
 
             episodic_returns = {}
             for variant_i, variant_name in enumerate(["expert", *os.listdir(bc_dir)]):
-                print(f"Processing {variant_name} ({variant_i + 1} / {num_variants + 1} variants)")
+                print(
+                    f"Processing {variant_name} ({variant_i + 1} / {num_variants + 1} variants)"
+                )
 
                 if variant_name == "expert":
                     agent_path = reference_agent_path
@@ -128,13 +134,17 @@ def plot_all(task, control_mode):
 
                                 episodic_returns[variant_name].setdefault(variant, [])
                                 episodic_returns[variant_name][variant].append(
-                                    np.mean(get_returns(agent_path, reference_agent_path))
+                                    np.mean(
+                                        get_returns(agent_path, reference_agent_path)
+                                    )
                                 )
 
             result_per_env[env_seed] = episodic_returns
 
         with open(f"{save_path}/returns.pkl", "wb") as f:
-            pickle.dump((result_per_env, env_configs, env_seeds, expert_paths, bc_paths), f)
+            pickle.dump(
+                (result_per_env, env_configs, env_seeds, expert_paths, bc_paths), f
+            )
 
     # Report performance
     final_result = {}
@@ -150,12 +160,16 @@ def plot_all(task, control_mode):
 
         final_result[env_seed] = {
             "expert": np.mean(variants["expert"]),
-            **{"{}".format(variant): (np.mean(mean), np.std(mean)) for variant, mean in means.items()}
+            **{
+                "{}".format(variant): (np.mean(mean), np.std(mean))
+                for variant, mean in means.items()
+            },
         }
     pprint(final_result)
 
     with open(f"{save_path}/final_result.pkl", "wb") as f:
         pickle.dump(final_result, f)
+
 
 # for task in ["pendulum", "cheetah", "walker"]:
 

@@ -19,7 +19,7 @@ for run_path, _, filenames in os.walk(runs_dir):
         with open(config_path, "r") as f:
             config = json.load(f)
 
-        dirs_to_config = config_path.split("/")[len(dirs_to_runs_dir):]
+        dirs_to_config = config_path.split("/")[len(dirs_to_runs_dir) :]
         env_name = env_map[dirs_to_config[0]]
         control_mode = dirs_to_config[1]
 
@@ -29,11 +29,13 @@ for run_path, _, filenames in os.walk(runs_dir):
             "env_name": env_name,
             "env_kwargs": {
                 "seed": int(
-                    config["learner_config"]["buffer_config"]["load_buffer"].split("-")[1]
+                    config["learner_config"]["buffer_config"]["load_buffer"].split("-")[
+                        1
+                    ]
                 ),
                 "use_default": False,
                 "control_mode": control_mode,
-            }
+            },
         }
 
         with open(config_path, "w+") as f:

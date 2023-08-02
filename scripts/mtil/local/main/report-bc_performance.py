@@ -15,10 +15,13 @@ num_evaluation_episodes = 30
 rollout_seed = 9999
 record_video = False
 
+
 def plot_all(task, control_mode):
     exp_id = "bc_less_data"
     bc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/{exp_id}"
-    expert_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/experts"
+    expert_dir = (
+        f"/Users/chanb/research/personal/mtil_results/final_results/data/experts"
+    )
     experiment_name = "bc_performance-{}_{}".format(task, control_mode)
     save_path = f"./{exp_id}-results-{experiment_name}"
     curr_bc_dir = os.path.join(bc_dir, task, control_mode, "runs")
@@ -53,7 +56,7 @@ def plot_all(task, control_mode):
                     continue
 
                 expert_paths[env_seed] = expert_dir
-            
+
         for env_i, env_seed in enumerate(env_seeds):
             print(f"Processing {env_seed} ({env_i} / {len(env_seeds)} envs)")
 
@@ -80,7 +83,9 @@ def plot_all(task, control_mode):
                 env, policy = get_evaluation_components(
                     agent_path,
                     use_default=True,
-                    ref_agent_path=reference_agent_path if run_name != "expert" else None,
+                    ref_agent_path=reference_agent_path
+                    if run_name != "expert"
+                    else None,
                 )
 
                 checkpoint_manager = CheckpointManager(
@@ -116,7 +121,9 @@ def plot_all(task, control_mode):
             result_per_env[env_seed] = episodic_returns
 
         with open(f"{save_path}/returns.pkl", "wb") as f:
-            pickle.dump((result_per_env, env_configs, env_seeds, expert_paths, bc_paths), f)
+            pickle.dump(
+                (result_per_env, env_configs, env_seeds, expert_paths, bc_paths), f
+            )
 
     # Report performance
     final_result = {}
@@ -130,7 +137,7 @@ def plot_all(task, control_mode):
 
         final_result[env_seed] = {
             "expert": np.mean(returns["expert"]),
-            "bc": (np.mean(means), np.std(means))
+            "bc": (np.mean(means), np.std(means)),
         }
     pprint(final_result)
 

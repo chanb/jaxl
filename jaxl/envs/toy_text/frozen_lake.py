@@ -57,9 +57,7 @@ def is_valid(board: list[list[str]], max_size: int) -> bool:
     return False
 
 
-def generate_random_map(
-    size: int = 8, seed: int | None = None
-) -> list[str]:
+def generate_random_map(size: int = 8, seed: int | None = None) -> list[str]:
     """Generates a random valid map (one that has a path from start to goal)
 
     Args:
@@ -230,13 +228,17 @@ class FrozenLakeEnv(Env):
         desc, goal = generate_random_map()
 
         if use_default:
-            self.slip_prob = [1.0/3.0] * 3
+            self.slip_prob = [1.0 / 3.0] * 3
         else:
             self._rng = np.random.RandomState(seed)
             slip_to_side = self._rng.uniform(size=(2,))
             while np.sum(slip_to_side) > 1.0:
                 slip_to_side = self._rng.uniform(size=(2,))
-            self.slip_prob = [slip_to_side[0], 1 - np.sum(slip_to_side), slip_to_side[1]]
+            self.slip_prob = [
+                slip_to_side[0],
+                1 - np.sum(slip_to_side),
+                slip_to_side[1],
+            ]
 
         self.modified_attributes = {
             "slip_prob": self.slip_prob,
@@ -288,7 +290,10 @@ class FrozenLakeEnv(Env):
                         if self.slip_prob[1] < 1 and a != STAY:
                             for slip_dir, b in enumerate([(a - 1) % 4, a, (a + 1) % 4]):
                                 li.append(
-                                    (self.slip_prob[slip_dir], *update_probability_matrix(row, col, b))
+                                    (
+                                        self.slip_prob[slip_dir],
+                                        *update_probability_matrix(row, col, b),
+                                    )
                                 )
                         else:
                             li.append((1.0, *update_probability_matrix(row, col, a)))
@@ -319,7 +324,9 @@ class FrozenLakeEnv(Env):
         return {"modified_attributes": self.modified_attributes}
 
     def get_obs(self):
-        return np.concatenate((np.eye(self.n_s)[self.s], [self.goal / self.n_s])).astype(np.float32)
+        return np.concatenate(
+            (np.eye(self.n_s)[self.s], [self.goal / self.n_s])
+        ).astype(np.float32)
 
     def step(
         self, action: ActType

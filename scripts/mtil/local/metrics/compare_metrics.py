@@ -58,16 +58,31 @@ def l2_distance(finetune_config, pretrain_config):
         source_env = gym.make(
             source_env_config["env_name"], **source_env_config["env_kwargs"]
         )
-        source_env_paramss.append(
-            source_env.get_config()["modified_attributes"]
-        )
+        source_env_paramss.append(source_env.get_config()["modified_attributes"])
         source_env.close()
 
     target_env_vec = np.array(
-        list(chain(*[val if isinstance(val, Iterable) else [val] for val in jax.tree_util.tree_leaves(target_env_params)]))
+        list(
+            chain(
+                *[
+                    val if isinstance(val, Iterable) else [val]
+                    for val in jax.tree_util.tree_leaves(target_env_params)
+                ]
+            )
+        )
     )
     source_env_vecs = np.array(
-        [list(chain(*[val if isinstance(val, Iterable) else [val] for val in jax.tree_util.tree_leaves(source_env_params)])) for source_env_params in source_env_paramss]
+        [
+            list(
+                chain(
+                    *[
+                        val if isinstance(val, Iterable) else [val]
+                        for val in jax.tree_util.tree_leaves(source_env_params)
+                    ]
+                )
+            )
+            for source_env_params in source_env_paramss
+        ]
     )
 
     pairwise_distance = np.sum(
@@ -112,16 +127,24 @@ def approx_kl(
     source_h_statess = np.stack(source_h_statess)
     source_actionss = np.stack(source_actionss)
 
-    target_states = np.tile(target_env_buffer["observations"][:target_buffer_size][None, ...], (num_tasks, 1, 1))
-    target_h_states = np.tile(target_env_buffer["hidden_states"][:target_buffer_size][None, ...], (num_tasks, 1, 1))
-    target_actions = np.tile(target_env_buffer["actions"][:target_buffer_size][None, ...], (num_tasks, 1, 1))
+    target_states = np.tile(
+        target_env_buffer["observations"][:target_buffer_size][None, ...],
+        (num_tasks, 1, 1),
+    )
+    target_h_states = np.tile(
+        target_env_buffer["hidden_states"][:target_buffer_size][None, ...],
+        (num_tasks, 1, 1),
+    )
+    target_actions = np.tile(
+        target_env_buffer["actions"][:target_buffer_size][None, ...], (num_tasks, 1, 1)
+    )
 
     model = get_model(
         target_states.shape[1:],
         target_env_buffer["act_dim"],
         parse_dict(pretrain_config["model_config"]),
     )
-    
+
     checkpoint_manager = CheckpointManager(
         os.path.join(pretrain_run_dir, "models"),
         PyTreeCheckpointer(),

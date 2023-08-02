@@ -68,7 +68,8 @@ class MTBC(OfflineLearner):
                             batch_size = last_batch_remainder
                             sample_idxes = np.arange(
                                 batch_i * self._config.batch_size,
-                                batch_i * self._config.batch_size + last_batch_remainder,
+                                batch_i * self._config.batch_size
+                                + last_batch_remainder,
                             )
                         else:
                             batch_size = self._config.batch_size
@@ -210,13 +211,13 @@ class MTBC(OfflineLearner):
                 PyTreeCheckpointer(),
             )
             all_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
-            params[CONST_ENCODER] = all_params[CONST_MODEL_DICT][CONST_MODEL][CONST_POLICY][CONST_ENCODER]
+            params[CONST_ENCODER] = all_params[CONST_MODEL_DICT][CONST_MODEL][
+                CONST_POLICY
+            ][CONST_ENCODER]
             if getattr(self._config, CONST_OBS_RMS, False):
                 self._obs_rms_state = all_params[CONST_OBS_RMS]
 
-        opt, opt_state = get_optimizer(
-            self._optimizer_config, self._model, params
-        )
+        opt, opt_state = get_optimizer(self._optimizer_config, self._model, params)
         self._optimizer = {
             CONST_POLICY: opt,
         }

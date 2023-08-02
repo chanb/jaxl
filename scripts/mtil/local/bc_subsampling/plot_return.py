@@ -3,6 +3,7 @@ from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from typing import Iterable
 
 import _pickle as pickle
+import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,12 +22,10 @@ plt.rcParams.update(pgf_with_latex)
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
-buffer_size = 7500
-env_name = "cartpole_continuous"
+
 experiment_name = "bc_subsampling"
-save_path = f"./results-{experiment_name}-size_{buffer_size}-{env_name}"
-experiment_dir = f"./logs/bc_subsampling/{env_name}-size_{buffer_size}"
-reference_agent_path = f"../expert_policies/{env_name}"
+save_path = f"./{experiment_name}-results"
+experiment_dir = f"./logs/{experiment_name}"
 
 num_evaluation_episodes = 50
 env_seed = 9999
@@ -35,106 +34,112 @@ record_video = False
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
 os.makedirs(save_path, exist_ok=True)
-if os.path.isfile(f"{save_path}/returns.pkl"):
-    (result_per_variant, env_configs) = pickle.load(
-        open(f"{save_path}/returns.pkl", "rb")
-    )
+
+
+if os.path.isfile(f"{save_path}/results.pkl"):
+    (results, env_configs) = pickle.load(open(f"{save_path}/results.pkl", "rb"))
 else:
-    result_per_variant = {}
+    results = {}
+    env_configs = {}
+    for agent_path, _, filenames in os.walk(experiment_dir):
+        for filename in filenames:
+            if filename != "config.json":
+                continue
 
-    env_config_path = os.path.join(reference_agent_path, "env_config.pkl")
-    env_config = None
-    if os.path.isfile(env_config_path):
-        env_config = pickle.load(open(env_config_path, "rb"))
+            variant_name = os.path.basename(os.path.dirname(agent_path))
+            variant_info = variant_name.split("-")
+            env_name = variant_info[0]
+            control_mode = variant_info[1]
+            buffer_size = int(variant_info[2].split("buffer_size_")[-1])
+            subsampling = int(
+                os.path.basename(agent_path).split("-")[0].split("subsampling_")[-1]
+            )
 
-    num_variants = len(os.listdir(experiment_dir))
-    for variant_i, variant_name in enumerate(os.listdir(experiment_dir)):
-        print(f"Processing {variant_i + 1} / {num_variants} variants")
-        variant_path = os.path.join(experiment_dir, variant_name)
-        episodic_returns_per_variant = {}
-        entropies = {}
-        for agent_path, _, filenames in os.walk(variant_path):
-            for filename in filenames:
-                if filename != "config.json":
-                    continue
+        reference_agent_path = f"../expert_policies/{env_name}"
 
-                env, policy = get_evaluation_components(
-                    agent_path, use_default=True, ref_agent_path=reference_agent_path
-                )
+        results[(env_name, control_mode)].setdefault({})
+        results[(env_name, control_mode)][subsampling].setdefault([])
 
-                checkpoint_manager = CheckpointManager(
-                    os.path.join(agent_path, "models"),
-                    PyTreeCheckpointer(),
-                )
-                for checkpoint_step in checkpoint_manager.all_steps():
-                    if (
-                        record_video
-                        and checkpoint_step == checkpoint_manager.latest_step()
-                    ):
-                        env = RecordVideoV0(
-                            env,
-                            f"{save_path}/videos/variant_{variant_name}/model_id_{checkpoint_step}",
-                            disable_logger=True,
-                        )
-                    params = checkpoint_manager.restore(checkpoint_step)
-                    model_dict = params[CONST_MODEL_DICT]
-                    agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
-                    agent_obs_rms = False
-                    if CONST_OBS_RMS in params:
-                        agent_obs_rms = RunningMeanStd()
-                        agent_obs_rms.set_state(params[CONST_OBS_RMS])
+        reference_agent_path = f"../expert_policies/{env_name}"
+        env_config_path = os.path.join(reference_agent_path, "env_config.pkl")
+        env_config = None
+        if os.path.isfile(env_config_path):
+            env_config = pickle.load(open(env_config_path, "rb"))
+        env_configs[(env_name, control_mode)] = env_config
 
-                    agent_rollout = EvaluationRollout(env, seed=env_seed)
-                    agent_rollout.rollout(
-                        agent_policy_params,
-                        policy,
-                        agent_obs_rms,
-                        num_evaluation_episodes,
-                        None,
-                        use_tqdm=False,
-                    )
+        env, policy = get_evaluation_components(
+            agent_path, use_default=True, ref_agent_path=reference_agent_path
+        )
+        checkpoint_manager = CheckpointManager(
+            os.path.join(agent_path, "models"),
+            PyTreeCheckpointer(),
+        )
+        params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+        model_dict = params[CONST_MODEL_DICT]
+        agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
+        agent_obs_rms = False
+        if CONST_OBS_RMS in params:
+            agent_obs_rms = RunningMeanStd()
+            agent_obs_rms.set_state(params[CONST_OBS_RMS])
 
-                    episodic_returns_per_variant.setdefault(checkpoint_step, [])
-                    episodic_returns_per_variant[checkpoint_step].append(
-                        np.mean(agent_rollout.episodic_returns)
-                    )
-                    env.close()
+        agent_rollout = EvaluationRollout(env, seed=env_seed)
+        agent_rollout.rollout(
+            agent_policy_params,
+            policy,
+            agent_obs_rms,
+            num_evaluation_episodes,
+            None,
+            use_tqdm=False,
+        )
+        results[(env_name, control_mode)][subsampling].append(
+            (buffer_size, np.mean(agent_rollout.episodic_returns))
+        )
+        env.close()
 
-        result_per_variant[variant_name] = entropies
-        result_per_variant[variant_name] = episodic_returns_per_variant
+    with open(f"{save_path}/results.pkl", "wb") as f:
+        pickle.dump((results, env_configs), f)
 
-    with open(f"{save_path}/returns.pkl", "wb") as f:
-        pickle.dump((result_per_variant, env_config), f)
+num_envs = len(results)
+num_rows = math.ceil(num_envs / 2)
+num_cols = 2
 
 # Plot main return
 fig, axes = plt.subplots(
-    1, 2, figsize=set_size(doc_width_pt, 0.95, (1, 2)), layout="constrained"
+    num_rows,
+    num_cols,
+    figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
+    layout="constrained",
 )
 
-ax = axes[0]
-for variant_name, returns in result_per_variant.items():
-    iteration = list(returns.keys())
-    means = []
-    stds = []
-    for val in returns.values():
-        means.append(np.mean(val))
-        stds.append(np.std(val))
-    means = np.array(means)
-    stds = np.array(stds)
+for ax_i, (env_name, result) in enumerate(results.items()):
+    if axes.ndim == 2:
+        ax = axes[ax_i // num_cols, ax_i % num_cols]
+    else:
+        ax = axes[ax_i]
 
-    sort_idxes = np.argsort(iteration)
-    iteration = np.array(iteration)
-    ax.plot(iteration[sort_idxes], means[sort_idxes], marker="x", label=variant_name)
-    ax.fill_between(
-        iteration[sort_idxes],
-        means[sort_idxes] + stds[sort_idxes],
-        means[sort_idxes] - stds[sort_idxes],
-        alpha=0.3,
-    )
+    for subsampling, returns in result.items():
+        buffer_sizes = np.array(list(returns.keys()))
+        buffer_sizes = np.sort(buffer_sizes)
 
-ax.set_ylabel("Expected Return")
-ax.legend()
+        means = []
+        stds = []
 
+        for buffer_size in buffer_sizes:
+            means.append(np.mean(returns[buffer_size]))
+            stds.append(np.std(returns[buffer_size]))
 
-fig.supxlabel("Iterations")
+        ax.plot(
+            buffer_sizes, means, marker="x", label=f"{subsampling}" if ax_i == 0 else ""
+        )
+        ax.fill_between(
+            buffer_sizes,
+            means + stds,
+            means - stds,
+            alpha=0.3,
+        )
+
+        ax.legend()
+
+fig.supylabel("Expected Return")
+fig.supxlabel("Buffer Sizes")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)

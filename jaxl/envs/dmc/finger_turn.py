@@ -36,7 +36,7 @@ from jaxl.envs.dmc.parameterized_env import (
 )
 
 _DEFAULT_TIME_LIMIT = 20  # (seconds)
-_CONTROL_TIMESTEP = .02   # (seconds)
+_CONTROL_TIMESTEP = 0.02  # (seconds)
 # For TURN tasks, the 'tip' geom needs to enter a spherical target of sizes:
 _EASY_TARGET_SIZE = 0.07
 _HARD_TARGET_SIZE = 0.03
@@ -52,101 +52,109 @@ SUITE = containers.TaggedTasks()
 
 
 class Physics(mujoco.Physics):
-  """Physics simulation with additional features for the Finger domain."""
+    """Physics simulation with additional features for the Finger domain."""
 
-  def touch(self):
-    """Returns logarithmically scaled signals from the two touch sensors."""
-    return np.log1p(self.named.data.sensordata[['touchtop', 'touchbottom']])
+    def touch(self):
+        """Returns logarithmically scaled signals from the two touch sensors."""
+        return np.log1p(self.named.data.sensordata[["touchtop", "touchbottom"]])
 
-  def hinge_velocity(self):
-    """Returns the velocity of the hinge joint."""
-    return self.named.data.sensordata['hinge_velocity']
+    def hinge_velocity(self):
+        """Returns the velocity of the hinge joint."""
+        return self.named.data.sensordata["hinge_velocity"]
 
-  def tip_position(self):
-    """Returns the (x,z) position of the tip relative to the hinge."""
-    return (self.named.data.sensordata['tip'][[0, 2]] -
-            self.named.data.sensordata['spinner'][[0, 2]])
+    def tip_position(self):
+        """Returns the (x,z) position of the tip relative to the hinge."""
+        return (
+            self.named.data.sensordata["tip"][[0, 2]]
+            - self.named.data.sensordata["spinner"][[0, 2]]
+        )
 
-  def bounded_position(self):
-    """Returns the positions, with the hinge angle replaced by tip position."""
-    return np.hstack((self.named.data.sensordata[['proximal', 'distal']],
-                      self.tip_position()))
+    def bounded_position(self):
+        """Returns the positions, with the hinge angle replaced by tip position."""
+        return np.hstack(
+            (self.named.data.sensordata[["proximal", "distal"]], self.tip_position())
+        )
 
-  def velocity(self):
-    """Returns the velocities (extracted from sensordata)."""
-    return self.named.data.sensordata[['proximal_velocity',
-                                       'distal_velocity',
-                                       'hinge_velocity']]
+    def velocity(self):
+        """Returns the velocities (extracted from sensordata)."""
+        return self.named.data.sensordata[
+            ["proximal_velocity", "distal_velocity", "hinge_velocity"]
+        ]
 
-  def target_position(self):
-    """Returns the (x,z) position of the target relative to the hinge."""
-    return (self.named.data.sensordata['target'][[0, 2]] -
-            self.named.data.sensordata['spinner'][[0, 2]])
+    def target_position(self):
+        """Returns the (x,z) position of the target relative to the hinge."""
+        return (
+            self.named.data.sensordata["target"][[0, 2]]
+            - self.named.data.sensordata["spinner"][[0, 2]]
+        )
 
-  def to_target(self):
-    """Returns the vector from the tip to the target."""
-    return self.target_position() - self.tip_position()
+    def to_target(self):
+        """Returns the vector from the tip to the target."""
+        return self.target_position() - self.tip_position()
 
-  def dist_to_target(self):
-    """Returns the signed distance to the target surface, negative is inside."""
-    return (np.linalg.norm(self.to_target()) -
-            self.named.model.site_size['target', 0])
+    def dist_to_target(self):
+        """Returns the signed distance to the target surface, negative is inside."""
+        return (
+            np.linalg.norm(self.to_target()) - self.named.model.site_size["target", 0]
+        )
 
 
 class Turn(base.Task):
-  """A Finger `Task` to turn the body to a target angle."""
+    """A Finger `Task` to turn the body to a target angle."""
 
-  def __init__(self, target_radius, random=None):
-    """Initializes a new `Turn` instance.
+    def __init__(self, target_radius, random=None):
+        """Initializes a new `Turn` instance.
 
-    Args:
-      target_radius: Radius of the target site, which specifies the goal angle.
-      random: Optional, either a `numpy.random.RandomState` instance, an
-        integer seed for creating a new `RandomState`, or None to select a seed
-        automatically (default).
-    """
-    self._target_radius = target_radius
-    super().__init__(random=random)
+        Args:
+          target_radius: Radius of the target site, which specifies the goal angle.
+          random: Optional, either a `numpy.random.RandomState` instance, an
+            integer seed for creating a new `RandomState`, or None to select a seed
+            automatically (default).
+        """
+        self._target_radius = target_radius
+        super().__init__(random=random)
 
-  def initialize_episode(self, physics):
-    target_angle = self.random.uniform(-np.pi, np.pi)
-    hinge_x, hinge_z = physics.named.data.xanchor['hinge', ['x', 'z']]
-    radius = physics.named.model.geom_size['cap1'].sum()
-    target_x = hinge_x + radius * np.sin(target_angle)
-    target_z = hinge_z + radius * np.cos(target_angle)
-    physics.named.model.site_pos['target', ['x', 'z']] = target_x, target_z
-    physics.named.model.site_size['target', 0] = self._target_radius
+    def initialize_episode(self, physics):
+        target_angle = self.random.uniform(-np.pi, np.pi)
+        hinge_x, hinge_z = physics.named.data.xanchor["hinge", ["x", "z"]]
+        radius = physics.named.model.geom_size["cap1"].sum()
+        target_x = hinge_x + radius * np.sin(target_angle)
+        target_z = hinge_z + radius * np.cos(target_angle)
+        physics.named.model.site_pos["target", ["x", "z"]] = target_x, target_z
+        physics.named.model.site_size["target", 0] = self._target_radius
 
-    _set_random_joint_angles(physics, self.random)
+        _set_random_joint_angles(physics, self.random)
 
-    super().initialize_episode(physics)
+        super().initialize_episode(physics)
 
-  def get_observation(self, physics):
-    """Returns state, touch sensors, and target info."""
-    obs = collections.OrderedDict()
-    obs['position'] = physics.bounded_position()
-    obs['velocity'] = physics.velocity()
-    obs['touch'] = physics.touch()
-    obs['target_position'] = physics.target_position()
-    obs['dist_to_target'] = physics.dist_to_target()
-    return obs
+    def get_observation(self, physics):
+        """Returns state, touch sensors, and target info."""
+        obs = collections.OrderedDict()
+        obs["position"] = physics.bounded_position()
+        obs["velocity"] = physics.velocity()
+        obs["touch"] = physics.touch()
+        obs["target_position"] = physics.target_position()
+        obs["dist_to_target"] = physics.dist_to_target()
+        return obs
 
-  def get_reward(self, physics):
-    return float(physics.dist_to_target() <= 0)
+    def get_reward(self, physics):
+        return float(physics.dist_to_target() <= 0)
 
 
 def _set_random_joint_angles(physics, random, max_attempts=1000):
-  """Sets the joints to a random collision-free state."""
+    """Sets the joints to a random collision-free state."""
 
-  for _ in range(max_attempts):
-    randomizers.randomize_limited_and_rotational_joints(physics, random)
-    # Check for collisions.
-    physics.after_reset()
-    if physics.data.ncon == 0:
-      break
-  else:
-    raise RuntimeError('Could not find a collision-free state '
-                       'after {} attempts'.format(max_attempts))
+    for _ in range(max_attempts):
+        randomizers.randomize_limited_and_rotational_joints(physics, random)
+        # Check for collisions.
+        physics.after_reset()
+        if physics.data.ncon == 0:
+            break
+    else:
+        raise RuntimeError(
+            "Could not find a collision-free state "
+            "after {} attempts".format(max_attempts)
+        )
 
 
 class FingerTurnEnv(ParameterizedDMCEnv):
@@ -178,8 +186,12 @@ class FingerTurnEnv(ParameterizedDMCEnv):
         self.task = Turn(target_radius=_EASY_TARGET_SIZE, random=rng)
         environment_kwargs = environment_kwargs or {}
         self.env = control.Environment(
-            physics, self.task, time_limit=time_limit, control_timestep=_CONTROL_TIMESTEP,
-            **environment_kwargs)
+            physics,
+            self.task,
+            time_limit=time_limit,
+            control_timestep=_CONTROL_TIMESTEP,
+            **environment_kwargs,
+        )
 
         super().__init__(
             width,

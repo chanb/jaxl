@@ -193,8 +193,12 @@ class Bring(base.Task):
         obs["touch"] = physics.touch()
         if self._fully_observable:
             obs["hand_pos"] = physics.body_2d_pose("hand")
-            obs["hand_ball_deta"] = physics.body_2d_pose(self._object, orientation=False) - physics.body_2d_pose("hand", orientation=False)
-            obs["ball_target_delta"] = physics.body_2d_pose(self._target, orientation=False) - physics.body_2d_pose(self._object, orientation=False)
+            obs["hand_ball_deta"] = physics.body_2d_pose(
+                self._object, orientation=False
+            ) - physics.body_2d_pose("hand", orientation=False)
+            obs["ball_target_delta"] = physics.body_2d_pose(
+                self._target, orientation=False
+            ) - physics.body_2d_pose(self._object, orientation=False)
             obs["object_vel"] = physics.joint_vel(self._object_joints)
         return obs
 

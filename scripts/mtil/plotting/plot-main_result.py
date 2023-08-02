@@ -59,17 +59,13 @@ def get_result(
 
     bc_path = os.path.join(
         save_path,
-        "bc_main-results-bc_performance-{}_{}".format(
-            task, control_mode
-        ),
+        "bc_main-results-bc_performance-{}_{}".format(task, control_mode),
         "final_result.pkl",
     )
 
     bc_less_data_path = os.path.join(
         save_path,
-        "bc_less_data-results-bc_performance-{}_{}".format(
-            task, control_mode
-        ),
+        "bc_less_data-results-bc_performance-{}_{}".format(task, control_mode),
         "final_result.pkl",
     )
 
@@ -98,12 +94,18 @@ def get_result(
             results.setdefault(env_seed, {})
             if name == "mtbc":
                 results[env_seed]["expert"] = res["expert"]
-                num_tasks = np.sort([int(num_task.split("num_tasks_")[-1]) for num_task in res if num_task != "expert"])
+                num_tasks = np.sort(
+                    [
+                        int(num_task.split("num_tasks_")[-1])
+                        for num_task in res
+                        if num_task != "expert"
+                    ]
+                )
                 keys = ["num_tasks_{}".format(num_task) for num_task in num_tasks]
                 results[env_seed]["mtbc"] = {
                     "num_tasks": num_tasks,
                     "means": np.array([res[num_task][0] for num_task in keys]),
-                    "stds": np.array([res[num_task][1] for num_task in keys])
+                    "stds": np.array([res[num_task][1] for num_task in keys]),
                 }
             else:
                 results[env_seed][name] = {
@@ -112,6 +114,7 @@ def get_result(
                 }
 
     return results
+
 
 for config in configs:
     (
@@ -155,7 +158,7 @@ for config in configs:
             "color": "orange",
             "linewidth": 0.5,
             "linestyle": "--",
-        }
+        },
     }
     for ax_idx, env_seed in enumerate(results):
         curr_env_result = results[env_seed]
@@ -168,14 +171,12 @@ for config in configs:
             row_i = ax_idx // num_cols
             col_i = ax_idx % num_cols
             ax = axes[row_i, col_i]
-        
+
         for name in named_keys:
             vals = curr_env_result[name]
             if name == "mtbc":
                 ax.plot(
-                    vals["num_tasks"],
-                    vals["means"],
-                    label=name if ax_idx == 0 else ""
+                    vals["num_tasks"], vals["means"], label=name if ax_idx == 0 else ""
                 )
                 ax.fill_between(
                     vals["num_tasks"],
@@ -186,9 +187,7 @@ for config in configs:
             else:
                 if isinstance(vals, dict):
                     ax.axhline(
-                        vals["means"],
-                        label=name if ax_idx == 0 else "",
-                        **styles[name]
+                        vals["means"], label=name if ax_idx == 0 else "", **styles[name]
                     )
                     ax.fill_between(
                         curr_env_result["mtbc"]["num_tasks"],
@@ -198,12 +197,11 @@ for config in configs:
                         color=styles[name]["color"],
                     )
                 else:
-                    ax.axhline(
-                        vals,
-                        label=name if ax_idx == 0 else "",
-                        **styles[name]
-                    )
-            ax.set_xlim(curr_env_result["mtbc"]["num_tasks"][0], curr_env_result["mtbc"]["num_tasks"][-1])
+                    ax.axhline(vals, label=name if ax_idx == 0 else "", **styles[name])
+            ax.set_xlim(
+                curr_env_result["mtbc"]["num_tasks"][0],
+                curr_env_result["mtbc"]["num_tasks"][-1],
+            )
             ax.xaxis.set_major_locator(tck.MultipleLocator(4))
             ax.set_title(f"{env_seed}")
 
@@ -218,4 +216,9 @@ for config in configs:
 
     fig.supylabel("Expected Return")
     fig.supxlabel("Amount of Source Tasks")
-    fig.savefig(f"./main_result-{task}_{control_mode}.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    fig.savefig(
+        f"./main_result-{task}_{control_mode}.pdf",
+        format="pdf",
+        bbox_inches="tight",
+        dpi=600,
+    )

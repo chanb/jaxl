@@ -204,7 +204,9 @@ def main(config):
 
         dataset_sample_seed = int(hyperparam_map("dataset_sample_seed"))
         num_tasks = int(hyperparam_map("num_tasks_variant"))
-        variant_name = "num_tasks_{}.dataset_sample_seed_{}".format(num_tasks, dataset_sample_seed)
+        variant_name = "num_tasks_{}.dataset_sample_seed_{}".format(
+            num_tasks, dataset_sample_seed
+        )
         curr_script_dir = os.path.join(base_script_dir, variant_name)
         curr_run_dir = os.path.join(base_run_dir, variant_name)
         os.makedirs(curr_script_dir, exist_ok=True)

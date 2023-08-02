@@ -37,7 +37,9 @@ num_envs_to_test = 8
 default_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_09_01_54-2ae9e079-f3d6-4def-be16-204ce4c44442"
 variant_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_10_07_12-308c3889-7e91-406b-9b1d-a9cfd723defb"
 
-variant_env_seed = json.load(open(os.path.join(variant_agent_path, "config.json"), "r"))["learner_config"]["env_config"]["env_kwargs"]["seed"]
+variant_env_seed = json.load(
+    open(os.path.join(variant_agent_path, "config.json"), "r")
+)["learner_config"]["env_config"]["env_kwargs"]["seed"]
 
 num_evaluation_episodes = 50
 record_video = False
@@ -115,7 +117,9 @@ if os.path.isfile(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl"):
 else:
     all_env_seeds = [None, variant_env_seed, *env_seeds]
 
-    default_episodic_returns, all_env_configs = get_data(default_agent_path, all_env_seeds)
+    default_episodic_returns, all_env_configs = get_data(
+        default_agent_path, all_env_seeds
+    )
     variant_episodic_returns, _ = get_data(variant_agent_path, all_env_seeds)
 
     with open(f"{save_path}/{task}_{control_mode}-returns_{seed}.pkl", "wb") as f:
@@ -146,7 +150,9 @@ seeds_to_plot = np.array(all_env_seeds)
 
 stiffness = np.array(
     [
-        0.0 if env_seed is None else all_env_configs[env_seed]["joint"]["hinge_1"]["stiffness"][0]
+        0.0
+        if env_seed is None
+        else all_env_configs[env_seed]["joint"]["hinge_1"]["stiffness"][0]
         for env_seed in all_env_seeds
     ]
 )

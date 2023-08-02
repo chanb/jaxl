@@ -139,20 +139,22 @@ class ParameterizedDMCEnv(gym.Env):
             if n_dim > 1:
                 self.agent_action_space = spaces.Discrete(2**n_dim)
 
-                action_map = np.array(list(product(np.array([-1.0, 1.0]), repeat=n_dim)))
+                action_map = np.array(
+                    list(product(np.array([-1.0, 1.0]), repeat=n_dim))
+                )
 
                 def process_action(action):
                     return action_map[int(action)]
+
             else:
-                actions = np.concatenate(((
-                    [2.5] ** np.arange(-4, 0)[:, None]
-                ).flatten(), [0.6, 0.8, 1.0]))
+                actions = np.concatenate(
+                    (([2.5] ** np.arange(-4, 0)[:, None]).flatten(), [0.6, 0.8, 1.0])
+                )
                 action_map = np.concatenate([-actions, [0], actions])
                 self.agent_action_space = spaces.Discrete(len(action_map))
 
                 def process_action(u):
                     return action_map[u].item()
-
 
         else:
             self.agent_action_space = self.action_space
