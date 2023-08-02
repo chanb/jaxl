@@ -62,8 +62,8 @@ for env_name, env_config in envs.items():
                 "buffer_seed": int(seed),
             }
 
-            out_path = "configs/{}-subsampling_{}-seed_{}".format(
-                env_name, subsampling, seed
+            out_path = "configs/{}-subsampling_{}-size_{}-seed_{}".format(
+                env_name, subsampling, buffer_size, seed
             )
             with open(f"{out_path}.json", "w+") as f:
                 json.dump(template, f)

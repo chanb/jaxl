@@ -115,6 +115,7 @@ map_env = {
     "cheetah": "Cheetah Run",
     "walker": "Walker Walk",
     "cartpole": "Cartpole Swing Up",
+    "pendulum": "Pendulum",
 }
 map_control = {
     "discrete": "Discrete",
@@ -127,16 +128,22 @@ for ax_i, (env_name, result) in enumerate(results.items()):
     else:
         ax = axes[ax_i]
 
-    for subsampling, returns in result.items():
-        buffer_sizes = np.array(list(returns.keys()))
-        buffer_sizes = np.sort(buffer_sizes)
+    for subsampling, res in result.items():
+        np_res = np.array(res)
+        buffer_sizes, returns = np_res[:, 0], np_res[:, 1]
+        sort_idxes = np.argsort(buffer_sizes)
+        buffer_sizes = buffer_sizes[sort_idxes]
+        returns = returns[sort_idxes]
 
         means = []
         stds = []
 
         for buffer_size in buffer_sizes:
-            means.append(np.mean(returns[buffer_size]))
-            stds.append(np.std(returns[buffer_size]))
+            means.append(np.mean(returns))
+            stds.append(np.std(returns))
+
+        means = np.array(means)
+        stds = np.array(stds)
 
         ax.plot(
             buffer_sizes, means, marker="x", label=f"{subsampling}" if ax_i == 0 else ""
@@ -148,7 +155,7 @@ for ax_i, (env_name, result) in enumerate(results.items()):
             alpha=0.3,
         )
 
-        ax.set_x_title("{} {}".format(map_control[env_name[0]], map_control[env_name[1]]))
+        ax.set_xlabel("{} {}".format(map_env[env_name[0]], map_control[env_name[1]]))
         ax.legend()
 
 fig.supylabel("Expected Return")
