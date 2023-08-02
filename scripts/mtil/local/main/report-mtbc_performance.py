@@ -16,10 +16,10 @@ rollout_seed = 9999
 record_video = False
 
 
-def get_returns(agent_path, reference_agent_path=None):
+def get_returns(agent_path, env_seed, reference_agent_path=None):
     env, policy = get_evaluation_components(
         agent_path,
-        use_default=True,
+        env_seed,
         ref_agent_path=reference_agent_path,
     )
 
@@ -107,6 +107,7 @@ def plot_all(task, control_mode):
             env_configs[env_seed] = env_config
 
             bc_dir = bc_paths[env_seed]
+            env_seed_int = int(env_seed.split("env_seed_")[-1])
             num_variants = len(os.listdir(bc_dir))
 
             episodic_returns = {}
@@ -119,7 +120,7 @@ def plot_all(task, control_mode):
                     agent_path = reference_agent_path
                     episodic_returns.setdefault(variant_name, [])
                     episodic_returns[variant_name].append(
-                        np.mean(get_returns(agent_path))
+                        np.mean(get_returns(agent_path, env_seed_int))
                     )
                 else:
                     episodic_returns.setdefault(variant_name, {})
@@ -135,7 +136,7 @@ def plot_all(task, control_mode):
                                 episodic_returns[variant_name].setdefault(variant, [])
                                 episodic_returns[variant_name][variant].append(
                                     np.mean(
-                                        get_returns(agent_path, reference_agent_path)
+                                        get_returns(agent_path, env_seed_int, reference_agent_path)
                                     )
                                 )
 

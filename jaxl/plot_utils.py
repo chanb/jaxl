@@ -60,7 +60,7 @@ pgf_with_latex = {  # setup matplotlib to use latex for output
 }
 
 
-def get_config(agent_path, env_seed=None, use_default=False, ref_agent_path=None):
+def get_config(agent_path, env_seed=None, ref_agent_path=None):
     agent_config_path = os.path.join(agent_path, "config.json")
     with open(agent_config_path, "r") as f:
         agent_config_dict = json.load(f)
@@ -95,9 +95,9 @@ def get_config(agent_path, env_seed=None, use_default=False, ref_agent_path=None
                 "seed"
             ] = env_seed
 
-        agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
-            "use_default"
-        ] = use_default
+            agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+                "use_default"
+            ] = False
 
         if (
             "parameter_config_path"
@@ -123,9 +123,9 @@ def get_config(agent_path, env_seed=None, use_default=False, ref_agent_path=None
 
 
 def get_evaluation_components(
-    agent_path, env_seed=None, use_default=False, ref_agent_path=None
+    agent_path, env_seed=None, ref_agent_path=None
 ):
-    agent_config, aux = get_config(agent_path, env_seed, use_default, ref_agent_path)
+    agent_config, aux = get_config(agent_path, env_seed, ref_agent_path)
     env = get_environment(agent_config.learner_config.env_config)
 
     input_dim = env.observation_space.shape
