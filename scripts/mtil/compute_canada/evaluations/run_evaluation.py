@@ -104,7 +104,7 @@ def main(config):
     assert os.path.isdir(config.runs_path), f"{config.runs_path} is not a directory"
     assert os.path.isdir(config.save_dir), f"{config.save_dir} is not a directory"
 
-    assert (config.variant_name == "expert") == (config.reference_agent_path is None)
+    assert (config.variant_name == "expert") == (config.reference_agent_path == config.runs_path)
 
     env_seed_int = int(config.env_seed.split("env_seed_")[-1])
     if config.variant_name == "expert":

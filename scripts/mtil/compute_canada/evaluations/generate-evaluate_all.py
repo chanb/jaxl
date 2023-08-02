@@ -58,8 +58,8 @@ for task in tasks:
                 )
 
                 if variant_name == "expert":
-                    dat_content += "export env_seed={} rollout_seed={} num_evaluation_episodes={} variant_name={} runs_path={} save_dir={}\n".format(
-                        env_seed, rollout_seed, num_evaluation_episodes, variant_name, reference_agent_path, curr_save_dir
+                    dat_content += "export env_seed={} rollout_seed={} num_evaluation_episodes={} variant_name={} runs_path={} reference_agent_path={} save_dir={}\n".format(
+                        env_seed, rollout_seed, num_evaluation_episodes, variant_name, reference_agent_path, reference_agent_path, curr_save_dir
                     )
                 else:
                     variant_path = os.path.join(trained_dir, variant_name)
@@ -95,7 +95,14 @@ sbatch_content += "echo ${SLURM_ARRAY_TASK_ID}\n"
 sbatch_content += 'echo "Current working directory is `pwd`"\n'
 sbatch_content += 'echo "Running on hostname `hostname`"\n'
 sbatch_content += 'echo "Starting run at: `date`"\n'
-sbatch_content += "python3 {} \n".format(os.path.join(os.path.dirname(__file__), "run_evaluation.py"))
+sbatch_content += "python3 {} \\\n".format(os.path.join(os.path.dirname(__file__), "run_evaluation.py"))
+sbatch_content += "  --env_seed=${env_seed} \\\n"
+sbatch_content += "  --rollout_seed=${rollout_seed} \\\n"
+sbatch_content += "  --num_evaluation_episodes=${num_evaluation_episodes} \\\n"
+sbatch_content += "  --variant_name=${variant_name} \\\n"
+sbatch_content += "  --runs_path=${runs_path} \\\n"
+sbatch_content += "  --reference_agent_path=${reference_agent_path} \\\n"
+sbatch_content += "  --save_dir=${save_dir}\n"
 sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
 with open(
