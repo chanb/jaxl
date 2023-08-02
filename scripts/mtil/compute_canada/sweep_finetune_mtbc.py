@@ -223,7 +223,7 @@ def main(config):
                     {
                         "load_buffer": dataset_path,
                         "buffer_type": "default",
-                        "set_size": config.num_samples // num_tasks,
+                        "set_size": config.num_samples,
                     }
                 ]
 
