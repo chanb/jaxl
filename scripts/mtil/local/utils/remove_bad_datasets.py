@@ -5,7 +5,14 @@ import os
 
 
 # dir_to_filter = "/Users/chanb/research/personal/mtil_results/final_results/data/expert_data/walker_disc"
-# dir_to_filter = "/home/chanb/scratch/data/expert_data/pendulum_cont"
+dir_to_filter = "/home/chanb/scratch/data/expert_data/frozenlake_disc"
+
+
+# cartpole
+# required_min = 50
+
+# frozenlake
+required_min = 50
 
 # pendulum
 # required_min = -500
