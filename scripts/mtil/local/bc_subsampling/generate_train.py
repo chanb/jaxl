@@ -8,7 +8,7 @@ run_seed = 0
 rng = np.random.RandomState(run_seed)
 
 envs = {
-    "pendulum_continuous": {
+    "frozenlake_discrete": {
         "subsamplings": [1, 20, 200],
     },
     "cheetah_discrete": {

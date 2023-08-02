@@ -22,8 +22,8 @@ def plot_all(task, control_mode):
     expert_dir = (
         f"/Users/chanb/research/personal/mtil_results/final_results/data/experts"
     )
-    experiment_name = "bc_performance-{}_{}".format(task, control_mode)
-    save_path = f"./{exp_id}-results-{experiment_name}"
+    experiment_name = "{}_{}".format(task, control_mode)
+    save_path = f"./bc_performance/{exp_id}-results-{experiment_name}"
     curr_bc_dir = os.path.join(bc_dir, task, control_mode, "runs")
     curr_expert_dir = os.path.join(expert_dir, task, control_mode)
 
