@@ -27,7 +27,7 @@ experiment_name = "bc_subsampling"
 save_path = f"./{experiment_name}-results"
 experiment_dir = f"./logs/{experiment_name}"
 
-num_evaluation_episodes = 50
+num_evaluation_episodes = 30
 env_seed = 9999
 record_video = False
 
@@ -97,6 +97,17 @@ else:
     with open(f"{save_path}/results.pkl", "wb") as f:
         pickle.dump((results, env_configs), f)
 
+expert_returns = {}
+for env_name, control_mode in results:
+    buffer_path = "./logs/demonstrations/expert_buffer-default-{}_{}-num_samples_10000-subsampling_1.gzip".format(
+        env_name, control_mode
+    )
+    with open(buffer_path, "rb") as f:
+        buffer_dict = pickle.load(f)
+        expert_returns[(env_name, control_mode)] = np.sum(
+            buffer_dict["rewards"]
+        ) / np.sum(buffer_dict["dones"])
+
 num_envs = len(results)
 num_rows = math.ceil(num_envs / 2)
 num_cols = 2
@@ -108,7 +119,6 @@ fig, axes = plt.subplots(
     figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
     layout="constrained",
 )
-
 
 map_env = {
     "frozenlake": "Frozen Lake",
@@ -127,6 +137,13 @@ for ax_i, (env_name, result) in enumerate(results.items()):
         ax = axes[ax_i // num_cols, ax_i % num_cols]
     else:
         ax = axes[ax_i]
+
+    ax.avhline(
+        expert_returns[env_name],
+        label="expert" if ax_i == 0 else "",
+        color="black",
+        linestyle="--",
+    )
 
     for subsampling, res in result.items():
         np_res = np.array(res)
