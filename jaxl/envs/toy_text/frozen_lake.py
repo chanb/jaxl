@@ -225,12 +225,22 @@ class FrozenLakeEnv(Env):
         render_mode: str | None = None,
         **kwargs,
     ):
-        desc, goal = generate_random_map()
-
         if use_default:
             self.slip_prob = [1.0 / 3.0] * 3
+            desc = [
+                "SFFFFFFF",
+                "FFFFFFFF",
+                "FFFFFFFF",
+                "FFFFFFFF",
+                "FFFFFFFF",
+                "FFFFFFFF",
+                "FFFFFFFF",
+                "FFFFFFFG",
+            ]
+            goal = [7, 7]
         else:
             self._rng = np.random.RandomState(seed)
+            desc, goal = generate_random_map(seed=seed)
             slip_to_side = self._rng.uniform(size=(2,))
             while np.sum(slip_to_side) > 1.0:
                 slip_to_side = self._rng.uniform(size=(2,))

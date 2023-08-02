@@ -46,6 +46,7 @@ else:
             if filename != "config.json":
                 continue
 
+            print("Processing {}".format(agent_path))
             variant_name = os.path.basename(os.path.dirname(agent_path))
             variant_info = variant_name.split("-")
             (env_name, control_mode) = variant_info[0].split("_")
