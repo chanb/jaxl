@@ -1,6 +1,7 @@
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
 import _pickle as pickle
+import gzip
 import math
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,7 +23,7 @@ doc_width_pt = 452.9679
 
 experiment_name = "bc_amount_data"
 save_path = f"./{experiment_name}-results"
-experiment_dir = f"./logs/{experiment_name}"
+experiment_dir = f"./logs/{experiment_name}/frozenlake_discrete"
 
 num_evaluation_episodes = 30
 env_seed = 9999
@@ -44,10 +45,9 @@ else:
                 continue
 
             print("Processing {}".format(agent_path))
-            variant_name = os.path.basename(os.path.dirname(agent_path))
-            variant_info = variant_name.split("-")
-            (env_name, control_mode) = variant_info[0].split("_")
-            buffer_size = int(variant_info[1].split("size_")[-1])
+            variant_name = os.path.dirname(agent_path).split("/")[-2:]
+            (env_name, control_mode) = variant_name[0].split("_")
+            buffer_size = int(variant_name[1].split("size_")[-1])
 
             reference_agent_path = f"../expert_policies/{env_name}_{control_mode}"
 
@@ -59,7 +59,7 @@ else:
             env_configs[(env_name, control_mode)] = env_config
 
             env, policy = get_evaluation_components(
-                agent_path, use_default=True, ref_agent_path=reference_agent_path
+                agent_path, ref_agent_path=reference_agent_path
             )
             checkpoint_manager = CheckpointManager(
                 os.path.join(agent_path, "models"),
@@ -91,11 +91,18 @@ else:
         pickle.dump((results, env_configs), f)
 
 expert_returns = {}
+subsampling_map = {
+    "frozenlake": 200,
+    "pendulum": 200,
+    "cartpole": 1000,
+    "cheetah": 1000,
+    "walker": 1000,
+}
 for env_name, control_mode in results:
-    buffer_path = "./logs/demonstrations/expert_buffer-default-{}_{}-num_samples_10000-subsampling_1.gzip".format(
-        env_name, control_mode
+    buffer_path = "./logs/demonstrations/expert_buffer-default-{}_{}-num_samples_100000-subsampling_{}.gzip".format(
+        env_name, control_mode, subsampling_map[env_name]
     )
-    with open(buffer_path, "rb") as f:
+    with gzip.open(buffer_path, "rb") as f:
         buffer_dict = pickle.load(f)
         expert_returns[(env_name, control_mode)] = np.sum(
             buffer_dict["rewards"]
@@ -131,7 +138,7 @@ for ax_i, (env_name, res) in enumerate(results.items()):
     else:
         ax = axes[ax_i]
 
-    ax.avhline(
+    ax.axhline(
         expert_returns[env_name],
         label="expert" if ax_i == 0 else "",
         color="black",
@@ -168,5 +175,5 @@ for ax_i, (env_name, res) in enumerate(results.items()):
     ax.legend()
 
 fig.supylabel("Expected Return")
-fig.supxlabel("Buffer Sizes")
+fig.supxlabel("Buffer Size")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)

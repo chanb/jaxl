@@ -9,7 +9,7 @@ rng = np.random.RandomState(run_seed)
 
 envs = {
     "frozenlake_discrete": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
+        "buffer_sizes": [10, 25, 50, 75],
         "max_episode_length": 200,
     },
     # "cartpole_continuous": {
