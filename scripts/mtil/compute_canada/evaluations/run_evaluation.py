@@ -120,7 +120,14 @@ def main(config):
 
     env_seed_int = int(config.env_seed.split("env_seed_")[-1])
     if config.variant_name == "expert":
-        np.mean(get_returns(config.agent_path, env_seed_int))
+        np.mean(
+            get_returns(
+                config.agent_path,
+                env_seed_int,
+                config.rollout_seed,
+                config.num_evaluation_episodes,
+            )
+        )
     else:
         result = []
         for agent_path, _, filenames in os.walk(config.runs_path):
@@ -131,7 +138,11 @@ def main(config):
                 result.append(
                     np.mean(
                         get_returns(
-                            agent_path, env_seed_int, config.reference_agent_path
+                            agent_path,
+                            env_seed_int,
+                            config.rollout_seed,
+                            config.num_evaluation_episodes,
+                            config.reference_agent_path,
                         )
                     )
                 )
