@@ -137,7 +137,6 @@ def plot_all(task, control_mode):
             means.append(returns[variant])
 
         final_result[env_seed] = {
-            "expert": np.mean(returns["expert"]),
             "bc": (np.mean(means), np.std(means)),
         }
     pprint(final_result)

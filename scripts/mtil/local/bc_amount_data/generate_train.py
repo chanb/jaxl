@@ -8,26 +8,30 @@ run_seed = 0
 rng = np.random.RandomState(run_seed)
 
 envs = {
-    "cartpole_continuous": {
-        "buffer_sizes": [1000, 2500, 5000, 10000, 25000, 50000, 100000],
-        "max_episode_length": 1000,
-    },
-    "cheetah_continuous": {
+    "frozenlake_discrete": {
         "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
-        "max_episode_length": 1000,
+        "max_episode_length": 200,
     },
-    "cheetah_discrete": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
-        "max_episode_length": 1000,
-    },
-    "walker_continuous": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
-        "max_episode_length": 1000,
-    },
-    "walker_discrete": {
-        "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
-        "max_episode_length": 1000,
-    },
+    # "cartpole_continuous": {
+    #     "buffer_sizes": [1000, 2500, 5000, 10000, 25000, 50000, 100000],
+    #     "max_episode_length": 1000,
+    # },
+    # "cheetah_continuous": {
+    #     "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
+    #     "max_episode_length": 1000,
+    # },
+    # "cheetah_discrete": {
+    #     "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
+    #     "max_episode_length": 1000,
+    # },
+    # "walker_continuous": {
+    #     "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
+    #     "max_episode_length": 1000,
+    # },
+    # "walker_discrete": {
+    #     "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
+    #     "max_episode_length": 1000,
+    # },
 }
 data_dir = "./logs/demonstrations"
 config_template = "/Users/chanb/research/personal/jaxl/scripts/mtil/experiments/configs/bc_amount_data/bc_template.json"

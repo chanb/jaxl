@@ -1,17 +1,14 @@
-from gymnasium.experimental.wrappers import RecordVideoV0
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
-from typing import Iterable
 
 import _pickle as pickle
 import math
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 from jaxl.constants import *
 from jaxl.envs.rollouts import EvaluationRollout
-from jaxl.utils import RunningMeanStd, flatten_dict
+from jaxl.utils import RunningMeanStd
 from jaxl.plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
