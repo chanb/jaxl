@@ -122,6 +122,7 @@ def main(config):
                     )
                 )
     save_path = os.path.join(config.save_dir, config.env_seed, config.variant_name)
+    os.makedirs(os.path.join(config.save_dir, config.env_seed), exist_ok=True)
     with open("{}.pkl".format(save_path), "wb") as f:
         pickle.dump(result)
 
