@@ -120,7 +120,7 @@ def main(config):
 
     env_seed_int = int(config.env_seed.split("env_seed_")[-1])
     if config.variant_name == "expert":
-        np.mean(
+        result = np.mean(
             get_returns(
                 config.runs_path,
                 env_seed_int,
