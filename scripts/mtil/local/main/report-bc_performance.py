@@ -23,7 +23,7 @@ def plot_all(task, control_mode):
         f"/Users/chanb/research/personal/mtil_results/final_results/data/experts"
     )
     experiment_name = "{}_{}".format(task, control_mode)
-    save_path = f"./bc_performance/{exp_id}-results-{experiment_name}"
+    save_path = f"./final_results/bc_performance/{exp_id}-results-{experiment_name}"
     curr_bc_dir = os.path.join(bc_dir, task, control_mode, "runs")
     curr_expert_dir = os.path.join(expert_dir, task, control_mode)
 
@@ -63,6 +63,7 @@ def plot_all(task, control_mode):
             reference_agent_path = expert_paths[env_seed]
             env_config_path = os.path.join(reference_agent_path, "env_config.pkl")
             env_config = None
+            env_seed_int = int(env_seed.split("env_seed_")[-1])
             if os.path.isfile(env_config_path):
                 env_config = pickle.load(open(env_config_path, "rb"))
 
@@ -76,13 +77,13 @@ def plot_all(task, control_mode):
                 print(f"Processing {run_name} ({run_i + 1} / {num_runs + 1} runs)")
 
                 if run_name == "expert":
-                    agent_path = reference_agent_path
+                    continue
                 else:
                     agent_path = os.path.join(bc_dir, run_name)
 
                 env, policy = get_evaluation_components(
                     agent_path,
-                    use_default=True,
+                    env_seed_int,
                     ref_agent_path=reference_agent_path
                     if run_name != "expert"
                     else None,
