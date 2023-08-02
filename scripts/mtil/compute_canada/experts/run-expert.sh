@@ -121,6 +121,8 @@ python ../sweep_rl.py \
     --exp_name=walker
 
 chmod +x run_all-*.sh
+sbatch run_all-rl-cartpole_cont-cartpole_continuous.sh
+sbatch run_all-rl-frozenlake_disc-frozenlake_discrete.sh
 sbatch run_all-rl-cheetah_cont-cheetah_continuous.sh
 sbatch run_all-rl-cheetah_disc-cheetah_discrete.sh
 sbatch run_all-rl-walker_cont-walker_continuous.sh
