@@ -373,6 +373,12 @@ for env_name in env_names:
 
         for col_i, x in enumerate(xs):
             ax = axes[row_i, col_i]
+
+            if col_i == 0:
+                x = 1 - jax.nn.sigmoid(x / 100)
+            elif col_i == 1:
+                x = 1 - jax.nn.sigmoid(x)
+
             ax.scatter(
                 x, ys, label=f"{num_task}" if row_i + col_i == 0 else "", s=1,
             )
