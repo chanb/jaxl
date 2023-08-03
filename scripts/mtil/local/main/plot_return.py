@@ -56,7 +56,7 @@ else:
                     if bc_run == "expert.pkl":
                         continue
                     bc_run_result = pickle.load(open(os.path.join(bc_run_dir, bc_run), "rb"))
-                    results[(env_name, control_mode)][env_seed]["bc"] += bc_run_result
+                    results[(env_name, control_mode)][env_seed]["bc"] += bc_run_result[0]
             else:
                 num_tasks = int(filename[:-4].split("num_tasks_")[-1])
                 results[(env_name, control_mode)][env_seed].setdefault("mtbc", [])

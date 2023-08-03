@@ -373,25 +373,15 @@ for env_name in env_names:
         diversities_to_add = []
         returns_to_add = None
         for (env_seed, pretrain_model_seed, diversities) in res:
-            # if env_seed != curr_env_seed:
-            #     if curr_env_seed is not None:
-            #         sort_idxes = np.argsort(np.array(diversities_to_add)[:, -1])
-            #         for sort_idx, y in zip(sort_idxes, np.sort(returns_to_add)):
-            #             xs.append(diversities_to_add[sort_idx])
-            #             ys.append(y)
+            mtbc_variants = returns[env_name][env_seed]["mtbc"]
+            for mtbc_variant in mtbc_variants:
+                if mtbc_variant[0] != num_task:
+                    continue
 
-            #     curr_env_seed = env_seed[2]
-            #     diversities_to_add = []
-            #     returns_to_add = None
-
-            # num_tasks, env_returns = list(zip(*returns[env_name][env_seed[2]]["mtbc"]))
-            # diversities_to_add.append(diversities)
-            # returns_to_add = env_returns[num_tasks == num_task]
-
-            import ipdb
-            ipdb.set_trace()
-            xs.append(diversities)
-            ys.append(np.mean(env_returns[num_tasks == num_task]))
+                for variant_i, variant_path in enumerate(mtbc_variant[1]):
+                    if int(variant_path.split("/")[-2].split("pretrained_model_seed_")[-1]) == pretrain_model_seed:
+                        xs.append(diversities)
+                        ys.append(mtbc_variant[2][variant_i])
 
         xs = np.array(xs).T
         ys = np.array(ys)
