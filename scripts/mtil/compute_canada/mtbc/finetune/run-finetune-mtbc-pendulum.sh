@@ -15,7 +15,7 @@ python ../../sweep_finetune_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/pendulum_cont \
     --num_heldouts=10 \
     --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/pendulum/continuous \
-    --num_samples=400 \
+    --num_samples=1000 \
     --exp_name=pendulum
 
 
@@ -29,7 +29,7 @@ python ../../sweep_finetune_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/pendulum_disc \
     --num_heldouts=10 \
     --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/pendulum/discrete \
-    --num_samples=400 \
+    --num_samples=1000 \
     --discrete_control \
     --exp_name=pendulum
 

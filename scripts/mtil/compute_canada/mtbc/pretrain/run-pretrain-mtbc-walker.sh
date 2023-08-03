@@ -15,7 +15,7 @@ python ../../sweep_pretrain_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/walker_cont \
     --num_heldouts=10 \
     --num_tasks_variants=1,2,4,8,16 \
-    --num_samples=6400 \
+    --num_samples=2000 \
     --exp_name=walker \
     --samples_per_task \
     --run_time=01:30:00 \
@@ -32,7 +32,7 @@ python ../../sweep_pretrain_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/walker_disc \
     --num_heldouts=10 \
     --num_tasks_variants=1,2,4,8,16 \
-    --num_samples=2000 \
+    --num_samples=500 \
     --discrete_control \
     --exp_name=walker \
     --samples_per_task \

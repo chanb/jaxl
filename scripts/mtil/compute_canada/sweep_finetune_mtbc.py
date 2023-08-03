@@ -147,7 +147,7 @@ def main(config):
         template["logging_config"]["checkpoint_interval"] = False
 
     rng = np.random.RandomState(config.run_seed)
-    model_seeds = rng.permutation(2**10)[: config.num_runs]
+    model_seeds = rng.permutation(2**8)[: config.num_runs]
 
     # Hyperparameter list
     hyperparamss = (

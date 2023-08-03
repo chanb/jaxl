@@ -32,7 +32,7 @@ python ../../sweep_pretrain_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/pendulum_disc \
     --num_heldouts=10 \
     --num_tasks_variants=1,2,4,8,16 \
-    --num_samples=2500 \
+    --num_samples=1000 \
     --samples_per_task \
     --discrete_control \
     --exp_name=pendulum \

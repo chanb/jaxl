@@ -1,5 +1,6 @@
 import os
 
+# Main
 # tasks = ["pendulum", "cheetah", "walker"]
 # control_modes = ["discrete", "continuous"]
 
@@ -9,7 +10,15 @@ import os
 # tasks = ["cartpole"]
 # control_modes = ["continuous"]
 
-exp_name = "finetune_mtbc_main"
+# Vary source tasks and model architecture
+# tasks = ["pendulum"]
+# control_modes = ["discrete", "continuous"]
+
+# Vary amount of source data
+# tasks = ["cartpole"]
+# control_modes = ["continuous"]
+
+exp_name = "bc_less_data"
 run_time = "00:30:00"
 num_evaluation_episodes = 30
 rollout_seed = 9999

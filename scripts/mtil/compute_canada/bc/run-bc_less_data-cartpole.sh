@@ -14,7 +14,7 @@ python ../sweep_bc.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/cartpole_cont \
     --num_heldouts=10 \
-    --num_samples=50000 \
+    --num_samples=10000 \
     --exp_name=cartpole
 
 chmod +x run_all-*.sh

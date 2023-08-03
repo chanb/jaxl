@@ -14,7 +14,7 @@ python ../sweep_bc.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_cont \
     --num_heldouts=10 \
-    --num_samples=1100 \
+    --num_samples=2000 \
     --exp_name=walker
 
 
@@ -27,7 +27,7 @@ python ../sweep_bc.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_disc \
     --num_heldouts=10 \
-    --num_samples=100 \
+    --num_samples=500 \
     --discrete_control \
     --exp_name=walker
 
