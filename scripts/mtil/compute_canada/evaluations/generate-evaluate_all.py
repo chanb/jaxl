@@ -1,22 +1,15 @@
 import os
 
-# Main
-# tasks = ["pendulum", "cheetah", "walker"]
-# control_modes = ["discrete", "continuous"]
-
-# tasks = ["frozenlake"]
-# control_modes = ["discrete"]
-
-# tasks = ["cartpole"]
-# control_modes = ["continuous"]
-
-# Vary source tasks and model architecture
-# tasks = ["pendulum"]
-# control_modes = ["discrete", "continuous"]
-
-# Vary amount of source data
-# tasks = ["cartpole"]
-# control_modes = ["continuous"]
+env_names = [
+    ("frozenlake", "discrete"),
+    ("cartpole", "continuous"),
+    ("pendulum", "discrete"),
+    ("pendulum", "continuous"),
+    ("cheetah", "discrete"),
+    ("cheetah", "continuous"),
+    ("walker", "discrete"),
+    ("walker", "continuous"),
+]
 
 exp_name = "bc_less_data"
 run_time = "00:30:00"
@@ -32,69 +25,68 @@ save_dir = os.path.join(base_dir, f"evaluations/results-{exp_name}")
 
 dat_content = ""
 num_runs = 0
-for task in tasks:
-    for control_mode in control_modes:
-        curr_env_dir = os.path.join(exp_dir, task, control_mode, "runs")
-        curr_expert_dir = os.path.join(expert_dir, task, control_mode)
-        curr_save_dir = os.path.join(save_dir, task, control_mode)
-        os.makedirs(curr_save_dir, exist_ok=True)
+for (task, control_mode) in env_names:
+    curr_env_dir = os.path.join(exp_dir, task, control_mode, "runs")
+    curr_expert_dir = os.path.join(expert_dir, task, control_mode)
+    curr_save_dir = os.path.join(save_dir, task, control_mode)
+    os.makedirs(curr_save_dir, exist_ok=True)
 
-        expert_paths = {}
-        trained_paths = {}
-        env_seeds = []
-        for bc_variant_name in os.listdir(curr_env_dir):
-            if bc_variant_name == ".DS_Store":
+    expert_paths = {}
+    trained_paths = {}
+    env_seeds = []
+    for bc_variant_name in os.listdir(curr_env_dir):
+        if bc_variant_name == ".DS_Store":
+            continue
+        env_seeds.append(bc_variant_name.split(".")[2])
+        trained_paths[env_seeds[-1]] = os.path.join(curr_env_dir, bc_variant_name)
+
+    for expert_path, _, filenames in os.walk(curr_expert_dir):
+        env_seed = os.path.basename(os.path.dirname(expert_path))
+        if env_seed not in env_seeds:
+            continue
+
+        for filename in filenames:
+            if filename != "config.json":
                 continue
-            env_seeds.append(bc_variant_name.split(".")[2])
-            trained_paths[env_seeds[-1]] = os.path.join(curr_env_dir, bc_variant_name)
 
-        for expert_path, _, filenames in os.walk(curr_expert_dir):
-            env_seed = os.path.basename(os.path.dirname(expert_path))
-            if env_seed not in env_seeds:
-                continue
+            expert_paths[env_seed] = expert_path
 
-            for filename in filenames:
-                if filename != "config.json":
-                    continue
+    for env_i, env_seed in enumerate(env_seeds):
+        reference_agent_path = expert_paths[env_seed]
 
-                expert_paths[env_seed] = expert_path
+        trained_dir = trained_paths[env_seed]
+        num_variants = len(os.listdir(trained_dir))
 
-        for env_i, env_seed in enumerate(env_seeds):
-            reference_agent_path = expert_paths[env_seed]
+        episodic_returns = {}
+        for variant_i, variant_name in enumerate(
+            ["expert", *os.listdir(trained_dir)]
+        ):
+            num_runs += 1
+            print(
+                f"Processing {variant_name} ({variant_i + 1} / {num_variants + 1} variants)"
+            )
 
-            trained_dir = trained_paths[env_seed]
-            num_variants = len(os.listdir(trained_dir))
-
-            episodic_returns = {}
-            for variant_i, variant_name in enumerate(
-                ["expert", *os.listdir(trained_dir)]
-            ):
-                num_runs += 1
-                print(
-                    f"Processing {variant_name} ({variant_i + 1} / {num_variants + 1} variants)"
+            if variant_name == "expert":
+                dat_content += "export env_seed={} rollout_seed={} num_evaluation_episodes={} variant_name={} runs_path={} reference_agent_path={} save_dir={}\n".format(
+                    env_seed,
+                    rollout_seed,
+                    num_evaluation_episodes,
+                    variant_name,
+                    reference_agent_path,
+                    reference_agent_path,
+                    curr_save_dir,
                 )
-
-                if variant_name == "expert":
-                    dat_content += "export env_seed={} rollout_seed={} num_evaluation_episodes={} variant_name={} runs_path={} reference_agent_path={} save_dir={}\n".format(
-                        env_seed,
-                        rollout_seed,
-                        num_evaluation_episodes,
-                        variant_name,
-                        reference_agent_path,
-                        reference_agent_path,
-                        curr_save_dir,
-                    )
-                else:
-                    variant_path = os.path.join(trained_dir, variant_name)
-                    dat_content += "export env_seed={} rollout_seed={} num_evaluation_episodes={} variant_name={} runs_path={} reference_agent_path={} save_dir={}\n".format(
-                        env_seed,
-                        rollout_seed,
-                        num_evaluation_episodes,
-                        variant_name,
-                        variant_path,
-                        reference_agent_path,
-                        curr_save_dir,
-                    )
+            else:
+                variant_path = os.path.join(trained_dir, variant_name)
+                dat_content += "export env_seed={} rollout_seed={} num_evaluation_episodes={} variant_name={} runs_path={} reference_agent_path={} save_dir={}\n".format(
+                    env_seed,
+                    rollout_seed,
+                    num_evaluation_episodes,
+                    variant_name,
+                    variant_path,
+                    reference_agent_path,
+                    curr_save_dir,
+                )
 
 dat_path = os.path.join(f"./export-evaluate_all-{exp_name}.dat")
 with open(dat_path, "w+") as f:
