@@ -1,7 +1,13 @@
 import os
 
-tasks = ["pendulum", "cheetah", "walker"]
-control_modes = ["discrete", "continuous"]
+# tasks = ["pendulum", "cheetah", "walker"]
+# control_modes = ["discrete", "continuous"]
+
+# tasks = ["frozenlake"]
+# control_modes = ["discrete"]
+
+# tasks = ["cartpole"]
+# control_modes = ["continuous"]
 
 exp_name = "finetune_mtbc_main"
 run_time = "00:30:00"
