@@ -130,11 +130,13 @@ def main(config):
         )
     else:
         result = []
+        paths = []
         for agent_path, _, filenames in os.walk(config.runs_path):
             for filename in filenames:
                 if filename != "config.json":
                     continue
 
+                paths.append(agent_path)
                 result.append(
                     np.mean(
                         get_returns(
@@ -149,7 +151,7 @@ def main(config):
     save_path = os.path.join(config.save_dir, config.env_seed, config.variant_name)
     os.makedirs(os.path.join(config.save_dir, config.env_seed), exist_ok=True)
     with open("{}.pkl".format(save_path), "wb") as f:
-        pickle.dump(result, f)
+        pickle.dump((result, paths), f)
 
 
 if __name__ == "__main__":
