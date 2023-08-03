@@ -11,7 +11,17 @@ env_names = [
     ("walker", "continuous"),
 ]
 
-exp_name = "bc_less_data"
+# exp_name = "bc_less_data"
+exp_name = "finetune_mtbc_main"
+exp_suffix = ""
+
+# Ablations
+# exp_suffix = "-double_source_data"
+# exp_suffix = "-quadruple_source_data"
+
+# exp_name = "finetune_mtbc"
+# exp_suffix = "-larger_architecture"
+
 run_time = "00:20:00"
 num_evaluation_episodes = 30
 rollout_seed = 9999
@@ -26,9 +36,10 @@ save_dir = os.path.join(base_dir, f"evaluations/results-{exp_name}")
 dat_content = ""
 num_runs = 0
 for (task, control_mode) in env_names:
-    curr_env_dir = os.path.join(exp_dir, task, control_mode, "runs")
+    task_with_suffix = f"{task}{exp_suffix}"
+    curr_env_dir = os.path.join(exp_dir, task_with_suffix, control_mode, "runs")
     curr_expert_dir = os.path.join(expert_dir, task, control_mode)
-    curr_save_dir = os.path.join(save_dir, task, control_mode)
+    curr_save_dir = os.path.join(save_dir, task_with_suffix, control_mode)
     os.makedirs(curr_save_dir, exist_ok=True)
 
     expert_paths = {}
