@@ -12,7 +12,7 @@ env_names = [
 ]
 
 exp_name = "bc_less_data"
-run_time = "00:30:00"
+run_time = "00:20:00"
 num_evaluation_episodes = 30
 rollout_seed = 9999
 
