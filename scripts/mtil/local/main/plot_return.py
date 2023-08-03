@@ -1,6 +1,7 @@
 import _pickle as pickle
 import math
 import matplotlib.pyplot as plt
+import matplotlib.ticker as tck
 import numpy as np
 import os
 
@@ -113,7 +114,7 @@ for env_name in env_names:
 
         ax.axhline(
             res["expert"],
-            label="expert" if ax_i == 0 else "",
+            label="Expert" if ax_i == 0 else "",
             color="black",
             linestyle="--",
         )
@@ -154,8 +155,8 @@ for env_name in env_names:
             alpha=0.3,
         )
 
+        ax.xaxis.set_major_locator(tck.MultipleLocator(4))
         ax.set_xlim(unique_num_tasks[0], unique_num_tasks[-1])
-        ax.set_title(env_seed)
         ax.legend()
 
     fig.supylabel("Expected Return")
