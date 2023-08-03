@@ -17,7 +17,7 @@ python ../../sweep_pretrain_mtbc.py \
     --num_tasks_variants=1,2,4,8,16 \
     --num_samples=25000 \
     --samples_per_task \
-    --exp_name=cartpole \
+    --exp_name=cartpole_half_source_data \
     --num_epochs=5000 \
     --run_time=01:30:00
 
@@ -34,7 +34,7 @@ python ../../sweep_pretrain_mtbc.py \
     --num_tasks_variants=1,2,4,8,16 \
     --num_samples=12500 \
     --samples_per_task \
-    --exp_name=cartpole \
+    --exp_name=cartpole_quarter_source_data \
     --num_epochs=5000 \
     --run_time=01:30:00
 
@@ -51,9 +51,11 @@ python ../../sweep_pretrain_mtbc.py \
     --num_tasks_variants=1,2,4,8,16 \
     --num_samples=5000 \
     --samples_per_task \
-    --exp_name=cartpole \
+    --exp_name=cartpole_tenth_source_data \
     --num_epochs=5000 \
     --run_time=01:30:00
 
 chmod +x run_all-*.sh
-sbatch run_all-pretrain-mtbc-single_sweep-cartpole_continuous.sh
+sbatch run_all-pretrain-mtbc-single_sweep-cartpole_half_source_data_continuous.sh
+sbatch run_all-pretrain-mtbc-single_sweep-cartpole_quarter_source_data_continuous.sh
+sbatch run_all-pretrain-mtbc-single_sweep-cartpole_tenth_source_data_continuous.sh
