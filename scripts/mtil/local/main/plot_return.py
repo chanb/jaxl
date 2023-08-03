@@ -66,16 +66,17 @@ else:
         pickle.dump(results, f)
 
 
+
 map_env = {
-    "frozenlake": "Frozen Lake",
-    "cheetah": "Cheetah Run",
-    "walker": "Walker Walk",
-    "cartpole": "Cartpole Swing Up",
-    "pendulum": "Pendulum",
+    "frozenlake": "frozen lake",
+    "cheetah": "cheetah",
+    "walker": "walker",
+    "cartpole": "cartpole",
+    "pendulum": "pendulum",
 }
 map_control = {
-    "discrete": "Discrete",
-    "continuous": "Continuous",
+    "discrete": "discrete",
+    "continuous": "continuous",
 }
 
 env_names = [
@@ -161,5 +162,5 @@ for env_name in env_names:
 
     fig.supylabel("Expected Return")
     fig.supxlabel("Number of Tasks")
-    fig.suptitle("{} {}".format(map_env[env_name[0]], map_control[env_name[1]]))
+    # fig.suptitle("{} {}".format(map_control[env_name[1]], map_env[env_name[0]]))
     fig.savefig(f"{save_path}/returns-{env_name[0]}_{env_name[1]}.pdf", format="pdf", bbox_inches="tight", dpi=600)

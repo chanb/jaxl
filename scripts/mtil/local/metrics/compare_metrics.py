@@ -231,11 +231,11 @@ env_names = [
     # ("frozenlake", "discrete"),
     # ("cartpole", "continuous"),
     ("pendulum", "discrete"),
-    # ("pendulum", "continuous"),
-    # ("cheetah", "discrete"),
-    # ("cheetah", "continuous"),
-    # ("walker", "discrete"),
-    # ("walker", "continuous"),
+    ("pendulum", "continuous"),
+    ("cheetah", "discrete"),
+    ("cheetah", "continuous"),
+    ("walker", "discrete"),
+    ("walker", "continuous"),
 ]
 save_path = f"./final_results/{finetune_dir}"
 os.makedirs(save_path, exist_ok=True)
@@ -421,7 +421,7 @@ for env_name in env_names:
             # ax.yaxis.set_major_formatter(FormatStrFormatter("%.2f"))
 
     (task, control_mode) = env_name
-    fig.suptitle("{} {}".format(map_env[task], map_control[control_mode]))
+    # fig.suptitle("{} {}".format(map_env[task], map_control[control_mode]))
     fig.supylabel("Expected Return")
     fig.supxlabel("Diversity")
     fig.savefig(f"{save_path}/diversity_return-{task}_{control_mode}.pdf", format="pdf", bbox_inches="tight", dpi=600)

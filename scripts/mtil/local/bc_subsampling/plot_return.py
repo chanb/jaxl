@@ -128,18 +128,32 @@ fig, axes = plt.subplots(
 )
 
 map_env = {
-    "frozenlake": "Frozen Lake",
-    "cheetah": "Cheetah Run",
-    "walker": "Walker Walk",
-    "cartpole": "Cartpole Swing Up",
-    "pendulum": "Pendulum",
+    "frozenlake": "frozen lake",
+    "cheetah": "cheetah",
+    "walker": "walker",
+    "cartpole": "cartpole",
+    "pendulum": "pendulum",
 }
 map_control = {
-    "discrete": "Discrete",
-    "continuous": "Continuous",
+    "discrete": "discrete",
+    "continuous": "continuous",
 }
 
-for ax_i, (env_name, result) in enumerate(results.items()):
+
+env_names = [
+    ("frozenlake", "discrete"),
+    ("cartpole", "continuous"),
+    # ("pendulum", "discrete"),
+    # ("pendulum", "continuous"),
+    ("cheetah", "discrete"),
+    ("cheetah", "continuous"),
+    ("walker", "discrete"),
+    ("walker", "continuous"),
+]
+
+# Plot main return
+for ax_i, env_name in enumerate(env_names):
+    result = results[env_name]
     if axes.ndim == 2:
         ax = axes[ax_i // num_cols, ax_i % num_cols]
     else:
@@ -183,7 +197,7 @@ for ax_i, (env_name, result) in enumerate(results.items()):
             alpha=0.3,
         )
 
-        ax.set_xlabel("{} {}".format(map_env[env_name[0]], map_control[env_name[1]]))
+        ax.set_xlabel("{} {}".format(map_control[env_name[1]], map_env[env_name[0]]))
         ax.legend()
 
 fig.supylabel("Expected Return")
