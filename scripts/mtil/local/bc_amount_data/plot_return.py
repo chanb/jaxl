@@ -23,7 +23,7 @@ doc_width_pt = 452.9679
 
 experiment_name = "bc_amount_data"
 save_path = f"./{experiment_name}-results"
-experiment_dir = f"./logs/{experiment_name}/frozenlake_discrete"
+experiment_dir = f"./logs/{experiment_name}"
 
 num_evaluation_episodes = 30
 env_seed = 9999
@@ -132,7 +132,19 @@ map_control = {
     "continuous": "Continuous",
 }
 
-for ax_i, (env_name, res) in enumerate(results.items()):
+env_names = [
+    ("frozenlake", "discrete"),
+    ("cartpole", "continuous"),
+    ("pendulum", "discrete"),
+    ("pendulum", "continuous"),
+    ("cheetah", "discrete"),
+    ("cheetah", "continuous"),
+    ("walker", "discrete"),
+    ("walker", "continuous"),
+]
+for ax_i, env_name in enumerate(env_names):
+    res = results[env_name]
+# for ax_i, (env_name, res) in enumerate(results.items()):
     if axes.ndim == 2:
         ax = axes[ax_i // num_cols, ax_i % num_cols]
     else:
@@ -173,5 +185,5 @@ for ax_i, (env_name, res) in enumerate(results.items()):
     ax.legend()
 
 fig.supylabel("Expected Return")
-fig.supxlabel("Buffer Size")
+fig.supxlabel("Amount of Transitions")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)

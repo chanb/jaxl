@@ -8,14 +8,14 @@ run_seed = 0
 rng = np.random.RandomState(run_seed)
 
 envs = {
-    "frozenlake_discrete": {
-        "buffer_sizes": [1000, 2500, 5000],
-        "max_episode_length": 200,
-    },
-    # "cartpole_continuous": {
-    #     "buffer_sizes": [1000, 2500, 5000, 10000, 25000, 50000, 100000],
-    #     "max_episode_length": 1000,
+    # "frozenlake_discrete": {
+    #     "buffer_sizes": [2000, 3000],
+    #     "max_episode_length": 200,
     # },
+    "cartpole_continuous": {
+        "buffer_sizes": [1000000, 5000000],
+        "max_episode_length": 1000,
+    },
     # "cheetah_continuous": {
     #     "buffer_sizes": [100, 500, 1000, 2500, 5000, 7500, 10000],
     #     "max_episode_length": 1000,
