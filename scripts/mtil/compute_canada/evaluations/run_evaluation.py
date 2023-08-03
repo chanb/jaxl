@@ -128,6 +128,7 @@ def main(config):
                 config.num_evaluation_episodes,
             )
         )
+        paths = [config.runs_path]
     else:
         result = []
         paths = []
