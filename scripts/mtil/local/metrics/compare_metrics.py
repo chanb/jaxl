@@ -298,12 +298,12 @@ else:
                 avg_distance, std_distance, min_distance = l2_distance(
                     finetune_config, pretrain_config
                 )
-                l2_diversity = 1 - jax.nn.sigmoid(avg_distance)
+                l2_diversity = avg_distance
 
                 avg_distance, std_distance, min_distance = expert_data_performance(
                     pretrain_config, finetune_dataset_path, pretrain_dataset_paths
                 )
-                data_performance_diversity = 1 - jax.nn.sigmoid(avg_distance)
+                data_performance_diversity = avg_distance
 
                 kl_diversity = approx_kl(
                     pretrain_run_dir,
@@ -365,21 +365,28 @@ for env_name in env_names:
         ys = []
         for (env_seed, diversities) in res:
             xs.append(diversities)
-            num_tasks, returns = list(zip(*returns[env_name][env_seed]["mtbc"]))
-            ys.append(np.mean(returns[num_tasks == num_task]))
+            num_tasks, env_returns = list(zip(*returns[env_name][env_seed[2]]["mtbc"]))
+            ys.append(np.mean(env_returns[num_tasks == num_task]))
 
         xs = np.array(xs).T
         ys = np.array(ys)
 
         for col_i, x in enumerate(xs):
             ax = axes[row_i, col_i]
+
+            if col_i == 0:
+                x = 1 - jax.nn.sigmoid(x / 100)
+            elif col_i == 1:
+                x = 1 - jax.nn.sigmoid(x)
+
             ax.scatter(
-                x, ys, label=f"{num_task}" if row_i + col_i == 0 else ""
+                x, ys, label=f"{num_task}" if row_i + col_i == 0 else "", s=1,
             )
         if row_i + 1 == num_envs:
             ax.set_title(map_diversity[col_i])
         ax.legend()
 
+    (task, control_mode) = env_name
     fig.suptitle("{} {}".format(map_env[task], map_control[control_mode]))
     fig.supylabel("Expected Return")
     fig.supxlabel("Diversity")
