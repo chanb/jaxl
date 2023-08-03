@@ -44,7 +44,7 @@ else:
             results[(env_name, control_mode)].setdefault(env_seed, {})
 
             with open(os.path.join(eval_path, filename), "rb") as f:
-                data = pickle.load(f)
+                (data, paths) = pickle.load(f)
 
             if filename == "expert.pkl":
                 results[(env_name, control_mode)][env_seed]["expert"] = data
@@ -60,7 +60,7 @@ else:
             else:
                 num_tasks = int(filename[:-4].split("num_tasks_")[-1])
                 results[(env_name, control_mode)][env_seed].setdefault("mtbc", [])
-                results[(env_name, control_mode)][env_seed]["mtbc"].append((num_tasks, data))
+                results[(env_name, control_mode)][env_seed]["mtbc"].append((num_tasks, paths, data))
 
     with open(f"{save_path}/results.pkl", "wb") as f:
         pickle.dump(results, f)
@@ -107,7 +107,7 @@ for env_name in env_names:
         else:
             ax = axes[ax_i]
 
-        num_tasks, returns = list(zip(*res["mtbc"]))
+        num_tasks, _, returns = list(zip(*res["mtbc"]))
         num_tasks = np.array(num_tasks)
         returns = np.array(returns)
         unique_num_tasks = np.unique(num_tasks)

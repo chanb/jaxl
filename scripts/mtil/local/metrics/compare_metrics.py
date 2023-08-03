@@ -1,5 +1,7 @@
 from itertools import chain
+from matplotlib.ticker import FormatStrFormatter
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
+from scipy.stats import linregress
 from typing import Iterable
 
 import _pickle as pickle
@@ -229,11 +231,11 @@ env_names = [
     # ("frozenlake", "discrete"),
     # ("cartpole", "continuous"),
     ("pendulum", "discrete"),
-    ("pendulum", "continuous"),
-    ("cheetah", "discrete"),
-    ("cheetah", "continuous"),
-    ("walker", "discrete"),
-    ("walker", "continuous"),
+    # ("pendulum", "continuous"),
+    # ("cheetah", "discrete"),
+    # ("cheetah", "continuous"),
+    # ("walker", "discrete"),
+    # ("walker", "continuous"),
 ]
 save_path = f"./final_results/{finetune_dir}"
 os.makedirs(save_path, exist_ok=True)
@@ -257,7 +259,8 @@ else:
                 (env_variant, num_task, pretrain_model_seed, ) = finetune_run_dir.split("/")[-4:-1]
                 dataset_task_name = "{}_{}".format(task, control_mode[:4])
                 num_task_int = int(num_task.split("num_tasks_")[-1])
-                env_seed = env_variant.split(".")
+                pretrain_model_seed_int = int(pretrain_model_seed.split("pretrained_model_seed_")[-1])
+                env_seed = env_variant.split(".")[2]
 
                 diversities.setdefault(num_task_int, [])
 
@@ -315,6 +318,7 @@ else:
 
                 diversities[num_task_int].append((
                     env_seed,
+                    pretrain_model_seed_int,
                     (
                         l2_diversity,
                         data_performance_diversity,
@@ -360,12 +364,33 @@ for env_name in env_names:
         figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
         layout="constrained",
     )
-    for row_i, (num_task, res) in enumerate(results[env_name].items()):
+    num_tasks = sorted(list(results[env_name].keys()))
+    for row_i, num_task in enumerate(num_tasks):
+        res = results[env_name][num_task]
         xs = []
         ys = []
-        for (env_seed, diversities) in res:
+        curr_env_seed = None
+        diversities_to_add = []
+        returns_to_add = None
+        for (env_seed, pretrain_model_seed, diversities) in res:
+            # if env_seed != curr_env_seed:
+            #     if curr_env_seed is not None:
+            #         sort_idxes = np.argsort(np.array(diversities_to_add)[:, -1])
+            #         for sort_idx, y in zip(sort_idxes, np.sort(returns_to_add)):
+            #             xs.append(diversities_to_add[sort_idx])
+            #             ys.append(y)
+
+            #     curr_env_seed = env_seed[2]
+            #     diversities_to_add = []
+            #     returns_to_add = None
+
+            # num_tasks, env_returns = list(zip(*returns[env_name][env_seed[2]]["mtbc"]))
+            # diversities_to_add.append(diversities)
+            # returns_to_add = env_returns[num_tasks == num_task]
+
+            import ipdb
+            ipdb.set_trace()
             xs.append(diversities)
-            num_tasks, env_returns = list(zip(*returns[env_name][env_seed[2]]["mtbc"]))
             ys.append(np.mean(env_returns[num_tasks == num_task]))
 
         xs = np.array(xs).T
@@ -379,12 +404,21 @@ for env_name in env_names:
             elif col_i == 1:
                 x = 1 - jax.nn.sigmoid(x)
 
+            x = (x - np.min(x)) / (np.max(x) - np.min(x))
+
+            res = linregress(x, ys)
+            lin_x = np.array([0, 1])
+
+            ax.plot(lin_x, res.intercept + res.slope*lin_x, "red", label=f"fitted line" if row_i + col_i == 0 else "", linewidth=1.0, linestyle="--")
             ax.scatter(
-                x, ys, label=f"{num_task}" if row_i + col_i == 0 else "", s=1,
+                x, ys, s=1,
             )
-        if row_i + 1 == num_envs:
-            ax.set_title(map_diversity[col_i])
-        ax.legend()
+            # if col_i == 0:
+            #     ax.set_ylabel(num_task)
+            if row_i + 1 == num_envs:
+                ax.set_xlabel(map_diversity[col_i])
+            ax.legend()
+            # ax.yaxis.set_major_formatter(FormatStrFormatter("%.2f"))
 
     (task, control_mode) = env_name
     fig.suptitle("{} {}".format(map_env[task], map_control[control_mode]))
