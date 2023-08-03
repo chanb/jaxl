@@ -151,3 +151,5 @@ sbatch run_all-pretrain-mtbc-single_sweep-cheetah-quadruple_source_data_continuo
 sbatch run_all-pretrain-mtbc-single_sweep-cheetah-quadruple_source_data_discrete.sh
 sbatch run_all-pretrain-mtbc-single_sweep-pendulum-quadruple_source_data_continuous.sh
 sbatch run_all-pretrain-mtbc-single_sweep-pendulum-quadruple_source_data_discrete.sh
+sbatch run_all-pretrain-mtbc-single_sweep-walker-quadruple_source_data_continuous.sh
+sbatch run_all-pretrain-mtbc-single_sweep-walker-quadruple_source_data_discrete.sh

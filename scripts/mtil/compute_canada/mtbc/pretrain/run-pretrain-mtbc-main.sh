@@ -151,3 +151,5 @@ sbatch run_all-pretrain-mtbc-single_sweep-cheetah_continuous.sh
 sbatch run_all-pretrain-mtbc-single_sweep-cheetah_discrete.sh
 sbatch run_all-pretrain-mtbc-single_sweep-pendulum_continuous.sh
 sbatch run_all-pretrain-mtbc-single_sweep-pendulum_discrete.sh
+sbatch run_all-pretrain-mtbc-single_sweep-walker_continuous.sh
+sbatch run_all-pretrain-mtbc-single_sweep-walker_discrete.sh

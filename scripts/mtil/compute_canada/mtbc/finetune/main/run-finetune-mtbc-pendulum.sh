@@ -5,7 +5,7 @@ module load mujoco
 source ~/jaxl_env/bin/activate
 
 
-python ../../sweep_finetune_mtbc.py \
+python ../../../sweep_finetune_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/finetune_mtbc.json \
     --out_dir=${HOME}/scratch/data/finetune_mtbc_main \
@@ -19,7 +19,7 @@ python ../../sweep_finetune_mtbc.py \
     --exp_name=pendulum
 
 
-python ../../sweep_finetune_mtbc.py \
+python ../../../sweep_finetune_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/finetune_mtbc.json \
     --out_dir=${HOME}/scratch/data/finetune_mtbc_main \
