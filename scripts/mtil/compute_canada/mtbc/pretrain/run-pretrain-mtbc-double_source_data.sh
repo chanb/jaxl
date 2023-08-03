@@ -43,7 +43,7 @@ python ../../sweep_pretrain_mtbc.py \
 python ../../sweep_pretrain_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_mtbc.json \
-    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main-doule_source_data \
+    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main-double_source_data \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
@@ -60,7 +60,7 @@ python ../../sweep_pretrain_mtbc.py \
 python ../../sweep_pretrain_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_mtbc.json \
-    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main-doule_source_data \
+    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main-double_source_data \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
@@ -151,3 +151,5 @@ sbatch run_all-pretrain-mtbc-single_sweep-cheetah-double_source_data_continuous.
 sbatch run_all-pretrain-mtbc-single_sweep-cheetah-double_source_data_discrete.sh
 sbatch run_all-pretrain-mtbc-single_sweep-pendulum-double_source_data_continuous.sh
 sbatch run_all-pretrain-mtbc-single_sweep-pendulum-double_source_data_discrete.sh
+sbatch run_all-pretrain-mtbc-single_sweep-walker-double_source_data_continuous.sh
+sbatch run_all-pretrain-mtbc-single_sweep-walker-double_source_data_discrete.sh

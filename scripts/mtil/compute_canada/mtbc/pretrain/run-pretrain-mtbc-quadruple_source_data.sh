@@ -43,7 +43,7 @@ python ../../sweep_pretrain_mtbc.py \
 python ../../sweep_pretrain_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_mtbc.json \
-    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main-doule_source_data \
+    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main-quadruple_source_data \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
@@ -60,7 +60,7 @@ python ../../sweep_pretrain_mtbc.py \
 python ../../sweep_pretrain_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_mtbc.json \
-    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main-doule_source_data \
+    --out_dir=${HOME}/scratch/data/pretrain_mtbc_main-quadruple_source_data \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
