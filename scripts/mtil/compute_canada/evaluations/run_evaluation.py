@@ -110,9 +110,6 @@ def get_returns(
         )
         dummy_rollout = EvaluationRollout(env, seed=rollout_seed)
         dummy_rollout.random_sample_rollout(
-            agent_policy_params,
-            policy,
-            agent_obs_rms,
             num_evaluation_episodes,
             None,
             use_tqdm=False,

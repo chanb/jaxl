@@ -16,7 +16,7 @@ exp_name = "finetune_mtbc_main"
 exp_suffix = ""
 
 # Ablations
-# exp_suffix = "-double_source_data"
+exp_suffix = "-double_source_data"
 # exp_suffix = "-quadruple_source_data"
 
 # exp_name = "finetune_mtbc"
@@ -29,7 +29,7 @@ rollout_seed = 9999
 base_dir = "/home/chanb/scratch/data"
 expert_dir = os.path.join(base_dir, "experts")
 
-exp_dir = os.path.join(base_dir, exp_name)
+exp_dir = os.path.join(base_dir, f"{exp_name}{exp_suffix}")
 
 save_dir = os.path.join(base_dir, f"evaluations/results-{exp_name}")
 
