@@ -101,6 +101,25 @@ def get_returns(
         use_tqdm=False,
     )
     env.close()
+
+    if reference_agent_path is None:
+        env, policy = get_evaluation_components(
+            agent_path,
+            env_seed,
+            ref_agent_path=reference_agent_path,
+        )
+        dummy_rollout = EvaluationRollout(env, seed=rollout_seed)
+        dummy_rollout.random_sample_rollout(
+            agent_policy_params,
+            policy,
+            agent_obs_rms,
+            num_evaluation_episodes,
+            None,
+            use_tqdm=False,
+        )
+        env.close()
+        return (agent_rollout.episodic_returns, dummy_rollout.episodic_returns)
+
     return agent_rollout.episodic_returns
 
 

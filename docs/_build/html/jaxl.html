@@ -211,6 +211,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.envs.html#module-jaxl.envs.rollouts">jaxl.envs.rollouts module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.random_sample_rollout"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout.random_sample_rollout()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.rollout"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout.rollout()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.rollout_with_subsampling"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout.rollout_with_subsampling()</span></code></a></li>
 </ul>
@@ -596,6 +597,41 @@ int,</p>
 </section>
 <section id="jaxl-main-module">
 <h2>jaxl.main module<a class="headerlink" href="#jaxl-main-module" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-jaxl.plot_utils">
+<span id="jaxl-plot-utils-module"></span><h2>jaxl.plot_utils module<a class="headerlink" href="#module-jaxl.plot_utils" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.plot_utils.get_config">
+<span class="sig-prename descclassname"><span class="pre">jaxl.plot_utils.</span></span><span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_agent_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.plot_utils.get_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.plot_utils.get_evaluation_components">
+<span class="sig-prename descclassname"><span class="pre">jaxl.plot_utils.</span></span><span class="sig-name descname"><span class="pre">get_evaluation_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_agent_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.plot_utils.get_evaluation_components" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.plot_utils.set_size">
+<span class="sig-prename descclassname"><span class="pre">jaxl.plot_utils.</span></span><span class="sig-name descname"><span class="pre">set_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width_pt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.plot_utils.set_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reference: <a class="reference external" href="https://jwalton.info/Matplotlib-latex-PGF/">https://jwalton.info/Matplotlib-latex-PGF/</a>
+Set figure dimensions to sit nicely in our document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width_pt</strong> (<em>float</em>) – Document width in points</p></li>
+<li><p><strong>fraction</strong> (<em>float</em><em>, </em><em>optional</em>) – Fraction of the width which you wish the figure to occupy</p></li>
+<li><p><strong>subplots</strong> (<em>array-like</em><em>, </em><em>optional</em>) – The number of rows and columns of subplots.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fig_dim</strong> – Dimensions of figure in inches</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-jaxl.utils">
 <span id="jaxl-utils-module"></span><h2>jaxl.utils module<a class="headerlink" href="#module-jaxl.utils" title="Permalink to this heading">¶</a></h2>

@@ -205,6 +205,62 @@ class EvaluationRollout(Rollout):
                 self._curr_h_state = next_h_state
         self._env.reset()
 
+    def random_sample_rollout(
+        self,
+        num_episodes: int,
+        buffer: ReplayBuffer = None,
+        use_tqdm: bool = True,
+    ):
+        """
+        Executes a random policy in the environment.
+
+        :param num_episodes: the number of interaction episodes with the environment
+        :param buffer: the buffer to store the transitions with
+        :param use_tqdm: whether or not to show progress bar
+        :type num_episodes: int
+        :type buffer: ReplayBuffer (DefaultValue = None)
+        :type use_tqdm: bool (DefaultValue = False)
+
+        """
+        it = range(num_episodes)
+        if use_tqdm:
+            it = tqdm(it)
+        for _ in it:
+            self._episodic_returns.append(0)
+            self._episode_lengths.append(0)
+            seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
+            self._reset_key = jrandom.split(self._reset_key, 1)[0]
+            self._curr_obs, self._curr_info = self._env.reset(seed=seed)
+            self._curr_h_state = np.ones((1,))
+
+            done = False
+            while not done:
+                act = env.action_space.sample()
+                next_h_state = self._curr_h_state
+                env_act = act
+                next_obs, rew, terminated, truncated, info = self._env.step(env_act)
+                self._episodic_returns[-1] += float(rew)
+                self._episode_lengths[-1] += 1
+
+                done = terminated or truncated
+
+                if buffer is not None:
+                    buffer.push(
+                        self._curr_obs,
+                        self._curr_h_state,
+                        act,
+                        rew,
+                        terminated,
+                        truncated,
+                        info,
+                        next_obs,
+                        next_h_state,
+                    )
+
+                self._curr_obs = next_obs
+                self._curr_h_state = next_h_state
+        self._env.reset()
+
     def rollout_with_subsampling(
         self,
         params: Union[optax.Params, Dict[str, Any]],

@@ -35,7 +35,7 @@ save_dir = os.path.join(base_dir, f"evaluations/results-{exp_name}")
 
 dat_content = ""
 num_runs = 0
-for (task, control_mode) in env_names:
+for task, control_mode in env_names:
     task_with_suffix = f"{task}{exp_suffix}"
     curr_env_dir = os.path.join(exp_dir, task_with_suffix, control_mode, "runs")
     curr_expert_dir = os.path.join(expert_dir, task, control_mode)
@@ -69,9 +69,7 @@ for (task, control_mode) in env_names:
         num_variants = len(os.listdir(trained_dir))
 
         episodic_returns = {}
-        for variant_i, variant_name in enumerate(
-            ["expert", *os.listdir(trained_dir)]
-        ):
+        for variant_i, variant_name in enumerate(["expert", *os.listdir(trained_dir)]):
             num_runs += 1
             print(
                 f"Processing {variant_name} ({variant_i + 1} / {num_variants + 1} variants)"
