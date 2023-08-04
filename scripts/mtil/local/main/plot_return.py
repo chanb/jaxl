@@ -158,6 +158,9 @@ for env_name in env_names:
             color="grey",
             linestyle="--",
         )
+        num_tasks, _, _ = list(zip(*ref_result[env_seed]["mtbc"]))
+        num_tasks = np.array(num_tasks)
+        unique_num_tasks = np.unique(num_tasks)
         ax.fill_between(
             (unique_num_tasks[0], unique_num_tasks[-1]),
             bc_mean + bc_std,
@@ -171,7 +174,6 @@ for env_name in env_names:
             num_tasks, _, returns = list(zip(*res["mtbc"]))
             num_tasks = np.array(num_tasks)
             returns = np.array(returns)
-            unique_num_tasks = np.unique(num_tasks)
 
             means = []
             stds = []

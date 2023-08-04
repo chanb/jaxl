@@ -1,7 +1,7 @@
 from itertools import chain
 from matplotlib.ticker import FormatStrFormatter
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
-from scipy.stats import linregress
+from scipy.stats import linregress, spearmanr, kendalltau, pearsonr
 from typing import Iterable
 
 import _pickle as pickle
@@ -371,6 +371,7 @@ return_pkl = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/main/result
 with open(return_pkl, "rb") as f:
     returns = pickle.load(f)
 
+correlation_per_env = {}
 for env_name in env_names:
     num_envs = len(results[env_name])
     num_rows = num_envs
@@ -382,6 +383,7 @@ for env_name in env_names:
         figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
         layout="constrained",
     )
+    all_correlations = []
     num_tasks = sorted(list(results[env_name].keys()))
     for row_i, num_task in enumerate(num_tasks):
         res = results[env_name][num_task]
@@ -415,6 +417,7 @@ for env_name in env_names:
         xs = np.array(xs).T
         ys = np.array(ys)
 
+        correlations = []
         for col_i, x in enumerate(xs):
             ax = axes[row_i, col_i]
 
@@ -424,12 +427,20 @@ for env_name in env_names:
                 x = 1 - jax.nn.sigmoid(x)
 
             res = linregress(x, ys)
-            lin_x = np.array([0, 1])
+            lin_x = np.array([np.min(x), np.max(x)])
+            lin_y = res.intercept + res.slope * lin_x
+
+            correlations.append((
+                pearsonr(x, ys).statistic,
+                spearmanr(x, ys).statistic,
+                kendalltau(x, ys).statistic
+            ))
 
             x = (x - np.min(x)) / (np.max(x) - np.min(x))
+            lin_x = np.array([0, 1])
             ax.plot(
                 lin_x,
-                res.intercept + res.slope * lin_x,
+                lin_y,
                 "red",
                 label=f"fitted line" if row_i + col_i == 0 else "",
                 linewidth=1.0,
@@ -444,8 +455,12 @@ for env_name in env_names:
             #     ax.set_ylabel(num_task)
             if row_i + 1 == num_envs:
                 ax.set_xlabel(map_diversity[col_i])
-            ax.legend()
+            if row_i + col_i == 0:
+                ax.legend()
             # ax.yaxis.set_major_formatter(FormatStrFormatter("%.2f"))
+            ax.set_ylim(0.0, 1.1)
+        
+        all_correlations.append(correlations)
 
     (task, control_mode) = env_name
     # fig.suptitle("{} {}".format(map_env[task], map_control[control_mode]))
@@ -457,3 +472,73 @@ for env_name in env_names:
         bbox_inches="tight",
         dpi=600,
     )
+    print(env_name)
+    print(all_correlations)
+    np_correlations = np.array(all_correlations)
+    print("AVG CORRELATION {} +/- {}".format(np.mean(np_correlations, axis=0), np.std(np_correlations, axis=0)))
+
+    correlation_per_env[env_name] = np_correlations
+
+"""
+
+\begin{table}[t]
+	\caption{The amount of demonstrations per target task used for each environment.
+  }
+   \label{tab:data_per_task}
+   \begin{center}
+   \begin{tabular}{lccccc}
+    &\multicolumn{1}{c}{Frozen Lake}&\multicolumn{1}{c}{Pendulum}&\multicolumn{1}{c}{Cartpole}  &\multicolumn{1}{c}{Cheetah}  &\multicolumn{1}{c}{Walker}
+   \\ \hline
+   Discrete & 500 & 1000 & N/A & 1000 & 500 \\
+   Continuous & N/A & 1000 & 10000 & 1000 & 2000
+   \end{tabular}
+   \end{center}
+\end{table}
+"""
+num_envs = len(env_names)
+control_modes = ["discrete", "continuous"]
+envs = (
+    (
+        "frozenlake",
+        "pendulum",
+        "cheetah",
+        "walker"
+    ),
+    (
+        "cartpole",
+        "pendulum",
+        "cheetah",
+        "walker"
+    ),
+)
+diversity_names = (
+    "L2",
+    "Data Perf.",
+    "Approx. KL",
+)
+
+for idx_i in range(len(control_modes)):
+    control_mode = control_modes[idx_i]
+    latex_content_to_write = "\\begin{table}[t]\n"
+    latex_content_to_write += "  \\caption{{The correlations between various task diversity metrics and the normalized returns in {} tasks.}}\n".format(control_mode)
+    latex_content_to_write += "  \\label{{tab:diversity_return_correlation{}}}\n".format(control_mode)
+    latex_content_to_write += "  \\begin{center}\n"
+    latex_content_to_write += "  \\begin{tabular}{lcccc}\n"
+    latex_content_to_write += "    {}\\\\\n".format(" ".join(["& {}".format(env if env != "frozenlake" else "frozen lake") for env in envs[idx_i]]))
+
+    for row_i, row_name in enumerate(["Pearson", "Spearman", "Kendall"]):
+        latex_content_to_write += "    \\hline\n"
+        latex_content_to_write += "    \\multicolumn{{5}}{{c}}{{\\textbf{{{}}}}}\\\\\n".format(row_name)
+        latex_content_to_write += "    \\hline\n"
+        for div_i, div_name in enumerate(diversity_names):
+            latex_content_to_write += f"    {div_name}"
+            for env_name in envs[idx_i]:
+                correlations = correlation_per_env[(env_name, control_mode)][div_i][row_i]
+                latex_content_to_write += " & ${:.3f} \\pm {:.3f}$".format(np.mean(correlations), np.std(correlations))
+            latex_content_to_write += "\\\\\n"
+
+    latex_content_to_write += "  \\end{tabular}\n"
+    latex_content_to_write += "  \\end{center}\n"
+    latex_content_to_write += "\\end{table}\n"
+
+    print(latex_content_to_write)
