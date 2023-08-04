@@ -391,6 +391,10 @@ for env_name in env_names:
         diversities_to_add = []
         returns_to_add = None
         for env_seed, pretrain_model_seed, diversities in res:
+            (expert_rets, random_rets) = returns[env_name][env_seed]["expert"]
+            def normalize(rets):
+                return (rets - random_rets) / (expert_rets - random_rets)
+
             mtbc_variants = returns[env_name][env_seed]["mtbc"]
             for mtbc_variant in mtbc_variants:
                 if mtbc_variant[0] != num_task:
@@ -406,7 +410,7 @@ for env_name in env_names:
                         == pretrain_model_seed
                     ):
                         xs.append(diversities)
-                        ys.append(mtbc_variant[2][variant_i])
+                        ys.append(normalize(mtbc_variant[2][variant_i]))
 
         xs = np.array(xs).T
         ys = np.array(ys)
