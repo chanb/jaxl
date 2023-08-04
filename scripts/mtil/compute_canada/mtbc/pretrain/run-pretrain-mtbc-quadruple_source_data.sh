@@ -15,7 +15,7 @@ python ../../sweep_pretrain_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/cartpole_cont \
     --num_heldouts=10 \
     --num_tasks_variants=1,2,4,8,16 \
-    --num_samples=40000 \
+    --num_samples=2000 \
     --samples_per_task \
     --exp_name=cartpole-quadruple_source_data \
     --num_epochs=5000 \
