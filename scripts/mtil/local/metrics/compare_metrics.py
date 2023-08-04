@@ -533,7 +533,7 @@ for idx_i in range(len(control_modes)):
         for div_i, div_name in enumerate(diversity_names):
             latex_content_to_write += f"    {div_name}"
             for env_name in envs[idx_i]:
-                correlations = correlation_per_env[(env_name, control_mode)][div_i][row_i]
+                correlations = correlation_per_env[(env_name, control_mode)][row_i][div_i]
                 latex_content_to_write += " & ${:.3f} \\pm {:.3f}$".format(np.mean(correlations), np.std(correlations))
             latex_content_to_write += "\\\\\n"
 
