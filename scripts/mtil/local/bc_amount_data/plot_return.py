@@ -144,7 +144,7 @@ env_names = [
 ]
 for ax_i, env_name in enumerate(env_names):
     res = results[env_name]
-# for ax_i, (env_name, res) in enumerate(results.items()):
+    # for ax_i, (env_name, res) in enumerate(results.items()):
     if axes.ndim == 2:
         ax = axes[ax_i // num_cols, ax_i % num_cols]
     else:
@@ -171,9 +171,7 @@ for ax_i, env_name in enumerate(env_names):
     means = np.array(means)
     stds = np.array(stds)
 
-    ax.plot(
-        unique_buffer_sizes, means, marker="x", label="BC" if ax_i == 0 else ""
-    )
+    ax.plot(unique_buffer_sizes, means, marker="x", label="BC" if ax_i == 0 else "")
     ax.fill_between(
         unique_buffer_sizes,
         means + stds,

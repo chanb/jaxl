@@ -228,8 +228,8 @@ finetune_dir = "finetune_mtbc_main"
 pretrain_dir = "pretrain_mtbc_main"
 
 env_names = [
-    # ("frozenlake", "discrete"),
-    # ("cartpole", "continuous"),
+    ("frozenlake", "discrete"),
+    ("cartpole", "continuous"),
     ("pendulum", "discrete"),
     ("pendulum", "continuous"),
     ("cheetah", "discrete"),
@@ -249,17 +249,27 @@ else:
         diversities = {}
 
         (task, control_mode) = env_name
-        finetune_runs_dir = os.path.join(base_dir, finetune_dir, task, control_mode, "runs")
+        finetune_runs_dir = os.path.join(
+            base_dir, finetune_dir, task, control_mode, "runs"
+        )
 
         for finetune_run_dir, _, filenames in os.walk(finetune_runs_dir):
             for filename in filenames:
                 if filename != "config.json":
                     continue
 
-                (env_variant, num_task, pretrain_model_seed, ) = finetune_run_dir.split("/")[-4:-1]
+                (
+                    env_variant,
+                    num_task,
+                    pretrain_model_seed,
+                ) = finetune_run_dir.split(
+                    "/"
+                )[-4:-1]
                 dataset_task_name = "{}_{}".format(task, control_mode[:4])
                 num_task_int = int(num_task.split("num_tasks_")[-1])
-                pretrain_model_seed_int = int(pretrain_model_seed.split("pretrained_model_seed_")[-1])
+                pretrain_model_seed_int = int(
+                    pretrain_model_seed.split("pretrained_model_seed_")[-1]
+                )
                 env_seed = env_variant.split(".")[2]
 
                 diversities.setdefault(num_task_int, [])
@@ -275,7 +285,9 @@ else:
                     "runs",
                     num_task,
                     os.path.basename(
-                        os.path.dirname(finetune_config["learner_config"]["load_encoder"])
+                        os.path.dirname(
+                            finetune_config["learner_config"]["load_encoder"]
+                        )
                     ),
                 )
                 with open(os.path.join(pretrain_run_dir, "config.json"), "r") as f:
@@ -285,7 +297,9 @@ else:
                     dataset_dir,
                     dataset_task_name,
                     os.path.basename(
-                        finetune_config["learner_config"]["buffer_configs"][0]["load_buffer"]
+                        finetune_config["learner_config"]["buffer_configs"][0][
+                            "load_buffer"
+                        ]
                     ),
                 )
 
@@ -295,7 +309,9 @@ else:
                         dataset_task_name,
                         os.path.basename(buffer_config["load_buffer"]),
                     )
-                    for buffer_config in pretrain_config["learner_config"]["buffer_configs"]
+                    for buffer_config in pretrain_config["learner_config"][
+                        "buffer_configs"
+                    ]
                 ]
 
                 avg_distance, std_distance, min_distance = l2_distance(
@@ -316,15 +332,17 @@ else:
                     pretrain_dataset_paths,
                 )
 
-                diversities[num_task_int].append((
-                    env_seed,
-                    pretrain_model_seed_int,
+                diversities[num_task_int].append(
                     (
-                        l2_diversity,
-                        data_performance_diversity,
-                        kl_diversity,
+                        env_seed,
+                        pretrain_model_seed_int,
+                        (
+                            l2_diversity,
+                            data_performance_diversity,
+                            kl_diversity,
+                        ),
                     )
-                ))
+                )
         results[env_name] = diversities
 
     with open(os.path.join(save_path, "diversity.pkl"), "wb") as f:
@@ -372,14 +390,21 @@ for env_name in env_names:
         curr_env_seed = None
         diversities_to_add = []
         returns_to_add = None
-        for (env_seed, pretrain_model_seed, diversities) in res:
+        for env_seed, pretrain_model_seed, diversities in res:
             mtbc_variants = returns[env_name][env_seed]["mtbc"]
             for mtbc_variant in mtbc_variants:
                 if mtbc_variant[0] != num_task:
                     continue
 
                 for variant_i, variant_path in enumerate(mtbc_variant[1]):
-                    if int(variant_path.split("/")[-2].split("pretrained_model_seed_")[-1]) == pretrain_model_seed:
+                    if (
+                        int(
+                            variant_path.split("/")[-2].split("pretrained_model_seed_")[
+                                -1
+                            ]
+                        )
+                        == pretrain_model_seed
+                    ):
                         xs.append(diversities)
                         ys.append(mtbc_variant[2][variant_i])
 
@@ -399,9 +424,18 @@ for env_name in env_names:
             res = linregress(x, ys)
             lin_x = np.array([0, 1])
 
-            ax.plot(lin_x, res.intercept + res.slope*lin_x, "red", label=f"fitted line" if row_i + col_i == 0 else "", linewidth=1.0, linestyle="--")
+            ax.plot(
+                lin_x,
+                res.intercept + res.slope * lin_x,
+                "red",
+                label=f"fitted line" if row_i + col_i == 0 else "",
+                linewidth=1.0,
+                linestyle="--",
+            )
             ax.scatter(
-                x, ys, s=1,
+                x,
+                ys,
+                s=1,
             )
             # if col_i == 0:
             #     ax.set_ylabel(num_task)
@@ -414,4 +448,9 @@ for env_name in env_names:
     # fig.suptitle("{} {}".format(map_env[task], map_control[control_mode]))
     fig.supylabel("Expected Return")
     fig.supxlabel("Diversity")
-    fig.savefig(f"{save_path}/diversity_return-{task}_{control_mode}.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    fig.savefig(
+        f"{save_path}/diversity_return-{task}_{control_mode}.pdf",
+        format="pdf",
+        bbox_inches="tight",
+        dpi=600,
+    )

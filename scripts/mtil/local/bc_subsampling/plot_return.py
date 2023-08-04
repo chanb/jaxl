@@ -187,9 +187,7 @@ for ax_i, env_name in enumerate(env_names):
                 label = "full"
             else:
                 label = subsampling
-        ax.plot(
-            unique_buffer_sizes, means, marker="x", label=label
-        )
+        ax.plot(unique_buffer_sizes, means, marker="x", label=label)
         ax.fill_between(
             unique_buffer_sizes,
             means + stds,
