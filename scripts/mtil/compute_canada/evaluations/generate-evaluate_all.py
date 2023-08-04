@@ -1,22 +1,22 @@
 import os
 
 env_names = [
-    ("frozenlake", "discrete"),
+    # ("frozenlake", "discrete"),
     ("cartpole", "continuous"),
-    ("pendulum", "discrete"),
-    ("pendulum", "continuous"),
-    ("cheetah", "discrete"),
-    ("cheetah", "continuous"),
-    ("walker", "discrete"),
-    ("walker", "continuous"),
+    # ("pendulum", "discrete"),
+    # ("pendulum", "continuous"),
+    # ("cheetah", "discrete"),
+    # ("cheetah", "continuous"),
+    # ("walker", "discrete"),
+    # ("walker", "continuous"),
 ]
 
-# exp_name = "bc_less_data"
-exp_name = "finetune_mtbc_main"
+exp_name = "bc_less_data"
+# exp_name = "finetune_mtbc_main"
 exp_suffix = ""
 
 # Ablations
-exp_suffix = "-double_source_data"
+# exp_suffix = "-double_source_data"
 # exp_suffix = "-quadruple_source_data"
 
 # exp_name = "finetune_mtbc"
