@@ -423,11 +423,10 @@ for env_name in env_names:
             elif col_i == 1:
                 x = 1 - jax.nn.sigmoid(x)
 
-            x = (x - np.min(x)) / (np.max(x) - np.min(x))
-
             res = linregress(x, ys)
             lin_x = np.array([0, 1])
 
+            x = (x - np.min(x)) / (np.max(x) - np.min(x))
             ax.plot(
                 lin_x,
                 res.intercept + res.slope * lin_x,
