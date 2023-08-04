@@ -16,7 +16,8 @@ python ../../../sweep_finetune_mtbc.py \
     --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-double_source_data/walker-double_source_data/continuous \
     --num_heldouts=10 \
     --num_samples=2000 \
-    --exp_name=walker-double_source_data
+    --exp_name=walker-double_source_data \
+    --run_time=00:30:00
 
 
 python ../../../sweep_finetune_mtbc.py \
@@ -31,7 +32,8 @@ python ../../../sweep_finetune_mtbc.py \
     --num_heldouts=10 \
     --num_samples=500 \
     --discrete_control \
-    --exp_name=walker-double_source_data
+    --exp_name=walker-double_source_data \
+    --run_time=00:30:00
 
 chmod +x run_all-*.sh
 sbatch run_all-finetune-mtbc-single_sweep-walker-double_source_data_continuous.sh
