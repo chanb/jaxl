@@ -145,7 +145,7 @@ def main(config):
                 env_seed_int,
                 config.rollout_seed,
                 config.num_evaluation_episodes,
-            )
+            ), axis=-1
         )
         paths = [config.runs_path]
     else:

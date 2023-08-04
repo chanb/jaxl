@@ -137,20 +137,33 @@ for env_name in env_names:
         else:
             ax = axes[ax_i]
 
+        (expert_rets, random_rets) = ref_result[env_seed]["expert"]
+
+        def normalize(rets):
+            return (rets - random_rets) / (expert_rets - random_rets)
+        
         ax.axhline(
-            ref_result[env_seed]["expert"],
+            1.0,
             label="Expert" if ax_i == 0 else "",
             color="black",
             linestyle="--",
         )
 
-        bc_mean = np.mean(ref_result[env_seed]["bc"])
-        bc_std = np.std(ref_result[env_seed]["bc"])
+        normalized_bc_rets = normalize(ref_result[env_seed]["bc"])
+        bc_mean = np.mean(normalized_bc_rets)
+        bc_std = np.std(normalized_bc_rets)
         ax.axhline(
             bc_mean,
             label="BC" if ax_i == 0 else "",
             color="grey",
             linestyle="--",
+        )
+        ax.fill_between(
+            (unique_num_tasks[0], unique_num_tasks[-1]),
+            bc_mean + bc_std,
+            bc_mean - bc_std,
+            color="grey",
+            alpha=0.3,
         )
 
         for experiment_name in experiment_names:
@@ -159,20 +172,14 @@ for env_name in env_names:
             num_tasks = np.array(num_tasks)
             returns = np.array(returns)
             unique_num_tasks = np.unique(num_tasks)
-            ax.fill_between(
-                (unique_num_tasks[0], unique_num_tasks[-1]),
-                bc_mean + bc_std,
-                bc_mean - bc_std,
-                color="grey",
-                alpha=0.3,
-            )
 
             means = []
             stds = []
 
             for num_task in unique_num_tasks:
-                means.append(np.mean(returns[num_tasks == num_task]))
-                stds.append(np.std(returns[num_tasks == num_task]))
+                curr_num_task_rets = normalize(returns[num_tasks == num_task])
+                means.append(np.mean(curr_num_task_rets))
+                stds.append(np.std(curr_num_task_rets))
 
             means = np.array(means)
             stds = np.array(stds)
