@@ -235,7 +235,7 @@ class EvaluationRollout(Rollout):
 
             done = False
             while not done:
-                act = env.action_space.sample()
+                act = self._env.action_space.sample()
                 next_h_state = self._curr_h_state
                 env_act = act
                 next_obs, rew, terminated, truncated, info = self._env.step(env_act)

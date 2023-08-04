@@ -136,14 +136,13 @@ def main(config):
 
     env_seed_int = int(config.env_seed.split("env_seed_")[-1])
     if config.variant_name == "expert":
-        result = np.mean(
-            get_returns(
+        (expert_rets, random_rets) = get_returns(
                 config.runs_path,
                 env_seed_int,
                 config.rollout_seed,
                 config.num_evaluation_episodes,
-            ), axis=-1
-        )
+            )
+        result = [np.mean(expert_rets), np.mean(random_rets)]
         paths = [config.runs_path]
     else:
         result = []
