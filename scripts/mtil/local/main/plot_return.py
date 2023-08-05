@@ -17,18 +17,24 @@ plt.rcParams.update(pgf_with_latex)
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
 
-experiment_names = ("results-finetune_mtbc_main",)
+experiment_name = "results-finetune_mtbc_main"
+experiment_name_suffixes = (
+    "",
+    "-double_source_data",
+    "-quadruple_source_data",
+    "-eightfold_source_data",
+)
 bc_name = "results-bc_less_data"
 
 results_per_experiment = {}
-for experiment_name in experiment_names:
-    print(f"Processing {experiment_name}")
-    save_path = f"./{experiment_name}-results"
-    experiment_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{experiment_name}"
-    bc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{bc_name}"
+experiment_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{experiment_name}"
+bc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{bc_name}"
+assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
-    assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
-
+for exp_i, suffix in enumerate(experiment_name_suffixes):
+    curr_exp = f"{experiment_name}{suffix}"
+    print(f"Processing {curr_exp}")
+    save_path = f"./{curr_exp}-results"
     os.makedirs(save_path, exist_ok=True)
 
     if os.path.isfile(f"{save_path}/results.pkl"):
@@ -43,6 +49,10 @@ for experiment_name in experiment_names:
                 print("Processing {}".format(eval_path))
                 variant_name = eval_path.split("/")[-3:]
                 (env_name, control_mode, env_seed) = variant_name
+                env_name = env_name.split("-")[0]
+
+                if f"{env_name}{suffix}" not in eval_path.split("/"):
+                    continue
 
                 results.setdefault((env_name, control_mode), {})
                 results[(env_name, control_mode)].setdefault(env_seed, {})
@@ -51,6 +61,8 @@ for experiment_name in experiment_names:
                     (data, paths) = pickle.load(f)
 
                 if filename == "expert.pkl":
+                    if exp_i > 0:
+                        continue
                     results[(env_name, control_mode)][env_seed]["expert"] = data
 
                     # Get BC
@@ -75,7 +87,7 @@ for experiment_name in experiment_names:
         with open(f"{save_path}/results.pkl", "wb") as f:
             pickle.dump(results, f)
 
-    results_per_experiment[experiment_name] = results
+    results_per_experiment[curr_exp] = results
 
 
 map_env = {
@@ -113,6 +125,7 @@ def map_exp(name):
         map_amount = {
             "double": 2,
             "quadruple": 4,
+            "eightfold": 8,
         }
         return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
 
@@ -130,7 +143,7 @@ for env_name in env_names:
         layout="constrained",
     )
 
-    ref_result = results_per_experiment[experiment_names[0]][env_name]
+    ref_result = results_per_experiment[experiment_name][env_name]
     for ax_i, env_seed in enumerate(ref_result):
         if axes.ndim == 2:
             ax = axes[ax_i // num_cols, ax_i % num_cols]
@@ -169,8 +182,9 @@ for env_name in env_names:
             alpha=0.3,
         )
 
-        for experiment_name in experiment_names:
-            res = results_per_experiment[experiment_name][env_name][env_seed]
+        for suffix in experiment_name_suffixes:
+            curr_exp = f"{experiment_name}{suffix}"
+            res = results_per_experiment[curr_exp][env_name][env_seed]
             num_tasks, _, returns = list(zip(*res["mtbc"]))
             num_tasks = np.array(num_tasks)
             returns = np.array(returns)
@@ -178,6 +192,9 @@ for env_name in env_names:
             means = []
             stds = []
 
+            # if env_name[0] == "cheetah" and env_name[1] == "discrete":
+            #     print("-----")
+            #     print(env_seed, num_tasks, returns)
             for num_task in unique_num_tasks:
                 curr_num_task_rets = normalize(returns[num_tasks == num_task])
                 means.append(np.mean(curr_num_task_rets))
@@ -190,7 +207,7 @@ for env_name in env_names:
                 unique_num_tasks,
                 means,
                 marker="^",
-                label=map_exp(experiment_name) if ax_i == 0 else "",
+                label=map_exp(curr_exp) if ax_i == 0 else "",
             )
             ax.fill_between(
                 unique_num_tasks,
