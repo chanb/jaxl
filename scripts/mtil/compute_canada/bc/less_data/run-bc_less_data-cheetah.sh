@@ -5,7 +5,7 @@ module load mujoco
 source ~/jaxl_env/bin/activate
 
 
-python ../sweep_bc.py \
+python ../../sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
     --out_dir=${HOME}/scratch/data/bc_less_data \
@@ -18,7 +18,7 @@ python ../sweep_bc.py \
     --exp_name=cheetah
 
 
-python ../sweep_bc.py \
+python ../../sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
     --out_dir=${HOME}/scratch/data/bc_less_data \
