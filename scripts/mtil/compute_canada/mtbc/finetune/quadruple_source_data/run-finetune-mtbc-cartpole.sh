@@ -15,7 +15,7 @@ python ../../../sweep_finetune_mtbc.py \
     --data_dir=${HOME}/scratch/data/expert_data/cartpole_cont \
     --num_heldouts=10 \
     --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-quadruple_source_data/cartpole-quadruple_source_data/continuous \
-    --num_samples=10000 \
+    --num_samples=2000 \
     --exp_name=cartpole-quadruple_source_data
 
 chmod +x run_all-*.sh
