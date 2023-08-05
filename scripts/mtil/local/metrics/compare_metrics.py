@@ -317,12 +317,12 @@ else:
                 avg_distance, std_distance, min_distance = l2_distance(
                     finetune_config, pretrain_config
                 )
-                l2_diversity = avg_distance
+                l2_diversity = (avg_distance, std_distance, min_distance)
 
                 avg_distance, std_distance, min_distance = expert_data_performance(
                     pretrain_config, finetune_dataset_path, pretrain_dataset_paths
                 )
-                data_performance_diversity = avg_distance
+                data_performance_diversity = (avg_distance, std_distance, min_distance)
 
                 kl_diversity = approx_kl(
                     pretrain_run_dir,
@@ -425,6 +425,8 @@ for env_name in env_names:
                 x = 1 - jax.nn.sigmoid(x / 100)
             elif col_i == 1:
                 x = 1 - jax.nn.sigmoid(x)
+            elif col_i == 2:
+                x = jax.nn.sigmoid(x)
 
             res = linregress(x, ys)
             lin_x = np.array([np.min(x), np.max(x)])
@@ -479,22 +481,6 @@ for env_name in env_names:
 
     correlation_per_env[env_name] = np_correlations
 
-"""
-
-\begin{table}[t]
-	\caption{The amount of demonstrations per target task used for each environment.
-  }
-   \label{tab:data_per_task}
-   \begin{center}
-   \begin{tabular}{lccccc}
-    &\multicolumn{1}{c}{Frozen Lake}&\multicolumn{1}{c}{Pendulum}&\multicolumn{1}{c}{Cartpole}  &\multicolumn{1}{c}{Cheetah}  &\multicolumn{1}{c}{Walker}
-   \\ \hline
-   Discrete & 500 & 1000 & N/A & 1000 & 500 \\
-   Continuous & N/A & 1000 & 10000 & 1000 & 2000
-   \end{tabular}
-   \end{center}
-\end{table}
-"""
 num_envs = len(env_names)
 control_modes = ["discrete", "continuous"]
 envs = (
@@ -520,8 +506,8 @@ diversity_names = (
 for idx_i in range(len(control_modes)):
     control_mode = control_modes[idx_i]
     latex_content_to_write = "\\begin{table}[t]\n"
-    latex_content_to_write += "  \\caption{{The correlations between various task diversity metrics and the normalized returns in {} tasks.}}\n".format(control_mode)
-    latex_content_to_write += "  \\label{{tab:diversity_return_correlation{}}}\n".format(control_mode)
+    latex_content_to_write += "  \\caption{{The correlations between various task diversity metrics and the normalized returns in {} tasks.\n  Bolded text means highest mean.}}\n".format(control_mode)
+    latex_content_to_write += "  \\label{{tab:diversity_return_correlation_{}}}\n".format(control_mode)
     latex_content_to_write += "  \\begin{center}\n"
     latex_content_to_write += "  \\begin{tabular}{lcccc}\n"
     latex_content_to_write += "    {}\\\\\n".format(" ".join(["& {}".format(env if env != "frozenlake" else "frozen lake") for env in envs[idx_i]]))
@@ -530,11 +516,32 @@ for idx_i in range(len(control_modes)):
         latex_content_to_write += "    \\hline\n"
         latex_content_to_write += "    \\multicolumn{{5}}{{c}}{{\\textbf{{{}}}}}\\\\\n".format(row_name)
         latex_content_to_write += "    \\hline\n"
+
+        means = []
+        stds = []
+        for env_name in envs[idx_i]:
+            means.append([])
+            stds.append([])
+            for div_i, div_name in enumerate(diversity_names):
+                correlations = correlation_per_env[(env_name, control_mode)][row_i][div_i]
+                means[-1].append(np.mean(correlations))
+                stds[-1].append(np.std(correlations))
+        best_idxes = np.argmax(means, axis=-1)
+
         for div_i, div_name in enumerate(diversity_names):
             latex_content_to_write += f"    {div_name}"
-            for env_name in envs[idx_i]:
-                correlations = correlation_per_env[(env_name, control_mode)][row_i][div_i]
-                latex_content_to_write += " & ${:.3f} \\pm {:.3f}$".format(np.mean(correlations), np.std(correlations))
+
+            for env_i, env_name in enumerate(envs[idx_i]):
+                if div_i == best_idxes[env_i]:
+                    latex_content_to_write += " & $\mathbf{{{:.3f} \\pm {:.3f}}}$".format(
+                        means[env_i][div_i],
+                        stds[env_i][div_i]
+                    )
+                else:
+                    latex_content_to_write += " & ${:.3f} \\pm {:.3f}$".format(
+                        means[env_i][div_i],
+                        stds[env_i][div_i]
+                    )
             latex_content_to_write += "\\\\\n"
 
     latex_content_to_write += "  \\end{tabular}\n"
