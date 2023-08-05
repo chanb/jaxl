@@ -226,6 +226,24 @@ dataset_dir = (
 base_dir = "/Users/chanb/research/personal/mtil_results/final_results/data/"
 finetune_dir = "finetune_mtbc_main"
 pretrain_dir = "pretrain_mtbc_main"
+suffixes = (
+    "",
+    "-double_source_data",
+    "-quadruple_source_data",
+    # "-eightfold_source_data"
+)
+
+def map_exp(name):
+    splitted_name = name.split("-")
+    if len(splitted_name) == 2:
+        return "$N = M$"
+    else:
+        map_amount = {
+            "double": 2,
+            "quadruple": 4,
+            "eightfold": 8,
+        }
+        return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
 
 env_names = [
     ("frozenlake", "discrete"),
@@ -249,100 +267,103 @@ else:
         diversities = {}
 
         (task, control_mode) = env_name
-        finetune_runs_dir = os.path.join(
-            base_dir, finetune_dir, task, control_mode, "runs"
-        )
 
-        for finetune_run_dir, _, filenames in os.walk(finetune_runs_dir):
-            for filename in filenames:
-                if filename != "config.json":
-                    continue
+        for suffix in suffixes:
+            finetune_runs_dir = os.path.join(
+                base_dir, f"{finetune_dir}{suffix}", task, control_mode, "runs"
+            )
 
-                (
-                    env_variant,
-                    num_task,
-                    pretrain_model_seed,
-                ) = finetune_run_dir.split(
-                    "/"
-                )[-4:-1]
-                dataset_task_name = "{}_{}".format(task, control_mode[:4])
-                num_task_int = int(num_task.split("num_tasks_")[-1])
-                pretrain_model_seed_int = int(
-                    pretrain_model_seed.split("pretrained_model_seed_")[-1]
-                )
-                env_seed = env_variant.split(".")[2]
+            for finetune_run_dir, _, filenames in os.walk(finetune_runs_dir):
+                for filename in filenames:
+                    if filename != "config.json":
+                        continue
 
-                diversities.setdefault(num_task_int, [])
-
-                with open(os.path.join(finetune_run_dir, "config.json"), "r") as f:
-                    finetune_config = json.load(f)
-
-                pretrain_run_dir = os.path.join(
-                    base_dir,
-                    pretrain_dir,
-                    task,
-                    control_mode,
-                    "runs",
-                    num_task,
-                    os.path.basename(
-                        os.path.dirname(
-                            finetune_config["learner_config"]["load_encoder"]
-                        )
-                    ),
-                )
-                with open(os.path.join(pretrain_run_dir, "config.json"), "r") as f:
-                    pretrain_config = json.load(f)
-
-                finetune_dataset_path = os.path.join(
-                    dataset_dir,
-                    dataset_task_name,
-                    os.path.basename(
-                        finetune_config["learner_config"]["buffer_configs"][0][
-                            "load_buffer"
-                        ]
-                    ),
-                )
-
-                pretrain_dataset_paths = [
-                    os.path.join(
-                        dataset_dir,
-                        dataset_task_name,
-                        os.path.basename(buffer_config["load_buffer"]),
-                    )
-                    for buffer_config in pretrain_config["learner_config"][
-                        "buffer_configs"
-                    ]
-                ]
-
-                avg_distance, std_distance, min_distance = l2_distance(
-                    finetune_config, pretrain_config
-                )
-                l2_diversity = (avg_distance, std_distance, min_distance)
-
-                avg_distance, std_distance, min_distance = expert_data_performance(
-                    pretrain_config, finetune_dataset_path, pretrain_dataset_paths
-                )
-                data_performance_diversity = (avg_distance, std_distance, min_distance)
-
-                kl_diversity = approx_kl(
-                    pretrain_run_dir,
-                    finetune_config,
-                    pretrain_config,
-                    finetune_dataset_path,
-                    pretrain_dataset_paths,
-                )
-
-                diversities[num_task_int].append(
                     (
-                        env_seed,
-                        pretrain_model_seed_int,
-                        (
-                            l2_diversity,
-                            data_performance_diversity,
-                            kl_diversity,
+                        env_variant,
+                        num_task,
+                        pretrain_model_seed,
+                    ) = finetune_run_dir.split(
+                        "/"
+                    )[-4:-1]
+                    dataset_task_name = "{}_{}".format(task, control_mode[:4])
+                    num_task_int = int(num_task.split("num_tasks_")[-1])
+                    pretrain_model_seed_int = int(
+                        pretrain_model_seed.split("pretrained_model_seed_")[-1]
+                    )
+                    env_seed = env_variant.split(".")[2]
+
+                    diversities.setdefault(num_task_int, [])
+
+                    with open(os.path.join(finetune_run_dir, "config.json"), "r") as f:
+                        finetune_config = json.load(f)
+
+                    pretrain_run_dir = os.path.join(
+                        base_dir,
+                        f"{pretrain_dir}{suffix}",
+                        task,
+                        control_mode,
+                        "runs",
+                        num_task,
+                        os.path.basename(
+                            os.path.dirname(
+                                finetune_config["learner_config"]["load_encoder"]
+                            )
                         ),
                     )
-                )
+                    with open(os.path.join(pretrain_run_dir, "config.json"), "r") as f:
+                        pretrain_config = json.load(f)
+
+                    finetune_dataset_path = os.path.join(
+                        dataset_dir,
+                        dataset_task_name,
+                        os.path.basename(
+                            finetune_config["learner_config"]["buffer_configs"][0][
+                                "load_buffer"
+                            ]
+                        ),
+                    )
+
+                    pretrain_dataset_paths = [
+                        os.path.join(
+                            dataset_dir,
+                            dataset_task_name,
+                            os.path.basename(buffer_config["load_buffer"]),
+                        )
+                        for buffer_config in pretrain_config["learner_config"][
+                            "buffer_configs"
+                        ]
+                    ]
+
+                    avg_distance, std_distance, min_distance = l2_distance(
+                        finetune_config, pretrain_config
+                    )
+                    l2_diversity = (avg_distance, std_distance, min_distance)
+
+                    avg_distance, std_distance, min_distance = expert_data_performance(
+                        pretrain_config, finetune_dataset_path, pretrain_dataset_paths
+                    )
+                    data_performance_diversity = (avg_distance, std_distance, min_distance)
+
+                    kl_diversity = approx_kl(
+                        pretrain_run_dir,
+                        finetune_config,
+                        pretrain_config,
+                        finetune_dataset_path,
+                        pretrain_dataset_paths,
+                    )
+
+                    diversities[num_task_int].append(
+                        (
+                            env_seed,
+                            pretrain_model_seed_int,
+                            suffix,
+                            (
+                                l2_diversity,
+                                data_performance_diversity,
+                                kl_diversity,
+                            ),
+                        )
+                    )
         results[env_name] = diversities
 
     with open(os.path.join(save_path, "diversity.pkl"), "wb") as f:
@@ -367,9 +388,13 @@ map_diversity = [
     "Approx. KL",
 ]
 
-return_pkl = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/main/results-finetune_mtbc_main-results/results.pkl"
-with open(return_pkl, "rb") as f:
-    returns = pickle.load(f)
+returns = {}
+
+for suffix in suffixes:
+    return_pkl = f"/Users/chanb/research/personal/jaxl/scripts/mtil/local/main/results-finetune_mtbc_main{suffix}-results/results.pkl"
+    with open(return_pkl, "rb") as f:
+        exp_returns = pickle.load(f)
+    returns[suffix] = exp_returns
 
 correlation_per_env = {}
 for env_name in env_names:
@@ -392,12 +417,12 @@ for env_name in env_names:
         curr_env_seed = None
         diversities_to_add = []
         returns_to_add = None
-        for env_seed, pretrain_model_seed, diversities in res:
-            (expert_rets, random_rets) = returns[env_name][env_seed]["expert"]
+        for env_seed, pretrain_model_seed, suffix, diversities in res:
+            (expert_rets, random_rets) = returns[""][env_name][env_seed]["expert"]
             def normalize(rets):
                 return (rets - random_rets) / (expert_rets - random_rets)
 
-            mtbc_variants = returns[env_name][env_seed]["mtbc"]
+            mtbc_variants = returns[suffix][env_name][env_seed]["mtbc"]
             for mtbc_variant in mtbc_variants:
                 if mtbc_variant[0] != num_task:
                     continue
@@ -411,7 +436,8 @@ for env_name in env_names:
                         )
                         == pretrain_model_seed
                     ):
-                        xs.append(diversities)
+                        to_add = (diversities[0][0] / (diversities[0][2] + eps), diversities[1][0] / (diversities[1][2] + eps), diversities[2])
+                        xs.append(to_add)
                         ys.append(normalize(mtbc_variant[2][variant_i]))
 
         xs = np.array(xs).T
@@ -421,12 +447,12 @@ for env_name in env_names:
         for col_i, x in enumerate(xs):
             ax = axes[row_i, col_i]
 
-            if col_i == 0:
-                x = 1 - jax.nn.sigmoid(x / 100)
-            elif col_i == 1:
-                x = 1 - jax.nn.sigmoid(x)
-            elif col_i == 2:
-                x = jax.nn.sigmoid(x)
+            # if col_i == 0:
+            #     x = 1 - jax.nn.sigmoid(x / 100)
+            # elif col_i == 1:
+            #     x = 1 - jax.nn.sigmoid(x)
+            # elif col_i == 2:
+            #     x = jax.nn.sigmoid(x)
 
             res = linregress(x, ys)
             lin_x = np.array([np.min(x), np.max(x)])
@@ -502,6 +528,17 @@ diversity_names = (
     "Data Perf.",
     "Approx. KL",
 )
+map_env = {
+    "frozenlake": "Frozen Lake",
+    "cheetah": "Cheetah",
+    "walker": "Walker",
+    "cartpole": "Cartpole",
+    "pendulum": "Pendulum",
+}
+map_control = {
+    "discrete": "Discrete",
+    "continuous": "Continuous",
+}
 
 for idx_i in range(len(control_modes)):
     control_mode = control_modes[idx_i]
@@ -510,7 +547,7 @@ for idx_i in range(len(control_modes)):
     latex_content_to_write += "  \\label{{tab:diversity_return_correlation_{}}}\n".format(control_mode)
     latex_content_to_write += "  \\begin{center}\n"
     latex_content_to_write += "  \\begin{tabular}{lcccc}\n"
-    latex_content_to_write += "    {}\\\\\n".format(" ".join(["& {}".format(env if env != "frozenlake" else "frozen lake") for env in envs[idx_i]]))
+    latex_content_to_write += "    {}\\\\\n".format(" ".join(["& {}".format(map_env[env]) for env in envs[idx_i]]))
 
     for row_i, row_name in enumerate(["Pearson", "Spearman", "Kendall"]):
         latex_content_to_write += "    \\hline\n"
