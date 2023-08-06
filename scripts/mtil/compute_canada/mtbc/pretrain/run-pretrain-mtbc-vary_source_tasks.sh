@@ -16,7 +16,7 @@ python ../../sweep_pretrain_mtbc-vary_source_tasks.py \
     --num_heldouts=10 \
     --num_tasks_variants=1,2,4,8,16 \
     --num_variations=5 \
-    --num_samples=1600 \
+    --num_samples=1000 \
     --exp_name=pendulum
 
 
@@ -31,7 +31,7 @@ python ../../sweep_pretrain_mtbc-vary_source_tasks.py \
     --num_heldouts=10 \
     --num_tasks_variants=1,2,4,8,16 \
     --num_variations=5 \
-    --num_samples=4800 \
+    --num_samples=1000 \
     --discrete_control \
     --exp_name=pendulum
 

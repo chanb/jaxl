@@ -12,18 +12,21 @@ env_names = [
 ]
 
 # exp_name = "bc_less_data"
-exp_name = "finetune_mtbc_main"
+# exp_name = "finetune_mtbc_main"
+exp_name = "bc_double"
+# exp_name = "bc_half_more"
 exp_suffix = ""
 
-# Ablations
+# main
 # exp_suffix = "-double_source_data"
 # exp_suffix = "-quadruple_source_data"
-exp_suffix = "-eightfold_source_data"
+# exp_suffix = "-eightfold_source_data"
 
-# exp_name = "finetune_mtbc"
-# exp_suffix = "-larger_architecture"
+# target_data
+# exp_suffix = "-half_more_target_data"
+# exp_suffix = "-double_target_data"
 
-run_time = "00:20:00"
+run_time = "00:25:00"
 num_evaluation_episodes = 30
 rollout_seed = 9999
 
