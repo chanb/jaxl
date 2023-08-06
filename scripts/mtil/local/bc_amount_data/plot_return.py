@@ -179,7 +179,7 @@ for ax_i, env_name in enumerate(env_names):
         alpha=0.3,
     )
 
-    ax.set_xlabel("{} {}".format(map_control[env_name[1]], map_env[env_name[0]]))
+    ax.set_xlabel("{} {}".format( map_env[env_name[0]], map_control[env_name[1]]))
     ax.legend()
 
 fig.supylabel("Expected Return")

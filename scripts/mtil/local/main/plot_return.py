@@ -227,15 +227,143 @@ for env_name in env_names:
     fig.legend(
         bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
         loc="lower center",
-        ncols=4,
+        ncols=3,
         borderaxespad=0.0,
         frameon=True,
         fontsize="5",
     )
-    # fig.suptitle("{} {}".format(map_control[env_name[1]], map_env[env_name[0]]))
+    # fig.suptitle("{} {}".format( map_env[env_name[0]], map_control[env_name[1]]))
     fig.savefig(
         f"{save_plot_dir}/returns-{env_name[0]}_{env_name[1]}.pdf",
         format="pdf",
         bbox_inches="tight",
         dpi=600,
     )
+
+
+def map_exp(name):
+    splitted_name = name.split("-")
+    if len(splitted_name) == 2:
+        return "$N = M$"
+    else:
+        map_amount = {
+            "double": 2,
+            "quadruple": 4,
+            "eightfold": 8,
+        }
+        return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
+num_rows = math.ceil(len(env_names) / 4)
+num_cols = 4
+fig, axes = plt.subplots(
+    num_rows,
+    num_cols,
+    figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
+    layout="constrained",
+)
+for ax_i, env_name in enumerate(env_names):
+    if axes.ndim == 2:
+        ax = axes[ax_i // num_cols, ax_i % num_cols]
+    else:
+        ax = axes[ax_i]
+
+    ref_result = results_per_experiment[experiment_name][env_name]
+
+    bc_rets = []
+    mtbc_rets = {}
+    unique_num_tasks = None
+    for env_seed in ref_result:
+        (expert_rets, random_rets) = ref_result[env_seed]["expert"]
+
+        def normalize(rets):
+            return (rets - random_rets) / (expert_rets - random_rets)
+
+        normalized_bc_rets = normalize(ref_result[env_seed]["bc"])
+        bc_rets.append(np.mean(normalized_bc_rets))
+        
+        
+        num_tasks, _, _ = list(zip(*ref_result[env_seed]["mtbc"]))
+        num_tasks = np.array(num_tasks)
+        assert unique_num_tasks is None or np.all(unique_num_tasks == np.unique(num_tasks))
+        unique_num_tasks = np.unique(num_tasks)
+
+        for suffix in experiment_name_suffixes:
+            curr_exp = f"{experiment_name}{suffix}"
+            num_source_data = map_exp(curr_exp)
+
+            mtbc_rets.setdefault(num_source_data, {})
+
+            res = results_per_experiment[curr_exp][env_name][env_seed]
+            num_tasks, _, returns = list(zip(*res["mtbc"]))
+            num_tasks = np.array(num_tasks)
+            returns = np.array(returns)
+
+            means = []
+            stds = []
+
+            for num_task in unique_num_tasks:
+                mtbc_rets[num_source_data].setdefault(num_task, [])
+
+                curr_num_task_rets = normalize(returns[num_tasks == num_task])
+                mtbc_rets[num_source_data][num_task].append(np.mean(curr_num_task_rets))
+
+
+    bc_mean = np.mean(bc_rets)
+    bc_std = np.std(bc_rets)
+    ax.axhline(
+        1.0,
+        label="Expert" if ax_i == 0 else "",
+        color="black",
+        linestyle="--",
+        linewidth=0.5,
+    )
+    ax.axhline(
+        bc_mean,
+        label="BC" if ax_i == 0 else "",
+        color="grey",
+        linestyle="--",
+        linewidth=0.5,
+    )
+    ax.fill_between(
+        (unique_num_tasks[0], unique_num_tasks[-1]),
+        bc_mean + bc_std,
+        bc_mean - bc_std,
+        color="grey",
+        alpha=0.2,
+    )
+
+    for num_source_data in mtbc_rets:
+        means = np.array([np.mean(mtbc_rets[num_source_data][num_task]) for num_task in unique_num_tasks])
+        stds = np.array([np.std(mtbc_rets[num_source_data][num_task]) for num_task in unique_num_tasks])
+        ax.plot(
+            unique_num_tasks,
+            means,
+            label=num_source_data if ax_i == 0 else "",
+            linewidth=0.9,
+            marker="^",
+            ms=4.0,
+        )
+        ax.fill_between(
+            unique_num_tasks,
+            means + stds,
+            means - stds,
+            alpha=0.2,
+        )
+
+
+fig.supylabel("Normalized Returns")
+fig.supxlabel("Number of Tasks")
+fig.legend(
+    bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
+    loc="lower center",
+    ncols=3,
+    borderaxespad=0.0,
+    frameon=True,
+    fontsize="5",
+)
+# fig.suptitle("{} {}".format( map_env[env_name[0]], map_control[env_name[1]]))
+fig.savefig(
+    f"{save_plot_dir}/returns-agg.pdf",
+    format="pdf",
+    bbox_inches="tight",
+    dpi=600,
+)
