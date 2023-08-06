@@ -22,9 +22,13 @@ exp_suffix = ""
 # exp_suffix = "-quadruple_source_data"
 # exp_suffix = "-eightfold_source_data"
 
-# target_data
+# target data
 # exp_suffix = "-half_more_target_data"
 # exp_suffix = "-double_target_data"
+
+# varying source task
+# exp_name = "finetune_mtbc-vary_source_tasks"
+# exp_suffix = ""
 
 run_time = "00:25:00"
 num_evaluation_episodes = 30

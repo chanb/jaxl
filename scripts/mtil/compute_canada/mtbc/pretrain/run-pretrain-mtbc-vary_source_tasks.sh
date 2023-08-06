@@ -10,7 +10,7 @@ python ../../sweep_pretrain_mtbc-vary_source_tasks.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_mtbc.json \
     --out_dir=${HOME}/scratch/data/pretrain_mtbc-vary_source_tasks \
     --run_seed=0 \
-    --num_runs=1 \
+    --num_runs=5 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/pendulum_cont \
     --num_heldouts=10 \
@@ -25,7 +25,7 @@ python ../../sweep_pretrain_mtbc-vary_source_tasks.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/pretrain_mtbc.json \
     --out_dir=${HOME}/scratch/data/pretrain_mtbc-vary_source_tasks \
     --run_seed=0 \
-    --num_runs=1 \
+    --num_runs=5 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/pendulum_disc \
     --num_heldouts=10 \
