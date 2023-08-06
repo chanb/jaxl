@@ -1,21 +1,22 @@
 import os
 
 env_names = [
-    ("frozenlake", "discrete"),
-    ("cartpole", "continuous"),
+    # ("frozenlake", "discrete"),
+    # ("cartpole", "continuous"),
     ("pendulum", "discrete"),
     ("pendulum", "continuous"),
-    ("cheetah", "discrete"),
-    ("cheetah", "continuous"),
-    ("walker", "discrete"),
-    ("walker", "continuous"),
+    # ("cheetah", "discrete"),
+    # ("cheetah", "continuous"),
+    # ("walker", "discrete"),
+    # ("walker", "continuous"),
 ]
 
 # exp_name = "bc_less_data"
 # exp_name = "finetune_mtbc_main"
-exp_name = "bc_double"
+# exp_name = "bc_double"
 # exp_name = "bc_half_more"
-exp_suffix = ""
+# exp_name = "bc_quarter_more"
+# exp_suffix = ""
 
 # main
 # exp_suffix = "-double_source_data"
@@ -23,12 +24,13 @@ exp_suffix = ""
 # exp_suffix = "-eightfold_source_data"
 
 # target data
+# exp_suffix = "-quarter_more_target_data"
 # exp_suffix = "-half_more_target_data"
 # exp_suffix = "-double_target_data"
 
 # varying source task
-# exp_name = "finetune_mtbc-vary_source_tasks"
-# exp_suffix = ""
+exp_name = "finetune_mtbc-vary_source_tasks"
+exp_suffix = ""
 
 run_time = "00:25:00"
 num_evaluation_episodes = 30

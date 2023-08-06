@@ -13,7 +13,7 @@ python ../../sweep_finetune_mtbc.py \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/pendulum_cont \
-    --num_heldouts=10 \
+    --num_heldouts=5 \
     --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc-vary_source_tasks/pendulum/continuous \
     --num_samples=1000 \
     --exp_name=pendulum
@@ -27,12 +27,12 @@ python ../../sweep_finetune_mtbc.py \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/pendulum_disc \
-    --num_heldouts=10 \
+    --num_heldouts=5 \
     --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc-vary_source_tasks/pendulum/discrete \
     --num_samples=1000 \
     --discrete_control \
     --exp_name=pendulum
 
 chmod +x run_all-*.sh
-sbatch run_all-finetune-mtbc-single_sweep-pendulum_continuous.sh
-sbatch run_all-finetune-mtbc-single_sweep-pendulum_discrete.sh
+# sbatch run_all-finetune-mtbc-single_sweep-pendulum_continuous.sh
+# sbatch run_all-finetune-mtbc-single_sweep-pendulum_discrete.sh
