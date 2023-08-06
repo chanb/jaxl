@@ -230,7 +230,7 @@ suffixes = (
     "",
     "-double_source_data",
     "-quadruple_source_data",
-    # "-eightfold_source_data"
+    "-eightfold_source_data",
 )
 
 def map_exp(name):

@@ -8,29 +8,29 @@ source ~/jaxl_env/bin/activate
 python ../../sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/bc_double \
+    --out_dir=${HOME}/scratch/data/bc_half_more \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/cheetah_cont \
+    --data_dir=${HOME}/scratch/data/expert_data/pendulum_cont \
     --num_heldouts=10 \
-    --num_samples=2000 \
-    --exp_name=cheetah
+    --num_samples=1500 \
+    --exp_name=pendulum
 
 
 python ../../sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/bc_double \
+    --out_dir=${HOME}/scratch/data/bc_half_more \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
-    --data_dir=${HOME}/scratch/data/expert_data/cheetah_disc \
+    --data_dir=${HOME}/scratch/data/expert_data/pendulum_disc \
     --num_heldouts=10 \
-    --num_samples=2000 \
+    --num_samples=1500 \
     --discrete_control \
-    --exp_name=cheetah
+    --exp_name=pendulum
 
 chmod +x run_all-*.sh
-sbatch run_all-bc-single_sweep-cheetah_continuous.sh
-sbatch run_all-bc-single_sweep-cheetah_discrete.sh
+sbatch run_all-bc-single_sweep-pendulum_continuous.sh
+sbatch run_all-bc-single_sweep-pendulum_discrete.sh

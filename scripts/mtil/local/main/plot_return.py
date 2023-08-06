@@ -195,6 +195,8 @@ for env_name in env_names:
             # if env_name[0] == "cheetah" and env_name[1] == "discrete":
             #     print("-----")
             #     print(env_seed, num_tasks, returns)
+            if len(num_tasks) < 5:
+                print(suffix, env_name, env_seed, num_tasks, returns)
             for num_task in unique_num_tasks:
                 curr_num_task_rets = normalize(returns[num_tasks == num_task])
                 means.append(np.mean(curr_num_task_rets))
