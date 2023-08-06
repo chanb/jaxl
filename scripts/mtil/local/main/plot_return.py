@@ -104,12 +104,12 @@ map_control = {
 
 env_names = [
     ("frozenlake", "discrete"),
-    ("cartpole", "continuous"),
     ("pendulum", "discrete"),
-    ("pendulum", "continuous"),
     ("cheetah", "discrete"),
-    ("cheetah", "continuous"),
     ("walker", "discrete"),
+    ("cartpole", "continuous"),
+    ("pendulum", "continuous"),
+    ("cheetah", "continuous"),
     ("walker", "continuous"),
 ]
 
@@ -252,15 +252,22 @@ def map_exp(name):
             "eightfold": 8,
         }
         return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
-num_rows = math.ceil(len(env_names) / 4)
-num_cols = 4
-fig, axes = plt.subplots(
-    num_rows,
-    num_cols,
-    figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
-    layout="constrained",
-)
-for ax_i, env_name in enumerate(env_names):
+
+
+num_plots_per_fig = 4
+num_rows = 2
+num_cols = 2
+for env_i, env_name in enumerate(env_names):
+    ax_i = env_i % num_plots_per_fig
+
+    if ax_i == 0:
+        fig, axes = plt.subplots(
+            num_rows,
+            num_cols,
+            figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
+            layout="constrained",
+        )
+
     if axes.ndim == 2:
         ax = axes[ax_i // num_cols, ax_i % num_cols]
     else:
@@ -321,7 +328,7 @@ for ax_i, env_name in enumerate(env_names):
         label="BC" if ax_i == 0 else "",
         color="grey",
         linestyle="--",
-        linewidth=0.5,
+        linewidth=0.9,
     )
     ax.fill_between(
         (unique_num_tasks[0], unique_num_tasks[-1]),
@@ -349,21 +356,27 @@ for ax_i, env_name in enumerate(env_names):
             alpha=0.2,
         )
 
+    ax.set_ylim(top=1.1)
 
-fig.supylabel("Normalized Returns")
-fig.supxlabel("Number of Tasks")
-fig.legend(
-    bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
-    loc="lower center",
-    ncols=3,
-    borderaxespad=0.0,
-    frameon=True,
-    fontsize="5",
-)
-# fig.suptitle("{} {}".format( map_env[env_name[0]], map_control[env_name[1]]))
-fig.savefig(
-    f"{save_plot_dir}/returns-agg.pdf",
-    format="pdf",
-    bbox_inches="tight",
-    dpi=600,
-)
+    ax.set_xlabel(map_env[env_name[0]])
+    ax.xaxis.set_major_locator(tck.MultipleLocator(4))
+    ax.set_xlim(unique_num_tasks[0], unique_num_tasks[-1])
+
+    if ax_i + 1 == num_plots_per_fig:
+        fig.supylabel("Normalized Returns")
+        fig.supxlabel("Number of Tasks")
+        fig.legend(
+            bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
+            loc="lower center",
+            ncols=6,
+            borderaxespad=0.0,
+            frameon=True,
+            fontsize="5",
+        )
+        # fig.suptitle("{} {}".format( map_env[env_name[0]], map_control[env_name[1]]))
+        fig.savefig(
+            f"{save_plot_dir}/returns-agg_{env_i // num_plots_per_fig}.pdf",
+            format="pdf",
+            bbox_inches="tight",
+            dpi=600,
+        )
