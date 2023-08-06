@@ -13,7 +13,7 @@ python ../../../sweep_finetune_mtbc.py \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_cont \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-quadruple_source_data/walker-quadruple_source_data/continuous \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-eightfold_source_data/walker-eightfold_source_data/continuous \
     --num_heldouts=10 \
     --num_samples=3000 \
     --exp_name=walker-half_more_target_data \
@@ -28,7 +28,7 @@ python ../../../sweep_finetune_mtbc.py \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_disc \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-quadruple_source_data/walker-quadruple_source_data/discrete \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-eightfold_source_data/walker-eightfold_source_data/discrete \
     --num_heldouts=10 \
     --num_samples=750 \
     --discrete_control \
