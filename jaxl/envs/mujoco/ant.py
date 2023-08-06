@@ -5,7 +5,7 @@ from gymnasium.envs.mujoco import mujoco_env
 from gymnasium.spaces import Box
 
 from jaxl.envs.mujoco.parameterized_env import ParameterizedMujocoEnv
-from jaxl.envs.reward_utils import tolerance
+from dm_control.utils.rewards import tolerance
 
 
 DEFAULT_CAMERA_CONFIG = {

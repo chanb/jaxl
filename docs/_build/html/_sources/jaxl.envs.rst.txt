@@ -12,14 +12,6 @@ Subpackages
 Submodules
 ----------
 
-jaxl.envs.reward\_utils module
-------------------------------
-
-.. automodule:: jaxl.envs.reward_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 jaxl.envs.rollouts module
 -------------------------
 

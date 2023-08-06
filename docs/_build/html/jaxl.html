@@ -205,10 +205,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.envs.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="jaxl.envs.html#module-jaxl.envs.reward_utils">jaxl.envs.reward_utils module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.reward_utils.tolerance"><code class="docutils literal notranslate"><span class="pre">tolerance()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.envs.html#module-jaxl.envs.rollouts">jaxl.envs.rollouts module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.envs.html#jaxl.envs.rollouts.EvaluationRollout.random_sample_rollout"><code class="docutils literal notranslate"><span class="pre">EvaluationRollout.random_sample_rollout()</span></code></a></li>
@@ -514,9 +510,6 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
 </section>
-<section id="jaxl-evaluate-rl-agents-module">
-<h2>jaxl.evaluate_rl_agents module<a class="headerlink" href="#jaxl-evaluate-rl-agents-module" title="Permalink to this heading">¶</a></h2>
-</section>
 <section id="module-jaxl.gather_expert_data">
 <span id="jaxl-gather-expert-data-module"></span><h2>jaxl.gather_expert_data module<a class="headerlink" href="#module-jaxl.gather_expert_data" title="Permalink to this heading">¶</a></h2>
 <p>This script is the entrypoint for evaluating RL-trained policies.
@@ -566,16 +559,9 @@ XXX: Try not to modify this.</p>
 <dd class="field-even"><p>the latest checkpointed agent, the buffer, and the environment</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[
-<a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy" title="jaxl.models.common.Policy">Policy</a>,
-Dict[str, Any],
-Union[<a class="reference internal" href="#jaxl.utils.RunningMeanStd" title="jaxl.utils.RunningMeanStd">RunningMeanStd</a>, bool],
-<a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer" title="jaxl.buffers.buffers.ReplayBuffer">ReplayBuffer</a>,
-Env,
-int,</p>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy" title="jaxl.models.common.Policy">Policy</a>, Dict[str, Any], Union[<a class="reference internal" href="#jaxl.utils.RunningMeanStd" title="jaxl.utils.RunningMeanStd">RunningMeanStd</a>, bool], <a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer" title="jaxl.buffers.buffers.ReplayBuffer">ReplayBuffer</a>, Env, int,]</p>
 </dd>
 </dl>
-<p>]</p>
 </dd></dl>
 
 <dl class="py function">

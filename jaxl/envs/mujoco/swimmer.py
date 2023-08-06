@@ -6,7 +6,7 @@ import os
 from gymnasium.spaces import Box
 
 from jaxl.envs.mujoco.parameterized_env import ParameterizedMujocoEnv
-from jaxl.envs.reward_utils import tolerance
+from dm_control.utils.rewards import tolerance
 
 
 class SwimmerEnv(ParameterizedMujocoEnv):

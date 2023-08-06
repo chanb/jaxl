@@ -233,6 +233,7 @@ suffixes = (
     "-eightfold_source_data",
 )
 
+
 def map_exp(name):
     splitted_name = name.split("-")
     if len(splitted_name) == 2:
@@ -244,6 +245,7 @@ def map_exp(name):
             "eightfold": 8,
         }
         return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
+
 
 env_names = [
     ("frozenlake", "discrete"),
@@ -282,9 +284,7 @@ else:
                         env_variant,
                         num_task,
                         pretrain_model_seed,
-                    ) = finetune_run_dir.split(
-                        "/"
-                    )[-4:-1]
+                    ) = finetune_run_dir.split("/")[-4:-1]
                     dataset_task_name = "{}_{}".format(task, control_mode[:4])
                     num_task_int = int(num_task.split("num_tasks_")[-1])
                     pretrain_model_seed_int = int(
@@ -342,7 +342,11 @@ else:
                     avg_distance, std_distance, min_distance = expert_data_performance(
                         pretrain_config, finetune_dataset_path, pretrain_dataset_paths
                     )
-                    data_performance_diversity = (avg_distance, std_distance, min_distance)
+                    data_performance_diversity = (
+                        avg_distance,
+                        std_distance,
+                        min_distance,
+                    )
 
                     kl_diversity = approx_kl(
                         pretrain_run_dir,
@@ -419,6 +423,7 @@ for env_name in env_names:
         returns_to_add = None
         for env_seed, pretrain_model_seed, suffix, diversities in res:
             (expert_rets, random_rets) = returns[""][env_name][env_seed]["expert"]
+
             def normalize(rets):
                 return (rets - random_rets) / (expert_rets - random_rets)
 
@@ -436,7 +441,11 @@ for env_name in env_names:
                         )
                         == pretrain_model_seed
                     ):
-                        to_add = (diversities[0][0] / (diversities[0][2] + eps), diversities[1][0] / (diversities[1][2] + eps), diversities[2])
+                        to_add = (
+                            diversities[0][0] / (diversities[0][2] + eps),
+                            diversities[1][0] / (diversities[1][2] + eps),
+                            diversities[2],
+                        )
                         xs.append(to_add)
                         ys.append(normalize(mtbc_variant[2][variant_i]))
 
@@ -458,11 +467,13 @@ for env_name in env_names:
             lin_x = np.array([np.min(x), np.max(x)])
             lin_y = res.intercept + res.slope * lin_x
 
-            correlations.append((
-                pearsonr(x, ys).statistic,
-                spearmanr(x, ys).statistic,
-                kendalltau(x, ys).statistic
-            ))
+            correlations.append(
+                (
+                    pearsonr(x, ys).statistic,
+                    spearmanr(x, ys).statistic,
+                    kendalltau(x, ys).statistic,
+                )
+            )
 
             x = (x - np.min(x)) / (np.max(x) - np.min(x))
             lin_x = np.array([0, 1])
@@ -487,7 +498,7 @@ for env_name in env_names:
                 ax.legend()
             # ax.yaxis.set_major_formatter(FormatStrFormatter("%.2f"))
             ax.set_ylim(0.0, 1.1)
-        
+
         all_correlations.append(correlations)
 
     (task, control_mode) = env_name
@@ -503,25 +514,19 @@ for env_name in env_names:
     print(env_name)
     print(all_correlations)
     np_correlations = np.array(all_correlations)
-    print("AVG CORRELATION {} +/- {}".format(np.mean(np_correlations, axis=0), np.std(np_correlations, axis=0)))
+    print(
+        "AVG CORRELATION {} +/- {}".format(
+            np.mean(np_correlations, axis=0), np.std(np_correlations, axis=0)
+        )
+    )
 
     correlation_per_env[env_name] = np_correlations
 
 num_envs = len(env_names)
 control_modes = ["discrete", "continuous"]
 envs = (
-    (
-        "frozenlake",
-        "pendulum",
-        "cheetah",
-        "walker"
-    ),
-    (
-        "cartpole",
-        "pendulum",
-        "cheetah",
-        "walker"
-    ),
+    ("frozenlake", "pendulum", "cheetah", "walker"),
+    ("cartpole", "pendulum", "cheetah", "walker"),
 )
 diversity_names = (
     "L2",
@@ -543,15 +548,23 @@ map_control = {
 for idx_i in range(len(control_modes)):
     control_mode = control_modes[idx_i]
     latex_content_to_write = "\\begin{table}[t]\n"
-    latex_content_to_write += "  \\caption{{The correlations between various task diversity metrics and the normalized returns in {} tasks.\n  Bolded text means highest mean.}}\n".format(control_mode)
-    latex_content_to_write += "  \\label{{tab:diversity_return_correlation_{}}}\n".format(control_mode)
+    latex_content_to_write += "  \\caption{{The correlations between various task diversity metrics and the normalized returns in {} tasks.\n  Bolded text means highest mean.}}\n".format(
+        control_mode
+    )
+    latex_content_to_write += (
+        "  \\label{{tab:diversity_return_correlation_{}}}\n".format(control_mode)
+    )
     latex_content_to_write += "  \\begin{center}\n"
     latex_content_to_write += "  \\begin{tabular}{lcccc}\n"
-    latex_content_to_write += "    {}\\\\\n".format(" ".join(["& {}".format(map_env[env]) for env in envs[idx_i]]))
+    latex_content_to_write += "    {}\\\\\n".format(
+        " ".join(["& {}".format(map_env[env]) for env in envs[idx_i]])
+    )
 
     for row_i, row_name in enumerate(["Pearson", "Spearman", "Kendall"]):
         latex_content_to_write += "    \\hline\n"
-        latex_content_to_write += "    \\multicolumn{{5}}{{c}}{{\\textbf{{{}}}}}\\\\\n".format(row_name)
+        latex_content_to_write += (
+            "    \\multicolumn{{5}}{{c}}{{\\textbf{{{}}}}}\\\\\n".format(row_name)
+        )
         latex_content_to_write += "    \\hline\n"
 
         means = []
@@ -560,7 +573,9 @@ for idx_i in range(len(control_modes)):
             means.append([])
             stds.append([])
             for div_i, div_name in enumerate(diversity_names):
-                correlations = correlation_per_env[(env_name, control_mode)][row_i][div_i]
+                correlations = correlation_per_env[(env_name, control_mode)][row_i][
+                    div_i
+                ]
                 means[-1].append(np.mean(correlations))
                 stds[-1].append(np.std(correlations))
         best_idxes = np.argmax(means, axis=-1)
@@ -570,14 +585,14 @@ for idx_i in range(len(control_modes)):
 
             for env_i, env_name in enumerate(envs[idx_i]):
                 if div_i == best_idxes[env_i]:
-                    latex_content_to_write += " & $\mathbf{{{:.3f} \\pm {:.3f}}}$".format(
-                        means[env_i][div_i],
-                        stds[env_i][div_i]
+                    latex_content_to_write += (
+                        " & $\mathbf{{{:.3f} \\pm {:.3f}}}$".format(
+                            means[env_i][div_i], stds[env_i][div_i]
+                        )
                     )
                 else:
                     latex_content_to_write += " & ${:.3f} \\pm {:.3f}$".format(
-                        means[env_i][div_i],
-                        stds[env_i][div_i]
+                        means[env_i][div_i], stds[env_i][div_i]
                     )
             latex_content_to_write += "\\\\\n"
 

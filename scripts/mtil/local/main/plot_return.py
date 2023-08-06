@@ -154,7 +154,7 @@ for env_name in env_names:
 
         def normalize(rets):
             return (rets - random_rets) / (expert_rets - random_rets)
-        
+
         ax.axhline(
             1.0,
             label="Expert" if ax_i == 0 else "",
@@ -286,11 +286,12 @@ for env_i, env_name in enumerate(env_names):
 
         normalized_bc_rets = normalize(ref_result[env_seed]["bc"])
         bc_rets.append(np.mean(normalized_bc_rets))
-        
-        
+
         num_tasks, _, _ = list(zip(*ref_result[env_seed]["mtbc"]))
         num_tasks = np.array(num_tasks)
-        assert unique_num_tasks is None or np.all(unique_num_tasks == np.unique(num_tasks))
+        assert unique_num_tasks is None or np.all(
+            unique_num_tasks == np.unique(num_tasks)
+        )
         unique_num_tasks = np.unique(num_tasks)
 
         for suffix in experiment_name_suffixes:
@@ -312,7 +313,6 @@ for env_i, env_name in enumerate(env_names):
 
                 curr_num_task_rets = normalize(returns[num_tasks == num_task])
                 mtbc_rets[num_source_data][num_task].append(np.mean(curr_num_task_rets))
-
 
     bc_mean = np.mean(bc_rets)
     bc_std = np.std(bc_rets)
@@ -339,8 +339,18 @@ for env_i, env_name in enumerate(env_names):
     )
 
     for num_source_data in mtbc_rets:
-        means = np.array([np.mean(mtbc_rets[num_source_data][num_task]) for num_task in unique_num_tasks])
-        stds = np.array([np.std(mtbc_rets[num_source_data][num_task]) for num_task in unique_num_tasks])
+        means = np.array(
+            [
+                np.mean(mtbc_rets[num_source_data][num_task])
+                for num_task in unique_num_tasks
+            ]
+        )
+        stds = np.array(
+            [
+                np.std(mtbc_rets[num_source_data][num_task])
+                for num_task in unique_num_tasks
+            ]
+        )
         ax.plot(
             unique_num_tasks,
             means,

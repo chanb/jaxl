@@ -1,19 +1,6 @@
 """
 This script generates the expert data for each provided model.
 
-Example command:
-python generate_expert_data.py \
-    --main_path=${JAXL_PATH}/jaxl/evaluate_rl_agents.py \
-    --runs_dir=${HOME}/scratch/expert_models/pendulum_disc \
-    --exp_name=pendulum_disc \
-    --run_seed=0 \
-    --env_seed=0 \
-    --out_dir=${HOME}/scratch/expert_data \
-    --num_episodes=1000 \
-    --max_episode_length=1000 \
-    --run_time=01:00:00
-
-
 This will generate a dat file that consists of various runs.
 """
 

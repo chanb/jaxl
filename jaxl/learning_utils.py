@@ -159,14 +159,7 @@ def load_evaluation_components(
     :type run_path: str
     :type buffer_size: int
     :return: the latest checkpointed agent, the buffer, and the environment
-    :rtype: Tuple[
-        Policy,
-        Dict[str, Any],
-        Union[RunningMeanStd, bool],
-        ReplayBuffer,
-        Env,
-        int,
-    ]
+    :rtype: Tuple[Policy, Dict[str, Any], Union[RunningMeanStd, bool], ReplayBuffer, Env, int,]
 
     """
     assert buffer_size > 0, f"buffer_size {buffer_size} needs to be at least 1."

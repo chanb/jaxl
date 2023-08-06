@@ -55,52 +55,6 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
 </section>
-<section id="module-jaxl.envs.reward_utils">
-<span id="jaxl-envs-reward-utils-module"></span><h2>jaxl.envs.reward_utils module<a class="headerlink" href="#module-jaxl.envs.reward_utils" title="Permalink to this heading">¶</a></h2>
-<p>Soft indicator function evaluating whether a number is within bounds.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="jaxl.envs.reward_utils.tolerance">
-<span class="sig-prename descclassname"><span class="pre">jaxl.envs.reward_utils.</span></span><span class="sig-name descname"><span class="pre">tolerance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigmoid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gaussian'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_at_margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.envs.reward_utils.tolerance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns 1 when <cite>x</cite> falls inside the bounds, between 0 and 1 otherwise.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> – A scalar or numpy array.</p></li>
-<li><p><strong>bounds</strong> – A tuple of floats specifying inclusive <cite>(lower, upper)</cite> bounds for
-the target interval. These can be infinite if the interval is unbounded
-at one or both ends, or they can be equal to one another if the target
-value is exact.</p></li>
-<li><p><strong>margin</strong> – <p>Float. Parameter that controls how steeply the output decreases as
-<cite>x</cite> moves out-of-bounds.
-* If <cite>margin == 0</cite> then the output will be 0 for all values of <cite>x</cite></p>
-<blockquote>
-<div><p>outside of <cite>bounds</cite>.</p>
-</div></blockquote>
-<ul>
-<li><p>If <cite>margin &gt; 0</cite> then the output will decrease sigmoidally with
-increasing distance from the nearest bound.</p></li>
-</ul>
-</p></li>
-<li><p><strong>sigmoid</strong> – String, choice of sigmoid type. Valid values are: ‘gaussian’,
-‘linear’, ‘hyperbolic’, ‘long_tail’, ‘cosine’, ‘tanh_squared’.</p></li>
-<li><p><strong>value_at_margin</strong> – A float between 0 and 1 specifying the output value when
-the distance from <cite>x</cite> to the nearest bound is equal to <cite>margin</cite>. Ignored
-if <cite>margin == 0</cite>.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A float or numpy array with values between 0.0 and 1.0.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ValueError</strong> – If <cite>bounds[0] &gt; bounds[1]</cite>.</p></li>
-<li><p><strong>ValueError</strong> – If <cite>margin</cite> is negative.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
 <section id="module-jaxl.envs.rollouts">
 <span id="jaxl-envs-rollouts-module"></span><h2>jaxl.envs.rollouts module<a class="headerlink" href="#module-jaxl.envs.rollouts" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
