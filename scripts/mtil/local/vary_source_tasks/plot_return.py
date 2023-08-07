@@ -43,7 +43,6 @@ for exp_i, exp_name in enumerate([ref_name, experiment_name]):
                 if not filename.endswith(".pkl"):
                     continue
 
-                print("Processing {}".format(eval_path))
                 variant_name = eval_path.split("/")[-3:]
                 (env_name, control_mode, env_seed) = variant_name
                 env_name = env_name.split("-")[0]
@@ -51,6 +50,7 @@ for exp_i, exp_name in enumerate([ref_name, experiment_name]):
                 if f"{env_name}" not in eval_path.split("/"):
                     continue
 
+                print("Processing {}".format(os.path.join(eval_path, filename)))
                 results.setdefault((env_name, control_mode), {})
                 results[(env_name, control_mode)].setdefault(env_seed, {})
 
@@ -84,7 +84,6 @@ for exp_i, exp_name in enumerate([ref_name, experiment_name]):
                         results[(env_name, control_mode)][env_seed]["mtbc"][dataset_sample_seed].append(
                             (num_tasks, paths, data)
                         )
-                        print(data)
                     else:
                         results[(env_name, control_mode)][env_seed].setdefault("mtbc", [])
                         results[(env_name, control_mode)][env_seed]["mtbc"].append(
@@ -132,7 +131,7 @@ for env_name in env_names:
     )
 
     ref_result = results_per_experiment[ref_name][env_name]
-    for ax_i, env_seed in enumerate(ref_result):
+    for ax_i, env_seed in enumerate(results_per_experiment[experiment_name][env_name]):
         if axes.ndim == 2:
             ax = axes[ax_i // num_cols, ax_i % num_cols]
         else:
