@@ -108,8 +108,8 @@ print(num_sampless)
 for num_samples in num_sampless:
     variant_name = f"buffer_size_{num_samples}"
 
-    means.append(np.mean(result_per_variant[result_per_variant[:, 0] == num_samples]))
-    stds.append(np.std(result_per_variant[result_per_variant[:, 0] == num_samples]))
+    means.append(np.mean(result_per_variant[result_per_variant[:, 0] == num_samples][:, 1]))
+    stds.append(np.std(result_per_variant[result_per_variant[:, 0] == num_samples][:, 1]))
 
 means = np.array(means)
 stds = np.array(stds)
