@@ -46,7 +46,7 @@ seeds_to_plot = np.array(all_env_seeds)
 
 torques = np.array(
     [
-        0.0
+        2.0
         if env_seed is None
         else all_env_configs[env_seed]["max_torque"]
         for env_seed in all_env_seeds
@@ -74,7 +74,7 @@ for idx, returns_per_seed in enumerate(
         marker="^",
         ms=3.0,
         linewidth=0.75,
-        label="torques @ {:.2f}".format(torques[idx]),
+        label="trained @ {:.2f} max torque".format(torques[idx]),
     )
     ax.fill_between(
         torques[sort_idxes],
