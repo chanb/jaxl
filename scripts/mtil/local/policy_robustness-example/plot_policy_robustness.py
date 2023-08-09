@@ -22,7 +22,7 @@ plt.rcParams.update(pgf_with_latex)
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
 
-task = "cartpole"
+task = "pendulum"
 control_mode = "continuous"
 
 save_path = f"./results_policy_robustness-{task}"
@@ -34,8 +34,11 @@ rollout_seed = 1000
 env_seed_range = 1000
 num_envs_to_test = 8
 
-default_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_09_01_54-2ae9e079-f3d6-4def-be16-204ce4c44442"
-variant_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_10_07_12-308c3889-7e91-406b-9b1d-a9cfd723defb"
+# default_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_09_01_54-2ae9e079-f3d6-4def-be16-204ce4c44442"
+# variant_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/cartpole_continuous/ppo-08-01-23_10_07_12-308c3889-7e91-406b-9b1d-a9cfd723defb"
+
+default_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/pendulum_continuous/ppo-08-09-23_10_46_41-297da69c-fdc4-43e9-9cfd-7e64bdb357b2"
+variant_agent_path = "/Users/chanb/research/personal/jaxl/scripts/mtil/local/policy_robustness-example/logs/pendulum_continuous/ppo-08-09-23_11_08_47-9bda34bb-7bd4-4100-9bed-122e62557634"
 
 variant_env_seed = json.load(
     open(os.path.join(variant_agent_path, "config.json"), "r")
@@ -67,9 +70,9 @@ def get_data(agent_path, all_env_seeds):
 
     for env_seed in all_env_seeds:
         env, policy = (
-            get_evaluation_components(agent_path, None, True)
+            get_evaluation_components(agent_path, None, None)
             if env_seed is None
-            else get_evaluation_components(agent_path, env_seed, False)
+            else get_evaluation_components(agent_path, env_seed, None)
         )
         if record_video:
             env = RecordVideoV0(
@@ -148,15 +151,15 @@ print(all_env_configs.items())
 all_env_seeds = [None, variant_env_seed, *env_seeds]
 seeds_to_plot = np.array(all_env_seeds)
 
-stiffness = np.array(
+torques = np.array(
     [
-        0.0
+        2.0
         if env_seed is None
-        else all_env_configs[env_seed]["joint"]["hinge_1"]["stiffness"][0]
+        else all_env_configs[env_seed]["max_torque"]
         for env_seed in all_env_seeds
     ]
 )
-sort_idxes = np.argsort(stiffness)
+sort_idxes = np.argsort(torques)
 linestyles = ["--", "-."]
 
 for idx, returns_per_seed in enumerate(
@@ -170,23 +173,23 @@ for idx, returns_per_seed in enumerate(
     means = np.array(means)
     stds = np.array(stds)
 
-    ax.axvline(stiffness[idx], linestyle="--", linewidth=0.5, color="black", alpha=0.5)
+    ax.axvline(torques[idx], linestyle="--", linewidth=0.5, color="black", alpha=0.5)
     ax.plot(
-        stiffness[sort_idxes],
+        torques[sort_idxes],
         means[sort_idxes],
         marker="^",
         ms=3.0,
         linewidth=0.75,
-        label="stiffness @ {:.2f}".format(stiffness[idx]),
+        label="trained @ {:.2f} max torque".format(torques[idx]),
     )
     ax.fill_between(
-        stiffness[sort_idxes],
+        torques[sort_idxes],
         means[sort_idxes] + stds[sort_idxes],
         means[sort_idxes] - stds[sort_idxes],
         alpha=0.3,
     )
 ax.legend()
-ax.set_xlabel("Joint Stiffness")
+ax.set_xlabel("Max Torque")
 ax.set_ylabel("Expected Return")
 
 fig.savefig(

@@ -516,8 +516,8 @@ for env_name in env_names:
 num_envs = len(env_names)
 control_modes = ["discrete", "continuous"]
 envs = (
-    ("frozenlake", "pendulum", "cheetah", "walker"),
-    ("cartpole", "pendulum", "cheetah", "walker"),
+    ("pendulum",),
+    ("pendulum",),
 )
 diversity_names = (
     "L2",

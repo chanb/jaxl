@@ -231,9 +231,6 @@ suffixes = (
     "-double_source_data",
     "-quadruple_source_data",
     "-eightfold_source_data",
-    "-quarter_more_target_data",
-    "-half_more_target_data",
-    "-double_target_data",
 )
 
 

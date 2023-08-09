@@ -122,7 +122,7 @@ os.makedirs(save_plot_dir, exist_ok=True)
 def map_exp(name):
     splitted_name = name.split("-")
     if len(splitted_name) == 2:
-        return "$N = M$"
+        return "$M$"
     else:
         map_amount = {
             "double": 2,
@@ -131,7 +131,7 @@ def map_exp(name):
             "quarter": 1.25,
             "half": 1.5,
         }
-        return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "${}M$".format(map_amount[splitted_name[-1].split("_")[0]])
 
 
 # Plot main return
