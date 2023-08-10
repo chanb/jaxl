@@ -20,11 +20,14 @@ envs = {
     # "cartpole_continuous": {
     #     "subsamplings": [1, 20, 1000],
     # },
-    "walker_discrete": {
-        "subsamplings": [1, 20, 1000],
-    },
-    "walker_continuous": {
-        "subsamplings": [1, 20, 1000],
+    # "walker_discrete": {
+    #     "subsamplings": [1, 20, 1000],
+    # },
+    # "walker_continuous": {
+    #     "subsamplings": [1, 20, 1000],
+    # },
+    "pendulum_continuous": {
+        "subsamplings": [1, 20, 200],
     },
 }
 

@@ -2,13 +2,16 @@ import _pickle as pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import seaborn as sns
 
 from jaxl.constants import *
 from jaxl.plot_utils import set_size, pgf_with_latex
 
 
 # Use the seborn style
-plt.style.use("seaborn")
+sns.set_style("darkgrid")
+sns.set_palette("colorblind")
+
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
 
@@ -73,7 +76,6 @@ for idx, returns_per_seed in enumerate(
         means[sort_idxes],
         marker="^",
         ms=3.0,
-        linewidth=0.75,
         label="trained @ {:.2f} max torque".format(torques[idx]),
     )
     ax.fill_between(
@@ -83,7 +85,7 @@ for idx, returns_per_seed in enumerate(
         alpha=0.3,
     )
 ax.legend()
-ax.set_xlim(min(torques), max(torques))
+ax.set_xlim(min(torques), max(torques) + 0.05)
 ax.set_xlabel("Joint torques")
 # torques plot ====================================================================
 
@@ -132,7 +134,7 @@ ax.fill_between(
 )
 
 ax.set_xlim(0, max(num_sampless))
-ax.plot(num_sampless, means, marker="x", label="BC", linewidth=0.5)
+ax.plot(num_sampless, means, marker="x", label="BC")
 ax.fill_between(
     num_sampless,
     means + stds,

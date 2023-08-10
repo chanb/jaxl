@@ -5,6 +5,7 @@ import _pickle as pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import seaborn as sns
 
 from jaxl.constants import *
 from jaxl.envs.rollouts import EvaluationRollout
@@ -13,7 +14,9 @@ from jaxl.plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
 # Use the seborn style
-plt.style.use("seaborn")
+sns.set_style("darkgrid")
+sns.set_palette("colorblind")
+
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
 
@@ -30,7 +33,7 @@ record_video = False
 
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
-if os.path.isdir(f"{save_path}"):
+if os.path.isfile(f"{save_path}/returns.pkl"):
     (result_per_variant, env_configs) = pickle.load(
         open(f"{save_path}/returns.pkl", "rb")
     )

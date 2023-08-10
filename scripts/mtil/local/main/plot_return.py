@@ -1,18 +1,31 @@
 import _pickle as pickle
 import math
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
 import numpy as np
 import os
+import seaborn as sns
+
+from cycler import cycler
 
 from jaxl.constants import *
 from jaxl.plot_utils import set_size, pgf_with_latex
 
 
 # Use the seborn style
-plt.style.use("seaborn")
+sns.set_style("darkgrid")
+sns.set_palette("colorblind")
+
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
+
+
+# linestyle_cycler = (
+#     cycler(color=sns.color_palette()[:4]) +
+#     cycler(linestyle=['-','--',':','-.'])
+# )
+# plt.rc('axes', prop_cycle=linestyle_cycler)
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
@@ -179,7 +192,7 @@ for env_name in env_names:
             bc_mean + bc_std,
             bc_mean - bc_std,
             color="grey",
-            alpha=0.3,
+            alpha=0.1,
         )
 
         for suffix in experiment_name_suffixes:
@@ -209,28 +222,30 @@ for env_name in env_names:
                 unique_num_tasks,
                 means,
                 marker="^",
+                ms=3.0,
                 label=map_exp(curr_exp) if ax_i == 0 else "",
             )
             ax.fill_between(
                 unique_num_tasks,
                 means + stds,
                 means - stds,
-                alpha=0.3,
+                alpha=0.1,
             )
 
         ax.xaxis.set_major_locator(tck.MultipleLocator(4))
-        ax.set_xlim(unique_num_tasks[0], unique_num_tasks[-1])
+        ax.set_xlim(unique_num_tasks[0] - 0.1, unique_num_tasks[-1] + 0.1)
+        ax.set_ylim(0, 1.1)
         # ax.legend()
 
     fig.supylabel("Expected Return")
-    fig.supxlabel("Number of Tasks")
+    fig.supxlabel("Number of Source Tasks")
     fig.legend(
         bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
         loc="lower center",
-        ncols=3,
+        ncols=6,
         borderaxespad=0.0,
         frameon=True,
-        fontsize="5",
+        fontsize="8",
     )
     # fig.suptitle("{} {}".format( map_env[env_name[0]], map_control[env_name[1]]))
     fig.savefig(
@@ -328,14 +343,13 @@ for env_i, env_name in enumerate(env_names):
         label="BC" if ax_i == 0 else "",
         color="grey",
         linestyle="--",
-        linewidth=0.9,
     )
     ax.fill_between(
         (unique_num_tasks[0], unique_num_tasks[-1]),
         bc_mean + bc_std,
         bc_mean - bc_std,
         color="grey",
-        alpha=0.2,
+        alpha=0.1,
     )
 
     for num_source_data in mtbc_rets:
@@ -355,33 +369,32 @@ for env_i, env_name in enumerate(env_names):
             unique_num_tasks,
             means,
             label=num_source_data if ax_i == 0 else "",
-            linewidth=0.9,
             marker="^",
-            ms=4.0,
+            ms=3.0,
         )
         ax.fill_between(
             unique_num_tasks,
             means + stds,
             means - stds,
-            alpha=0.2,
+            alpha=0.1,
         )
 
-    ax.set_ylim(top=1.1)
+    ax.set_ylim(0, 1.1)
 
     ax.set_xlabel(map_env[env_name[0]])
     ax.xaxis.set_major_locator(tck.MultipleLocator(4))
-    ax.set_xlim(unique_num_tasks[0], unique_num_tasks[-1])
+    ax.set_xlim(unique_num_tasks[0] - 0.1, unique_num_tasks[-1] + 0.1)
 
     if ax_i + 1 == num_plots_per_fig:
         fig.supylabel("Normalized Returns")
-        fig.supxlabel("Number of Tasks")
+        fig.supxlabel("Number of Source Tasks")
         fig.legend(
             bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
             loc="lower center",
             ncols=6,
             borderaxespad=0.0,
             frameon=True,
-            fontsize="5",
+            fontsize="8",
         )
         # fig.suptitle("{} {}".format( map_env[env_name[0]], map_control[env_name[1]]))
         fig.savefig(

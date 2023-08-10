@@ -18,7 +18,7 @@ sns.set_palette("colorblind")
 plt.rcParams.update(pgf_with_latex)
 
 # Using the set_size function as defined earlier
-doc_width_pt = 452.9679
+doc_width_pt = 397.48499
 
 experiment_name = "results-finetune_mtbc_main"
 experiment_name_suffixes = (
@@ -115,10 +115,10 @@ env_names = [
     ("pendulum", "discrete"),
     ("cheetah", "discrete"),
     ("walker", "discrete"),
-    ("cartpole", "continuous"),
-    ("pendulum", "continuous"),
-    ("cheetah", "continuous"),
-    ("walker", "continuous"),
+    # ("cartpole", "continuous"),
+    # ("pendulum", "continuous"),
+    # ("cheetah", "continuous"),
+    # ("walker", "continuous"),
 ]
 
 save_plot_dir = "./agg_plots"
@@ -254,8 +254,8 @@ for env_name in env_names:
 
 
 num_plots_per_fig = 4
-num_rows = 2
-num_cols = 2
+num_rows = 1
+num_cols = 4
 for env_i, env_name in enumerate(env_names):
     ax_i = env_i % num_plots_per_fig
 
@@ -263,7 +263,7 @@ for env_i, env_name in enumerate(env_names):
         fig, axes = plt.subplots(
             num_rows,
             num_cols,
-            figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
+            figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False),
             layout="constrained",
         )
 
@@ -363,14 +363,19 @@ for env_i, env_name in enumerate(env_names):
             alpha=0.1,
         )
 
-    ax.set_xlabel(map_env[env_name[0]])
-    ax.xaxis.set_major_locator(tck.MultipleLocator(4))
-    ax.set_xlim(unique_num_tasks[0] - 0.1, unique_num_tasks[-1] + 0.1)
     ax.set_ylim(0, 1.1)
 
+    ax.set_xlabel(map_env[env_name[0]], fontsize=8)
+    ax.xaxis.set_major_locator(tck.MultipleLocator(4))
+    ax.set_xlim(unique_num_tasks[0] - 0.1, unique_num_tasks[-1] + 0.1)
+
+    if ax_i > 0:
+        ax.grid(True)
+        ax.set_yticklabels([])
+
     if ax_i + 1 == num_plots_per_fig:
-        fig.supylabel("Normalized Returns")
-        fig.supxlabel("Number of Source Tasks")
+        fig.supylabel("Normalized Returns", fontsize=8)
+        fig.supxlabel("Number of Source Tasks", fontsize=8)
         fig.legend(
             bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
             loc="lower center",

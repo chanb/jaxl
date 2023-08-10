@@ -9,6 +9,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import seaborn as sns
 
 from jaxl.constants import *
 from jaxl.envs.rollouts import EvaluationRollout
@@ -17,7 +18,9 @@ from jaxl.plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
 # Use the seborn style
-plt.style.use("seaborn")
+sns.set_style("darkgrid")
+sns.set_palette("colorblind")
+
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
 
@@ -27,11 +30,11 @@ doc_width_pt = 452.9679
 
 expert_dir = "/Users/chanb/research/personal/mtil_results/final_results/preliminary/policy_robustness/experts"
 
-tasks = ["pendulum_no_act_cost", "cheetah", "walker"]
-task_renames = ["pendulum", "cheetah", "walker"]
+# tasks = ["pendulum_no_act_cost", "cheetah", "walker"]
+# task_renames = ["pendulum", "cheetah", "walker"]
 
-# tasks = ["cheetah", "cheetah_hard"]
-# task_renames = ["small range", "large range"]
+tasks = ["cheetah", "cheetah_hard"]
+task_renames = ["small range", "large range"]
 
 control_modes = ["discrete", "continuous"]
 
@@ -47,7 +50,7 @@ num_envs_to_test = 5
 num_agents_to_test = 5
 
 num_evaluation_episodes = 30
-record_video = True
+record_video = False
 
 assert os.path.isdir(expert_dir), f"{expert_dir} is not a directory"
 assert num_envs_to_test > 0, f"num_envs_to_test needs to be at least 1"
@@ -222,7 +225,7 @@ fig.legend(
     ncols=num_agents_to_test,
     borderaxespad=0.0,
     frameon=True,
-    fontsize="5",
+    fontsize="8",
 )
 
 fig.supylabel("Expected Return")

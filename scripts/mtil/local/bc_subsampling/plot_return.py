@@ -7,6 +7,7 @@ import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import seaborn as sns
 
 from jaxl.constants import *
 from jaxl.envs.rollouts import EvaluationRollout
@@ -15,7 +16,10 @@ from jaxl.plot_utils import set_size, pgf_with_latex, get_evaluation_components
 
 
 # Use the seborn style
-plt.style.use("seaborn")
+sns.set_style("darkgrid")
+sns.set_palette("colorblind")
+
+
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
 colors = pl.cm.jet(np.linspace(0, 1, 10))
@@ -115,7 +119,20 @@ for env_name, control_mode in results:
             buffer_dict["rewards"]
         ) / np.sum(buffer_dict["dones"])
 
-num_envs = len(results)
+
+
+env_names = [
+    # ("frozenlake", "discrete"),
+    # ("cartpole", "continuous"),
+    # ("pendulum", "discrete"),
+    # ("pendulum", "continuous"),
+    ("cheetah", "discrete"),
+    ("cheetah", "continuous"),
+    ("walker", "discrete"),
+    ("walker", "continuous"),
+]
+
+num_envs = len(env_names)
 num_rows = math.ceil(num_envs / 2)
 num_cols = 2
 
@@ -138,18 +155,6 @@ map_control = {
     "discrete": "discrete",
     "continuous": "continuous",
 }
-
-
-env_names = [
-    ("frozenlake", "discrete"),
-    ("cartpole", "continuous"),
-    # ("pendulum", "discrete"),
-    # ("pendulum", "continuous"),
-    ("cheetah", "discrete"),
-    ("cheetah", "continuous"),
-    ("walker", "discrete"),
-    ("walker", "continuous"),
-]
 
 # Plot main return
 for ax_i, env_name in enumerate(env_names):
@@ -187,7 +192,7 @@ for ax_i, env_name in enumerate(env_names):
                 label = "full"
             else:
                 label = subsampling
-        ax.plot(unique_buffer_sizes, means, marker="x", label=label)
+        ax.plot(unique_buffer_sizes, means, marker="^", label=label)
         ax.fill_between(
             unique_buffer_sizes,
             means + stds,
@@ -196,8 +201,10 @@ for ax_i, env_name in enumerate(env_names):
         )
 
         ax.set_xlabel("{} {}".format(map_env[env_name[0]], map_control[env_name[1]]))
+
+    if ax_i == 0:
         ax.legend()
 
 fig.supylabel("Expected Return")
-fig.supxlabel("Amount of Transitions")
+fig.supxlabel("Number of Transitions")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)

@@ -1,10 +1,13 @@
 import _pickle as pickle
 import math
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
 import numpy as np
 import os
 import seaborn as sns
+
+from cycler import cycler
 
 from jaxl.constants import *
 from jaxl.plot_utils import set_size, pgf_with_latex
@@ -17,19 +20,24 @@ sns.set_palette("colorblind")
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
 
+
+# linestyle_cycler = (
+#     cycler(color=sns.color_palette()[:4]) +
+#     cycler(linestyle=['-','--',':','-.'])
+# )
+# plt.rc('axes', prop_cycle=linestyle_cycler)
+
 # Using the set_size function as defined earlier
-doc_width_pt = 452.9679
+doc_width_pt = 397.48499
 
 experiment_name = "results-finetune_mtbc_main"
 experiment_name_suffixes = (
     "",
-    "-quarter_more_target_data",
-    "-half_more_target_data",
-    "-double_target_data",
+    "-double_source_data",
+    "-quadruple_source_data",
+    "-eightfold_source_data",
 )
-# bc_name = "results-bc_less_data"
-bc_name = "results-bc_double"
-# bc_name = "results-bc_half_more"
+bc_name = "results-bc_less_data"
 
 results_per_experiment = {}
 experiment_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{experiment_name}"
@@ -51,7 +59,7 @@ for exp_i, suffix in enumerate(experiment_name_suffixes):
                 if not filename.endswith(".pkl"):
                     continue
 
-                # print("Processing {}".format(eval_path))
+                print("Processing {}".format(eval_path))
                 variant_name = eval_path.split("/")[-3:]
                 (env_name, control_mode, env_seed) = variant_name
                 env_name = env_name.split("-")[0]
@@ -62,10 +70,7 @@ for exp_i, suffix in enumerate(experiment_name_suffixes):
                 results.setdefault((env_name, control_mode), {})
                 results[(env_name, control_mode)].setdefault(env_seed, {})
 
-                curr_path = eval_path
-                if suffix == "":
-                    curr_path = eval_path.replace(env_name, f"{env_name}-eightfold_source_data")
-                with open(os.path.join(curr_path, filename), "rb") as f:
+                with open(os.path.join(eval_path, filename), "rb") as f:
                     (data, paths) = pickle.load(f)
 
                 if filename == "expert.pkl":
@@ -115,10 +120,10 @@ env_names = [
     ("pendulum", "discrete"),
     ("cheetah", "discrete"),
     ("walker", "discrete"),
-    ("cartpole", "continuous"),
-    ("pendulum", "continuous"),
-    ("cheetah", "continuous"),
-    ("walker", "continuous"),
+    # ("cartpole", "continuous"),
+    # ("pendulum", "continuous"),
+    # ("cheetah", "continuous"),
+    # ("walker", "continuous"),
 ]
 
 save_plot_dir = "./agg_plots"
@@ -128,16 +133,14 @@ os.makedirs(save_plot_dir, exist_ok=True)
 def map_exp(name):
     splitted_name = name.split("-")
     if len(splitted_name) == 2:
-        return "$M$"
+        return "$N = M$"
     else:
         map_amount = {
             "double": 2,
             "quadruple": 4,
             "eightfold": 8,
-            "quarter": 1.25,
-            "half": 1.5,
         }
-        return "${}M$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
 
 
 # Plot main return
@@ -149,7 +152,7 @@ for env_name in env_names:
     fig, axes = plt.subplots(
         num_rows,
         num_cols,
-        figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
+        figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=True),
         layout="constrained",
     )
 
@@ -177,7 +180,7 @@ for env_name in env_names:
         bc_std = np.std(normalized_bc_rets)
         ax.axhline(
             bc_mean,
-            label="BC @ 2$M$" if ax_i == 0 else "",
+            label="BC" if ax_i == 0 else "",
             color="grey",
             linestyle="--",
         )
@@ -253,9 +256,22 @@ for env_name in env_names:
     )
 
 
+def map_exp(name):
+    splitted_name = name.split("-")
+    if len(splitted_name) == 2:
+        return "$N = M$"
+    else:
+        map_amount = {
+            "double": 2,
+            "quadruple": 4,
+            "eightfold": 8,
+        }
+        return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
+
+
 num_plots_per_fig = 4
-num_rows = 2
-num_cols = 2
+num_rows = 1
+num_cols = 4
 for env_i, env_name in enumerate(env_names):
     ax_i = env_i % num_plots_per_fig
 
@@ -263,7 +279,7 @@ for env_i, env_name in enumerate(env_names):
         fig, axes = plt.subplots(
             num_rows,
             num_cols,
-            figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols)),
+            figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False),
             layout="constrained",
         )
 
@@ -324,7 +340,7 @@ for env_i, env_name in enumerate(env_names):
     )
     ax.axhline(
         bc_mean,
-        label="BC @ 2M" if ax_i == 0 else "",
+        label="BC" if ax_i == 0 else "",
         color="grey",
         linestyle="--",
     )
@@ -363,14 +379,19 @@ for env_i, env_name in enumerate(env_names):
             alpha=0.1,
         )
 
-    ax.set_xlabel(map_env[env_name[0]])
-    ax.xaxis.set_major_locator(tck.MultipleLocator(4))
-    ax.set_xlim(unique_num_tasks[0] - 0.1, unique_num_tasks[-1] + 0.1)
     ax.set_ylim(0, 1.1)
 
+    ax.set_xlabel(map_env[env_name[0]], fontsize=8)
+    ax.xaxis.set_major_locator(tck.MultipleLocator(4))
+    ax.set_xlim(unique_num_tasks[0] - 0.1, unique_num_tasks[-1] + 0.1)
+
+    if ax_i > 0:
+        ax.grid(True)
+        ax.set_yticklabels([])
+
     if ax_i + 1 == num_plots_per_fig:
-        fig.supylabel("Normalized Returns")
-        fig.supxlabel("Number of Source Tasks")
+        fig.supylabel("Normalized Returns", fontsize=8)
+        fig.supxlabel("Number of Source Tasks", fontsize=8)
         fig.legend(
             bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
             loc="lower center",

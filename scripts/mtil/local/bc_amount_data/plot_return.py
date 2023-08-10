@@ -183,5 +183,5 @@ for ax_i, env_name in enumerate(env_names):
     ax.legend()
 
 fig.supylabel("Expected Return")
-fig.supxlabel("Amount of Transitions")
+fig.supxlabel("Number of Transitions")
 fig.savefig(f"{save_path}/returns.pdf", format="pdf", bbox_inches="tight", dpi=600)
