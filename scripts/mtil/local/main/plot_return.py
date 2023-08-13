@@ -140,7 +140,7 @@ def map_exp(name):
             "quadruple": 4,
             "eightfold": 8,
         }
-        return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "$N = {}M$".format(map_amount[splitted_name[-1].split("_")[0]])
 
 
 # Plot main return
@@ -238,7 +238,7 @@ for env_name in env_names:
         # ax.legend()
 
     fig.supylabel("Expected Return")
-    fig.supxlabel("Number of Source Tasks")
+    fig.supxlabel("Number of Source Tasks $T$")
     fig.legend(
         bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
         loc="lower center",
@@ -266,7 +266,7 @@ def map_exp(name):
             "quadruple": 4,
             "eightfold": 8,
         }
-        return "${}N$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "$N = {}M$".format(map_amount[splitted_name[-1].split("_")[0]])
 
 
 num_plots_per_fig = 4
@@ -387,7 +387,7 @@ for env_i, env_name in enumerate(env_names):
 
     if ax_i + 1 == num_plots_per_fig:
         fig.supylabel("Normalized Returns")
-        fig.supxlabel("Number of Source Tasks")
+        fig.supxlabel("Number of Source Tasks $T$")
         fig.legend(
             bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
             loc="lower center",

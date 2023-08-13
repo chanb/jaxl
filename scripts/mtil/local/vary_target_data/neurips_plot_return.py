@@ -99,11 +99,11 @@ for exp_i, suffix in enumerate(experiment_name_suffixes):
 
 
 map_env = {
-    "frozenlake": "frozen lake",
-    "cheetah": "cheetah",
-    "walker": "walker",
-    "cartpole": "cartpole",
-    "pendulum": "pendulum",
+    "frozenlake": "Frozen Lake",
+    "cheetah": "Cheetah",
+    "walker": "Walker",
+    "cartpole": "Cartpole",
+    "pendulum": "Pendulum",
 }
 map_control = {
     "discrete": "discrete",
@@ -115,10 +115,10 @@ env_names = [
     ("pendulum", "discrete"),
     ("cheetah", "discrete"),
     ("walker", "discrete"),
-    # ("cartpole", "continuous"),
-    # ("pendulum", "continuous"),
-    # ("cheetah", "continuous"),
-    # ("walker", "continuous"),
+    ("cartpole", "continuous"),
+    ("pendulum", "continuous"),
+    ("cheetah", "continuous"),
+    ("walker", "continuous"),
 ]
 
 save_plot_dir = "./agg_plots"
@@ -128,7 +128,7 @@ os.makedirs(save_plot_dir, exist_ok=True)
 def map_exp(name):
     splitted_name = name.split("-")
     if len(splitted_name) == 2:
-        return "$M$"
+        return "$M = \\lvert \\mathcal{D} \\rvert$"
     else:
         map_amount = {
             "double": 2,
@@ -137,7 +137,7 @@ def map_exp(name):
             "quarter": 1.25,
             "half": 1.5,
         }
-        return "${}M$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(map_amount[splitted_name[-1].split("_")[0]])
 
 
 # Plot main return
@@ -177,7 +177,7 @@ for env_name in env_names:
         bc_std = np.std(normalized_bc_rets)
         ax.axhline(
             bc_mean,
-            label="BC @ 2$M$" if ax_i == 0 else "",
+            label="BC@2$\\lvert \\mathcal{D} \\rvert$" if ax_i == 0 else "",
             color="grey",
             linestyle="--",
         )
@@ -235,14 +235,14 @@ for env_name in env_names:
         # ax.legend()
 
     fig.supylabel("Expected Return")
-    fig.supxlabel("Number of Source Tasks")
+    fig.supxlabel("Number of Source Tasks $T$")
     fig.legend(
         bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
         loc="lower center",
         ncols=6,
         borderaxespad=0.0,
         frameon=True,
-        fontsize="8",
+        fontsize="7",
     )
     # fig.suptitle("{} {}".format( map_env[env_name[0]], map_control[env_name[1]]))
     fig.savefig(
@@ -324,7 +324,7 @@ for env_i, env_name in enumerate(env_names):
     )
     ax.axhline(
         bc_mean,
-        label="BC @ 2M" if ax_i == 0 else "",
+        label="BC @ $2\\lvert \\mathcal{D} \\rvert$" if ax_i == 0 else "",
         color="grey",
         linestyle="--",
     )
@@ -365,7 +365,7 @@ for env_i, env_name in enumerate(env_names):
 
     ax.set_ylim(0, 1.1)
 
-    ax.set_xlabel(map_env[env_name[0]], fontsize=8)
+    ax.set_title(map_env[env_name[0]], fontsize=8)
     ax.xaxis.set_major_locator(tck.MultipleLocator(4))
     ax.set_xlim(unique_num_tasks[0] - 0.1, unique_num_tasks[-1] + 0.1)
 
@@ -375,14 +375,14 @@ for env_i, env_name in enumerate(env_names):
 
     if ax_i + 1 == num_plots_per_fig:
         fig.supylabel("Normalized Returns", fontsize=8)
-        fig.supxlabel("Number of Source Tasks", fontsize=8)
+        fig.supxlabel("Number of Source Tasks $T$", fontsize=8)
         fig.legend(
             bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
             loc="lower center",
             ncols=6,
             borderaxespad=0.0,
             frameon=True,
-            fontsize="8",
+            fontsize="7",
         )
         # fig.suptitle("{} {}".format( map_env[env_name[0]], map_control[env_name[1]]))
         fig.savefig(

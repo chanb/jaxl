@@ -34,7 +34,7 @@ Naive Multitask Behavioural Cloning.
 
 class MTBC(OfflineLearner):
     """
-    Naive Multitask Behavioural Cloning (BC) algorithm. This extends `OfflineLearner`.
+    Naive Multitask Behavioural Cloning (MTBC) algorithm. This extends `OfflineLearner`.
     """
 
     #: The running statistics for the observations.

@@ -31,7 +31,7 @@ plt.rcParams.update(pgf_with_latex)
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679
 
-eps = 1e-3
+eps = 1e-5
 
 
 def l2_distance(finetune_config, pretrain_config):
@@ -97,6 +97,7 @@ def approx_kl(
     target_buffer_size = finetune_config["learner_config"]["buffer_configs"][0][
         "set_size"
     ]
+    # target_buffer_size = target_env_buffer["buffer_size"]
 
     source_statess = []
     source_h_statess = []
@@ -107,6 +108,7 @@ def approx_kl(
     ):
         source_env_buffer = pickle.load(gzip.open(pretrain_dataset_path, "rb"))
         source_buffer_size = buffer_config["set_size"]
+        # source_buffer_size = target_env_buffer["buffer_size"]
         source_statess.append(source_env_buffer["observations"][:source_buffer_size])
         source_h_statess.append(source_env_buffer["hidden_states"][:source_buffer_size])
         source_actionss.append(source_env_buffer["actions"][:source_buffer_size])
@@ -269,10 +271,11 @@ else:
         diversities = {}
 
         (task, control_mode) = env_name
+        results.setdefault(env_name, {})
 
         for suffix in suffixes:
             finetune_runs_dir = os.path.join(
-                base_dir, f"{finetune_dir}{suffix}", task, control_mode, "runs"
+                base_dir, f"{finetune_dir}{suffix}", f"{task}{suffix}", control_mode, "runs"
             )
 
             for finetune_run_dir, _, filenames in os.walk(finetune_runs_dir):
@@ -299,17 +302,19 @@ else:
 
                     pretrain_run_dir = os.path.join(
                         base_dir,
-                        f"{pretrain_dir}{suffix}",
-                        task,
+                        f"{pretrain_dir}{suffix}" if "target" not in suffix else pretrain_dir,
+                        f"{task}{suffix}" if "target" not in suffix else task,
                         control_mode,
                         "runs",
                         num_task,
-                        os.path.basename(
-                            os.path.dirname(
-                                finetune_config["learner_config"]["load_encoder"]
-                            )
-                        ),
+                        # os.path.basename(
+                        #     os.path.dirname(
+                        #         finetune_config["learner_config"]["load_encoder"]
+                        #     )
+                        # ),
                     )
+                    pretrain_run_dir = os.path.join(pretrain_run_dir, os.listdir(pretrain_run_dir)[0])
+                    
                     with open(os.path.join(pretrain_run_dir, "config.json"), "r") as f:
                         pretrain_config = json.load(f)
 
@@ -356,7 +361,8 @@ else:
                         pretrain_dataset_paths,
                     )
 
-                    diversities[num_task_int].append(
+                    results[env_name].setdefault(num_task_int, [])
+                    results[env_name][num_task_int].append(
                         (
                             env_seed,
                             pretrain_model_seed_int,
@@ -368,7 +374,6 @@ else:
                             ),
                         )
                     )
-        results[env_name] = diversities
 
     with open(os.path.join(save_path, "diversity.pkl"), "wb") as f:
         pickle.dump(results, f)
@@ -395,10 +400,14 @@ map_diversity = [
 returns = {}
 
 for suffix in suffixes:
-    return_pkl = f"/Users/chanb/research/personal/jaxl/scripts/mtil/local/main/results-finetune_mtbc_main{suffix}-results/results.pkl"
+    if "target" in suffix:
+        return_pkl = f"/Users/chanb/research/personal/jaxl/scripts/mtil/local/vary_target_data/results-finetune_mtbc_main{suffix}-results/results.pkl"
+    else:
+        return_pkl = f"/Users/chanb/research/personal/jaxl/scripts/mtil/local/main/results-finetune_mtbc_main{suffix}-results/results.pkl"
     with open(return_pkl, "rb") as f:
         exp_returns = pickle.load(f)
     returns[suffix] = exp_returns
+    print(returns.keys())
 
 correlation_per_env = {}
 for env_name in env_names:
@@ -492,8 +501,8 @@ for env_name in env_names:
             )
             # if col_i == 0:
             #     ax.set_ylabel(num_task)
-            if row_i + 1 == num_envs:
-                ax.set_xlabel(map_diversity[col_i])
+            if row_i == 0:
+                ax.set_title(map_diversity[col_i])
             if row_i + col_i == 0:
                 ax.legend()
             # ax.yaxis.set_major_formatter(FormatStrFormatter("%.2f"))
