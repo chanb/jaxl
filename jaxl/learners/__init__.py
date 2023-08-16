@@ -2,9 +2,10 @@ from types import SimpleNamespace
 
 from jaxl.constants import *
 from jaxl.learners.learner import Learner
-from jaxl.learners.bc import BC
-from jaxl.learners.mtbc import MTBC
 from jaxl.learners.a2c import A2C
+from jaxl.learners.bc import BC
+from jaxl.learners.in_context import InContextLearner
+from jaxl.learners.mtbc import MTBC
 from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE
 
@@ -94,10 +95,8 @@ def get_icl_learner(
     assert (
         learner_config.learner in VALID_ICL_LEARNER
     ), f"{learner_config.learner} is not supported (one of {VALID_ICL_LEARNER})"
-    if learner_config.learner == CONST_BC:
-        learner_constructor = BC
-    elif learner_config.learner == CONST_MTBC:
-        learner_constructor = MTBC
+    if learner_config.learner == CONST_MLE:
+        learner_constructor = InContextLearner
     else:
         raise NotImplementedError
 

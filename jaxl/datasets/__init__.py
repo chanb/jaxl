@@ -58,11 +58,11 @@ def get_dataset(
     :rtype: Dataset
     """
     assert (
-        dataset_config.name in VALID_DATASET
-    ), f"{dataset_config.name} is not supported (one of {VALID_DATASET})"
+        dataset_config.dataset_name in VALID_DATASET
+    ), f"{dataset_config.dataset_name} is not supported (one of {VALID_DATASET})"
 
     dataset_kwargs = dataset_config.dataset_kwargs
-    if dataset_config.name == CONST_MULTITASK_TOY_REGRESSION:
+    if dataset_config.dataset_name == CONST_MULTITASK_TOY_REGRESSION:
         basis = get_basis(dataset_kwargs=dataset_kwargs)
         dataset = MultitaskFixedBasisRegression1D(
             num_sequences=dataset_kwargs.num_sequences,
@@ -74,7 +74,7 @@ def get_dataset(
         )
     else:
         raise ValueError(
-            f"{dataset_config.name} is not supported (one of {VALID_DATASET})"
+            f"{dataset_config.dataset_name} is not supported (one of {VALID_DATASET})"
         )
 
     if hasattr(dataset_config, CONST_WRAPPER):

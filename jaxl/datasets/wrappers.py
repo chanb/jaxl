@@ -64,12 +64,8 @@ class ContextDataset(DatasetWrapper):
         self._skip_step = skip_step
         self._total_seq_len = (context_len - 1) * skip_step
 
-        self._num_samples_per_context = 1
-        if hasattr(self._dataset, "num_samples_per_context"):
-            self._num_samples_per_context = self._dataset.num_samples_per_context
-
         # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
-        self._seq_mod = self._num_samples_per_context * (
+        self._seq_mod = (
             self._dataset.sequence_length - 1
         )
 
@@ -81,8 +77,8 @@ class ContextDataset(DatasetWrapper):
         seq_i = idx // self._seq_mod
         seq = self._dataset[seq_i]
 
-        timestep_i = idx % self._seq_mod // self._num_samples_per_context
-        sample_i = idx % self._seq_mod % self._num_samples_per_context
+        timestep_i = idx % self._seq_mod
+        sample_i = idx % self._seq_mod
 
         # NOTE: for now assume contexts consists of (input, output)_n
         contexts = np.zeros((self._context_len, *seq.shape[1:]))

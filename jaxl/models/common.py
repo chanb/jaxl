@@ -1,5 +1,6 @@
 from abc import ABC
 from flax import linen as nn
+from types import SimpleNamespace
 from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
 import chex
@@ -9,7 +10,8 @@ import numpy as np
 import optax
 
 from jaxl.constants import *
-from jaxl.models.modules import MLPModule
+from jaxl.models.modules import MLPModule, GPTModule
+from jaxl.models.encodings import NoEncoding, PositionalEncoding
 
 
 def get_activation(activation: str) -> Callable:
@@ -36,6 +38,30 @@ def get_activation(activation: str) -> Callable:
         return nn.relu
     elif activation == CONST_TANH:
         return nn.tanh
+    else:
+        raise NotImplementedError
+
+
+def get_positional_encoding(encoding: SimpleNamespace) -> nn.Module:
+    """
+    Gets a positional encoding
+
+    :param encoding: the positional encoding configuration
+    :type encoding: SimpleNamespace
+    :return: a positional encoding
+    :rtype: nn.Module
+
+    """
+    assert (
+        encoding.type in VALID_POSITIONAL_ENCODING
+    ), f"{encoding.type} is not supported (one of {VALID_POSITIONAL_ENCODING})"
+    if encoding.type == CONST_NO_ENCODING:
+        return NoEncoding()
+    elif encoding.type == CONST_DEFAULT_ENCODING:
+        return PositionalEncoding(
+            encoding.kwargs.embed_dim,
+            encoding.kwargs.max_len,
+        )
     else:
         raise NotImplementedError
 
@@ -415,6 +441,96 @@ class MLP(Model):
             """
             # NOTE: Assume batch size is first dim
             input = input.reshape((input.shape[0], -1))
+            return self.model.apply(params, input), carry
+
+        return forward
+
+
+# TODO: Fix this
+class GPT(Model):
+    """A GPT."""
+
+    def __init__(
+        self,
+        num_tokens: int,
+        num_blocks: int,
+        num_heads: int,
+        num_embeddings: int,
+        embed_dim: int,
+        output_dim: int,
+        positional_encoding: SimpleNamespace,
+    ) -> None:
+        self.model = GPTModule(
+            num_blocks=num_blocks,
+            num_heads=num_heads,
+            num_embeddings=num_embeddings,
+            embed_dim=embed_dim,
+            output_dim=output_dim,
+            positional_encoding=get_positional_encoding(positional_encoding)
+        )
+        self.num_tokens = num_tokens
+        self.forward = jax.jit(self.make_forward())
+
+    def init(
+        self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
+    ) -> Union[optax.Params, Dict[str, Any]]:
+        """
+        Initialize model parameters.
+
+        :param model_key: the random number generation key for initializing parameters
+        :param dummy_x: the input data
+        :type model_key: jrandom.PRNGKey
+        :type dummy_x: chex.Array
+        :return: the initialized parameters
+        :rtype: Union[optax.Params, Dict[str, Any]]
+
+        """
+        return self.model.init(model_key, dummy_x)
+
+    def make_forward(
+        self,
+    ) -> Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the forward call of the MLP model.
+
+        :return: the forward call.
+        :rtype: Callable[
+            [
+                Union[optax.Params, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+            ],
+            Tuple[chex.Array, chex.Array],
+        ]
+        """
+
+        def forward(
+            params: Union[optax.Params, Dict[str, Any]],
+            input: chex.Array,
+            carry: chex.Array,
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Forward call of the MLP.
+
+            :param params: the model parameters
+            :param input: the input
+            :param carry: the hidden state (not used)
+            :type params: Union[optax.Params
+            :type input: chex.Array
+            :type carry: chex.Array
+            :return: the output and a pass-through carry
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            # NOTE: Assume batch size is first dim
+            input = input.reshape((input.shape[0], self.num_tokens, -1))
             return self.model.apply(params, input), carry
 
         return forward

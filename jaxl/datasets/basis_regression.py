@@ -58,10 +58,6 @@ class MultitaskFixedBasisRegression1D(Dataset):
         )
 
     @property
-    def num_samples_per_context(self) -> int:
-        return 1
-
-    @property
     def input_dim(self) -> int:
         return 1
 

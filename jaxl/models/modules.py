@@ -23,7 +23,7 @@ class MLPModule(nn.Module):
 
 
 class GPTBlock(nn.Module):
-    """GPT Block"""
+    """GPT Block."""
 
     # : The number of attention heads
     num_heads: int
@@ -43,8 +43,8 @@ class GPTBlock(nn.Module):
         return x
 
 
-class GPT(nn.Module):
-    """GPT Architecture"""
+class GPTModule(nn.Module):
+    """GPT."""
 
     # : The number of GPT Blocks
     num_blocks: int
@@ -59,7 +59,7 @@ class GPT(nn.Module):
     embed_dim: int
 
     # : The output dimension
-    out_dim: int
+    output_dim: int
 
     # : The positional encoding to use
     positional_encoding: nn.Module = NoEncoding()
@@ -71,5 +71,5 @@ class GPT(nn.Module):
         for _ in range(self.num_blocks):
             x = GPTBlock(self.num_heads, self.num_embeddings, self.embed_dim)(x)
         x = nn.LayerNorm()(x)
-        x = nn.Dense(self.num_heads * self.out_dim)(x)
+        x = nn.Dense(self.num_heads * self.output_dim)(x)
         return x
