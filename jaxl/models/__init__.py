@@ -20,7 +20,7 @@ def get_scheduler(
     scheduler_config: SimpleNamespace,
 ) -> optax.Schedule:
     """
-    Gets a scheduler
+    Gets a scheduler.
 
     :param scheduler_config: the scheduler configuration
     :type scheduler_config: SimpleNamespace

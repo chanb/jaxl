@@ -5,6 +5,7 @@ from jaxl.constants.losses import *
 from jaxl.constants.models import *
 from jaxl.constants.optimizers import *
 
+CONST_BUFFER_CONFIG = "buffer_config"
 CONST_BUFFER_PATH = "buffer_path"
 CONST_CONFIG = "config"
 CONST_COUNT = "count"
@@ -28,6 +29,7 @@ CONST_SCALARS = "scalars"
 CONST_SHAPE = "shape"
 CONST_STD = "std"
 CONST_VAR = "var"
+CONST_WRAPPER = "wrapper"
 
 CONST_A_MIN = "a_min"
 CONST_A_MAX = "a_max"

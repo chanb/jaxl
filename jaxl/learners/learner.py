@@ -11,6 +11,7 @@ import os
 
 from jaxl.buffers import get_buffer, ReplayBuffer
 from jaxl.constants import *
+from jaxl.datasets import get_dataset
 from jaxl.envs import get_environment, DefaultGymWrapper
 from jaxl.models import Model
 
@@ -192,9 +193,15 @@ class OfflineLearner(Learner):
         """
         Construct the buffer
         """
-        self._buffer = get_buffer(
-            self._config.buffer_config, self._config.seeds.buffer_seed
-        )
+        if getattr(self._config, CONST_BUFFER_CONFIG, False):
+            self._buffer = get_buffer(
+                self._config.buffer_config, self._config.seeds.buffer_seed
+            )
+        else:
+            self._buffer = get_dataset(
+                self._config.dataset_config,
+                self._config.seeds.data_seed,
+            )
 
 
 class OnlineLearner(Learner):

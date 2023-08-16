@@ -44,30 +44,25 @@ def get_basis(dataset_kwargs: SimpleNamespace) -> Callable[..., chex.Array]:
 
 
 def get_dataset(
-    dataset_name: str,
-    dataset_kwargs: SimpleNamespace,
+    dataset_config: SimpleNamespace,
     seed: int,
-    dataset_wrapper: Dict[str, Any] = None,
 ) -> Dataset:
     """
     Gets a dataset.
 
-    :param dataset_name: the dataset name
-    :param dataset_kwargs: the dataset configuration
+    :param dataset_config: the dataset configuration
     :param seed: the seed to generate the dataset
-    :param dataset_wrapper: the wrapper to transform the type of dataset
-    :type dataset_name: str
-    :type dataset_kwargs: SimpleNamespace
+    :type dataset_config: SimpleNamespace
     :type seed: int
-    :type dataset_wrapper: Dict[str, Any] (DefaultValue = None)
     :return: the dataset
     :rtype: Dataset
     """
     assert (
-        dataset_name in VALID_DATASET
-    ), f"{dataset_name} is not supported (one of {VALID_DATASET})"
+        dataset_config.name in VALID_DATASET
+    ), f"{dataset_config.name} is not supported (one of {VALID_DATASET})"
 
-    if dataset_name == CONST_MULTITASK_TOY_REGRESSION:
+    dataset_kwargs = dataset_config.dataset_kwargs
+    if dataset_config.name == CONST_MULTITASK_TOY_REGRESSION:
         basis = get_basis(dataset_kwargs=dataset_kwargs)
         dataset = MultitaskFixedBasisRegression1D(
             num_sequences=dataset_kwargs.num_sequences,
@@ -78,17 +73,20 @@ def get_dataset(
             params_bound=dataset_kwargs.params_bound,
         )
     else:
-        raise ValueError(f"{dataset_name} is not supported (one of {VALID_DATASET})")
+        raise ValueError(
+            f"{dataset_config.name} is not supported (one of {VALID_DATASET})"
+        )
 
-    if dataset_wrapper.type == "FixedLengthTrajectoryDataset":
-        dataset = FixedLengthTrajectoryDataset(
-            dataset, dataset_wrapper.kwargs.sample_seq_len
-        )
-    elif dataset_wrapper.type == "ContextDataset":
-        dataset = ContextDataset(
-            dataset,
-            dataset_wrapper.kwargs.context_len,
-            dataset_wrapper.kwargs.skip_step,
-        )
+    if hasattr(dataset_config, CONST_WRAPPER):
+        if dataset_config.wrapper.type == "FixedLengthTrajectoryDataset":
+            dataset = FixedLengthTrajectoryDataset(
+                dataset, dataset_config.wrapper.kwargs.sample_seq_len
+            )
+        elif dataset_config.wrapper.type == "ContextDataset":
+            dataset = ContextDataset(
+                dataset,
+                dataset_config.wrapper.kwargs.context_len,
+                dataset_config.wrapper.kwargs.skip_step,
+            )
 
     return IndexedDataset(dataset)
