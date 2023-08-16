@@ -71,3 +71,34 @@ def get_il_learner(
         raise NotImplementedError
 
     return learner_constructor(learner_config, model_config, optimizer_config)
+
+
+def get_icl_learner(
+    learner_config: SimpleNamespace,
+    model_config: SimpleNamespace,
+    optimizer_config: SimpleNamespace,
+) -> Learner:
+    """
+    Gets in-context learning learner.
+
+    :param learner_config: the learner configuration
+    :param model_config: the model configuration
+    :param optimizer_config: the optimizer configuration
+    :type learner_config: SimpleNamespace
+    :type model_config: SimpleNamespace
+    :type optimizer_config: SimpleNamespace
+    :return: the in-context learning learner
+    :rtype: Learner
+
+    """
+    assert (
+        learner_config.learner in VALID_ICL_LEARNER
+    ), f"{learner_config.learner} is not supported (one of {VALID_ICL_LEARNER})"
+    if learner_config.learner == CONST_BC:
+        learner_constructor = BC
+    elif learner_config.learner == CONST_MTBC:
+        learner_constructor = MTBC
+    else:
+        raise NotImplementedError
+
+    return learner_constructor(learner_config, model_config, optimizer_config)

@@ -60,7 +60,7 @@ pgf_with_latex = {  # setup matplotlib to use latex for output
     "xtick.labelsize": 8,
     "ytick.labelsize": 8,
     "pgf.rcfonts": False,  # don't setup fonts from rc parameters
-    'text.latex.preamble' : r'\usepackage{amsmath}'
+    "text.latex.preamble": r"\usepackage{amsmath}",
 }
 
 

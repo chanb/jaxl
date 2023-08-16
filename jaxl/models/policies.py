@@ -13,7 +13,6 @@ from jaxl.constants import (
     CONST_ENTROPY,
     CONST_LOGITS,
     CONST_MEAN,
-    CONST_PROBS,
     CONST_STD,
 )
 from jaxl.distributions import Bernoulli, Normal, Softmax
@@ -23,7 +22,7 @@ from jaxl.models.common import Model, Policy, StochasticPolicy
 class MultitaskPolicy(Policy):
     """Multitask Policy."""
 
-    # . The policy to use for interactions
+    # : The policy to use for interactions
     policy_head: int
 
     def __init__(self, policy: Policy, model: Model, num_tasks: int):

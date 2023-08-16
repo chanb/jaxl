@@ -38,3 +38,7 @@ DEFAULT_LOAD_BUFFER_KWARGS = {
     "act_dim": (0,),
     "rew_dim": (0,),
 }
+
+
+CONST_MULTITASK_TOY_REGRESSION = "multitask_toy_regression"
+VALID_DATASET = [CONST_MULTITASK_TOY_REGRESSION]

@@ -20,6 +20,14 @@ jaxl.learners.bc module
    :undoc-members:
    :show-inheritance:
 
+jaxl.learners.in\_context module
+--------------------------------
+
+.. automodule:: jaxl.learners.in_context
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jaxl.learners.learner module
 ----------------------------
 

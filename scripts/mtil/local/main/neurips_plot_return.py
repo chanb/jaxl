@@ -140,7 +140,9 @@ def map_exp(name):
             "quadruple": 4,
             "eightfold": 8,
         }
-        return "${} \\lvert \\mathcal{{D}} \\rvert $".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "${} \\lvert \\mathcal{{D}} \\rvert $".format(
+            map_amount[splitted_name[-1].split("_")[0]]
+        )
 
 
 # Plot main return
@@ -152,7 +154,9 @@ for env_name in env_names:
     fig, axes = plt.subplots(
         num_rows,
         num_cols,
-        figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=True),
+        figsize=set_size(
+            doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=True
+        ),
         layout="constrained",
     )
 
@@ -266,7 +270,9 @@ def map_exp(name):
             "quadruple": 4,
             "eightfold": 8,
         }
-        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(
+            map_amount[splitted_name[-1].split("_")[0]]
+        )
 
 
 num_plots_per_fig = 4
@@ -279,7 +285,9 @@ for env_i, env_name in enumerate(env_names):
         fig, axes = plt.subplots(
             num_rows,
             num_cols,
-            figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False),
+            figsize=set_size(
+                doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False
+            ),
             layout="constrained",
         )
 

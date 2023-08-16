@@ -51,9 +51,6 @@ def get_buffer(
         buffer_kwargs["h_state_dim"] = h_state_dim
         buffer_kwargs["rng"] = np.random.RandomState(buffer_seed)
 
-        # TODO: Need to implement for trajectory buffer
-        # TODO: Might need to change action dim based on environment
-
     if buffer_config.buffer_type == CONST_DEFAULT:
         buffer_constructor = NextStateNumPyBuffer
     elif buffer_config.buffer_type == CONST_MEMORY_EFFICIENT:

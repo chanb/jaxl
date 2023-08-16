@@ -12,6 +12,14 @@ jaxl.models.common module
    :undoc-members:
    :show-inheritance:
 
+jaxl.models.encodings module
+----------------------------
+
+.. automodule:: jaxl.models.encodings
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jaxl.models.modules module
 --------------------------
 

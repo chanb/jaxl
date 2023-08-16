@@ -34,10 +34,11 @@ CONST_A_MAX = "a_max"
 
 CONST_EPSILON = "epsilon"
 
+CONST_ICL = "in_context_learning"
 CONST_IL = "imitation_learning"
 CONST_RL = "reinforcement_learning"
 
-VALID_TASK = [CONST_IL, CONST_RL]
+VALID_TASK = [CONST_ICL, CONST_IL, CONST_RL]
 
 CONST_ACTION = "action"
 CONST_ADVANTAGE = "advantage"

@@ -153,9 +153,7 @@ seeds_to_plot = np.array(all_env_seeds)
 
 torques = np.array(
     [
-        2.0
-        if env_seed is None
-        else all_env_configs[env_seed]["max_torque"]
+        2.0 if env_seed is None else all_env_configs[env_seed]["max_torque"]
         for env_seed in all_env_seeds
     ]
 )

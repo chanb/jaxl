@@ -120,7 +120,6 @@ for env_name, control_mode in results:
         ) / np.sum(buffer_dict["dones"])
 
 
-
 env_names = [
     # ("frozenlake", "discrete"),
     # ("cartpole", "continuous"),

@@ -64,7 +64,9 @@ for exp_i, suffix in enumerate(experiment_name_suffixes):
 
                 curr_path = eval_path
                 if suffix == "":
-                    curr_path = eval_path.replace(env_name, f"{env_name}-eightfold_source_data")
+                    curr_path = eval_path.replace(
+                        env_name, f"{env_name}-eightfold_source_data"
+                    )
                 with open(os.path.join(curr_path, filename), "rb") as f:
                     (data, paths) = pickle.load(f)
 

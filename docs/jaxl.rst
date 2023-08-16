@@ -9,6 +9,7 @@ Subpackages
 
    jaxl.buffers
    jaxl.constants
+   jaxl.datasets
    jaxl.distributions
    jaxl.envs
    jaxl.learners

@@ -20,6 +20,8 @@ CONST_BC = "bc"
 CONST_MTBC = "mtbc"
 VALID_IL_LEARNER = [CONST_BC, CONST_MTBC]
 
+VALID_ICL_LEARNER = [CONST_MLE]
+
 CONST_PRE_PARAM_NORM = "pre_param_norm"
 CONST_POST_PARAM_NORM = "post_param_norm"
 

@@ -275,7 +275,11 @@ else:
 
         for suffix in suffixes:
             finetune_runs_dir = os.path.join(
-                base_dir, f"{finetune_dir}{suffix}", f"{task}{suffix}", control_mode, "runs"
+                base_dir,
+                f"{finetune_dir}{suffix}",
+                f"{task}{suffix}",
+                control_mode,
+                "runs",
             )
 
             for finetune_run_dir, _, filenames in os.walk(finetune_runs_dir):
@@ -302,7 +306,9 @@ else:
 
                     pretrain_run_dir = os.path.join(
                         base_dir,
-                        f"{pretrain_dir}{suffix}" if "target" not in suffix else pretrain_dir,
+                        f"{pretrain_dir}{suffix}"
+                        if "target" not in suffix
+                        else pretrain_dir,
                         f"{task}{suffix}" if "target" not in suffix else task,
                         control_mode,
                         "runs",
@@ -313,8 +319,10 @@ else:
                         #     )
                         # ),
                     )
-                    pretrain_run_dir = os.path.join(pretrain_run_dir, os.listdir(pretrain_run_dir)[0])
-                    
+                    pretrain_run_dir = os.path.join(
+                        pretrain_run_dir, os.listdir(pretrain_run_dir)[0]
+                    )
+
                     with open(os.path.join(pretrain_run_dir, "config.json"), "r") as f:
                         pretrain_config = json.load(f)
 

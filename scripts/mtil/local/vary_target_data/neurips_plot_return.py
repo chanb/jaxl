@@ -64,7 +64,9 @@ for exp_i, suffix in enumerate(experiment_name_suffixes):
 
                 curr_path = eval_path
                 if suffix == "":
-                    curr_path = eval_path.replace(env_name, f"{env_name}-eightfold_source_data")
+                    curr_path = eval_path.replace(
+                        env_name, f"{env_name}-eightfold_source_data"
+                    )
                 with open(os.path.join(curr_path, filename), "rb") as f:
                     (data, paths) = pickle.load(f)
 
@@ -137,7 +139,9 @@ def map_exp(name):
             "quarter": 1.25,
             "half": 1.5,
         }
-        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(
+            map_amount[splitted_name[-1].split("_")[0]]
+        )
 
 
 # Plot main return
@@ -263,7 +267,9 @@ for env_i, env_name in enumerate(env_names):
         fig, axes = plt.subplots(
             num_rows,
             num_cols,
-            figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False),
+            figsize=set_size(
+                doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False
+            ),
             layout="constrained",
         )
 
