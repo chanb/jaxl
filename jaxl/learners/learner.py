@@ -1,5 +1,5 @@
 from abc import ABC
-from orbax.checkpoint import PyTreeCheckpointer
+from torch.utils.data import DataLoader
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Tuple, Union
 
@@ -7,7 +7,6 @@ import _pickle as pickle
 import chex
 import numpy as np
 import optax
-import os
 
 from jaxl.buffers import get_buffer, ReplayBuffer
 from jaxl.constants import *
@@ -202,6 +201,13 @@ class OfflineLearner(Learner):
                 self._config.dataset_config,
                 self._config.seeds.data_seed,
             )
+            self._train_dataloader = DataLoader(
+                self._buffer,
+                batch_size=self._config.batch_size,
+                shuffle=True,
+                drop_last=True,
+            )
+            self._train_loader = iter(self._train_dataloader)
 
 
 class OnlineLearner(Learner):

@@ -367,6 +367,7 @@ for env_i, env_name in enumerate(env_names):
                 for num_task in unique_num_tasks
             ]
         )
+        print(env_name, num_source_data, means)
         stds = np.array(
             [
                 np.std(mtbc_rets[num_source_data][num_task])

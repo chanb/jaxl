@@ -51,8 +51,9 @@ class InContextLearner(OfflineLearner):
         self._model = get_model(input_dim, output_dim, self._model_config)
 
         model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
-        dummy_x = self._generate_dummy_x(input_dim)
-        params = self._model.init(model_key, dummy_x)
+        dummy_input = self._generate_dummy_x(input_dim)
+        dummy_output = self._generate_dummy_x(output_dim)
+        params = self._model.init(model_key, dummy_input, dummy_output)
         self._optimizer, opt_state = get_optimizer(
             self._optimizer_config, self._model, params
         )
@@ -85,9 +86,10 @@ class InContextLearner(OfflineLearner):
 
         def _train_step(
             model_dict: Dict[str, Any],
-            train_x: chex.Array,
-            train_carry: chex.Array,
-            train_y: chex.Array,
+            context_inputs,
+            context_outputs,
+            queries,
+            outputs,
             *args,
             **kwargs,
         ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
@@ -95,23 +97,26 @@ class InContextLearner(OfflineLearner):
             The training step that computes the loss and performs model update.
 
             :param model_dict: the model state and optimizer state
-            :param train_x: the training inputs
-            :param train_carry: the training hidden states for memory-based models
-            :param train_y: the training targets
+            :param context_inputs: the context inputs
+            :param context_outputs: the context inputs
+            :param queries: the queries
+            :param outputs: the outputs
             :param *args:
             :param **kwargs:
             :type model_dict: Dict[str, Any]
-            :type train_x: chex.Array
-            :type train_carry: chex.Array
-            :type train_y: chex.Array
+            :type context_inputs: chex.Array
+            :type context_outputs: chex.Array
+            :type queries: chex.Array
+            :type outputs: chex.Array
             :return: the updated model state and optimizer state, and auxiliary information
             :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
             """
             (agg_loss, aux), grads = jax.value_and_grad(self._loss, has_aux=True)(
                 model_dict[CONST_MODEL],
-                train_x,
-                train_carry,
-                train_y,
+                context_inputs,
+                context_outputs,
+                queries,
+                outputs,
             )
             aux[CONST_AGG_LOSS] = agg_loss
 
@@ -152,9 +157,21 @@ class InContextLearner(OfflineLearner):
         :rtype: Dict[str, Any]
 
         """
-        train_x, train_carry, train_y, _ = self._buffer.sample(self._config.batch_size)
+        try:
+            context_inputs, context_outputs, queries, outputs = next(self._train_loader)
+        except StopIteration:
+            self._train_loader = iter(self._train_dataloader)
+            context_inputs, context_outputs, queries, outputs = next(self._train_loader)
+        context_inputs = context_inputs.numpy()
+        context_outputs = context_outputs.numpy()
+        queries = queries.numpy()
+        outputs = outputs.numpy()
+
+        import ipdb
+        ipdb.set_trace()
+
         self.model_dict, aux = self.train_step(
-            self._model_dict, train_x, train_carry, train_y
+            self._model_dict, context_inputs, context_outputs, queries, outputs
         )
         assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
 

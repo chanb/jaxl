@@ -66,7 +66,6 @@ class GPTModule(nn.Module):
 
     @nn.compact
     def __call__(self, x: chex.Array):
-        x = nn.Dense(self.embed_dim)(x)
         x = self.positional_encoding(x)
         for _ in range(self.num_blocks):
             x = GPTBlock(self.num_heads, self.num_embeddings, self.embed_dim)(x)

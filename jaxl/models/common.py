@@ -447,17 +447,17 @@ class MLP(Model):
 
 
 # TODO: Fix this
-class GPT(Model):
+class InContextSupervisedTransformer(Model):
     """A GPT."""
 
     def __init__(
         self,
+        output_dim: int,
         num_tokens: int,
         num_blocks: int,
         num_heads: int,
         num_embeddings: int,
         embed_dim: int,
-        output_dim: int,
         positional_encoding: SimpleNamespace,
     ) -> None:
         self.model = GPTModule(
@@ -465,33 +465,46 @@ class GPT(Model):
             num_heads=num_heads,
             num_embeddings=num_embeddings,
             embed_dim=embed_dim,
-            output_dim=output_dim,
+            output_dim=int(np.product(output_dim)),
             positional_encoding=get_positional_encoding(positional_encoding)
         )
+        self.input_tokenizer = nn.Dense(embed_dim)
+        self.output_tokenizer = nn.Dense(embed_dim)
         self.num_tokens = num_tokens
+        self.embed_dim = embed_dim
         self.forward = jax.jit(self.make_forward())
 
     def init(
-        self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
+        self, model_key: jrandom.PRNGKey, dummy_input: chex.Array, dummy_output: chex.Array
     ) -> Union[optax.Params, Dict[str, Any]]:
         """
         Initialize model parameters.
 
         :param model_key: the random number generation key for initializing parameters
-        :param dummy_x: the input data
+        :param dummy_input: the input data
+        :param dummy_output: the output data
         :type model_key: jrandom.PRNGKey
-        :type dummy_x: chex.Array
+        :type dummy_input: chex.Array
+        :type dummy_output: chex.Array
         :return: the initialized parameters
         :rtype: Union[optax.Params, Dict[str, Any]]
 
         """
-        return self.model.init(model_key, dummy_x)
+        input_key, output_key, gpt_key = jrandom.split(model_key, 3)
+        dummy_token = np.zeros((1, self.num_tokens, self.embed_dim))
+        return {
+            CONST_INPUT_TOKENIZER: self.input_tokenizer.init(input_key, dummy_input),
+            CONST_OUTPUT_TOKENIZER: self.output_tokenizer.init(output_key, dummy_output),
+            CONST_GPT: self.model.init(gpt_key, dummy_token),
+        }
 
     def make_forward(
         self,
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
             chex.Array,
             chex.Array,
         ],
@@ -506,6 +519,8 @@ class GPT(Model):
                 Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
+                chex.Array,
+                chex.Array,
             ],
             Tuple[chex.Array, chex.Array],
         ]
@@ -513,25 +528,31 @@ class GPT(Model):
 
         def forward(
             params: Union[optax.Params, Dict[str, Any]],
-            input: chex.Array,
-            carry: chex.Array,
+            context_inputs: chex.Array,
+            context_outputs: chex.Array,
+            queries: chex.Array,
+            outputs: chex.Array,
         ) -> Tuple[chex.Array, chex.Array]:
             """
-            Forward call of the MLP.
+            Forward call of the GPT.
 
             :param params: the model parameters
-            :param input: the input
-            :param carry: the hidden state (not used)
-            :type params: Union[optax.Params
-            :type input: chex.Array
-            :type carry: chex.Array
+            :param context_inputs: the input
+            :param context_outputs: the hidden state (not used)
+            :param queries: the hidden state (not used)
+            :param outputs: the hidden state (not used)
+            :type params: Union[optax.Params, Dict[str, Any]]
+            :type context_inputs: chex.Array
+            :type context_outputs: chex.Array
+            :type queries: chex.Array
+            :type outputs: chex.Array
             :return: the output and a pass-through carry
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
             # NOTE: Assume batch size is first dim
             input = input.reshape((input.shape[0], self.num_tokens, -1))
-            return self.model.apply(params, input), carry
+            return self.model.apply(params, input), None
 
         return forward
 

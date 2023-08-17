@@ -1,0 +1,87 @@
+{
+    "logging_config": {
+        "save_path": "./logs",
+        "experiment_name": "icl-linear_sgd-full_context_40-gpt-pos_enc",
+        "log_interval": 10000,
+        "checkpoint_interval": 10000
+    },
+    "model_config": {
+        "architecture": "icl_gpt",
+        "num_tokens": 81,
+        "num_blocks": 2,
+        "num_heads": 1,
+        "num_embeddings": 3,
+        "embed_dim": 64,
+        "out_dim": 1,
+        "positional_encoding": {
+            "type": "default",
+            "kwargs": {
+                "embed_dim": 64,
+                "max_len": 81
+            }
+        }
+    },
+    "optimizer_config": {
+        "optimizer": "adam",
+        "lr": {
+            "scheduler": "constant_schedule",
+            "scheduler_kwargs": {
+                "value": 0.0003
+            }
+        },
+        "max_grad_norm": false
+    },
+    "learner_config": {
+        "task": "in_context_learning",
+        "dataset_config": {
+            "dataset_name": "multitask_toy_regression",
+            "dataset_kwargs": {
+                "basis": "polynomial",
+                "degree": 1,
+                "num_sequences": 100000,
+                "sequence_length": 41,
+                "noise": 0.1,
+                "params_bound": [-10.0, 10.0],
+                "val_frac": 0.0005
+            },
+            "dataset_wrapper": {
+                "type": "ContextDataset",
+                "kwargs": {
+                    "context_len": 40,
+                    "skip_step": 1
+                }
+            }
+        },
+        "seeds": {
+            "model_seed": 42,
+            "data_seed": 42
+        },
+        "learner": "mle",
+        "losses": ["gaussian", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean"
+            },
+            {
+                "coefficient": 0.0
+            }
+        ],
+        "metrics": ["gaussian"],
+        "metric_settings": [{
+                "reduction": "sum"
+            }
+        ],
+        "num_updates_per_epoch": 100,
+        "batch_size": 100,
+        "learner_settings": {
+            "store_val_preds": false
+        }
+    },
+    "train_config": {
+        "num_epochs": 5000,
+        "early_stopping": false,
+        "patience": 1000,
+        "val_interval": 1
+    }
+}

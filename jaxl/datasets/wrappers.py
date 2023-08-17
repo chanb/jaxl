@@ -16,14 +16,6 @@ class DatasetWrapper(Dataset):
         return len(self._dataset)
 
 
-class IndexedDataset(DatasetWrapper):
-    """Sample with index returned."""
-
-    def __getitem__(self, idx):
-        inputs, targets = self._dataset[idx]
-        return inputs, targets, idx
-
-
 class FixedLengthTrajectoryDataset(DatasetWrapper):
     """Dataset for sequence modelling."""
 
@@ -73,15 +65,13 @@ class ContextDataset(DatasetWrapper):
         return len(self._dataset) * self._seq_mod
 
     def __getitem__(self, idx):
-        # recall that a sequence is (T, K, D + O)
         seq_i = idx // self._seq_mod
-        seq = self._dataset[seq_i]
+        inputs, outputs = self._dataset[seq_i]
 
         timestep_i = idx % self._seq_mod
-        sample_i = idx % self._seq_mod
 
-        # NOTE: for now assume contexts consists of (input, output)_n
-        contexts = np.zeros((self._context_len, *seq.shape[1:]))
+        context_inputs = np.zeros((self._context_len, *inputs.shape[1:]))
+        context_outputs = np.zeros((self._context_len, *outputs.shape[1:]))
 
         out_seq_start_idx = int(
             np.clip(
@@ -95,15 +85,15 @@ class ContextDataset(DatasetWrapper):
         if seq_copy_start_idx < 0:
             seq_copy_start_idx = timestep_i % self._skip_step
 
-        contexts[out_seq_start_idx:] = seq[
+        context_inputs[out_seq_start_idx:] = inputs[
             seq_copy_start_idx : timestep_i + 1 : self._skip_step
         ]
-        query_output_pair = seq[timestep_i + 1, sample_i]
+        context_outputs[out_seq_start_idx:] = outputs[
+            seq_copy_start_idx : timestep_i + 1 : self._skip_step
+        ]
+        query = inputs[timestep_i + 1]
+        output = outputs[timestep_i + 1]
 
-        contexts = np.concatenate(
-            (contexts.reshape(-1), query_output_pair[..., [0]]), axis=-1
-        )
-        output = query_output_pair[..., self._dataset.input_dim :]
-        return contexts, output
+        return context_inputs, context_outputs, query, output
 
     # TODO: Generate test query for visualization on context length, then use that for ICL plots

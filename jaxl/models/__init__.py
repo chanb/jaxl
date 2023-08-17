@@ -6,7 +6,7 @@ import numpy as np
 import optax
 
 from jaxl.constants import *
-from jaxl.models.common import MLP, Model, Policy, EnsembleModel, EncoderPredictorModel, GPT
+from jaxl.models.common import MLP, Model, Policy, EnsembleModel, EncoderPredictorModel, InContextSupervisedTransformer
 from jaxl.models.policies import *
 
 
@@ -166,13 +166,14 @@ def get_model(
         return EnsembleModel(
             model, model_config.num_models, getattr(model_config, "vmap_all", True)
         )
-    elif model_config.architecture == CONST_GPT:
-        return GPT(
+    elif model_config.architecture == CONST_ICL_GPT:
+        return InContextSupervisedTransformer(
+            output_dim,
+            model_config.num_tokens,
             model_config.num_blocks,
             model_config.num_heads,
             model_config.num_embeddings,
             model_config.embed_dim,
-            getattr(model_config, "output_dim", output_dim),
             model_config.positional_encoding,
         )
     else:

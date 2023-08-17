@@ -77,16 +77,16 @@ def get_dataset(
             f"{dataset_config.dataset_name} is not supported (one of {VALID_DATASET})"
         )
 
-    if hasattr(dataset_config, CONST_WRAPPER):
-        if dataset_config.wrapper.type == "FixedLengthTrajectoryDataset":
+    if hasattr(dataset_config, CONST_DATASET_WRAPPER):
+        if dataset_config.dataset_wrapper.type == "FixedLengthTrajectoryDataset":
             dataset = FixedLengthTrajectoryDataset(
-                dataset, dataset_config.wrapper.kwargs.sample_seq_len
+                dataset, dataset_config.dataset_wrapper.kwargs.sample_seq_len
             )
-        elif dataset_config.wrapper.type == "ContextDataset":
+        elif dataset_config.dataset_wrapper.type == "ContextDataset":
             dataset = ContextDataset(
                 dataset,
-                dataset_config.wrapper.kwargs.context_len,
-                dataset_config.wrapper.kwargs.skip_step,
+                dataset_config.dataset_wrapper.kwargs.context_len,
+                dataset_config.dataset_wrapper.kwargs.skip_step,
             )
 
-    return IndexedDataset(dataset)
+    return dataset

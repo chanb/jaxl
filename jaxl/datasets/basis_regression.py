@@ -58,12 +58,12 @@ class MultitaskFixedBasisRegression1D(Dataset):
         )
 
     @property
-    def input_dim(self) -> int:
-        return 1
+    def input_dim(self) -> chex.Array:
+        return (1,)
 
     @property
-    def output_dim(self) -> int:
-        return 1
+    def output_dim(self) -> chex.Array:
+        return (1,)
 
     @property
     def sequence_length(self) -> int:
