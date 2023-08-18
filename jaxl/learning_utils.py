@@ -100,7 +100,6 @@ def train(
                 hyperparameter_str,
             )
             learner.save_env_config(os.path.join(save_path, "env_config.pkl"))
-            params = learner.checkpoint(final=False)
 
             checkpoint_manager = CheckpointManager(
                 os.path.join(save_path, "models"),

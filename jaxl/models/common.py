@@ -565,6 +565,7 @@ class InContextSupervisedTransformer(Model):
                 params[CONST_POSITIONAL_ENCODING],
                 jnp.concatenate((context_input_embedding, query_embedding), axis=1),
             )
+
             context_input_embedding, query_embedding = (
                 input_embedding[:, :-1],
                 input_embedding[:, -1:],
