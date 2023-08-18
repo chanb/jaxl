@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs",
-        "experiment_name": "icl-linear_sgd-full_context_40-gpt-pos_enc",
+        "save_path": "./logs/icl-linear_sgd-full_context_40",
+        "experiment_name": "gpt-pos_enc",
         "log_interval": 10000,
         "checkpoint_interval": 10000
     },
