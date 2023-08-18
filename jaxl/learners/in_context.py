@@ -5,13 +5,14 @@ import chex
 import jax
 import jax.random as jrandom
 import numpy as np
-import optax
+import timeit
 
 from jaxl.constants import *
 from jaxl.learners.learner import OfflineLearner
+from jaxl.learners.utils import gather_per_leaf_l2_norm
 from jaxl.losses import get_loss_function, make_aggregate_loss
 from jaxl.models import get_model, get_optimizer, get_update_function
-from jaxl.utils import parse_dict
+from jaxl.utils import parse_dict, l2_norm
 
 
 """
@@ -121,6 +122,7 @@ class InContextLearner(OfflineLearner):
                 outputs,
             )
             aux[CONST_AGG_LOSS] = agg_loss
+            aux[CONST_GRAD_NORM] = {CONST_MODEL: l2_norm(grads)}
 
             params, opt_state = update_function(
                 self._optimizer,
@@ -143,21 +145,41 @@ class InContextLearner(OfflineLearner):
         :rtype: Dict[str, Any]
 
         """
-        try:
-            context_inputs, context_outputs, queries, outputs = next(self._train_loader)
-        except StopIteration:
-            self._train_loader = iter(self._train_dataloader)
-            context_inputs, context_outputs, queries, outputs = next(self._train_loader)
-        context_inputs = context_inputs.numpy()
-        context_outputs = context_outputs.numpy()
-        queries = queries.numpy()
-        outputs = outputs.numpy()
+        auxes = []
+        total_update_time = 0
+        for _ in range(self._num_updates_per_epoch):
+            tic = timeit.default_timer()
+            auxes.append({})
+            try:
+                context_inputs, context_outputs, queries, outputs = next(self._train_loader)
+            except StopIteration:
+                self._train_loader = iter(self._train_dataloader)
+                context_inputs, context_outputs, queries, outputs = next(self._train_loader)
+            context_inputs = context_inputs.numpy()
+            context_outputs = context_outputs.numpy()
+            queries = queries.numpy()
+            outputs = outputs.numpy()
 
-        self.model_dict, aux = self.train_step(
-            self._model_dict, context_inputs, context_outputs, queries, outputs
-        )
-        assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+            self.model_dict, aux = self.train_step(
+                self._model_dict, context_inputs, context_outputs, queries, outputs
+            )
+            total_update_time += timeit.default_timer() - tic
+            assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
 
-        aux[CONST_LOG] = {CONST_AGG_LOSS: aux[CONST_AGG_LOSS]}
+            auxes[-1][CONST_AUX] = aux
+
+        auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
+        aux[CONST_LOG] = {
+            f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
+            f"time/{CONST_UPDATE_TIME}": total_update_time,
+            f"{CONST_GRAD_NORM}/model": auxes[CONST_AUX][CONST_GRAD_NORM][
+                CONST_MODEL
+            ].item(),
+        }
+
+        for loss_key in self._config.losses:
+            aux[CONST_LOG][f"losses/{loss_key}"] = auxes[CONST_AUX][loss_key][
+                CONST_LOSS
+            ].item()
 
         return aux

@@ -1,13 +1,10 @@
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union
 
-import _pickle as pickle
 import chex
 import jax
 import math
 import numpy as np
-import optax
-import os
 import timeit
 
 from jaxl.constants import *
