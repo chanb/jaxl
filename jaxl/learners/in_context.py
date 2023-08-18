@@ -113,9 +113,11 @@ class InContextLearner(OfflineLearner):
             """
             (agg_loss, aux), grads = jax.value_and_grad(self._loss, has_aux=True)(
                 model_dict[CONST_MODEL],
-                context_inputs,
-                context_outputs,
                 queries,
+                {
+                    CONST_CONTEXT_INPUT: context_inputs,
+                    CONST_CONTEXT_OUTPUT: context_outputs,
+                },
                 outputs,
             )
             aux[CONST_AGG_LOSS] = agg_loss
@@ -130,22 +132,6 @@ class InContextLearner(OfflineLearner):
             return {CONST_MODEL: params, CONST_OPT_STATE: opt_state}, aux
 
         return _train_step
-
-    def compute_loss(
-        self, xs: chex.Array, ys: chex.Array
-    ) -> Tuple[chex.Array, Dict[str, Any]]:
-        """
-        Computes the loss.
-
-        :param xs: the batch of inputs
-        :param ys: the batch of outputs
-        :type xs: chex.Array
-        :type ys: chex.Array
-        :return: the loss and auxiliary information
-        :rtype: Tuple[chex.Array, Dict[str, Any]]
-
-        """
-        return self._loss(self._model_dict[CONST_MODEL], xs, ys)
 
     def update(self, *args, **kwargs) -> Dict[str, Any]:
         """
@@ -166,9 +152,6 @@ class InContextLearner(OfflineLearner):
         context_outputs = context_outputs.numpy()
         queries = queries.numpy()
         outputs = outputs.numpy()
-
-        import ipdb
-        ipdb.set_trace()
 
         self.model_dict, aux = self.train_step(
             self._model_dict, context_inputs, context_outputs, queries, outputs

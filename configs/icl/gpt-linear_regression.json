@@ -7,7 +7,7 @@
     },
     "model_config": {
         "architecture": "icl_gpt",
-        "num_tokens": 81,
+        "num_contexts": 40,
         "num_blocks": 2,
         "num_heads": 1,
         "num_embeddings": 3,
@@ -17,7 +17,7 @@
             "type": "default",
             "kwargs": {
                 "embed_dim": 64,
-                "max_len": 81
+                "max_len": 41
             }
         }
     },

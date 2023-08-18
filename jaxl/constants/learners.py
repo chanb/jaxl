@@ -45,3 +45,6 @@ CONST_NUM_CLIPPED = "num_clipped"
 CONST_REVERSE_KL = "reverse_kl"
 CONST_CLIP = "clip"
 VALID_PPO_OBJECTIVE = [CONST_CLIP, CONST_REVERSE_KL]
+
+CONST_CONTEXT_INPUT = "context_input"
+CONST_CONTEXT_OUTPUT = "context_output"

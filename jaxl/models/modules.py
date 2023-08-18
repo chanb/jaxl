@@ -3,8 +3,6 @@ from typing import Callable, Sequence
 
 import chex
 
-from jaxl.models.encodings import NoEncoding
-
 
 class MLPModule(nn.Module):
     """Multilayer Perceptron."""
@@ -61,12 +59,8 @@ class GPTModule(nn.Module):
     # : The output dimension
     output_dim: int
 
-    # : The positional encoding to use
-    positional_encoding: nn.Module = NoEncoding()
-
     @nn.compact
     def __call__(self, x: chex.Array):
-        x = self.positional_encoding(x)
         for _ in range(self.num_blocks):
             x = GPTBlock(self.num_heads, self.num_embeddings, self.embed_dim)(x)
         x = nn.LayerNorm()(x)

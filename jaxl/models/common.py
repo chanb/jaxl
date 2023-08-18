@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
 import chex
 import jax
+import jax.numpy as jnp
 import jax.random as jrandom
 import numpy as np
 import optax
@@ -453,7 +454,7 @@ class InContextSupervisedTransformer(Model):
     def __init__(
         self,
         output_dim: int,
-        num_tokens: int,
+        num_contexts: int,
         num_blocks: int,
         num_heads: int,
         num_embeddings: int,
@@ -466,16 +467,19 @@ class InContextSupervisedTransformer(Model):
             num_embeddings=num_embeddings,
             embed_dim=embed_dim,
             output_dim=int(np.product(output_dim)),
-            positional_encoding=get_positional_encoding(positional_encoding)
         )
         self.input_tokenizer = nn.Dense(embed_dim)
         self.output_tokenizer = nn.Dense(embed_dim)
-        self.num_tokens = num_tokens
+        self.positional_encoding = get_positional_encoding(positional_encoding)
+        self.num_tokens = num_contexts * 2 + 1
         self.embed_dim = embed_dim
         self.forward = jax.jit(self.make_forward())
 
     def init(
-        self, model_key: jrandom.PRNGKey, dummy_input: chex.Array, dummy_output: chex.Array
+        self,
+        model_key: jrandom.PRNGKey,
+        dummy_input: chex.Array,
+        dummy_output: chex.Array,
     ) -> Union[optax.Params, Dict[str, Any]]:
         """
         Initialize model parameters.
@@ -490,12 +494,17 @@ class InContextSupervisedTransformer(Model):
         :rtype: Union[optax.Params, Dict[str, Any]]
 
         """
-        input_key, output_key, gpt_key = jrandom.split(model_key, 3)
+        input_key, output_key, gpt_key, pe_key = jrandom.split(model_key, 4)
         dummy_token = np.zeros((1, self.num_tokens, self.embed_dim))
         return {
             CONST_INPUT_TOKENIZER: self.input_tokenizer.init(input_key, dummy_input),
-            CONST_OUTPUT_TOKENIZER: self.output_tokenizer.init(output_key, dummy_output),
+            CONST_OUTPUT_TOKENIZER: self.output_tokenizer.init(
+                output_key, dummy_output
+            ),
             CONST_GPT: self.model.init(gpt_key, dummy_token),
+            CONST_POSITIONAL_ENCODING: self.positional_encoding.init(
+                pe_key, dummy_input
+            ),
         }
 
     def make_forward(
@@ -503,7 +512,6 @@ class InContextSupervisedTransformer(Model):
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
-            chex.Array,
             chex.Array,
             chex.Array,
             chex.Array,
@@ -520,7 +528,6 @@ class InContextSupervisedTransformer(Model):
                 chex.Array,
                 chex.Array,
                 chex.Array,
-                chex.Array,
             ],
             Tuple[chex.Array, chex.Array],
         ]
@@ -528,31 +535,52 @@ class InContextSupervisedTransformer(Model):
 
         def forward(
             params: Union[optax.Params, Dict[str, Any]],
-            context_inputs: chex.Array,
-            context_outputs: chex.Array,
             queries: chex.Array,
-            outputs: chex.Array,
+            contexts: Dict[str, chex.Array],
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Forward call of the GPT.
 
             :param params: the model parameters
-            :param context_inputs: the input
-            :param context_outputs: the hidden state (not used)
-            :param queries: the hidden state (not used)
-            :param outputs: the hidden state (not used)
+            :param queries: the queries
+            :param contexts: the context with keys `context_input` and `context_output`
             :type params: Union[optax.Params, Dict[str, Any]]
-            :type context_inputs: chex.Array
-            :type context_outputs: chex.Array
             :type queries: chex.Array
-            :type outputs: chex.Array
+            :type contexts: Dict[str, chex.Array]
             :return: the output and a pass-through carry
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            # NOTE: Assume batch size is first dim
-            input = input.reshape((input.shape[0], self.num_tokens, -1))
-            return self.model.apply(params, input), None
+            context_input_embedding = self.input_tokenizer.apply(
+                params[CONST_INPUT_TOKENIZER], contexts[CONST_CONTEXT_INPUT]
+            )
+            context_output_embedding = self.output_tokenizer.apply(
+                params[CONST_OUTPUT_TOKENIZER], contexts[CONST_CONTEXT_OUTPUT]
+            )
+            query_embedding = self.input_tokenizer.apply(
+                params[CONST_INPUT_TOKENIZER], queries
+            )
+
+            input_embedding = self.positional_encoding.apply(
+                params[CONST_POSITIONAL_ENCODING],
+                jnp.concatenate((context_input_embedding, query_embedding), axis=1),
+            )
+            context_input_embedding, query_embedding = (
+                input_embedding[:, :-1],
+                input_embedding[:, -1:],
+            )
+            context_output_embedding = self.positional_encoding.apply(
+                params[CONST_POSITIONAL_ENCODING], context_output_embedding
+            )
+
+            stacked_inputs = jnp.concatenate(
+                (context_input_embedding, context_output_embedding), axis=-1
+            ).reshape((len(queries), -1, self.embed_dim))
+            stacked_inputs = jnp.concatenate((stacked_inputs, query_embedding), axis=1)
+
+            outputs = self.model.apply(params[CONST_GPT], stacked_inputs)
+
+            return outputs[:, -1], None
 
         return forward
 

@@ -57,9 +57,7 @@ class ContextDataset(DatasetWrapper):
         self._total_seq_len = (context_len - 1) * skip_step
 
         # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
-        self._seq_mod = (
-            self._dataset.sequence_length - 1
-        )
+        self._seq_mod = self._dataset.sequence_length - 1
 
     def __len__(self):
         return len(self._dataset) * self._seq_mod
@@ -91,7 +89,7 @@ class ContextDataset(DatasetWrapper):
         context_outputs[out_seq_start_idx:] = outputs[
             seq_copy_start_idx : timestep_i + 1 : self._skip_step
         ]
-        query = inputs[timestep_i + 1]
+        query = inputs[[timestep_i + 1]]
         output = outputs[timestep_i + 1]
 
         return context_inputs, context_outputs, query, output
