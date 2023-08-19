@@ -6,6 +6,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import random
+import torch
 
 from jaxl.constants import *
 
@@ -20,6 +21,7 @@ def set_seed(seed: int = 0):
     """
     random.seed(seed)
     np.random.seed(seed)
+    torch.manual_seed(seed)
 
 
 def to_jnp(*args: Iterable) -> Iterable[chex.Array]:

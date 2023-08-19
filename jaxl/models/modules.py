@@ -56,13 +56,9 @@ class GPTModule(nn.Module):
     # : The embedding dimensionality
     embed_dim: int
 
-    # : The output dimension
-    output_dim: int
-
     @nn.compact
     def __call__(self, x: chex.Array):
         for _ in range(self.num_blocks):
             x = GPTBlock(self.num_heads, self.num_embeddings, self.embed_dim)(x)
         x = nn.LayerNorm()(x)
-        x = nn.Dense(self.num_heads * self.output_dim)(x)
         return x

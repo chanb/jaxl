@@ -79,7 +79,7 @@
         }
     },
     "train_config": {
-        "num_epochs": 50000,
+        "num_epochs": 5000,
         "early_stopping": false,
         "patience": 1000,
         "val_interval": 1

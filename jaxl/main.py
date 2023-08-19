@@ -23,7 +23,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string(
     "config_path", default=None, help="Training configuration", required=True
 )
-flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=False)
+flags.DEFINE_integer("run_seed", default=0, help="Seed for the run", required=False)
 flags.DEFINE_string(
     "device",
     default=CONST_CPU,

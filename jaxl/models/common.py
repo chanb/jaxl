@@ -461,17 +461,18 @@ class InContextSupervisedTransformer(Model):
         embed_dim: int,
         positional_encoding: SimpleNamespace,
     ) -> None:
-        self.model = GPTModule(
+        self.gpt = GPTModule(
             num_blocks=num_blocks,
             num_heads=num_heads,
             num_embeddings=num_embeddings,
             embed_dim=embed_dim,
-            output_dim=int(np.product(output_dim)),
         )
         self.input_tokenizer = nn.Dense(embed_dim)
         self.output_tokenizer = nn.Dense(embed_dim)
+        self.predictor = nn.Dense(int(np.product(output_dim)))
         self.positional_encoding = get_positional_encoding(positional_encoding)
         self.num_tokens = num_contexts * 2 + 1
+        self.num_heads = num_heads
         self.embed_dim = embed_dim
         self.forward = jax.jit(self.make_forward())
 
@@ -494,17 +495,19 @@ class InContextSupervisedTransformer(Model):
         :rtype: Union[optax.Params, Dict[str, Any]]
 
         """
-        input_key, output_key, gpt_key, pe_key = jrandom.split(model_key, 4)
+        input_key, output_key, gpt_key, predictor_key, pe_key = jrandom.split(model_key, 5)
         dummy_token = np.zeros((1, self.num_tokens, self.embed_dim))
+        dummy_repr = np.zeros((1, self.num_tokens, self.embed_dim * self.num_heads))
         return {
             CONST_INPUT_TOKENIZER: self.input_tokenizer.init(input_key, dummy_input),
             CONST_OUTPUT_TOKENIZER: self.output_tokenizer.init(
                 output_key, dummy_output
             ),
-            CONST_GPT: self.model.init(gpt_key, dummy_token),
+            CONST_GPT: self.gpt.init(gpt_key, dummy_token),
             CONST_POSITIONAL_ENCODING: self.positional_encoding.init(
                 pe_key, dummy_input
             ),
+            CONST_PREDICTOR: self.predictor.init(predictor_key, dummy_repr)
         }
 
     def make_forward(
@@ -579,7 +582,8 @@ class InContextSupervisedTransformer(Model):
             ).reshape((len(queries), -1, self.embed_dim))
             stacked_inputs = jnp.concatenate((stacked_inputs, query_embedding), axis=1)
 
-            outputs = self.model.apply(params[CONST_GPT], stacked_inputs)
+            repr = self.gpt.apply(params[CONST_GPT], stacked_inputs)
+            outputs = self.predictor.apply(params[CONST_PREDICTOR], repr)
 
             return outputs[:, -1], None
 
