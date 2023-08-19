@@ -474,6 +474,7 @@ class InContextSupervisedTransformer(Model):
         self.num_tokens = num_contexts * 2 + 1
         self.num_heads = num_heads
         self.embed_dim = embed_dim
+        self.get_latent = jax.jit(self.make_get_latent())
         self.forward = jax.jit(self.make_forward())
 
     def init(
@@ -510,7 +511,7 @@ class InContextSupervisedTransformer(Model):
             CONST_PREDICTOR: self.predictor.init(predictor_key, dummy_repr)
         }
 
-    def make_forward(
+    def make_get_latent(
         self,
     ) -> Callable[
         [
@@ -522,7 +523,7 @@ class InContextSupervisedTransformer(Model):
         Tuple[chex.Array, chex.Array],
     ]:
         """
-        Makes the forward call of the MLP model.
+        Makes the get latent call of the ICL model.
 
         :return: the forward call.
         :rtype: Callable[
@@ -536,13 +537,13 @@ class InContextSupervisedTransformer(Model):
         ]
         """
 
-        def forward(
+        def get_latent(
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
         ) -> Tuple[chex.Array, chex.Array]:
             """
-            Forward call of the GPT.
+            Get latent call of the GPT.
 
             :param params: the model parameters
             :param queries: the queries
@@ -583,9 +584,59 @@ class InContextSupervisedTransformer(Model):
             stacked_inputs = jnp.concatenate((stacked_inputs, query_embedding), axis=1)
 
             repr = self.gpt.apply(params[CONST_GPT], stacked_inputs)
+
+            return repr, None
+
+        return get_latent
+
+    def make_forward(
+        self,
+    ) -> Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            chex.Array,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the forward call of the ICL model.
+
+        :return: the forward call.
+        :rtype: Callable[
+            [
+                Union[optax.Params, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+                chex.Array,
+            ],
+            Tuple[chex.Array, chex.Array],
+        ]
+        """
+
+        def forward(
+            params: Union[optax.Params, Dict[str, Any]],
+            queries: chex.Array,
+            contexts: Dict[str, chex.Array],
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Forward call of the GPT.
+
+            :param params: the model parameters
+            :param queries: the queries
+            :param contexts: the context with keys `context_input` and `context_output`
+            :type params: Union[optax.Params, Dict[str, Any]]
+            :type queries: chex.Array
+            :type contexts: Dict[str, chex.Array]
+            :return: the output and a pass-through carry
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            repr, carry = self.get_latent(params, queries, contexts)
             outputs = self.predictor.apply(params[CONST_PREDICTOR], repr)
 
-            return outputs[:, -1], None
+            return outputs[:, -1], carry
 
         return forward
 
