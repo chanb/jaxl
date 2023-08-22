@@ -457,14 +457,12 @@ class InContextSupervisedTransformer(Model):
         num_contexts: int,
         num_blocks: int,
         num_heads: int,
-        num_embeddings: int,
         embed_dim: int,
         positional_encoding: SimpleNamespace,
     ) -> None:
         self.gpt = GPTModule(
             num_blocks=num_blocks,
             num_heads=num_heads,
-            num_embeddings=num_embeddings,
             embed_dim=embed_dim,
         )
         self.input_tokenizer = nn.Dense(embed_dim)

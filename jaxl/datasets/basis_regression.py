@@ -19,10 +19,12 @@ class MultitaskFixedBasisRegression1D(Dataset):
         seed: int = 0,
         noise: float = 1.0,
         params_bound: Tuple[float, float] = (-0.5, 0.5),
+        inputs_range: Tuple[float, float] = (-1.0, 1.0),
     ):
         self._basis = basis
         self._noise = noise
         self._sequence_length = sequence_length
+        self._inputs_range = inputs_range
         self._inputs, self._targets, self._params = self._generate_data(
             num_sequences=num_sequences, seed=seed, params_bound=params_bound
         )
@@ -34,7 +36,7 @@ class MultitaskFixedBasisRegression1D(Dataset):
         model_rng = np.random.RandomState(seed=model_seed)
         data_gen_rng = np.random.RandomState(seed=data_gen_seed)
         inputs = data_gen_rng.uniform(
-            -1.0, 1.0, (num_sequences * self._sequence_length, 1)
+            self._inputs_range[0], self._inputs_range[1], (num_sequences * self._sequence_length, 1)
         )
 
         transformed_inputs = self._basis(inputs)

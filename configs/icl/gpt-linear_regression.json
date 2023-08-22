@@ -10,7 +10,6 @@
         "num_contexts": 20,
         "num_blocks": 2,
         "num_heads": 1,
-        "num_embeddings": 3,
         "embed_dim": 64,
         "out_dim": 1,
         "positional_encoding": {
@@ -47,8 +46,7 @@
             "dataset_wrapper": {
                 "type": "ContextDataset",
                 "kwargs": {
-                    "context_len": 20,
-                    "skip_step": 1
+                    "context_len": 20
                 }
             }
         },

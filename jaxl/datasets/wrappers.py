@@ -47,14 +47,48 @@ class FixedLengthTrajectoryDataset(DatasetWrapper):
         return out_traj, out_pred
 
 
+class FixedLengthContextDataset(DatasetWrapper):
+    """Fixed length dataset for in-context learning."""
+
+    def __init__(self, dataset: Dataset, context_len: int):
+        super().__init__(dataset)
+        self._context_len = context_len
+        self._total_seq_len = context_len - 1
+
+        # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
+        self._seq_mod = self._dataset.sequence_length - 1 - context_len
+
+    def __len__(self):
+        return len(self._dataset) * self._seq_mod
+
+    def __getitem__(self, idx):
+        seq_i = idx // self._seq_mod
+        inputs, outputs = self._dataset[seq_i]
+
+        timestep_i = idx % self._seq_mod
+
+        context_inputs = np.zeros((self._context_len, *inputs.shape[1:]))
+        context_outputs = np.zeros((self._context_len, *outputs.shape[1:]))
+
+        context_inputs = inputs[
+            timestep_i : timestep_i + self._total_seq_len + 1
+        ]
+        context_outputs = outputs[
+            timestep_i : timestep_i + self._total_seq_len + 1
+        ]
+        query = inputs[[timestep_i + 1]]
+        output = outputs[timestep_i + 1]
+
+        return context_inputs, context_outputs, query, output
+
+
 class ContextDataset(DatasetWrapper):
     """Dataset for in-context learning."""
 
-    def __init__(self, dataset: Dataset, context_len: int, skip_step: int = 1):
+    def __init__(self, dataset: Dataset, context_len: int):
         super().__init__(dataset)
         self._context_len = context_len
-        self._skip_step = skip_step
-        self._total_seq_len = (context_len - 1) * skip_step
+        self._total_seq_len = context_len - 1
 
         # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
         self._seq_mod = self._dataset.sequence_length - 1
@@ -73,21 +107,23 @@ class ContextDataset(DatasetWrapper):
 
         out_seq_start_idx = int(
             np.clip(
-                self._context_len - 1 - timestep_i // self._skip_step,
+                self._context_len - 1 - timestep_i,
                 a_min=0,
                 a_max=self._context_len - 1,
             )
         )
 
-        seq_copy_start_idx = timestep_i - self._total_seq_len
-        if seq_copy_start_idx < 0:
-            seq_copy_start_idx = timestep_i % self._skip_step
+        seq_copy_start_idx = int(np.clip(
+            timestep_i - self._total_seq_len,
+            a_min=0,
+            a_max=np.inf
+        ))
 
         context_inputs[out_seq_start_idx:] = inputs[
-            seq_copy_start_idx : timestep_i + 1 : self._skip_step
+            seq_copy_start_idx : timestep_i + 1
         ]
         context_outputs[out_seq_start_idx:] = outputs[
-            seq_copy_start_idx : timestep_i + 1 : self._skip_step
+            seq_copy_start_idx : timestep_i + 1
         ]
         query = inputs[[timestep_i + 1]]
         output = outputs[timestep_i + 1]

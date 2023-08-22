@@ -179,7 +179,6 @@ def get_model(
             model_config.num_contexts,
             model_config.num_blocks,
             model_config.num_heads,
-            model_config.num_embeddings,
             model_config.embed_dim,
             model_config.positional_encoding,
         )

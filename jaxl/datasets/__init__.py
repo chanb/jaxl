@@ -70,7 +70,8 @@ def get_dataset(
             basis=basis,
             seed=seed,
             noise=dataset_kwargs.noise,
-            params_bound=dataset_kwargs.params_bound,
+            params_bound=getattr(dataset_kwargs, "params_bound", [-0.5, 0.5]),
+            inputs_range=getattr(dataset_kwargs, "inputs_range", [-1.0, 1.0]),
         )
     else:
         raise ValueError(
@@ -85,8 +86,12 @@ def get_dataset(
         elif dataset_config.dataset_wrapper.type == "ContextDataset":
             dataset = ContextDataset(
                 dataset,
-                dataset_config.dataset_wrapper.kwargs.context_len,
-                dataset_config.dataset_wrapper.kwargs.skip_step,
+                dataset_config.dataset_wrapper.kwargs.context_len
+            )
+        elif dataset_config.dataset_wrapper.type == "FixedLengthContextDataset":
+            dataset = FixedLengthContextDataset(
+                dataset,
+                dataset_config.dataset_wrapper.kwargs.context_len
             )
 
     return dataset
