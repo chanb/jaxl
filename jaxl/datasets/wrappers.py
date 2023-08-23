@@ -76,8 +76,8 @@ class FixedLengthContextDataset(DatasetWrapper):
         context_outputs = outputs[
             timestep_i : timestep_i + self._total_seq_len + 1
         ]
-        query = inputs[[timestep_i + 1]]
-        output = outputs[timestep_i + 1]
+        query = inputs[[timestep_i + self._total_seq_len]]
+        output = outputs[timestep_i + self._total_seq_len]
 
         return context_inputs, context_outputs, query, output
 
