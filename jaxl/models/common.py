@@ -494,9 +494,11 @@ class InContextSupervisedTransformer(Model):
         :rtype: Union[optax.Params, Dict[str, Any]]
 
         """
-        input_key, output_key, gpt_key, predictor_key, pe_key = jrandom.split(model_key, 5)
-        dummy_token = np.zeros((1, self.num_tokens, self.embed_dim))
-        dummy_repr = np.zeros((1, self.num_tokens, self.embed_dim * self.num_heads))
+        input_key, output_key, gpt_key, predictor_key, pe_key = jrandom.split(
+            model_key, 5
+        )
+        dummy_token = np.zeros((1, 1, self.embed_dim))
+        dummy_repr = np.zeros((1, 1, self.embed_dim * self.num_heads))
         return {
             CONST_INPUT_TOKENIZER: self.input_tokenizer.init(input_key, dummy_input),
             CONST_OUTPUT_TOKENIZER: self.output_tokenizer.init(
@@ -504,9 +506,9 @@ class InContextSupervisedTransformer(Model):
             ),
             CONST_GPT: self.gpt.init(gpt_key, dummy_token),
             CONST_POSITIONAL_ENCODING: self.positional_encoding.init(
-                pe_key, dummy_input
+                pe_key, dummy_token
             ),
-            CONST_PREDICTOR: self.predictor.init(predictor_key, dummy_repr)
+            CONST_PREDICTOR: self.predictor.init(predictor_key, dummy_repr),
         }
 
     def make_get_latent(

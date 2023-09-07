@@ -6,31 +6,39 @@ from torch.utils.data import Dataset
 from typing import Callable, Tuple
 
 
-class MultitaskFixedBasisRegression1D(Dataset):
+class MultitaskLinearRegressionND(Dataset):
     """
-    The dataset contains multiple 1D (fixed) basis regression problems.
+    The dataset contains multiple ND (fixed) linear regression problems.
     """
 
     def __init__(
         self,
         num_sequences: int,
         sequence_length: int,
-        basis: Callable[..., chex.Array],
+        input_dim: int,
         seed: int = 0,
         noise: float = 1.0,
         params_bound: Tuple[float, float] = (-0.5, 0.5),
         inputs_range: Tuple[float, float] = (-1.0, 1.0),
+        num_active_params: int = 0,
     ):
-        self._basis = basis
         self._noise = noise
         self._sequence_length = sequence_length
+        self._input_dim = input_dim
         self._inputs_range = inputs_range
         self._inputs, self._targets, self._params = self._generate_data(
-            num_sequences=num_sequences, seed=seed, params_bound=params_bound
+            num_sequences=num_sequences,
+            seed=seed,
+            params_bound=params_bound,
+            num_active_params=num_active_params,
         )
 
     def _generate_data(
-        self, num_sequences: int, seed: int, params_bound: Tuple[float, float]
+        self,
+        num_sequences: int,
+        seed: int,
+        params_bound: Tuple[float, float],
+        num_active_params: int,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         model_seed, data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)
         model_rng = np.random.RandomState(seed=model_seed)
@@ -38,32 +46,33 @@ class MultitaskFixedBasisRegression1D(Dataset):
         inputs = data_gen_rng.uniform(
             self._inputs_range[0],
             self._inputs_range[1],
-            (num_sequences * self._sequence_length, 1),
+            (num_sequences, self._sequence_length, self._input_dim),
         )
 
-        transformed_inputs = self._basis(inputs)
-        transformed_inputs = transformed_inputs.reshape(
-            (num_sequences, self._sequence_length, -1)
-        )
         params = model_rng.uniform(
             low=params_bound[0],
             high=params_bound[1],
-            size=(num_sequences, transformed_inputs.shape[2], 1),
+            size=(num_sequences, self._input_dim + 1, 1),
         )
+
+        if num_active_params > 0:
+            params[:, -num_active_params:] = 0
+
         targets = (
-            transformed_inputs @ params
+            inputs @ params[:, 1:]
+            + params[:, :1]
             + data_gen_rng.randn(num_sequences, self._sequence_length, 1) * self._noise
         )
 
         return (
-            inputs.reshape((num_sequences, self._sequence_length, 1)),
+            inputs,
             targets,
             params,
         )
 
     @property
     def input_dim(self) -> chex.Array:
-        return (1,)
+        return (self._input_dim,)
 
     @property
     def output_dim(self) -> chex.Array:
@@ -83,20 +92,13 @@ class MultitaskFixedBasisRegression1D(Dataset):
         raise NotImplementedError
 
     @property
-    def basis(self) -> Callable[..., chex.Array]:
-        return self._basis
-
-    @property
     def params(self) -> chex.Array:
         return self._params
 
     @property
     def ls_estimators(self) -> chex.Array:
-        basis_mat = self._basis(self._inputs).reshape(
-            (len(self), self._sequence_length, -1)
-        )
-        basis_mat_T = basis_mat.transpose((0, 2, 1))
+        inputs_T = self._inputs.transpose((0, 2, 1))
         ls_estimator = (
-            np.linalg.pinv(basis_mat_T @ basis_mat) @ basis_mat_T @ self._targets
+            np.linalg.pinv(inputs_T @ self._inputs) @ inputs_T @ self._targets
         )
         return ls_estimator

@@ -70,12 +70,8 @@ class FixedLengthContextDataset(DatasetWrapper):
         context_inputs = np.zeros((self._context_len, *inputs.shape[1:]))
         context_outputs = np.zeros((self._context_len, *outputs.shape[1:]))
 
-        context_inputs = inputs[
-            timestep_i : timestep_i + self._total_seq_len + 1
-        ]
-        context_outputs = outputs[
-            timestep_i : timestep_i + self._total_seq_len + 1
-        ]
+        context_inputs = inputs[timestep_i : timestep_i + self._total_seq_len + 1]
+        context_outputs = outputs[timestep_i : timestep_i + self._total_seq_len + 1]
         query = inputs[[timestep_i + self._total_seq_len]]
         output = outputs[timestep_i + self._total_seq_len]
 
@@ -113,15 +109,11 @@ class ContextDataset(DatasetWrapper):
             )
         )
 
-        seq_copy_start_idx = int(np.clip(
-            timestep_i - self._total_seq_len,
-            a_min=0,
-            a_max=np.inf
-        ))
+        seq_copy_start_idx = int(
+            np.clip(timestep_i - self._total_seq_len, a_min=0, a_max=np.inf)
+        )
 
-        context_inputs[out_seq_start_idx:] = inputs[
-            seq_copy_start_idx : timestep_i + 1
-        ]
+        context_inputs[out_seq_start_idx:] = inputs[seq_copy_start_idx : timestep_i + 1]
         context_outputs[out_seq_start_idx:] = outputs[
             seq_copy_start_idx : timestep_i + 1
         ]

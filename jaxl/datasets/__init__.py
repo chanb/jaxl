@@ -1,10 +1,13 @@
 from torch.utils.data import Dataset
 from types import SimpleNamespace
-from typing import Callable, Dict, Any
+from typing import Callable
 
 from jaxl.constants import *
 from jaxl.datasets.basis_regression import (
     MultitaskFixedBasisRegression1D,
+)
+from jaxl.datasets.linear_regression import (
+    MultitaskLinearRegressionND,
 )
 from jaxl.datasets.wrappers import *
 
@@ -73,6 +76,19 @@ def get_dataset(
             params_bound=getattr(dataset_kwargs, "params_bound", [-0.5, 0.5]),
             inputs_range=getattr(dataset_kwargs, "inputs_range", [-1.0, 1.0]),
         )
+    elif dataset_config.dataset_name == CONST_MULTITASK_ND_LINEAR_REGRESSION:
+        dataset = MultitaskLinearRegressionND(
+            num_sequences=dataset_kwargs.num_sequences,
+            sequence_length=dataset_kwargs.sequence_length,
+            input_dim=dataset_kwargs.input_dim,
+            seed=seed,
+            noise=dataset_kwargs.noise,
+            params_bound=getattr(dataset_kwargs, "params_bound", [-0.5, 0.5]),
+            inputs_range=getattr(dataset_kwargs, "inputs_range", [-1.0, 1.0]),
+            num_active_params=getattr(
+                dataset_kwargs, "num_active_params", dataset_kwargs.input_dim + 1
+            ),
+        )
     else:
         raise ValueError(
             f"{dataset_config.dataset_name} is not supported (one of {VALID_DATASET})"
@@ -85,13 +101,11 @@ def get_dataset(
             )
         elif dataset_config.dataset_wrapper.type == "ContextDataset":
             dataset = ContextDataset(
-                dataset,
-                dataset_config.dataset_wrapper.kwargs.context_len
+                dataset, dataset_config.dataset_wrapper.kwargs.context_len
             )
         elif dataset_config.dataset_wrapper.type == "FixedLengthContextDataset":
             dataset = FixedLengthContextDataset(
-                dataset,
-                dataset_config.dataset_wrapper.kwargs.context_len
+                dataset, dataset_config.dataset_wrapper.kwargs.context_len
             )
 
     return dataset

@@ -151,10 +151,14 @@ class InContextLearner(OfflineLearner):
             tic = timeit.default_timer()
             auxes.append({})
             try:
-                context_inputs, context_outputs, queries, outputs = next(self._train_loader)
+                context_inputs, context_outputs, queries, outputs = next(
+                    self._train_loader
+                )
             except StopIteration:
                 self._train_loader = iter(self._train_dataloader)
-                context_inputs, context_outputs, queries, outputs = next(self._train_loader)
+                context_inputs, context_outputs, queries, outputs = next(
+                    self._train_loader
+                )
             context_inputs = context_inputs.numpy()
             context_outputs = context_outputs.numpy()
             queries = queries.numpy()
