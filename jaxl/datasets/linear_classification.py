@@ -6,9 +6,9 @@ from torch.utils.data import Dataset
 from typing import Callable, Tuple
 
 
-class MultitaskLinearRegressionND(Dataset):
+class MultitaskLinearClassificationND(Dataset):
     """
-    The dataset contains multiple ND (fixed) linear regression problems.
+    The dataset contains multiple ND (fixed) linear classification problems.
     """
 
     def __init__(
@@ -17,7 +17,7 @@ class MultitaskLinearRegressionND(Dataset):
         sequence_length: int,
         input_dim: int,
         seed: int = 0,
-        noise: float = 1.0,
+        noise: float = 0.0,
         params_bound: Tuple[float, float] = (-0.5, 0.5),
         inputs_range: Tuple[float, float] = (-1.0, 1.0),
         num_active_params: int = None,
@@ -64,11 +64,11 @@ class MultitaskLinearRegressionND(Dataset):
         if num_active_params is not None:
             params[:, -self._input_dim - num_active_params:] = 0
 
-        targets = (
+        targets = int((
             inputs @ params[:, 1:]
             + params[:, :1]
             + data_gen_rng.randn(num_sequences, self._sequence_length, 1) * self._noise
-        )
+        ) >= 0)
 
         return (
             inputs,

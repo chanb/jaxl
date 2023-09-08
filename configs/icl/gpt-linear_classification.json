@@ -55,7 +55,7 @@
             "data_seed": 42
         },
         "learner": "mle",
-        "losses": ["gaussian", "l2"],
+        "losses": ["categorical", "l2"],
         "loss_settings": [
             {
                 "coefficient": 1.0,

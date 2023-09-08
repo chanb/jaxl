@@ -9,6 +9,9 @@ from jaxl.datasets.basis_regression import (
 from jaxl.datasets.linear_regression import (
     MultitaskLinearRegressionND,
 )
+from jaxl.datasets.linear_classification import (
+    MultitaskLinearClassificationND,
+)
 from jaxl.datasets.wrappers import *
 
 import chex
@@ -78,6 +81,19 @@ def get_dataset(
         )
     elif dataset_config.dataset_name == CONST_MULTITASK_ND_LINEAR_REGRESSION:
         dataset = MultitaskLinearRegressionND(
+            num_sequences=dataset_kwargs.num_sequences,
+            sequence_length=dataset_kwargs.sequence_length,
+            input_dim=dataset_kwargs.input_dim,
+            seed=seed,
+            noise=dataset_kwargs.noise,
+            params_bound=getattr(dataset_kwargs, "params_bound", [-0.5, 0.5]),
+            inputs_range=getattr(dataset_kwargs, "inputs_range", [-1.0, 1.0]),
+            num_active_params=getattr(
+                dataset_kwargs, "num_active_params", dataset_kwargs.input_dim + 1
+            ),
+        )
+    elif dataset_config.dataset_name == CONST_MULTITASK_ND_LINEAR_CLASSIFICATION:
+        dataset = MultitaskLinearClassificationND(
             num_sequences=dataset_kwargs.num_sequences,
             sequence_length=dataset_kwargs.sequence_length,
             input_dim=dataset_kwargs.input_dim,
