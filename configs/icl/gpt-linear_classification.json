@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-noiseless-no_bias-20d_linear-active_dim_4-full_context_16",
+        "save_path": "./logs/icl-noiseless-no_bias-2d_linear-active_dim_2-full_context_16",
         "experiment_name": "gpt-pos_enc",
         "log_interval": 10,
         "checkpoint_interval": 10000
@@ -35,12 +35,12 @@
         "dataset_config": {
             "dataset_name": "multitask_nd_linear_regression",
             "dataset_kwargs": {
-                "input_dim": 20,
+                "input_dim": 2,
                 "num_sequences": 100000,
                 "sequence_length": 41,
                 "noise": 0.0,
                 "params_bound": [-10.0, 10.0],
-                "num_active_params": 4,
+                "num_active_params": null,
                 "val_frac": 0.0005
             },
             "dataset_wrapper": {
