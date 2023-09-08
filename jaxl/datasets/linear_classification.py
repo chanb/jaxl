@@ -86,7 +86,7 @@ class MultitaskLinearClassificationND(Dataset):
 
     @property
     def output_dim(self) -> chex.Array:
-        return (1,)
+        return (2,)
 
     @property
     def sequence_length(self) -> int:
