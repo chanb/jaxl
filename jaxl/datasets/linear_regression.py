@@ -62,7 +62,7 @@ class MultitaskLinearRegressionND(Dataset):
         params[:, 0] = params[:, 0] * int(bias)
 
         if num_active_params is not None:
-            params[:, -self._input_dim - num_active_params:] = 0
+            params[:, -self._input_dim - num_active_params :] = 0
 
         targets = (
             inputs @ params[:, 1:]

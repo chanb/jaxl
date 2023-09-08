@@ -62,13 +62,17 @@ class MultitaskLinearClassificationND(Dataset):
         params[:, 0] = params[:, 0] * int(bias)
 
         if num_active_params is not None:
-            params[:, -self._input_dim - num_active_params:] = 0
+            params[:, -self._input_dim - num_active_params :] = 0
 
-        targets = int((
-            inputs @ params[:, 1:]
-            + params[:, :1]
-            + data_gen_rng.randn(num_sequences, self._sequence_length, 1) * self._noise
-        ) >= 0)
+        targets = int(
+            (
+                inputs @ params[:, 1:]
+                + params[:, :1]
+                + data_gen_rng.randn(num_sequences, self._sequence_length, 1)
+                * self._noise
+            )
+            >= 0
+        )
 
         return (
             inputs,
