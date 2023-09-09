@@ -84,6 +84,13 @@ def make_cross_entropy_loss(
     """
     reduction = get_reduction(loss_setting.reduction)
 
+    if getattr(loss_setting, "is_one_hot", False):
+        def convert_to_one_hot(y):
+            return y
+    else:
+        def convert_to_one_hot(y):
+            return jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
+
     def cross_entropy_loss(
         params: Union[optax.Params, Dict[str, Any]],
         x: chex.Array,
@@ -105,7 +112,7 @@ def make_cross_entropy_loss(
 
         """
         logits, _ = model.forward(params, x, carry)
-        y_one_hot = jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
+        y_one_hot = convert_to_one_hot(y)
 
         return reduction(optax.softmax_cross_entropy(logits, y_one_hot)), {}
 

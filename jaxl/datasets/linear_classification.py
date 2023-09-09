@@ -64,7 +64,7 @@ class MultitaskLinearClassificationND(Dataset):
         if num_active_params is not None:
             params[:, -self._input_dim - num_active_params :] = 0
 
-        targets = int(
+        targets = np.eye(2)[(
             (
                 inputs @ params[:, 1:]
                 + params[:, :1]
@@ -72,7 +72,7 @@ class MultitaskLinearClassificationND(Dataset):
                 * self._noise
             )
             >= 0
-        )
+        ).astype(int)][:, :, 0]
 
         return (
             inputs,

@@ -33,7 +33,7 @@
     "learner_config": {
         "task": "in_context_learning",
         "dataset_config": {
-            "dataset_name": "multitask_nd_linear_regression",
+            "dataset_name": "multitask_nd_linear_classification",
             "dataset_kwargs": {
                 "input_dim": 2,
                 "num_sequences": 100000,
@@ -59,7 +59,8 @@
         "loss_settings": [
             {
                 "coefficient": 1.0,
-                "reduction": "mean"
+                "reduction": "mean",
+                "is_one_hot": true
             },
             {
                 "coefficient": 0.0
