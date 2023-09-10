@@ -1,13 +1,13 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-noiseless-no_bias-2d_linear-active_dim_2-full_context_16",
+        "save_path": "./logs/icl-noiseless-no_bias-2d_linear-active_dim_2-context_len_20",
         "experiment_name": "gpt-pos_enc",
         "log_interval": 10,
-        "checkpoint_interval": 10000
+        "checkpoint_interval": 1000
     },
     "model_config": {
         "architecture": "icl_gpt",
-        "num_contexts": 16,
+        "num_contexts": 20,
         "num_blocks": 2,
         "num_heads": 1,
         "embed_dim": 32,
@@ -16,7 +16,7 @@
             "type": "default",
             "kwargs": {
                 "embed_dim": 32,
-                "max_len": 17
+                "max_len": 21
             }
         }
     },
@@ -46,7 +46,7 @@
             "dataset_wrapper": {
                 "type": "ContextDataset",
                 "kwargs": {
-                    "context_len": 16
+                    "context_len": 20
                 }
             }
         },
@@ -73,6 +73,6 @@
         }
     },
     "train_config": {
-        "num_epochs": 2000
+        "num_epochs": 5000
     }
 }
