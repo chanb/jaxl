@@ -1,5 +1,7 @@
 from torch.utils.data import Dataset
 
+import jax.random as jrandom
+import math
 import numpy as np
 
 
@@ -95,6 +97,59 @@ class ContextDataset(DatasetWrapper):
     def __getitem__(self, idx):
         seq_i = idx // self._seq_mod
         inputs, outputs = self._dataset[seq_i]
+
+        timestep_i = idx % self._seq_mod
+
+        context_inputs = np.zeros((self._context_len, *inputs.shape[1:]))
+        context_outputs = np.zeros((self._context_len, *outputs.shape[1:]))
+
+        out_seq_start_idx = int(
+            np.clip(
+                self._context_len - 1 - timestep_i,
+                a_min=0,
+                a_max=self._context_len - 1,
+            )
+        )
+
+        seq_copy_start_idx = int(
+            np.clip(timestep_i - self._total_seq_len, a_min=0, a_max=np.inf)
+        )
+
+        context_inputs[out_seq_start_idx:] = inputs[seq_copy_start_idx : timestep_i + 1]
+        context_outputs[out_seq_start_idx:] = outputs[
+            seq_copy_start_idx : timestep_i + 1
+        ]
+        query = inputs[[timestep_i + 1]]
+        output = outputs[timestep_i + 1]
+
+        return context_inputs, context_outputs, query, output
+
+    # TODO: Generate test query for visualization on context length, then use that for ICL plots
+
+
+class PermutationContextDataset(DatasetWrapper):
+    """Dataset for in-context learning with permutation."""
+
+    def __init__(self, dataset: Dataset, context_len: int, seed: int = 0):
+        super().__init__(dataset)
+        self._context_len = context_len
+        self._total_seq_len = context_len - 1
+
+        # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
+        self._seq_mod = self._dataset.sequence_length - 1
+        self._permutation_key = jrandom.PRNGKey(seed)
+
+    def __len__(self):
+        return len(self._dataset) * self._seq_mod * math.factorial(self._dataset.sequence_length)
+
+    def __getitem__(self, idx):
+        seq_i = idx // self._seq_mod
+        inputs, outputs = self._dataset[seq_i]
+
+        self._permutation_key = jrandom.split(self._permutation_key)[0]
+        permutation_idxes = jrandom.permutation(self._permutation_key, np.arange(len(inputs)))
+        inputs = inputs[permutation_idxes]
+        outputs = outputs[permutation_idxes]
 
         timestep_i = idx % self._seq_mod
 
