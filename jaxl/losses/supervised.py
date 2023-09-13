@@ -117,3 +117,64 @@ def make_cross_entropy_loss(
         return reduction(optax.softmax_cross_entropy(logits, y_one_hot)), {}
 
     return cross_entropy_loss
+
+
+
+def make_hinge_loss(
+    model: Model,
+    loss_setting: SimpleNamespace,
+    num_classes: int,
+    *args,
+    **kwargs,
+) -> Callable[
+    [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets hinge loss function.
+
+    :param model: the model
+    :param loss_setting: the loss configuration
+    :param num_classes: the number of classes
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+    :type num_classes: int
+    :return: the loss function
+    :rtype: Callable[..., chex.Array]
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "is_one_hot", False):
+        def convert_to_one_hot(y):
+            return y
+    else:
+        def convert_to_one_hot(y):
+            return jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
+
+    def hinge_loss(
+        params: Union[optax.Params, Dict[str, Any]],
+        x: chex.Array,
+        carry: chex.Array,
+        y: chex.Array,
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        Hinge Loss.
+
+        :param params: the model parameters
+        :param x: the input
+        :param carry: the hidden state
+        :param y: the output
+        :param *args:
+        :param **kwargs:
+        :type params: Union[optax.Params, Dict[str, Any]]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+        logits, _ = model.forward(params, x, carry)
+        y_one_hot = convert_to_one_hot(y)
+
+        return reduction(jnp.max(logits, axis=-1) - jnp.sum(logits * y_one_hot, axis=-1)), {}
+
+    return hinge_loss
