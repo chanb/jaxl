@@ -1,13 +1,13 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-noiseless-no_bias-2d_linear-active_dim_2-context_len_20-permutation",
-        "experiment_name": "gpt-pos_enc",
+        "save_path": "./logs/icl-noiseless-no_bias-2d_linear-active_dim_2-context_len_8",
+        "experiment_name": "permutation",
         "log_interval": 10,
         "checkpoint_interval": 1000
     },
     "model_config": {
         "architecture": "icl_gpt",
-        "num_contexts": 20,
+        "num_contexts": 8,
         "num_blocks": 2,
         "num_heads": 1,
         "embed_dim": 32,
@@ -15,9 +15,10 @@
             "type": "default",
             "kwargs": {
                 "embed_dim": 32,
-                "max_len": 21
+                "max_len": 9
             }
-        }
+        },
+        "query_pred_only": false
     },
     "optimizer_config": {
         "optimizer": "adam",
@@ -43,9 +44,9 @@
                 "val_frac": 0.0005
             },
             "dataset_wrapper": {
-                "type": "PermutationContextDataset",
+                "type": "PermutationFixedLengthContextDataset",
                 "kwargs": {
-                    "context_len": 20,
+                    "context_len": 8,
                     "seed": 0
                 }
             }

@@ -127,5 +127,9 @@ def get_dataset(
             dataset = PermutationContextDataset(
                 dataset, dataset_config.dataset_wrapper.kwargs.context_len, dataset_config.dataset_wrapper.kwargs.seed
             )
+        elif dataset_config.dataset_wrapper.type == "PermutationFixedLengthContextDataset":
+            dataset = PermutationFixedLengthContextDataset(
+                dataset, dataset_config.dataset_wrapper.kwargs.context_len, dataset_config.dataset_wrapper.kwargs.seed
+            )
 
     return dataset
