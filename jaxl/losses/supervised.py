@@ -124,6 +124,7 @@ def make_hinge_loss(
     model: Model,
     loss_setting: SimpleNamespace,
     num_classes: int,
+    margin: float = 1.0,
     *args,
     **kwargs,
 ) -> Callable[
@@ -175,6 +176,12 @@ def make_hinge_loss(
         logits, _ = model.forward(params, x, carry)
         y_one_hot = convert_to_one_hot(y)
 
-        return reduction(jnp.max(logits, axis=-1) - jnp.sum(logits * y_one_hot, axis=-1)), {}
+        return reduction(
+            jnp.clip(
+                margin - jnp.sum(logits * y_one_hot, axis=-1) + jnp.sum(logits * (1 - y_one_hot), axis=-1),
+                a_min=0.0,
+                a_max=jnp.inf,
+            )
+        ), {}
 
     return hinge_loss
