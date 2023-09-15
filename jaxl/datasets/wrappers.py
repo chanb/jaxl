@@ -140,7 +140,7 @@ class PermutationContextDataset(DatasetWrapper):
         self._permutation_key = jrandom.PRNGKey(seed)
 
     def __len__(self):
-        return len(self._dataset) * self._seq_mod * math.factorial(self._dataset.sequence_length)
+        return len(self._dataset) * self._seq_mod
 
     def __getitem__(self, idx):
         seq_i = idx // self._seq_mod

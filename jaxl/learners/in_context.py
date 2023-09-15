@@ -187,3 +187,132 @@ class InContextLearner(OfflineLearner):
             ].item()
 
         return aux
+
+
+
+class AllStepsInContextLearner(InContextLearner):
+    """
+    In-context learner class that extends the ``OfflineLearner`` class.
+    This is the general learner for in-context learning agents.
+    """
+
+    def __init__(
+        self,
+        config: SimpleNamespace,
+        model_config: SimpleNamespace,
+        optimizer_config: SimpleNamespace,
+    ):
+        super().__init__(config, model_config, optimizer_config)
+        self._initialize_losses()
+        self.train_step = jax.jit(self.make_train_step())
+
+    def make_train_step(self):
+        """
+        Makes the training step for model update.
+        """
+
+        update_function = get_update_function(self._model)
+
+        def _train_step(
+            model_dict: Dict[str, Any],
+            context_inputs,
+            context_outputs,
+            queries,
+            outputs,
+            *args,
+            **kwargs,
+        ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            """
+            The training step that computes the loss and performs model update.
+
+            :param model_dict: the model state and optimizer state
+            :param context_inputs: the context inputs
+            :param context_outputs: the context inputs
+            :param queries: the queries
+            :param outputs: the outputs
+            :param *args:
+            :param **kwargs:
+            :type model_dict: Dict[str, Any]
+            :type context_inputs: chex.Array
+            :type context_outputs: chex.Array
+            :type queries: chex.Array
+            :type outputs: chex.Array
+            :return: the updated model state and optimizer state, and auxiliary information
+            :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
+            """
+            (agg_loss, aux), grads = jax.value_and_grad(self._loss, has_aux=True)(
+                model_dict[CONST_MODEL],
+                queries,
+                {
+                    CONST_CONTEXT_INPUT: context_inputs,
+                    CONST_CONTEXT_OUTPUT: context_outputs,
+                },
+                outputs,
+            )
+            aux[CONST_AGG_LOSS] = agg_loss
+            aux[CONST_GRAD_NORM] = {CONST_MODEL: l2_norm(grads)}
+
+            params, opt_state = update_function(
+                self._optimizer,
+                grads,
+                model_dict[CONST_OPT_STATE],
+                model_dict[CONST_MODEL],
+            )
+
+            return {CONST_MODEL: params, CONST_OPT_STATE: opt_state}, aux
+
+        return _train_step
+
+    def update(self, *args, **kwargs) -> Dict[str, Any]:
+        """
+        Updates the model.
+
+        :param *args:
+        :param **kwargs:
+        :return: the update information
+        :rtype: Dict[str, Any]
+
+        """
+        auxes = []
+        total_update_time = 0
+        for _ in range(self._num_updates_per_epoch):
+            tic = timeit.default_timer()
+            auxes.append({})
+            try:
+                context_inputs, context_outputs, queries, outputs = next(
+                    self._train_loader
+                )
+            except StopIteration:
+                self._train_loader = iter(self._train_dataloader)
+                context_inputs, context_outputs, queries, outputs = next(
+                    self._train_loader
+                )
+            context_inputs = context_inputs.numpy()
+            context_outputs = context_outputs.numpy()
+            queries = queries.numpy()
+            outputs = outputs.numpy()
+            outputs = np.concatenate((context_outputs, outputs[:, None]), 1)
+
+            self.model_dict, aux = self.train_step(
+                self._model_dict, context_inputs, context_outputs, queries, outputs
+            )
+            total_update_time += timeit.default_timer() - tic
+            assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+
+            auxes[-1][CONST_AUX] = aux
+
+        auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
+        aux[CONST_LOG] = {
+            f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
+            f"time/{CONST_UPDATE_TIME}": total_update_time,
+            f"{CONST_GRAD_NORM}/model": auxes[CONST_AUX][CONST_GRAD_NORM][
+                CONST_MODEL
+            ].item(),
+        }
+
+        for loss_key in self._config.losses:
+            aux[CONST_LOG][f"losses/{loss_key}"] = auxes[CONST_AUX][loss_key][
+                CONST_LOSS
+            ].item()
+
+        return aux

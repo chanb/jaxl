@@ -4,7 +4,7 @@ from jaxl.constants import *
 from jaxl.learners.learner import Learner
 from jaxl.learners.a2c import A2C
 from jaxl.learners.bc import BC
-from jaxl.learners.in_context import InContextLearner
+from jaxl.learners.in_context import InContextLearner, AllStepsInContextLearner
 from jaxl.learners.mtbc import MTBC
 from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE
@@ -96,7 +96,10 @@ def get_icl_learner(
         learner_config.learner in VALID_ICL_LEARNER
     ), f"{learner_config.learner} is not supported (one of {VALID_ICL_LEARNER})"
     if learner_config.learner == CONST_MLE:
-        learner_constructor = InContextLearner
+        if getattr(model_config, "query_pred_only", True):
+            learner_constructor = InContextLearner
+        else:
+            learner_constructor = AllStepsInContextLearner
     else:
         raise NotImplementedError
 

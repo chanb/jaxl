@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-noiseless-no_bias-2d_linear-active_dim_2-context_len_20-hinge",
+        "save_path": "./logs/icl-noiseless-no_bias-2d_linear-active_dim_2-context_len_20-all_steps",
         "experiment_name": "gpt-pos_enc",
         "log_interval": 10,
         "checkpoint_interval": 1000
@@ -17,7 +17,8 @@
                 "embed_dim": 32,
                 "max_len": 21
             }
-        }
+        },
+        "query_pred_only": false
     },
     "optimizer_config": {
         "optimizer": "adam",
@@ -54,7 +55,7 @@
             "data_seed": 42
         },
         "learner": "mle",
-        "losses": ["hinge", "l2"],
+        "losses": ["categorical", "l2"],
         "loss_settings": [
             {
                 "coefficient": 1.0,
