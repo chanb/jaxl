@@ -17,8 +17,7 @@
                 "embed_dim": 32,
                 "max_len": 9
             }
-        },
-        "query_pred_only": false
+        }
     },
     "optimizer_config": {
         "optimizer": "adam",

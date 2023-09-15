@@ -181,7 +181,6 @@ def get_model(
             model_config.num_heads,
             model_config.embed_dim,
             model_config.positional_encoding,
-            getattr(model_config, "query_pred_only", True),
         )
     else:
         raise NotImplementedError
