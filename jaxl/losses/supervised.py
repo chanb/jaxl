@@ -119,7 +119,6 @@ def make_cross_entropy_loss(
     return cross_entropy_loss
 
 
-
 def make_hinge_loss(
     model: Model,
     loss_setting: SimpleNamespace,

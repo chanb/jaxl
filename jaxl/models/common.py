@@ -458,6 +458,7 @@ class InContextSupervisedTransformer(Model):
         num_heads: int,
         embed_dim: int,
         positional_encoding: SimpleNamespace,
+        query_pred_only: bool = False,
     ) -> None:
         self.gpt = GPTModule(
             num_blocks=num_blocks,
@@ -472,7 +473,7 @@ class InContextSupervisedTransformer(Model):
         self.num_heads = num_heads
         self.embed_dim = embed_dim
         self.get_latent = jax.jit(self.make_get_latent())
-        self.forward = jax.jit(self.make_forward())
+        self.forward = jax.jit(self.make_forward(query_pred_only))
 
     def init(
         self,
@@ -590,6 +591,7 @@ class InContextSupervisedTransformer(Model):
 
     def make_forward(
         self,
+        query_pred_only: bool
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
@@ -602,6 +604,8 @@ class InContextSupervisedTransformer(Model):
         """
         Makes the forward call of the ICL model.
 
+        :param query_pred_only: whether or not to output the query prediciton only
+        :type query_pred_only: bool
         :return: the forward call.
         :rtype: Callable[
             [
@@ -614,6 +618,13 @@ class InContextSupervisedTransformer(Model):
         ]
         """
 
+        if query_pred_only:
+            def process_prediction(preds):
+                return preds[:, -1]
+        else:
+            def process_prediction(preds):
+                return preds[:, ::2]
+            
         def forward(
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
@@ -635,7 +646,7 @@ class InContextSupervisedTransformer(Model):
             repr, carry = self.get_latent(params, queries, contexts)
             outputs = self.predictor.apply(params[CONST_PREDICTOR], repr)
 
-            return outputs[:, ::2], carry
+            return process_prediction(outputs), carry
 
         return forward
 

@@ -108,7 +108,6 @@ def get_optimizer(
     if opt_config.optimizer == CONST_FROZEN:
         opt_transforms.append(optax.set_to_zero())
     else:
-        # opt_transforms.append(optax.zero_nans())
         if opt_config.max_grad_norm:
             opt_transforms.append(optax.clip_by_global_norm(opt_config.max_grad_norm))
         if opt_config.optimizer == CONST_ADAM:
@@ -181,6 +180,7 @@ def get_model(
             model_config.num_heads,
             model_config.embed_dim,
             model_config.positional_encoding,
+            getattr(model_config, "query_pred_only", False),
         )
     else:
         raise NotImplementedError

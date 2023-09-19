@@ -38,6 +38,14 @@ class InContextLearner(OfflineLearner):
         self._initialize_losses()
         self.train_step = jax.jit(self.make_train_step())
 
+        if getattr(model_config, "query_pred_only", False):
+            def construct_outputs(context_outputs, outputs):
+                return outputs
+        else:
+            def construct_outputs(context_outputs, outputs):
+                return np.concatenate((context_outputs, outputs[:, None]), 1)
+        self.construct_outputs = construct_outputs
+
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
         """
         Construct the model and the optimizer.
@@ -162,7 +170,7 @@ class InContextLearner(OfflineLearner):
             context_outputs = context_outputs.numpy()
             queries = queries.numpy()
             outputs = outputs.numpy()
-            outputs = np.concatenate((context_outputs, outputs[:, None]), 1)
+            outputs = self.construct_outputs(context_outputs, outputs)
 
             self.model_dict, aux = self.train_step(
                 self._model_dict, context_inputs, context_outputs, queries, outputs
