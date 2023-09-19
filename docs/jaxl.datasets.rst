@@ -12,6 +12,22 @@ jaxl.datasets.basis\_regression module
    :undoc-members:
    :show-inheritance:
 
+jaxl.datasets.linear\_classification module
+-------------------------------------------
+
+.. automodule:: jaxl.datasets.linear_classification
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+jaxl.datasets.linear\_regression module
+---------------------------------------
+
+.. automodule:: jaxl.datasets.linear_regression
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jaxl.datasets.wrappers module
 -----------------------------
 

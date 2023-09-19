@@ -161,26 +161,6 @@
 <p>In-context learner class that extends the <code class="docutils literal notranslate"><span class="pre">OfflineLearner</span></code> class.
 This is the general learner for in-context learning agents.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="jaxl.learners.in_context.InContextLearner.compute_loss">
-<span class="sig-name descname"><span class="pre">compute_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learners.in_context.InContextLearner.compute_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the loss.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>xs</strong> (<em>chex.Array</em>) – the batch of inputs</p></li>
-<li><p><strong>ys</strong> (<em>chex.Array</em>) – the batch of outputs</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>the loss and auxiliary information</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[chex.Array, Dict[str, Any]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="jaxl.learners.in_context.InContextLearner.make_train_step">
 <span class="sig-name descname"><span class="pre">make_train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.in_context.InContextLearner.make_train_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes the training step for model update.</p>

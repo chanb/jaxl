@@ -161,12 +161,8 @@
       </ul></li>
       <li><a href="jaxl.models.html#jaxl.models.policies.MultitaskPolicy.compute_action">compute_action() (jaxl.models.policies.MultitaskPolicy method)</a>
 </li>
-      <li><a href="jaxl.learners.html#jaxl.learners.in_context.InContextLearner.compute_loss">compute_loss() (jaxl.learners.in_context.InContextLearner method)</a>
-
-      <ul>
-        <li><a href="jaxl.learners.html#jaxl.learners.supervised.SupervisedLearner.compute_loss">(jaxl.learners.supervised.SupervisedLearner method)</a>
+      <li><a href="jaxl.learners.html#jaxl.learners.supervised.SupervisedLearner.compute_loss">compute_loss() (jaxl.learners.supervised.SupervisedLearner method)</a>
 </li>
-      </ul></li>
       <li><a href="jaxl.datasets.html#jaxl.datasets.wrappers.ContextDataset">ContextDataset (class in jaxl.datasets.wrappers)</a>
 </li>
   </ul></td>
@@ -218,9 +214,9 @@
       <li><a href="jaxl.models.html#jaxl.models.encodings.PositionalEncoding.embed_dim">embed_dim (jaxl.models.encodings.PositionalEncoding attribute)</a>
 
       <ul>
-        <li><a href="jaxl.models.html#jaxl.models.modules.GPT.embed_dim">(jaxl.models.modules.GPT attribute)</a>
-</li>
         <li><a href="jaxl.models.html#jaxl.models.modules.GPTBlock.embed_dim">(jaxl.models.modules.GPTBlock attribute)</a>
+</li>
+        <li><a href="jaxl.models.html#jaxl.models.modules.GPTModule.embed_dim">(jaxl.models.modules.GPTModule attribute)</a>
 </li>
       </ul></li>
       <li><a href="jaxl.models.html#jaxl.models.common.EncoderPredictorModel.encode">encode (jaxl.models.common.EncoderPredictorModel attribute)</a>
@@ -255,15 +251,19 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="jaxl.datasets.html#jaxl.datasets.wrappers.FixedLengthContextDataset">FixedLengthContextDataset (class in jaxl.datasets.wrappers)</a>
+</li>
       <li><a href="jaxl.datasets.html#jaxl.datasets.wrappers.FixedLengthTrajectoryDataset">FixedLengthTrajectoryDataset (class in jaxl.datasets.wrappers)</a>
 </li>
       <li><a href="jaxl.html#jaxl.utils.flatten_dict">flatten_dict() (in module jaxl.utils)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="jaxl.models.html#jaxl.models.common.MLP.forward">forward (jaxl.models.common.MLP attribute)</a>
+      <li><a href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.forward">forward (jaxl.models.common.InContextSupervisedTransformer attribute)</a>
 
       <ul>
+        <li><a href="jaxl.models.html#jaxl.models.common.MLP.forward">(jaxl.models.common.MLP attribute)</a>
+</li>
         <li><a href="jaxl.models.html#jaxl.models.common.Model.forward">(jaxl.models.common.Model attribute)</a>
 </li>
       </ul></li>
@@ -331,6 +331,8 @@
 </li>
       <li><a href="jaxl.models.html#jaxl.models.get_policy">get_policy() (in module jaxl.models)</a>
 </li>
+      <li><a href="jaxl.models.html#jaxl.models.common.get_positional_encoding">get_positional_encoding() (in module jaxl.models.common)</a>
+</li>
       <li><a href="jaxl.html#jaxl.utils.get_reduction">get_reduction() (in module jaxl.utils)</a>
 </li>
       <li><a href="jaxl.learners.html#jaxl.learners.get_rl_learner">get_rl_learner() (in module jaxl.learners)</a>
@@ -343,9 +345,9 @@
 </li>
       <li><a href="jaxl.models.html#jaxl.models.get_update_function">get_update_function() (in module jaxl.models)</a>
 </li>
-      <li><a href="jaxl.models.html#jaxl.models.modules.GPT">GPT (class in jaxl.models.modules)</a>
-</li>
       <li><a href="jaxl.models.html#jaxl.models.modules.GPTBlock">GPTBlock (class in jaxl.models.modules)</a>
+</li>
+      <li><a href="jaxl.models.html#jaxl.models.modules.GPTModule">GPTModule (class in jaxl.models.modules)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -369,7 +371,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.learners.html#jaxl.learners.in_context.InContextLearner">InContextLearner (class in jaxl.learners.in_context)</a>
 </li>
-      <li><a href="jaxl.datasets.html#jaxl.datasets.wrappers.IndexedDataset">IndexedDataset (class in jaxl.datasets.wrappers)</a>
+      <li><a href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer">InContextSupervisedTransformer (class in jaxl.models.common)</a>
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.infos">infos (jaxl.buffers.ram_buffers.AbstractNumPyBuffer attribute)</a>
 
@@ -386,6 +388,8 @@
       <ul>
         <li><a href="jaxl.models.html#jaxl.models.common.EnsembleModel.init">(jaxl.models.common.EnsembleModel method)</a>
 </li>
+        <li><a href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.init">(jaxl.models.common.InContextSupervisedTransformer method)</a>
+</li>
         <li><a href="jaxl.models.html#jaxl.models.common.MLP.init">(jaxl.models.common.MLP method)</a>
 </li>
       </ul></li>
@@ -397,6 +401,10 @@
         <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.input_dim">(jaxl.buffers.ram_buffers.AbstractNumPyBuffer property)</a>
 </li>
         <li><a href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.input_dim">(jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D property)</a>
+</li>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_classification.MultitaskLinearClassificationND.input_dim">(jaxl.datasets.linear_classification.MultitaskLinearClassificationND property)</a>
+</li>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_regression.MultitaskLinearRegressionND.input_dim">(jaxl.datasets.linear_regression.MultitaskLinearRegressionND property)</a>
 </li>
       </ul></li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer.is_full">is_full (jaxl.buffers.buffers.ReplayBuffer property)</a>
@@ -503,6 +511,20 @@
 </li>
       </ul></li>
       <li>
+    jaxl.datasets.linear_classification
+
+      <ul>
+        <li><a href="jaxl.datasets.html#module-jaxl.datasets.linear_classification">module</a>
+</li>
+      </ul></li>
+      <li>
+    jaxl.datasets.linear_regression
+
+      <ul>
+        <li><a href="jaxl.datasets.html#module-jaxl.datasets.linear_regression">module</a>
+</li>
+      </ul></li>
+      <li>
     jaxl.datasets.wrappers
 
       <ul>
@@ -565,6 +587,8 @@
         <li><a href="jaxl.html#module-jaxl.gather_expert_data">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     jaxl.learners
 
@@ -572,8 +596,6 @@
         <li><a href="jaxl.learners.html#module-jaxl.learners">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     jaxl.learners.a2c
 
@@ -768,8 +790,6 @@
       </ul></li>
       <li><a href="jaxl.html#jaxl.learning_utils.load_evaluation_components">load_evaluation_components() (in module jaxl.learning_utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.load_from_buffer_dict">load_from_buffer_dict() (jaxl.buffers.ram_buffers.AbstractNumPyBuffer method)</a>
 
       <ul>
@@ -780,6 +800,8 @@
         <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer.load_from_buffer_dict">(jaxl.buffers.ram_buffers.TrajectoryNumPyBuffer method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.distributions.html#jaxl.distributions.transforms.TanhTransform.log_abs_det_jacobian">log_abs_det_jacobian() (jaxl.distributions.transforms.TanhTransform method)</a>
 
       <ul>
@@ -807,7 +829,13 @@
 </li>
       </ul></li>
       <li><a href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.ls_estimators">ls_estimators (jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D property)</a>
+
+      <ul>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_classification.MultitaskLinearClassificationND.ls_estimators">(jaxl.datasets.linear_classification.MultitaskLinearClassificationND property)</a>
 </li>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_regression.MultitaskLinearRegressionND.ls_estimators">(jaxl.datasets.linear_regression.MultitaskLinearRegressionND property)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -855,9 +883,15 @@
       <ul>
         <li><a href="jaxl.models.html#jaxl.models.common.EnsembleModel.make_forward">(jaxl.models.common.EnsembleModel method)</a>
 </li>
+        <li><a href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.make_forward">(jaxl.models.common.InContextSupervisedTransformer method)</a>
+</li>
         <li><a href="jaxl.models.html#jaxl.models.common.MLP.make_forward">(jaxl.models.common.MLP method)</a>
 </li>
       </ul></li>
+      <li><a href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.make_get_latent">make_get_latent() (jaxl.models.common.InContextSupervisedTransformer method)</a>
+</li>
+      <li><a href="jaxl.losses.html#jaxl.losses.supervised.make_hinge_loss">make_hinge_loss() (in module jaxl.losses.supervised)</a>
+</li>
       <li><a href="jaxl.learners.html#jaxl.learners.a2c.A2C.make_joint_step">make_joint_step() (jaxl.learners.a2c.A2C method)</a>
 
       <ul>
@@ -950,6 +984,10 @@
 </li>
         <li><a href="jaxl.datasets.html#module-jaxl.datasets.basis_regression">jaxl.datasets.basis_regression</a>
 </li>
+        <li><a href="jaxl.datasets.html#module-jaxl.datasets.linear_classification">jaxl.datasets.linear_classification</a>
+</li>
+        <li><a href="jaxl.datasets.html#module-jaxl.datasets.linear_regression">jaxl.datasets.linear_regression</a>
+</li>
         <li><a href="jaxl.datasets.html#module-jaxl.datasets.wrappers">jaxl.datasets.wrappers</a>
 </li>
         <li><a href="jaxl.distributions.html#module-jaxl.distributions">jaxl.distributions</a>
@@ -1023,6 +1061,10 @@
 </li>
       <li><a href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D">MultitaskFixedBasisRegression1D (class in jaxl.datasets.basis_regression)</a>
 </li>
+      <li><a href="jaxl.datasets.html#jaxl.datasets.linear_classification.MultitaskLinearClassificationND">MultitaskLinearClassificationND (class in jaxl.datasets.linear_classification)</a>
+</li>
+      <li><a href="jaxl.datasets.html#jaxl.datasets.linear_regression.MultitaskLinearRegressionND">MultitaskLinearRegressionND (class in jaxl.datasets.linear_regression)</a>
+</li>
       <li><a href="jaxl.models.html#jaxl.models.policies.MultitaskPolicy">MultitaskPolicy (class in jaxl.models.policies)</a>
 </li>
   </ul></td>
@@ -1036,9 +1078,9 @@
       <ul>
         <li><a href="jaxl.models.html#jaxl.models.encodings.PositionalEncoding.name">(jaxl.models.encodings.PositionalEncoding attribute)</a>
 </li>
-        <li><a href="jaxl.models.html#jaxl.models.modules.GPT.name">(jaxl.models.modules.GPT attribute)</a>
-</li>
         <li><a href="jaxl.models.html#jaxl.models.modules.GPTBlock.name">(jaxl.models.modules.GPTBlock attribute)</a>
+</li>
+        <li><a href="jaxl.models.html#jaxl.models.modules.GPTModule.name">(jaxl.models.modules.GPTModule attribute)</a>
 </li>
         <li><a href="jaxl.models.html#jaxl.models.modules.MLPModule.name">(jaxl.models.modules.MLPModule attribute)</a>
 </li>
@@ -1051,35 +1093,27 @@
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.NextStateNumPyBuffer.next_observations">next_observations (jaxl.buffers.ram_buffers.NextStateNumPyBuffer attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.NextStateNumPyBuffer">NextStateNumPyBuffer (class in jaxl.buffers.ram_buffers)</a>
 </li>
       <li><a href="jaxl.models.html#jaxl.models.encodings.NoEncoding">NoEncoding (class in jaxl.models.encodings)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.distributions.html#jaxl.distributions.distributions.Normal">Normal (class in jaxl.distributions.distributions)</a>
 </li>
       <li><a href="jaxl.html#jaxl.utils.RunningMeanStd.normalize">normalize() (jaxl.utils.RunningMeanStd method)</a>
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.buffers.NoSampleError">NoSampleError</a>
 </li>
-      <li><a href="jaxl.models.html#jaxl.models.modules.GPT.num_blocks">num_blocks (jaxl.models.modules.GPT attribute)</a>
+      <li><a href="jaxl.models.html#jaxl.models.modules.GPTModule.num_blocks">num_blocks (jaxl.models.modules.GPTModule attribute)</a>
 </li>
-      <li><a href="jaxl.models.html#jaxl.models.modules.GPT.num_embeddings">num_embeddings (jaxl.models.modules.GPT attribute)</a>
+      <li><a href="jaxl.models.html#jaxl.models.modules.GPTBlock.num_heads">num_heads (jaxl.models.modules.GPTBlock attribute)</a>
 
       <ul>
-        <li><a href="jaxl.models.html#jaxl.models.modules.GPTBlock.num_embeddings">(jaxl.models.modules.GPTBlock attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="jaxl.models.html#jaxl.models.modules.GPT.num_heads">num_heads (jaxl.models.modules.GPT attribute)</a>
-
-      <ul>
-        <li><a href="jaxl.models.html#jaxl.models.modules.GPTBlock.num_heads">(jaxl.models.modules.GPTBlock attribute)</a>
+        <li><a href="jaxl.models.html#jaxl.models.modules.GPTModule.num_heads">(jaxl.models.modules.GPTModule attribute)</a>
 </li>
       </ul></li>
       <li><a href="jaxl.models.html#jaxl.models.common.EnsembleModel.num_models">num_models (jaxl.models.common.EnsembleModel attribute)</a>
-</li>
-      <li><a href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.num_samples_per_context">num_samples_per_context (jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D property)</a>
 </li>
       <li><a href="jaxl.learners.html#jaxl.learners.mtbc.MTBC.num_tasks">num_tasks (jaxl.learners.mtbc.MTBC property)</a>
 </li>
@@ -1113,8 +1147,6 @@
 </li>
       <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.OnPolicyLearner">OnPolicyLearner (class in jaxl.learners.reinforcement)</a>
 </li>
-      <li><a href="jaxl.models.html#jaxl.models.modules.GPT.out_dim">out_dim (jaxl.models.modules.GPT attribute)</a>
-</li>
       <li><a href="jaxl.models.html#jaxl.models.modules.MLPModule.output_activation">output_activation (jaxl.models.modules.MLPModule attribute)</a>
 </li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer.output_dim">output_dim (jaxl.buffers.buffers.ReplayBuffer property)</a>
@@ -1124,6 +1156,10 @@
 </li>
         <li><a href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.output_dim">(jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D property)</a>
 </li>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_classification.MultitaskLinearClassificationND.output_dim">(jaxl.datasets.linear_classification.MultitaskLinearClassificationND property)</a>
+</li>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_regression.MultitaskLinearRegressionND.output_dim">(jaxl.datasets.linear_regression.MultitaskLinearRegressionND property)</a>
+</li>
       </ul></li>
   </ul></td>
 </tr></table>
@@ -1132,15 +1168,21 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.params">params (jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D property)</a>
+
+      <ul>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_classification.MultitaskLinearClassificationND.params">(jaxl.datasets.linear_classification.MultitaskLinearClassificationND property)</a>
 </li>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_regression.MultitaskLinearRegressionND.params">(jaxl.datasets.linear_regression.MultitaskLinearRegressionND property)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.models.html#jaxl.models.encodings.NoEncoding.parent">parent (jaxl.models.encodings.NoEncoding attribute)</a>
 
       <ul>
         <li><a href="jaxl.models.html#jaxl.models.encodings.PositionalEncoding.parent">(jaxl.models.encodings.PositionalEncoding attribute)</a>
 </li>
-        <li><a href="jaxl.models.html#jaxl.models.modules.GPT.parent">(jaxl.models.modules.GPT attribute)</a>
-</li>
         <li><a href="jaxl.models.html#jaxl.models.modules.GPTBlock.parent">(jaxl.models.modules.GPTBlock attribute)</a>
+</li>
+        <li><a href="jaxl.models.html#jaxl.models.modules.GPTModule.parent">(jaxl.models.modules.GPTModule attribute)</a>
 </li>
         <li><a href="jaxl.models.html#jaxl.models.modules.MLPModule.parent">(jaxl.models.modules.MLPModule attribute)</a>
 </li>
@@ -1149,12 +1191,24 @@
 </li>
       <li><a href="jaxl.html#jaxl.utils.per_leaf_l2_norm">per_leaf_l2_norm() (in module jaxl.utils)</a>
 </li>
-      <li><a href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.plot">plot() (jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D method)</a>
+      <li><a href="jaxl.datasets.html#jaxl.datasets.wrappers.PermutationContextDataset">PermutationContextDataset (class in jaxl.datasets.wrappers)</a>
 </li>
+      <li><a href="jaxl.datasets.html#jaxl.datasets.wrappers.PermutationFixedLengthContextDataset">PermutationFixedLengthContextDataset (class in jaxl.datasets.wrappers)</a>
+</li>
+      <li><a href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.plot">plot() (jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D method)</a>
+
+      <ul>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_classification.MultitaskLinearClassificationND.plot">(jaxl.datasets.linear_classification.MultitaskLinearClassificationND method)</a>
+</li>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_regression.MultitaskLinearRegressionND.plot">(jaxl.datasets.linear_regression.MultitaskLinearRegressionND method)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.buffers.html#jaxl.buffers.ram_buffers.AbstractNumPyBuffer.pointer">pointer (jaxl.buffers.ram_buffers.AbstractNumPyBuffer property)</a>
 </li>
       <li><a href="jaxl.models.html#jaxl.models.common.Policy">Policy (class in jaxl.models.common)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.learners.html#jaxl.learners.a2c.A2C.policy">policy (jaxl.learners.a2c.A2C property)</a>
 
       <ul>
@@ -1165,8 +1219,6 @@
         <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.policy">(jaxl.learners.reinforcement.ReinforcementLearner property)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.models.html#jaxl.models.policies.MultitaskPolicy.policy_head">policy_head (jaxl.models.policies.MultitaskPolicy attribute)</a>
 </li>
       <li><a href="jaxl.models.html#jaxl.models.policy_output_dim">policy_output_dim() (in module jaxl.models)</a>
@@ -1181,8 +1233,6 @@
         <li><a href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.policy_params">(jaxl.learners.reinforcement.ReinforcementLearner property)</a>
 </li>
       </ul></li>
-      <li><a href="jaxl.models.html#jaxl.models.modules.GPT.positional_encoding">positional_encoding (jaxl.models.modules.GPT attribute)</a>
-</li>
       <li><a href="jaxl.models.html#jaxl.models.encodings.PositionalEncoding">PositionalEncoding (class in jaxl.models.encodings)</a>
 </li>
       <li><a href="jaxl.learners.html#jaxl.learners.ppo.PPO">PPO (class in jaxl.learners.ppo)</a>
@@ -1311,24 +1361,30 @@
       </ul></li>
       <li><a href="jaxl.losses.html#jaxl.losses.reinforcement.scan_gae_lambda_returns">scan_gae_lambda_returns() (in module jaxl.losses.reinforcement)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.losses.html#jaxl.losses.reinforcement.scan_monte_carlo_returns">scan_monte_carlo_returns() (in module jaxl.losses.reinforcement)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="jaxl.models.html#jaxl.models.encodings.NoEncoding.scope">scope (jaxl.models.encodings.NoEncoding attribute)</a>
 
       <ul>
         <li><a href="jaxl.models.html#jaxl.models.encodings.PositionalEncoding.scope">(jaxl.models.encodings.PositionalEncoding attribute)</a>
 </li>
-        <li><a href="jaxl.models.html#jaxl.models.modules.GPT.scope">(jaxl.models.modules.GPT attribute)</a>
-</li>
         <li><a href="jaxl.models.html#jaxl.models.modules.GPTBlock.scope">(jaxl.models.modules.GPTBlock attribute)</a>
+</li>
+        <li><a href="jaxl.models.html#jaxl.models.modules.GPTModule.scope">(jaxl.models.modules.GPTModule attribute)</a>
 </li>
         <li><a href="jaxl.models.html#jaxl.models.modules.MLPModule.scope">(jaxl.models.modules.MLPModule attribute)</a>
 </li>
       </ul></li>
       <li><a href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.sequence_length">sequence_length (jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D property)</a>
+
+      <ul>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_classification.MultitaskLinearClassificationND.sequence_length">(jaxl.datasets.linear_classification.MultitaskLinearClassificationND property)</a>
 </li>
+        <li><a href="jaxl.datasets.html#jaxl.datasets.linear_regression.MultitaskLinearRegressionND.sequence_length">(jaxl.datasets.linear_regression.MultitaskLinearRegressionND property)</a>
+</li>
+      </ul></li>
       <li><a href="jaxl.html#jaxl.utils.set_dict_value">set_dict_value() (in module jaxl.utils)</a>
 </li>
       <li><a href="jaxl.models.html#jaxl.models.policies.MultitaskPolicy.set_policy_head">set_policy_head() (jaxl.models.policies.MultitaskPolicy method)</a>
