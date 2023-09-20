@@ -1,0 +1,78 @@
+{
+    "logging_config": {
+        "save_path": "./logs/icl-noiseless-no_bias-2d_linear-active_dim_2-context_len_8",
+        "experiment_name": "margin",
+        "log_interval": 10,
+        "checkpoint_interval": 1000
+    },
+    "model_config": {
+        "architecture": "icl_gpt",
+        "num_contexts": 8,
+        "num_blocks": 2,
+        "num_heads": 1,
+        "embed_dim": 32,
+        "positional_encoding": {
+            "type": "default",
+            "kwargs": {
+                "embed_dim": 32,
+                "max_len": 9
+            }
+        }
+    },
+    "optimizer_config": {
+        "optimizer": "adam",
+        "lr": {
+            "scheduler": "constant_schedule",
+            "scheduler_kwargs": {
+                "value": 0.0003
+            }
+        },
+        "max_grad_norm": false
+    },
+    "learner_config": {
+        "task": "in_context_learning",
+        "dataset_config": {
+            "dataset_name": "multitask_nd_linear_classification",
+            "dataset_kwargs": {
+                "input_dim": 2,
+                "num_sequences": 100000,
+                "sequence_length": 41,
+                "noise": 0.0,
+                "params_bound": [-10.0, 10.0],
+                "num_active_params": null,
+                "val_frac": 0.0005,
+                "margin": 0.2
+            },
+            "dataset_wrapper": {
+                "type": "FixedLengthContextDataset",
+                "kwargs": {
+                    "context_len": 8
+                }
+            }
+        },
+        "seeds": {
+            "model_seed": 42,
+            "data_seed": 42
+        },
+        "learner": "mle",
+        "losses": ["categorical", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean",
+                "is_one_hot": true
+            },
+            {
+                "coefficient": 0.0
+            }
+        ],
+        "num_updates_per_epoch": 100,
+        "batch_size": 100,
+        "learner_settings": {
+            "store_val_preds": false
+        }
+    },
+    "train_config": {
+        "num_epochs": 5000
+    }
+}

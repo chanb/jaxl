@@ -22,6 +22,7 @@ class MultitaskLinearClassificationND(Dataset):
         inputs_range: Tuple[float, float] = (-1.0, 1.0),
         num_active_params: int = None,
         bias: bool = False,
+        margin: float = 0.0,
     ):
         assert num_active_params is None or num_active_params >= 0
         self._noise = noise
@@ -34,6 +35,7 @@ class MultitaskLinearClassificationND(Dataset):
             params_bound=params_bound,
             num_active_params=num_active_params,
             bias=bias,
+            margin=margin,
         )
 
     def _generate_data(
@@ -43,15 +45,11 @@ class MultitaskLinearClassificationND(Dataset):
         params_bound: Tuple[float, float],
         num_active_params: int,
         bias: bool,
+        margin: float,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         model_seed, data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)
         model_rng = np.random.RandomState(seed=model_seed)
         data_gen_rng = np.random.RandomState(seed=data_gen_seed)
-        inputs = data_gen_rng.uniform(
-            self._inputs_range[0],
-            self._inputs_range[1],
-            (num_sequences, self._sequence_length, self._input_dim),
-        )
 
         params = model_rng.uniform(
             low=params_bound[0],
@@ -61,18 +59,39 @@ class MultitaskLinearClassificationND(Dataset):
 
         params[:, 0] = params[:, 0] * int(bias)
 
+        num_valid_pts = 0
+        inputs = np.zeros(
+            (num_sequences, self._sequence_length, self._input_dim),
+        )
+        replace_mask = inputs == 0
+        while num_valid_pts != num_sequences * self._sequence_length:
+            samples = data_gen_rng.uniform(
+                self._inputs_range[0],
+                self._inputs_range[1],
+                (num_sequences, self._sequence_length, self._input_dim),
+            )
+            inputs = inputs * (1 - replace_mask) + samples * replace_mask
+            dists = np.abs(inputs @ params[:, 1:] + params[:, :1])[..., 0] / np.sqrt(
+                np.sum(params[:, 1:] ** 2, axis=1)
+            )
+            replace_mask = (dists < margin)[..., None]
+            replace_mask = np.concatenate((replace_mask, replace_mask), axis=-1)
+            num_valid_pts = np.sum(dists >= margin)
+
         if num_active_params is not None:
             params[:, -self._input_dim - num_active_params :] = 0
 
-        targets = np.eye(2)[(
+        targets = np.eye(2)[
             (
-                inputs @ params[:, 1:]
-                + params[:, :1]
-                + data_gen_rng.randn(num_sequences, self._sequence_length, 1)
-                * self._noise
-            )
-            >= 0
-        ).astype(int)][:, :, 0]
+                (
+                    inputs @ params[:, 1:]
+                    + params[:, :1]
+                    + data_gen_rng.randn(num_sequences, self._sequence_length, 1)
+                    * self._noise
+                )
+                >= 0
+            ).astype(int)
+        ][:, :, 0]
 
         return (
             inputs,

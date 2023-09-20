@@ -102,7 +102,9 @@ class PermutationFixedLengthContextDataset(DatasetWrapper):
         timestep_i = idx % self._seq_mod
 
         self._permutation_key = jrandom.split(self._permutation_key)[0]
-        permutation_idxes = jrandom.permutation(self._permutation_key, np.arange(len(inputs)))
+        permutation_idxes = jrandom.permutation(
+            self._permutation_key, np.arange(len(inputs))
+        )
         inputs = inputs[permutation_idxes]
         outputs = outputs[permutation_idxes]
 
@@ -184,7 +186,9 @@ class PermutationContextDataset(DatasetWrapper):
         inputs, outputs = self._dataset[seq_i]
 
         self._permutation_key = jrandom.split(self._permutation_key)[0]
-        permutation_idxes = jrandom.permutation(self._permutation_key, np.arange(len(inputs)))
+        permutation_idxes = jrandom.permutation(
+            self._permutation_key, np.arange(len(inputs))
+        )
         inputs = inputs[permutation_idxes]
         outputs = outputs[permutation_idxes]
 

@@ -85,9 +85,12 @@ def make_cross_entropy_loss(
     reduction = get_reduction(loss_setting.reduction)
 
     if getattr(loss_setting, "is_one_hot", False):
+
         def convert_to_one_hot(y):
             return y
+
     else:
+
         def convert_to_one_hot(y):
             return jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
 
@@ -146,9 +149,12 @@ def make_hinge_loss(
     reduction = get_reduction(loss_setting.reduction)
 
     if getattr(loss_setting, "is_one_hot", False):
+
         def convert_to_one_hot(y):
             return y
+
     else:
+
         def convert_to_one_hot(y):
             return jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
 
@@ -175,12 +181,17 @@ def make_hinge_loss(
         logits, _ = model.forward(params, x, carry)
         y_one_hot = convert_to_one_hot(y)
 
-        return reduction(
-            jnp.clip(
-                margin - jnp.sum(logits * y_one_hot, axis=-1) + jnp.sum(logits * (1 - y_one_hot), axis=-1),
-                a_min=0.0,
-                a_max=jnp.inf,
-            )
-        ), {}
+        return (
+            reduction(
+                jnp.clip(
+                    margin
+                    - jnp.sum(logits * y_one_hot, axis=-1)
+                    + jnp.sum(logits * (1 - y_one_hot), axis=-1),
+                    a_min=0.0,
+                    a_max=jnp.inf,
+                )
+            ),
+            {},
+        )
 
     return hinge_loss

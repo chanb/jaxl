@@ -590,8 +590,7 @@ class InContextSupervisedTransformer(Model):
         return get_latent
 
     def make_forward(
-        self,
-        query_pred_only: bool
+        self, query_pred_only: bool
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
@@ -619,12 +618,15 @@ class InContextSupervisedTransformer(Model):
         """
 
         if query_pred_only:
+
             def process_prediction(preds):
                 return preds[:, -1]
+
         else:
+
             def process_prediction(preds):
                 return preds[:, ::2]
-            
+
         def forward(
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,

@@ -104,6 +104,16 @@ def get_dataset(
             num_active_params=getattr(
                 dataset_kwargs, "num_active_params", dataset_kwargs.input_dim + 1
             ),
+            bias=getattr(
+                dataset_kwargs,
+                "bias",
+                False,
+            ),
+            margin=getattr(
+                dataset_kwargs,
+                "margin",
+                0.0,
+            ),
         )
     else:
         raise ValueError(
@@ -125,11 +135,18 @@ def get_dataset(
             )
         elif dataset_config.dataset_wrapper.type == "PermutationContextDataset":
             dataset = PermutationContextDataset(
-                dataset, dataset_config.dataset_wrapper.kwargs.context_len, dataset_config.dataset_wrapper.kwargs.seed
+                dataset,
+                dataset_config.dataset_wrapper.kwargs.context_len,
+                dataset_config.dataset_wrapper.kwargs.seed,
             )
-        elif dataset_config.dataset_wrapper.type == "PermutationFixedLengthContextDataset":
+        elif (
+            dataset_config.dataset_wrapper.type
+            == "PermutationFixedLengthContextDataset"
+        ):
             dataset = PermutationFixedLengthContextDataset(
-                dataset, dataset_config.dataset_wrapper.kwargs.context_len, dataset_config.dataset_wrapper.kwargs.seed
+                dataset,
+                dataset_config.dataset_wrapper.kwargs.context_len,
+                dataset_config.dataset_wrapper.kwargs.seed,
             )
 
     return dataset
