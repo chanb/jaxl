@@ -59,30 +59,31 @@ class MultitaskLinearClassificationND(Dataset):
 
         params[:, 0] = params[:, 0] * int(bias)
 
-        num_valid_pts = 0
-        inputs = np.zeros(
-            (num_sequences, self._sequence_length, self._input_dim),
-        )
-        replace_mask = inputs == 0
-        while num_valid_pts != num_sequences * self._sequence_length:
-            samples = data_gen_rng.uniform(
-                self._inputs_range[0],
-                self._inputs_range[1],
+        done_generation = False
+        while not done_generation:
+            num_valid_pts = 0
+            inputs = np.zeros(
                 (num_sequences, self._sequence_length, self._input_dim),
             )
-            inputs = inputs * (1 - replace_mask) + samples * replace_mask
-            dists = np.abs(inputs @ params[:, 1:] + params[:, :1])[..., 0] / np.sqrt(
-                np.sum(params[:, 1:] ** 2, axis=1)
-            )
-            replace_mask = (dists < margin)[..., None]
-            replace_mask = np.concatenate((replace_mask, replace_mask), axis=-1)
-            num_valid_pts = np.sum(dists >= margin)
+            replace_mask = inputs == 0
+            while num_valid_pts != num_sequences * self._sequence_length:
+                samples = data_gen_rng.uniform(
+                    self._inputs_range[0],
+                    self._inputs_range[1],
+                    (num_sequences, self._sequence_length, self._input_dim),
+                )
+                inputs = inputs * (1 - replace_mask) + samples * replace_mask
+                dists = np.abs(inputs @ params[:, 1:] + params[:, :1])[..., 0] / np.sqrt(
+                    np.sum(params[:, 1:] ** 2, axis=1)
+                )
+                replace_mask = (dists < margin)[..., None]
+                replace_mask = np.concatenate((replace_mask, replace_mask), axis=-1)
+                num_valid_pts = np.sum(dists >= margin)
 
-        if num_active_params is not None:
-            params[:, -self._input_dim - num_active_params :] = 0
+            if num_active_params is not None:
+                params[:, -self._input_dim - num_active_params :] = 0
 
-        targets = np.eye(2)[
-            (
+            targets = (
                 (
                     inputs @ params[:, 1:]
                     + params[:, :1]
@@ -90,8 +91,11 @@ class MultitaskLinearClassificationND(Dataset):
                     * self._noise
                 )
                 >= 0
-            ).astype(int)
-        ][:, :, 0]
+            ).astype(int)[..., 0]
+            if np.all(np.logical_and(0 < np.sum(targets, axis=-1), np.sum(targets, axis=-1) < self._sequence_length)):
+                done_generation = True
+
+        targets = np.eye(2)[targets][:, :]
 
         return (
             inputs,
