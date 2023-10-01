@@ -22,6 +22,10 @@ Getters for the models and the learners.
 XXX: Feel free to add new components as needed.
 """
 
+def get_param_mask_by_name(p: optax.Params, mask_names: list) -> Any:
+    return jax.tree_util.tree_map_with_path(
+        lambda key_path, _: key_path[0].key in mask_names, p)
+
 
 def get_scheduler(
     scheduler_config: SimpleNamespace,
@@ -124,7 +128,13 @@ def get_optimizer(
             opt_transforms.append(optax.sgd(get_scheduler(opt_config.lr)))
         else:
             raise NotImplementedError
-    opt = optax.chain(*opt_transforms)
+    mask_names = getattr(opt_config, CONST_MASK_NAMES, [])
+    mask = get_param_mask_by_name(params, mask_names)
+    set_to_zero = optax.masked(
+        optax.set_to_zero(),
+        mask
+    )
+    opt = optax.chain(set_to_zero, *opt_transforms)
     opt_state = opt.init(params)
     return opt, opt_state
 

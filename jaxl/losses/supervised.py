@@ -195,3 +195,63 @@ def make_hinge_loss(
         )
 
     return hinge_loss
+
+
+def make_sigmoid_bce_loss(
+    model: Model,
+    loss_setting: SimpleNamespace,
+    *args,
+    **kwargs,
+) -> Callable[
+    [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets sigmoid binary cross-entropy loss function.
+
+    :param model: the model
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+    :return: the loss function
+    :rtype: Callable[..., chex.Array]
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "is_one_hot", False):
+
+        def convert_to_label(y):
+            return jnp.argmax(y, axis=-1, keepdims=True)
+
+    else:
+
+        def convert_to_label(y):
+            return y
+
+    def sigmoid_bce_loss(
+        params: Union[optax.Params, Dict[str, Any]],
+        x: chex.Array,
+        carry: chex.Array,
+        y: chex.Array,
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        Sigmoid binary cross-entropy Loss.
+
+        :param params: the model parameters
+        :param x: the input
+        :param carry: the hidden state
+        :param y: the output
+        :param *args:
+        :param **kwargs:
+        :type params: Union[optax.Params, Dict[str, Any]]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+        logits, _ = model.forward(params, x, carry)
+        y_label = convert_to_label(y)
+
+        return reduction(optax.sigmoid_binary_cross_entropy(logits, y_label)), {}
+
+    return sigmoid_bce_loss

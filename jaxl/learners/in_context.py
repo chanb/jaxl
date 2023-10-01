@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, Tuple
 
 import chex
+import flax
 import jax
 import jax.random as jrandom
 import numpy as np
@@ -199,3 +200,53 @@ class InContextLearner(OfflineLearner):
             ].item()
 
         return aux
+
+
+class BinaryClassificationInContextLearner(InContextLearner):
+    """
+    In-context learner class that extends the ``OfflineLearner`` class.
+    This is the general learner for in-context learning agents.
+    """
+
+    def __init__(
+        self,
+        config: SimpleNamespace,
+        model_config: SimpleNamespace,
+        optimizer_config: SimpleNamespace,
+    ):
+        super().__init__(config, model_config, optimizer_config)
+
+    def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
+        """
+        Construct the model and the optimizer.
+
+        :param input_dim: input dimension of the data point
+        :param output_dim: output dimension of the data point
+        :type input_dim: chex.Array
+        :type output_dim: chex.Array
+
+        """
+        self._model = get_model(input_dim, (1,), self._model_config)
+
+        model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
+        dummy_input = self._generate_dummy_x(input_dim)
+        dummy_output = self._generate_dummy_x(output_dim)
+        params = self._model.init(model_key, dummy_input, dummy_output)
+
+        predictor_type = getattr(self._config, "predictor_type", CONST_DEFAULT)
+        if predictor_type != CONST_DEFAULT:
+            params = flax.core.unfreeze(params)
+            if predictor_type == "all_ones":
+                params[CONST_PREDICTOR][CONST_PARAMS]["kernel"] = np.ones(params[CONST_PREDICTOR][CONST_PARAMS]["kernel"].shape)
+                params[CONST_PREDICTOR][CONST_PARAMS]["bias"] = np.zeros(params[CONST_PREDICTOR][CONST_PARAMS]["bias"].shape)
+            elif predictor_type == "one_hot":
+                params[CONST_PREDICTOR][CONST_PARAMS]["kernel"] = np.zeros(params[CONST_PREDICTOR][CONST_PARAMS]["kernel"].shape)
+                params[CONST_PREDICTOR][CONST_PARAMS]["bias"] = np.zeros(params[CONST_PREDICTOR][CONST_PARAMS]["bias"].shape)
+                params[CONST_PREDICTOR][CONST_PARAMS]["kernel"][0] = 1
+            params = flax.core.freeze(params)
+
+        self._optimizer, opt_state = get_optimizer(
+            self._optimizer_config, self._model, params
+        )
+
+        self._model_dict = {CONST_MODEL: params, CONST_OPT_STATE: opt_state}

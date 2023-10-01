@@ -73,9 +73,9 @@ class MultitaskLinearClassificationND(Dataset):
                     (num_sequences, self._sequence_length, self._input_dim),
                 )
                 inputs = inputs * (1 - replace_mask) + samples * replace_mask
-                dists = np.abs(inputs @ params[:, 1:] + params[:, :1])[..., 0] / np.sqrt(
-                    np.sum(params[:, 1:] ** 2, axis=1)
-                )
+                dists = np.abs(inputs @ params[:, 1:] + params[:, :1])[
+                    ..., 0
+                ] / np.sqrt(np.sum(params[:, 1:] ** 2, axis=1))
                 replace_mask = (dists < margin)[..., None]
                 replace_mask = np.concatenate((replace_mask, replace_mask), axis=-1)
                 num_valid_pts = np.sum(dists >= margin)
@@ -92,7 +92,12 @@ class MultitaskLinearClassificationND(Dataset):
                 )
                 >= 0
             ).astype(int)[..., 0]
-            if np.all(np.logical_and(0 < np.sum(targets, axis=-1), np.sum(targets, axis=-1) < self._sequence_length)):
+            if np.all(
+                np.logical_and(
+                    0 < np.sum(targets, axis=-1),
+                    np.sum(targets, axis=-1) < self._sequence_length,
+                )
+            ):
                 done_generation = True
 
         targets = np.eye(2)[targets][:, :]
