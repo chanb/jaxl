@@ -1239,6 +1239,29 @@ Tuple[chex.Array, chex.Array],</p>
 </dd></dl>
 
 </section>
+<section id="module-jaxl.models.svm">
+<span id="jaxl-models-svm-module"></span><h2>jaxl.models.svm module<a class="headerlink" href="#module-jaxl.models.svm" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.models.svm.dual_svm">
+<span class="sig-prename descclassname"><span class="pre">jaxl.models.svm.</span></span><span class="sig-name descname"><span class="pre">dual_svm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel=&lt;function</span> <span class="pre">linear_kernel&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.svm.dual_svm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.models.svm.linear_kernel">
+<span class="sig-prename descclassname"><span class="pre">jaxl.models.svm.</span></span><span class="sig-name descname"><span class="pre">linear_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.svm.linear_kernel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.models.svm.polynomial_kernel">
+<span class="sig-prename descclassname"><span class="pre">jaxl.models.svm.</span></span><span class="sig-name descname"><span class="pre">polynomial_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.svm.polynomial_kernel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.models.svm.primal_svm">
+<span class="sig-prename descclassname"><span class="pre">jaxl.models.svm.</span></span><span class="sig-name descname"><span class="pre">primal_svm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.svm.primal_svm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
 <section id="module-jaxl.models">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-jaxl.models" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
@@ -1284,6 +1307,26 @@ Tuple[optax.GradientTransformation, optax.OptState]</p>
 </dd>
 </dl>
 <p>]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.models.get_param_mask_by_name">
+<span class="sig-prename descclassname"><span class="pre">jaxl.models.</span></span><span class="sig-name descname"><span class="pre">get_param_mask_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#jaxl.models.get_param_mask_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask parameters based on the layer name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>optax.Params</em>) – the parameters</p></li>
+<li><p><strong>mask_names</strong> (<em>list</em>) – the list of layer names to mask</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a mask indicating which layer to filter</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

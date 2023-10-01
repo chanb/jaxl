@@ -313,6 +313,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.in_context">jaxl.learners.in_context module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.in_context.BinaryClassificationInContextLearner"><code class="docutils literal notranslate"><span class="pre">BinaryClassificationInContextLearner</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.in_context.InContextLearner"><code class="docutils literal notranslate"><span class="pre">InContextLearner</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.in_context.InContextLearner.make_train_step"><code class="docutils literal notranslate"><span class="pre">InContextLearner.make_train_step()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.in_context.InContextLearner.update"><code class="docutils literal notranslate"><span class="pre">InContextLearner.update()</span></code></a></li>
@@ -434,6 +435,7 @@
 <li class="toctree-l2"><a class="reference internal" href="jaxl.losses.html#module-jaxl.losses.supervised">jaxl.losses.supervised module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.supervised.make_cross_entropy_loss"><code class="docutils literal notranslate"><span class="pre">make_cross_entropy_loss()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.supervised.make_hinge_loss"><code class="docutils literal notranslate"><span class="pre">make_hinge_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.supervised.make_sigmoid_bce_loss"><code class="docutils literal notranslate"><span class="pre">make_sigmoid_bce_loss()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.supervised.make_squared_loss"><code class="docutils literal notranslate"><span class="pre">make_squared_loss()</span></code></a></li>
 </ul>
 </li>
@@ -601,9 +603,17 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.svm">jaxl.models.svm module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.svm.dual_svm"><code class="docutils literal notranslate"><span class="pre">dual_svm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.svm.linear_kernel"><code class="docutils literal notranslate"><span class="pre">linear_kernel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.svm.polynomial_kernel"><code class="docutils literal notranslate"><span class="pre">polynomial_kernel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.svm.primal_svm"><code class="docutils literal notranslate"><span class="pre">primal_svm()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models">Module contents</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_model"><code class="docutils literal notranslate"><span class="pre">get_model()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_optimizer"><code class="docutils literal notranslate"><span class="pre">get_optimizer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_param_mask_by_name"><code class="docutils literal notranslate"><span class="pre">get_param_mask_by_name()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_policy"><code class="docutils literal notranslate"><span class="pre">get_policy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_scheduler"><code class="docutils literal notranslate"><span class="pre">get_scheduler()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_update_function"><code class="docutils literal notranslate"><span class="pre">get_update_function()</span></code></a></li>

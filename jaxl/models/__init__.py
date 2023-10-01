@@ -23,6 +23,16 @@ XXX: Feel free to add new components as needed.
 """
 
 def get_param_mask_by_name(p: optax.Params, mask_names: list) -> Any:
+    """
+    Mask parameters based on the layer name.
+
+    :param p: the parameters
+    :param mask_names: the list of layer names to mask
+    :type p: optax.Params
+    :type mask_names: list
+    :return: a mask indicating which layer to filter
+    :rtype: Any
+    """
     return jax.tree_util.tree_map_with_path(
         lambda key_path, _: key_path[0].key in mask_names, p)
 

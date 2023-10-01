@@ -36,6 +36,14 @@ jaxl.models.policies module
    :undoc-members:
    :show-inheritance:
 
+jaxl.models.svm module
+----------------------
+
+.. automodule:: jaxl.models.svm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
