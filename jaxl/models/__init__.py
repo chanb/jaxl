@@ -139,12 +139,14 @@ def get_optimizer(
         else:
             raise NotImplementedError
     mask_names = getattr(opt_config, CONST_MASK_NAMES, [])
-    mask = get_param_mask_by_name(params, mask_names)
-    set_to_zero = optax.masked(
-        optax.set_to_zero(),
-        mask
-    )
-    opt = optax.chain(set_to_zero, *opt_transforms)
+    if len(mask_names):
+        mask = get_param_mask_by_name(params, mask_names)
+        set_to_zero = optax.masked(
+            optax.set_to_zero(),
+            mask
+        )
+        opt_transforms.insert(0, set_to_zero)
+    opt = optax.chain(*opt_transforms)
     opt_state = opt.init(params)
     return opt, opt_state
 
