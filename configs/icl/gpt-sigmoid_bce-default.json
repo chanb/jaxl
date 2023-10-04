@@ -42,7 +42,8 @@
                 "noise": 0.0,
                 "params_bound": [-10.0, 10.0],
                 "num_active_params": null,
-                "val_frac": 0.0005
+                "val_frac": 0.0005,
+                "margin": 0.2
             },
             "dataset_wrapper": {
                 "type": "ContextDataset",
