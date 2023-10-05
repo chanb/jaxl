@@ -119,7 +119,10 @@ def compute_baseline_results(context_data, baseline_models, input_range=[-1.0, 1
                     )
                     / model[0].coef_[0, 1]
                 )
-                baseline_results[task_i][hyperparam] = {"decision_boundary": model_out}
+                baseline_results[task_i][hyperparam] = {
+                    "decision_boundary": model_out,
+                    "preds": model.predict(context_data[task_i][CONST_CONTEXT_INPUT]),
+                }
 
                 if model_class == SVM:
                     decision_function = model.decision_function(
@@ -157,6 +160,17 @@ def main(
         time_tag,
     )
     os.makedirs(save_path, exist_ok=True)
+
+    with open(os.path.join(save_path, "config.pkl"), "wb") as f:
+        pickle.dump(
+            {
+                "num_tasks": num_tasks,
+                "seq_len": seq_len,
+                "seed": seed,
+                "input_range": input_range,
+            },
+            f,
+        )
 
     test_dataset = make_test_dataset(
         num_tasks,
