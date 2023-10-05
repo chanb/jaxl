@@ -10,6 +10,7 @@ def polynomial_kernel(x, deg, offset=0):
     return np.power(x @ x.T + offset, deg)
 
 
+# XXX: Assumes linearly separable for now
 def primal_svm(train_x, train_y):
     assert len(train_x.shape) == 2
     assert len(train_y.shape) == 1

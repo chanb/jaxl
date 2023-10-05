@@ -8,6 +8,7 @@ import argparse
 import numpy as np
 import os
 
+from datetime import datetime
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.svm import LinearSVC
@@ -141,12 +142,20 @@ BASELINES = {
 
 
 def main(
-    save_path: str,
+    save_path_prefix: str,
     num_tasks: int,
     seq_len: int,
     seed: int,
     input_range: list = [-1.0, 1.0],
 ):
+    time_tag = datetime.strftime(datetime.now(), "%m-%d-%y_%H_%M_%S")
+    save_path = "{}-num_tasks_{}-seq_len_{}-seed_{}-{}".format(
+        save_path_prefix,
+        num_tasks,
+        seq_len,
+        seed,
+        time_tag,
+    )
     os.makedirs(save_path, exist_ok=True)
 
     test_dataset = make_test_dataset(
@@ -191,10 +200,10 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--save_path",
+        "--save_path_prefix",
         type=str,
         required=True,
-        help="The path to save the results to",
+        help="The prefix of the path to save the results to",
     )
 
     parser.add_argument(
@@ -220,7 +229,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(
-        args.save_path,
+        args.save_path_prefix,
         args.num_tasks,
         args.seq_len,
         args.seed,
