@@ -59,6 +59,29 @@ def load_llm(learner_path: str):
     return llm_params, llm_model, config
 
 
+def examplar_len(
+    llm_params, llm_model, context_inputs, context_outputs, queries, process_prediction
+):
+    results = {}
+    for examplar_len in range(1, len(context_inputs) + 1):
+        mask = (np.arange(len(context_inputs)) >= len(context_inputs) - examplar_len)[
+            :, None
+        ]
+        curr_context_inputs = context_inputs * mask
+        curr_context_outputs = context_outputs * mask
+
+        llm_preds, _ = jax.vmap(llm_model.forward, in_axes=[None, 0, None])(
+            llm_params[CONST_MODEL_DICT][CONST_MODEL],
+            queries[:, None, None],
+            {
+                CONST_CONTEXT_INPUT: curr_context_inputs[None, :],
+                CONST_CONTEXT_OUTPUT: curr_context_outputs[None, :],
+            },
+        )
+        llm_preds = process_prediction(llm_preds)
+        results[examplar_len] = llm_preds
+
+
 def get_agent_result(context_data, queries, agent_path):
     llm_params, llm_model, config = load_llm(agent_path)
     process_prediction = make_model_specific(config)
@@ -68,15 +91,15 @@ def get_agent_result(context_data, queries, agent_path):
         context_inputs = context_data[task_i][CONST_CONTEXT_INPUT]
         context_outputs = context_data[task_i][CONST_CONTEXT_OUTPUT]
 
-        llm_preds, _ = jax.vmap(llm_model.forward, in_axes=[None, 0, None])(
-            llm_params[CONST_MODEL_DICT][CONST_MODEL],
-            queries[:, None, None],
-            {
-                CONST_CONTEXT_INPUT: context_inputs[None, :],
-                CONST_CONTEXT_OUTPUT: context_outputs[None, :],
-            },
+        llm_preds = examplar_len(
+            llm_params,
+            llm_model,
+            context_inputs,
+            context_outputs,
+            queries,
+            process_prediction,
         )
-        llm_preds = process_prediction(llm_preds)
+
         agent_result[task_i] = llm_preds
     return agent_result
 
