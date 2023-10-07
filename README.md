@@ -30,6 +30,11 @@ If `torch` somehow conflicts, install the CPU-only version:
 pip install torch>=1.13.0+cpu
 ```
 
+Potential memory issue:
+```
+export XLA_FLAGS=--xla_gpu_graph_level=0
+```
+
 ### Conda on Salient
 ```
 conda create --name jaxl python=3.9
