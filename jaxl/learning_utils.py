@@ -102,7 +102,7 @@ def train(
             learner.save_env_config(os.path.join(save_path, "env_config.pkl"))
 
             checkpoint_manager = CheckpointManager(
-                os.path.join(save_path, "models"),
+                os.path.join(os.path.abspath(save_path), "models"),
                 PyTreeCheckpointer(),
             )
 
