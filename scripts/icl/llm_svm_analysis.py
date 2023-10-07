@@ -7,12 +7,10 @@ import _pickle as pickle
 import argparse
 import jax
 import json
-import numpy as np
 import os
 
 from functools import partial
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
-from types import SimpleNamespace
 
 
 def load_llm(learner_path: str):
