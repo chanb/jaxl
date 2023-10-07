@@ -1,6 +1,8 @@
+import _pickle as pickle
 import chex
 import jax.random as jrandom
 import numpy as np
+import os
 
 from torch.utils.data import Dataset
 from typing import Callable, Tuple
@@ -23,20 +25,33 @@ class MultitaskLinearClassificationND(Dataset):
         num_active_params: int = None,
         bias: bool = False,
         margin: float = 0.0,
+        save_path: str = None,
     ):
         assert num_active_params is None or num_active_params >= 0
         self._noise = noise
         self._sequence_length = sequence_length
         self._input_dim = input_dim
         self._inputs_range = inputs_range
-        self._inputs, self._targets, self._params = self._generate_data(
-            num_sequences=num_sequences,
-            seed=seed,
-            params_bound=params_bound,
-            num_active_params=num_active_params,
-            bias=bias,
-            margin=margin,
-        )
+
+        if save_path is None or not os.path.isfile(save_path):
+            self._inputs, self._targets, self._params = self._generate_data(
+                num_sequences=num_sequences,
+                seed=seed,
+                params_bound=params_bound,
+                num_active_params=num_active_params,
+                bias=bias,
+                margin=margin,
+            )
+            if save_path is not None:
+                print("Saving to {}".format(save_path))
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                pickle.dump(
+                    (self._inputs, self._targets, self._params),
+                    open(save_path, "wb"),
+                )
+        else:
+            print("Loading from {}".format(save_path))
+            self._inputs, self._targets, self._params = pickle.load(open(save_path, "rb"))
 
     def _generate_data(
         self,

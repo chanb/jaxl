@@ -37,13 +37,13 @@
             "dataset_name": "multitask_nd_linear_classification",
             "dataset_kwargs": {
                 "input_dim": 2,
-                "num_sequences": 500000,
+                "num_sequences": 250000,
                 "sequence_length": 17,
                 "noise": 0.0,
                 "params_bound": [-10.0, 10.0],
                 "num_active_params": null,
-                "val_frac": 0.0005,
-                "margin": 0.2
+                "margin": 0.1,
+                "save_path": "./data/icl-sigmoid_bce-context_len_16-num_blocks_8.pkl"
             },
             "dataset_wrapper": {
                 "type": "ContextDataset",

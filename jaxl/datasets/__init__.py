@@ -114,6 +114,11 @@ def get_dataset(
                 "margin",
                 0.0,
             ),
+            save_path=getattr(
+                dataset_kwargs,
+                "save_path",
+                None,
+            )
         )
     else:
         raise ValueError(
