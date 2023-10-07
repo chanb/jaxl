@@ -37,8 +37,8 @@
             "dataset_name": "multitask_nd_linear_classification",
             "dataset_kwargs": {
                 "input_dim": 2,
-                "num_sequences": 250000,
-                "sequence_length": 17,
+                "num_sequences": 300000,
+                "sequence_length": 40,
                 "noise": 0.0,
                 "params_bound": [-10.0, 10.0],
                 "num_active_params": null,
@@ -66,7 +66,7 @@
             }
         ],
         "num_updates_per_epoch": 100,
-        "batch_size": 256,
+        "batch_size": 128,
         "learner_settings": {
             "store_val_preds": false
         },

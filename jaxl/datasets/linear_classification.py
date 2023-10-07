@@ -51,7 +51,9 @@ class MultitaskLinearClassificationND(Dataset):
                 )
         else:
             print("Loading from {}".format(save_path))
-            self._inputs, self._targets, self._params = pickle.load(open(save_path, "rb"))
+            self._inputs, self._targets, self._params = pickle.load(
+                open(save_path, "rb")
+            )
 
     def _generate_data(
         self,

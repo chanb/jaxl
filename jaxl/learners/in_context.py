@@ -237,11 +237,19 @@ class BinaryClassificationInContextLearner(InContextLearner):
         if predictor_type != CONST_DEFAULT:
             params = flax.core.unfreeze(params)
             if predictor_type == "all_ones":
-                params[CONST_PREDICTOR][CONST_PARAMS]["kernel"] = np.ones(params[CONST_PREDICTOR][CONST_PARAMS]["kernel"].shape)
-                params[CONST_PREDICTOR][CONST_PARAMS]["bias"] = np.zeros(params[CONST_PREDICTOR][CONST_PARAMS]["bias"].shape)
+                params[CONST_PREDICTOR][CONST_PARAMS]["kernel"] = np.ones(
+                    params[CONST_PREDICTOR][CONST_PARAMS]["kernel"].shape
+                )
+                params[CONST_PREDICTOR][CONST_PARAMS]["bias"] = np.zeros(
+                    params[CONST_PREDICTOR][CONST_PARAMS]["bias"].shape
+                )
             elif predictor_type == "one_hot":
-                params[CONST_PREDICTOR][CONST_PARAMS]["kernel"] = np.zeros(params[CONST_PREDICTOR][CONST_PARAMS]["kernel"].shape)
-                params[CONST_PREDICTOR][CONST_PARAMS]["bias"] = np.zeros(params[CONST_PREDICTOR][CONST_PARAMS]["bias"].shape)
+                params[CONST_PREDICTOR][CONST_PARAMS]["kernel"] = np.zeros(
+                    params[CONST_PREDICTOR][CONST_PARAMS]["kernel"].shape
+                )
+                params[CONST_PREDICTOR][CONST_PARAMS]["bias"] = np.zeros(
+                    params[CONST_PREDICTOR][CONST_PARAMS]["bias"].shape
+                )
                 params[CONST_PREDICTOR][CONST_PARAMS]["kernel"][0] = 1
             params = flax.core.freeze(params)
 

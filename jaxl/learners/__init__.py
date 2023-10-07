@@ -4,7 +4,10 @@ from jaxl.constants import *
 from jaxl.learners.learner import Learner
 from jaxl.learners.a2c import A2C
 from jaxl.learners.bc import BC
-from jaxl.learners.in_context import InContextLearner, BinaryClassificationInContextLearner
+from jaxl.learners.in_context import (
+    InContextLearner,
+    BinaryClassificationInContextLearner,
+)
 from jaxl.learners.mtbc import MTBC
 from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE

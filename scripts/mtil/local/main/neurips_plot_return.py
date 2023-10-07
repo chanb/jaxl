@@ -41,7 +41,9 @@ bc_name = "results-bc_less_data"
 
 results_per_experiment = {}
 experiment_dir = f"/Users/chanb/research/personal/mtil_results/diff_len_envs/evaluations/{experiment_name}"
-bc_dir = f"/Users/chanb/research/personal/mtil_results/diff_len_envs/evaluations/{bc_name}"
+bc_dir = (
+    f"/Users/chanb/research/personal/mtil_results/diff_len_envs/evaluations/{bc_name}"
+)
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
 for exp_i, suffix in enumerate(experiment_name_suffixes):
