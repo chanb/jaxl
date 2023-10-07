@@ -57,15 +57,12 @@
             "data_seed": 42
         },
         "learner": "mle",
-        "losses": ["sigmoid_bce", "l2"],
+        "losses": ["sigmoid_bce"],
         "loss_settings": [
             {
                 "coefficient": 1.0,
                 "reduction": "mean",
                 "is_one_hot": true
-            },
-            {
-                "coefficient": 0.0
             }
         ],
         "num_updates_per_epoch": 100,
