@@ -108,9 +108,7 @@ def main(baseline_path):
         open(os.path.join(baseline_path, "context_data.pkl"), "rb")
     )
 
-    gt = pickle.load(
-        open(os.path.join(baseline_path, "ground_truth.pkl"), "rb")
-    )
+    gt = pickle.load(open(os.path.join(baseline_path, "ground_truth.pkl"), "rb"))
 
     agents_data = pickle.load(open(os.path.join(baseline_path, "agents.pkl"), "rb"))
 
@@ -127,9 +125,7 @@ def main(baseline_path):
             "input_token_context_reprs": get_agent_repr(
                 context_data, None, agent_path, use_input_token_repr=True
             ),
-            "query_reprs": get_agent_repr(
-                context_data, gt["inputs"], agent_path
-            ),
+            "query_reprs": get_agent_repr(context_data, gt["inputs"], agent_path),
         }
 
         agent_results[agent_path]["svms"] = get_svms(
