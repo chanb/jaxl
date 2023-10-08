@@ -28,7 +28,7 @@ def primal_svm(train_x, train_y):
         cp.Minimize((1 / 2) * cp.quad_form(primal_var, P) + q.T @ primal_var),
         [G @ primal_var <= h],
     )
-    loss = prob.solve()
+    loss = prob.solve(cp.ECOS)
     params = primal_var.value
     return loss, params
 
@@ -51,6 +51,6 @@ def dual_svm(train_x, train_y, kernel=linear_kernel):
         cp.Minimize((1 / 2) * cp.quad_form(dual_var, P) + q.T @ dual_var),
         [G @ dual_var <= h, A @ dual_var == b],
     )
-    loss = -prob.solve()
+    loss = -prob.solve(cp.ECOS)
     alphas = dual_var.value
     return loss, alphas

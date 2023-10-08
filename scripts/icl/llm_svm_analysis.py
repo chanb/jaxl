@@ -34,7 +34,7 @@ def load_llm(learner_path: str):
     return llm_params, llm_model, config
 
 
-def get_agent_repr(context_data, agent_path):
+def get_agent_repr(context_data, queries, agent_path, use_input_token_repr=False):
     llm_params, llm_model, _ = load_llm(agent_path)
 
     agent_result = {}
@@ -42,17 +42,64 @@ def get_agent_repr(context_data, agent_path):
         context_inputs = context_data[task_i][CONST_CONTEXT_INPUT]
         context_outputs = context_data[task_i][CONST_CONTEXT_OUTPUT]
 
+        if queries is None:
+            queries = context_inputs
+
         repr, _ = jax.vmap(llm_model.get_latent, in_axes=[None, 0, None])(
             llm_params[CONST_MODEL_DICT][CONST_MODEL],
-            context_inputs[:, None, None],
+            queries[:, None, None],
             {
                 CONST_CONTEXT_INPUT: context_inputs[None],
                 CONST_CONTEXT_OUTPUT: context_outputs[None],
             },
         )
 
-        agent_result[task_i] = repr[:, 0, -1]
+        if use_input_token_repr:
+            agent_result[task_i] = repr[0, 0, :-1:2]
+        else:
+            agent_result[task_i] = repr[:, 0, -1]
     return agent_result
+
+
+def get_svm_sol(inputs, outputs):
+    svm_sols = {}
+
+    loss, sol = primal_svm(inputs, outputs)
+    svm_sols["primal"] = {
+        "loss": loss,
+        "sol": sol,
+    }
+
+    loss, sol = dual_svm(inputs, outputs)
+    svm_sols["dual"] = {
+        "loss": loss,
+        "sol": sol,
+    }
+    return svm_sols
+
+
+def get_svms(repr_dict, context_data):
+    svm_results = {}
+
+    reprs = ["input", "context_reprs", "input_token_context_reprs"]
+    for task_i in context_data:
+        svm_results.setdefault(task_i, {})
+        context_inputs = context_data[task_i][CONST_CONTEXT_INPUT]
+        context_outputs = context_data[task_i][CONST_CONTEXT_OUTPUT]
+
+        train_y = np.argmax(context_outputs, axis=-1)
+        train_y[train_y == 0] = -1
+
+        for repr in reprs:
+            # print("Solving for representation: {}".format(repr))
+            if repr == "input":
+                inputs = context_inputs
+            else:
+                inputs = repr_dict[repr][task_i]
+
+            svm_results[task_i][repr] = get_svm_sol(inputs, train_y)
+
+    return svm_results
 
 
 def main(baseline_path):
@@ -61,13 +108,12 @@ def main(baseline_path):
         open(os.path.join(baseline_path, "context_data.pkl"), "rb")
     )
 
-    baseline_data = pickle.load(
-        open(os.path.join(baseline_path, "baseline_results.pkl"), "rb")
+    gt = pickle.load(
+        open(os.path.join(baseline_path, "ground_truth.pkl"), "rb")
     )
 
     agents_data = pickle.load(open(os.path.join(baseline_path, "agents.pkl"), "rb"))
 
-    _get_agent_repr = partial(get_agent_repr, context_data=context_data)
     agent_results = {}
 
     for agent_i, agent_path in enumerate(agents_data):
@@ -76,7 +122,19 @@ def main(baseline_path):
                 agent_path, agent_i + 1, len(agents_data)
             )
         )
-        agent_results[agent_path] = _get_agent_repr(agent_path=agent_path)
+        agent_results[agent_path] = {
+            "context_reprs": get_agent_repr(context_data, None, agent_path),
+            "input_token_context_reprs": get_agent_repr(
+                context_data, None, agent_path, use_input_token_repr=True
+            ),
+            "query_reprs": get_agent_repr(
+                context_data, gt["inputs"], agent_path
+            ),
+        }
+
+        agent_results[agent_path]["svms"] = get_svms(
+            agent_results[agent_path], context_data
+        )
 
     with open(os.path.join(baseline_path, "agent_reprs.pkl"), "wb") as f:
         pickle.dump(agent_results, f)
