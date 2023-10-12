@@ -109,8 +109,9 @@ def get_ground_truth(dataset, num_tasks, delta=0.01, input_range=[-1.0, 1.0]):
 def compute_baseline_results(context_data, baseline_models, input_range=[-1.0, 1.0]):
     baseline_results = {}
     for model_class in baseline_models:
+        baseline_results.setdefault(model_class, {})
         for task_i, models_per_task in baseline_models[model_class].items():
-            baseline_results.setdefault(task_i, {})
+            baseline_results[model_class].setdefault(task_i, {})
             for hyperparam, model in models_per_task.items():
                 model_out = (
                     -(
@@ -119,7 +120,7 @@ def compute_baseline_results(context_data, baseline_models, input_range=[-1.0, 1
                     )
                     / model[0].coef_[0, 1]
                 )
-                baseline_results[task_i][hyperparam] = {
+                baseline_results[model_class][task_i][hyperparam] = {
                     "decision_boundary": model_out,
                     "preds": model.predict(context_data[task_i][CONST_CONTEXT_INPUT]),
                 }
@@ -132,9 +133,7 @@ def compute_baseline_results(context_data, baseline_models, input_range=[-1.0, 1
                         np.abs(decision_function) <= 1 + 1e-15
                     )[0]
 
-                    baseline_results[task_i][hyperparam] = {
-                        "support_vector_indices": support_vector_indices
-                    }
+                    baseline_results[model_class][task_i][hyperparam]["support_vector_indices"] = support_vector_indices
     return baseline_results
 
 

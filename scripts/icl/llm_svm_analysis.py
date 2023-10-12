@@ -91,7 +91,6 @@ def get_svms(repr_dict, context_data):
         train_y[train_y == 0] = -1
 
         for repr in reprs:
-            # print("Solving for representation: {}".format(repr))
             if repr == "input":
                 inputs = context_inputs
             else:

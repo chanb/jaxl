@@ -80,6 +80,7 @@ def examplar_len(
         )
         llm_preds = process_prediction(llm_preds)
         results[examplar_len] = llm_preds
+    return results
 
 
 def get_agent_result(context_data, queries, agent_path):
