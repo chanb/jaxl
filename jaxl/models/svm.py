@@ -11,25 +11,32 @@ def polynomial_kernel(x, deg, offset=0):
 
 
 # XXX: Assumes linearly separable for now
-def primal_svm(train_x, train_y):
+def primal_svm(train_x, train_y, bias=True):
     assert len(train_x.shape) == 2
     assert len(train_y.shape) == 1
 
     N, d = train_x.shape
-    padded_x = np.concatenate((train_x, np.ones((N, 1))), axis=-1)
-    P = np.eye(d + 1)
-    P[d] = 0
-    q = np.zeros(d + 1)
+
+    padded_x = train_x
+    if bias:
+        d = d + 1
+        padded_x = np.concatenate((train_x, np.ones((N, 1))), axis=-1)
+    P = np.eye(d)
+    if bias:
+        P[d - 1] = 0
+    q = np.zeros(d)
     G = padded_x * -train_y[:, None]
     h = -np.ones(N)
 
-    primal_var = cp.Variable(d + 1)
+    primal_var = cp.Variable(d)
     prob = cp.Problem(
         cp.Minimize((1 / 2) * cp.quad_form(primal_var, P) + q.T @ primal_var),
         [G @ primal_var <= h],
     )
     loss = prob.solve(verbose=True, max_iter=50000)
     params = primal_var.value
+    if not bias:
+        params = np.concatenate([params, [0]])
     return loss, params
 
 

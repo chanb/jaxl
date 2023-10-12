@@ -61,10 +61,10 @@ def get_agent_repr(context_data, queries, agent_path, use_input_token_repr=False
     return agent_result
 
 
-def get_svm_sol(inputs, outputs):
+def get_svm_sol(inputs, outputs, bias):
     svm_sols = {}
 
-    loss, sol = primal_svm(inputs, outputs)
+    loss, sol = primal_svm(inputs, outputs, bias=bias)
     svm_sols["primal"] = {
         "loss": loss,
         "sol": sol,
@@ -78,7 +78,7 @@ def get_svm_sol(inputs, outputs):
     return svm_sols
 
 
-def get_svms(repr_dict, context_data):
+def get_svms(repr_dict, context_data, bias):
     svm_results = {}
 
     reprs = ["input", "context_reprs", "input_token_context_reprs"]
@@ -96,12 +96,12 @@ def get_svms(repr_dict, context_data):
             else:
                 inputs = repr_dict[repr][task_i]
 
-            svm_results[task_i][repr] = get_svm_sol(inputs, train_y)
+            svm_results[task_i][repr] = get_svm_sol(inputs, train_y, bias)
 
     return svm_results
 
 
-def main(baseline_path):
+def main(baseline_path, bias):
     assert os.path.isdir(baseline_path)
     context_data = pickle.load(
         open(os.path.join(baseline_path, "context_data.pkl"), "rb")
@@ -128,7 +128,7 @@ def main(baseline_path):
         }
 
         agent_results[agent_path]["svms"] = get_svms(
-            agent_results[agent_path], context_data
+            agent_results[agent_path], context_data, bias
         )
 
     with open(os.path.join(baseline_path, "agent_reprs.pkl"), "wb") as f:
@@ -143,8 +143,14 @@ if __name__ == "__main__":
         required=True,
         help="The path that stores the baseline results",
     )
+    parser.add_argument(
+        "--bias",
+        action="store_true",
+        help="Whether or not to compute bias in primal SVM",
+    )
 
     args = parser.parse_args()
     main(
         args.baseline_path,
+        args.bias
     )
