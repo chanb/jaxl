@@ -6,6 +6,7 @@ from jaxl.utils import parse_dict
 import _pickle as pickle
 import argparse
 import jax
+import jax.random as jrandom
 import json
 import numpy as np
 import os
@@ -83,7 +84,30 @@ def examplar_len(
     return results
 
 
-def get_agent_result(context_data, queries, agent_path):
+def permutations(
+    llm_params, llm_model, context_inputs, context_outputs, queries, process_prediction, seed
+):
+    results = {}
+    permute_idxes = jrandom.permutation(
+        jrandom.PRNGKey(seed),
+        np.arange(len(context_inputs)),
+    )
+
+    llm_preds, _ = jax.vmap(llm_model.forward, in_axes=[None, 0, None])(
+        llm_params[CONST_MODEL_DICT][CONST_MODEL],
+        queries[:, None, None],
+        {
+            CONST_CONTEXT_INPUT: context_inputs[None, :],
+            CONST_CONTEXT_OUTPUT: context_outputs[None, :],
+        },
+    )
+    llm_preds = process_prediction(llm_preds)
+    results["preds"] = llm_preds
+    results["permute_idxes"] = permute_idxes
+    return results
+
+
+def get_agent_result(context_data, queries, agent_path, seed):
     llm_params, llm_model, config = load_llm(agent_path)
     process_prediction = make_model_specific(config)
 
@@ -92,20 +116,29 @@ def get_agent_result(context_data, queries, agent_path):
         context_inputs = context_data[task_i][CONST_CONTEXT_INPUT]
         context_outputs = context_data[task_i][CONST_CONTEXT_OUTPUT]
 
-        llm_preds = examplar_len(
-            llm_params,
-            llm_model,
-            context_inputs,
-            context_outputs,
-            queries,
-            process_prediction,
-        )
-
-        agent_result[task_i] = llm_preds
+        agent_result[task_i] = {
+            "examplar_length": examplar_len(
+                llm_params,
+                llm_model,
+                context_inputs,
+                context_outputs,
+                queries,
+                process_prediction,
+            ),
+            "permutation": permutations(
+                llm_params,
+                llm_model,
+                context_inputs,
+                context_outputs,
+                queries,
+                process_prediction,
+                seed,
+            ),
+        }
     return agent_result
 
 
-def main(baseline_path, agent_path_dirs):
+def main(baseline_path, agent_path_dirs, seed):
     assert os.path.isdir(baseline_path)
     context_data = pickle.load(
         open(os.path.join(baseline_path, "context_data.pkl"), "rb")
@@ -116,7 +149,7 @@ def main(baseline_path, agent_path_dirs):
     )
 
     _get_agent_result = partial(
-        get_agent_result, context_data=context_data, queries=ground_truth_data["inputs"]
+        get_agent_result, context_data=context_data, queries=ground_truth_data["inputs"], seed=seed
     )
     agent_results = {}
     for dir_i, agent_path_dir in enumerate(agent_path_dirs):
@@ -152,9 +185,16 @@ if __name__ == "__main__":
         nargs="+",
         help="The directories containing one or more agents",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=0,
+        help="The seed used for permuting context",
+    )
 
     args = parser.parse_args()
     main(
         args.baseline_path,
         args.agent_path_dirs,
+        args.seed
     )

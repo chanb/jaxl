@@ -6,10 +6,11 @@ from jaxl.utils import parse_dict
 import _pickle as pickle
 import argparse
 import jax
+import jax.random as jrandom
 import json
+import numpy as np
 import os
 
-from functools import partial
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
 
@@ -32,6 +33,44 @@ def load_llm(learner_path: str):
     llm_params[CONST_MODEL_DICT][CONST_MODEL][CONST_POSITIONAL_ENCODING] = dict()
     llm_model = learner._model
     return llm_params, llm_model, config
+
+
+def get_permuted_agent_repr(context_data, queries, agent_path, seed, use_input_token_repr=False):
+    llm_params, llm_model, _ = load_llm(agent_path)
+
+    agent_result = {}
+    for task_i in context_data:
+        context_inputs = context_data[task_i][CONST_CONTEXT_INPUT]
+        context_outputs = context_data[task_i][CONST_CONTEXT_OUTPUT]
+
+        permute_idxes = jrandom.permutation(
+            jrandom.PRNGKey(seed),
+            np.arange(len(context_inputs)),
+        )
+
+        if queries is None:
+            queries = context_inputs[permute_idxes]
+
+        repr, _ = jax.vmap(llm_model.get_latent, in_axes=[None, 0, None])(
+            llm_params[CONST_MODEL_DICT][CONST_MODEL],
+            queries[:, None, None],
+            {
+                CONST_CONTEXT_INPUT: context_inputs[permute_idxes][None],
+                CONST_CONTEXT_OUTPUT: context_outputs[permute_idxes][None],
+            },
+        )
+
+        if use_input_token_repr:
+            agent_result[task_i] = {
+                "repr": repr[0, 0, :-1:2],
+                "permute_idxes": permute_idxes,
+            }
+        else:
+            agent_result[task_i] = {
+                "repr": repr[:, 0, -1],
+                "permute_idxes": permute_idxes,
+            }
+    return agent_result
 
 
 def get_agent_repr(context_data, queries, agent_path, use_input_token_repr=False):
@@ -101,7 +140,7 @@ def get_svms(repr_dict, context_data, bias):
     return svm_results
 
 
-def main(baseline_path, bias):
+def main(baseline_path, bias, seed):
     assert os.path.isdir(baseline_path)
     context_data = pickle.load(
         open(os.path.join(baseline_path, "context_data.pkl"), "rb")
@@ -131,6 +170,13 @@ def main(baseline_path, bias):
             agent_results[agent_path], context_data, bias
         )
 
+        agent_results[agent_path]["permutation"] = {
+            "context_reprs": get_permuted_agent_repr(context_data, None, agent_path, seed),
+            "input_token_context_reprs": get_permuted_agent_repr(
+                context_data, None, agent_path, seed, use_input_token_repr=True
+            ),
+        }
+
     with open(os.path.join(baseline_path, "agent_reprs.pkl"), "wb") as f:
         pickle.dump(agent_results, f)
 
@@ -148,9 +194,16 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether or not to compute bias in primal SVM",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=0,
+        help="The seed used for permuting context",
+    )
 
     args = parser.parse_args()
     main(
         args.baseline_path,
-        args.bias
+        args.bias,
+        args.seed
     )
