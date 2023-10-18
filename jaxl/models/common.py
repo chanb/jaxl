@@ -472,6 +472,7 @@ class InContextSupervisedTransformer(Model):
         self.num_tokens = num_contexts * 2 + 1
         self.num_heads = num_heads
         self.embed_dim = embed_dim
+        self.tokenize = jax.jit(self.make_tokenize())
         self.get_latent = jax.jit(self.make_get_latent())
         self.forward = jax.jit(self.make_forward(query_pred_only))
 
@@ -511,7 +512,7 @@ class InContextSupervisedTransformer(Model):
             CONST_PREDICTOR: self.predictor.init(predictor_key, dummy_repr),
         }
 
-    def make_get_latent(
+    def make_tokenize(
         self,
     ) -> Callable[
         [
@@ -523,9 +524,9 @@ class InContextSupervisedTransformer(Model):
         Tuple[chex.Array, chex.Array],
     ]:
         """
-        Makes the get latent call of the ICL model.
+        Makes the tokenize call of the ICL model.
 
-        :return: the forward call.
+        :return: the tokenize call.
         :rtype: Callable[
             [
                 Union[optax.Params, Dict[str, Any]],
@@ -537,7 +538,7 @@ class InContextSupervisedTransformer(Model):
         ]
         """
 
-        def get_latent(
+        def tokenize(
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
@@ -583,6 +584,55 @@ class InContextSupervisedTransformer(Model):
             ).reshape((len(queries), -1, self.embed_dim))
             stacked_inputs = jnp.concatenate((stacked_inputs, query_embedding), axis=1)
 
+            return stacked_inputs, None
+
+        return tokenize
+
+    def make_get_latent(
+        self,
+    ) -> Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            chex.Array,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the get latent call of the ICL model.
+
+        :return: the get latent call.
+        :rtype: Callable[
+            [
+                Union[optax.Params, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+                chex.Array,
+            ],
+            Tuple[chex.Array, chex.Array],
+        ]
+        """
+
+        def get_latent(
+            params: Union[optax.Params, Dict[str, Any]],
+            queries: chex.Array,
+            contexts: Dict[str, chex.Array],
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Get latent call of the GPT.
+
+            :param params: the model parameters
+            :param queries: the queries
+            :param contexts: the context with keys `context_input` and `context_output`
+            :type params: Union[optax.Params, Dict[str, Any]]
+            :type queries: chex.Array
+            :type contexts: Dict[str, chex.Array]
+            :return: the output and a pass-through carry
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            stacked_inputs, _ = self.tokenize(params, queries, contexts)
             repr = self.gpt.apply(params[CONST_GPT], stacked_inputs)
 
             return repr, None

@@ -51,7 +51,7 @@ class GPTModule(nn.Module):
     embed_dim: int
 
     @nn.compact
-    def __call__(self, x: chex.Array):
+    def __call__(self, x: chex.Array) -> chex.Array:
         for _ in range(self.num_blocks):
             x = GPTBlock(self.num_heads, self.embed_dim)(x)
         x = nn.LayerNorm()(x)

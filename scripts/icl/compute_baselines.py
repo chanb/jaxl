@@ -35,6 +35,9 @@ def make_test_dataset(
             "num_active_params": None,
             "val_frac": 0.0005,
             "margin": 0.2,
+            "save_path": "./data/test_set-num_tasks_{}-seq_len_{}-seed_{}.pkl".format(
+                num_tasks, seq_len, seed
+            ),
         },
     }
     dataset_config["dataset_kwargs"] = parse_dict(dataset_config["dataset_kwargs"])
@@ -133,7 +136,9 @@ def compute_baseline_results(context_data, baseline_models, input_range=[-1.0, 1
                         np.abs(decision_function) <= 1 + 1e-15
                     )[0]
 
-                    baseline_results[model_class][task_i][hyperparam]["support_vector_indices"] = support_vector_indices
+                    baseline_results[model_class][task_i][hyperparam][
+                        "support_vector_indices"
+                    ] = support_vector_indices
     return baseline_results
 
 
@@ -148,6 +153,7 @@ def main(
     num_tasks: int,
     seq_len: int,
     seed: int,
+    delta: float = 0.01,
     input_range: list = [-1.0, 1.0],
 ):
     time_tag = datetime.strftime(datetime.now(), "%m-%d-%y_%H_%M_%S")
@@ -204,7 +210,9 @@ def main(
     with open(os.path.join(save_path, "baseline_results.pkl"), "wb") as f:
         pickle.dump(baseline_results, f)
 
-    ground_truth = get_ground_truth(test_dataset, num_tasks, input_range=input_range)
+    ground_truth = get_ground_truth(
+        test_dataset, num_tasks, delta=delta, input_range=input_range
+    )
 
     with open(os.path.join(save_path, "ground_truth.pkl"), "wb") as f:
         pickle.dump(ground_truth, f)
@@ -240,10 +248,18 @@ if __name__ == "__main__":
         help="The seed for generating the test set",
     )
 
+    parser.add_argument(
+        "--delta",
+        type=float,
+        default=0.01,
+        help="The spacing for test queries",
+    )
+
     args = parser.parse_args()
     main(
         args.save_path_prefix,
         args.num_tasks,
         args.seq_len,
         args.seed,
+        args.delta,
     )

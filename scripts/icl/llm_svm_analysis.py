@@ -13,6 +13,8 @@ import os
 
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
+from utils import get_device
+
 
 def load_llm(learner_path: str):
     config_path = os.path.join(learner_path, "config.json")
@@ -35,7 +37,9 @@ def load_llm(learner_path: str):
     return llm_params, llm_model, config
 
 
-def get_permuted_agent_repr(context_data, queries, agent_path, seed, use_input_token_repr=False):
+def get_permuted_agent_repr(
+    context_data, queries, agent_path, seed, use_input_token_repr=False
+):
     llm_params, llm_model, _ = load_llm(agent_path)
 
     agent_result = {}
@@ -48,12 +52,13 @@ def get_permuted_agent_repr(context_data, queries, agent_path, seed, use_input_t
             np.arange(len(context_inputs)),
         )
 
+        in_queries = queries
         if queries is None:
-            queries = context_inputs[permute_idxes]
+            in_queries = context_inputs
 
         repr, _ = jax.vmap(llm_model.get_latent, in_axes=[None, 0, None])(
             llm_params[CONST_MODEL_DICT][CONST_MODEL],
-            queries[:, None, None],
+            in_queries[:, None, None],
             {
                 CONST_CONTEXT_INPUT: context_inputs[permute_idxes][None],
                 CONST_CONTEXT_OUTPUT: context_outputs[permute_idxes][None],
@@ -81,12 +86,13 @@ def get_agent_repr(context_data, queries, agent_path, use_input_token_repr=False
         context_inputs = context_data[task_i][CONST_CONTEXT_INPUT]
         context_outputs = context_data[task_i][CONST_CONTEXT_OUTPUT]
 
+        in_queries = queries
         if queries is None:
-            queries = context_inputs
+            in_queries = context_inputs
 
-        repr, _ = jax.vmap(llm_model.get_latent, in_axes=[None, 0, None])(
+        agent_repr, _ = jax.vmap(llm_model.get_latent, in_axes=[None, 0, None])(
             llm_params[CONST_MODEL_DICT][CONST_MODEL],
-            queries[:, None, None],
+            in_queries[:, None, None],
             {
                 CONST_CONTEXT_INPUT: context_inputs[None],
                 CONST_CONTEXT_OUTPUT: context_outputs[None],
@@ -94,9 +100,10 @@ def get_agent_repr(context_data, queries, agent_path, use_input_token_repr=False
         )
 
         if use_input_token_repr:
-            agent_result[task_i] = repr[0, 0, :-1:2]
+            agent_result[task_i] = agent_repr[0, 0, :-1:2]
         else:
-            agent_result[task_i] = repr[:, 0, -1]
+            agent_result[task_i] = agent_repr[:, 0, -1]
+
     return agent_result
 
 
@@ -120,7 +127,7 @@ def get_svm_sol(inputs, outputs, bias):
 def get_svms(repr_dict, context_data, bias):
     svm_results = {}
 
-    reprs = ["input", "context_reprs", "input_token_context_reprs"]
+    reprs = ["input", "query_context_reprs", "input_context_reprs"]
     for task_i in context_data:
         svm_results.setdefault(task_i, {})
         context_inputs = context_data[task_i][CONST_CONTEXT_INPUT]
@@ -159,20 +166,23 @@ def main(baseline_path, bias, seed):
             )
         )
         agent_results[agent_path] = {
-            "context_reprs": get_agent_repr(context_data, None, agent_path),
-            "input_token_context_reprs": get_agent_repr(
+            "query_context_reprs": get_agent_repr(context_data, None, agent_path),
+            "input_context_reprs": get_agent_repr(
                 context_data, None, agent_path, use_input_token_repr=True
             ),
             "query_reprs": get_agent_repr(context_data, gt["inputs"], agent_path),
         }
 
-        agent_results[agent_path]["svms"] = get_svms(
+        svms = get_svms(
             agent_results[agent_path], context_data, bias
         )
+        agent_results[agent_path]["svms"] = svms
 
         agent_results[agent_path]["permutation"] = {
-            "context_reprs": get_permuted_agent_repr(context_data, None, agent_path, seed),
-            "input_token_context_reprs": get_permuted_agent_repr(
+            "query_context_reprs": get_permuted_agent_repr(
+                context_data, None, agent_path, seed
+            ),
+            "input_context_reprs": get_permuted_agent_repr(
                 context_data, None, agent_path, seed, use_input_token_repr=True
             ),
         }
@@ -200,10 +210,13 @@ if __name__ == "__main__":
         default=0,
         help="The seed used for permuting context",
     )
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        help="JAX device to use. To specify specific GPU device, do gpu:<device_ids>",
+        required=False,
+    )
 
     args = parser.parse_args()
-    main(
-        args.baseline_path,
-        args.bias,
-        args.seed
-    )
+    get_device(args.device)
+    main(args.baseline_path, args.bias, args.seed)

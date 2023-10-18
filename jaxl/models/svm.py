@@ -33,20 +33,20 @@ def primal_svm(train_x, train_y, bias=True):
         cp.Minimize((1 / 2) * cp.quad_form(primal_var, P) + q.T @ primal_var),
         [G @ primal_var <= h],
     )
-    loss = prob.solve(verbose=True, max_iter=50000)
+    loss = prob.solve(verbose=False, max_iter=50000)
     params = primal_var.value
     if not bias:
         params = np.concatenate([params, [0]])
     return loss, params
 
 
-def dual_svm(train_x, train_y, kernel=linear_kernel):
+def dual_svm(train_x, train_y, kernel=linear_kernel, eps=1e-7):
     assert len(train_x.shape) == 2
     assert len(train_y.shape) == 1
 
     N, _ = train_x.shape
     K = kernel(train_x)
-    P = (train_y[:, None] @ train_y[None]) * K
+    P = (train_y[:, None] @ train_y[None]) * K + np.eye(N) * eps
     q = -np.ones(N)
     A = train_y[None]
     b = np.zeros(1)
@@ -58,6 +58,6 @@ def dual_svm(train_x, train_y, kernel=linear_kernel):
         cp.Minimize((1 / 2) * cp.quad_form(dual_var, P) + q.T @ dual_var),
         [G @ dual_var <= h, A @ dual_var == b],
     )
-    loss = -prob.solve(verbose=True, max_iter=50000)
+    loss = -prob.solve(verbose=False, max_iter=50000)
     alphas = dual_var.value
     return loss, alphas

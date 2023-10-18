@@ -15,6 +15,8 @@ from functools import partial
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
 
+from utils import get_device
+
 
 def make_model_specific(config: SimpleNamespace):
     query_pred_only = getattr(config.model_config, "query_pred_only", False)
@@ -85,7 +87,13 @@ def examplar_len(
 
 
 def permutations(
-    llm_params, llm_model, context_inputs, context_outputs, queries, process_prediction, seed
+    llm_params,
+    llm_model,
+    context_inputs,
+    context_outputs,
+    queries,
+    process_prediction,
+    seed,
 ):
     results = {}
     permute_idxes = jrandom.permutation(
@@ -97,8 +105,8 @@ def permutations(
         llm_params[CONST_MODEL_DICT][CONST_MODEL],
         queries[:, None, None],
         {
-            CONST_CONTEXT_INPUT: context_inputs[None, :],
-            CONST_CONTEXT_OUTPUT: context_outputs[None, :],
+            CONST_CONTEXT_INPUT: context_inputs[permute_idxes][None, :],
+            CONST_CONTEXT_OUTPUT: context_outputs[permute_idxes][None, :],
         },
     )
     llm_preds = process_prediction(llm_preds)
@@ -149,7 +157,10 @@ def main(baseline_path, agent_path_dirs, seed):
     )
 
     _get_agent_result = partial(
-        get_agent_result, context_data=context_data, queries=ground_truth_data["inputs"], seed=seed
+        get_agent_result,
+        context_data=context_data,
+        queries=ground_truth_data["inputs"],
+        seed=seed,
     )
     agent_results = {}
     for dir_i, agent_path_dir in enumerate(agent_path_dirs):
@@ -191,10 +202,13 @@ if __name__ == "__main__":
         default=0,
         help="The seed used for permuting context",
     )
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        help="JAX device to use. To specify specific GPU device, do gpu:<device_ids>",
+        required=False,
+    )
 
     args = parser.parse_args()
-    main(
-        args.baseline_path,
-        args.agent_path_dirs,
-        args.seed
-    )
+    get_device(args.device)
+    main(args.baseline_path, args.agent_path_dirs, args.seed)
