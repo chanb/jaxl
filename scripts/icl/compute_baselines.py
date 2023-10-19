@@ -21,7 +21,7 @@ LR = "lr"
 
 
 def make_test_dataset(
-    num_tasks, seq_len, seed, input_range=[-1.0, 1.0], params_bound=[-0.5, 0.5]
+    num_tasks, seq_len, seed, input_range=[-1.0, 1.0], params_bound=[-1.0, 1.0]
 ):
     dataset_config = {
         "dataset_name": "multitask_nd_linear_classification",

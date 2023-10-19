@@ -13,6 +13,7 @@ import os
 
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 
+from compute_llm import make_model_specific
 from utils import get_device
 
 
@@ -116,11 +117,11 @@ def get_svm_sol(inputs, outputs, bias):
         "sol": sol,
     }
 
-    loss, sol = dual_svm(inputs, outputs)
-    svm_sols["dual"] = {
-        "loss": loss,
-        "sol": sol,
-    }
+    # loss, sol = dual_svm(inputs, outputs)
+    # svm_sols["dual"] = {
+    #     "loss": loss,
+    #     "sol": sol,
+    # }
     return svm_sols
 
 
@@ -147,10 +148,59 @@ def get_svms(repr_dict, context_data, bias):
     return svm_results
 
 
+def llm_pred_on_support_vectors(context_data, queries, agent_path, baseline_results):
+    llm_params, llm_model, llm_config = load_llm(agent_path)
+    context_len = llm_config.learner_config.dataset_config.dataset_wrapper.kwargs.context_len
+
+    process_prediction = make_model_specific(llm_config)
+
+    agent_result = {}
+    for task_i in context_data:
+
+        curr_svms = baseline_results["svm"][task_i]
+        support_vector_indices = curr_svms[max(curr_svms.keys())]["support_vector_indices"]
+
+        support_vectors = context_data[task_i][CONST_CONTEXT_INPUT][support_vector_indices]
+        support_labels = context_data[task_i][CONST_CONTEXT_OUTPUT][support_vector_indices]
+
+        support_vectors = np.concatenate(
+            (
+                np.zeros(
+                    (context_len - len(support_vectors), *support_vectors.shape[1:])
+                ),
+                support_vectors,
+            )
+        )
+        support_labels = np.concatenate(
+            (
+                np.zeros(
+                    (context_len - len(support_labels), *support_labels.shape[1:])
+                ),
+                support_labels,
+            )
+        )
+
+        outputs, _ = jax.vmap(llm_model.forward, in_axes=[None, 0, None])(
+            llm_params[CONST_MODEL_DICT][CONST_MODEL],
+            queries[:, None, None],
+            {
+                CONST_CONTEXT_INPUT: support_vectors[None],
+                CONST_CONTEXT_OUTPUT: support_labels[None],
+            },
+        )
+        agent_result[task_i] = process_prediction(outputs)
+
+    return agent_result
+
+
 def main(baseline_path, bias, seed):
     assert os.path.isdir(baseline_path)
     context_data = pickle.load(
         open(os.path.join(baseline_path, "context_data.pkl"), "rb")
+    )
+
+    baseline_results = pickle.load(
+        open(os.path.join(baseline_path, "baseline_results.pkl"), "rb")
     )
 
     gt = pickle.load(open(os.path.join(baseline_path, "ground_truth.pkl"), "rb"))
@@ -173,10 +223,9 @@ def main(baseline_path, bias, seed):
             "query_reprs": get_agent_repr(context_data, gt["inputs"], agent_path),
         }
 
-        svms = get_svms(
+        agent_results[agent_path]["svms"] = get_svms(
             agent_results[agent_path], context_data, bias
         )
-        agent_results[agent_path]["svms"] = svms
 
         agent_results[agent_path]["permutation"] = {
             "query_context_reprs": get_permuted_agent_repr(
@@ -186,6 +235,13 @@ def main(baseline_path, bias, seed):
                 context_data, None, agent_path, seed, use_input_token_repr=True
             ),
         }
+
+        agent_results[agent_path]["pred_on_support_vectors"] = llm_pred_on_support_vectors(
+            context_data,
+            gt["inputs"],
+            agent_path,
+            baseline_results
+        )
 
     with open(os.path.join(baseline_path, "agent_reprs.pkl"), "wb") as f:
         pickle.dump(agent_results, f)
