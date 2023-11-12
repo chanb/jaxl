@@ -7,11 +7,15 @@
     },
     "model_config": {
         "policy": {
-            "architecture": "mlp",
+            "architecture": "cnn",
+            "features": [32, 32],
+            "kernel_sizes": [[3, 3], [3, 3]],
             "layers": [128, 128]
         },
         "vf": {
-            "architecture": "mlp",
+            "architecture": "cnn",
+            "features": [32, 32],
+            "kernel_sizes": [[3, 3], [3, 3]],
             "layers": [128, 128]
         }
     },
@@ -42,7 +46,7 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "CarRacing-v2",
+            "env_name": "ParameterizedCarRacing-v0",
             "env_kwargs": {
                 "seed": 0,
                 "use_default": false
@@ -64,7 +68,7 @@
         "normalize_advantage": true,
         "temperature": 1.0,
         "eps": 1e-5,
-        "obs_rms": true,
+        "obs_rms": false,
         "value_rms": false,
         "policy_distribution": "softmax",
         "opt_batch_size": 128,

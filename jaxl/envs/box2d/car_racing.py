@@ -556,6 +556,7 @@ class ParameterizedCarRacing(gym.Env, EzPickle):
                 self.car.gas(action[1])
                 self.car.brake(action[2])
             else:
+                action = int(action)
                 if not self.action_space.contains(action):
                     raise InvalidAction(
                         f"you passed the invalid action `{action}`. "

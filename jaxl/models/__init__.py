@@ -6,7 +6,7 @@ import numpy as np
 import optax
 
 from jaxl.constants import *
-from jaxl.models.common import MLP, Model, Policy, EnsembleModel, EncoderPredictorModel
+from jaxl.models.common import MLP, Model, Policy, EnsembleModel, EncoderPredictorModel, CNN
 from jaxl.models.policies import *
 
 
@@ -144,6 +144,14 @@ def get_model(
     ), f"{model_config.architecture} is not supported (one of {VALID_ARCHITECTURE})"
     if model_config.architecture == CONST_MLP:
         return MLP(
+            model_config.layers + list(np.prod(output_dim, keepdims=True)),
+            getattr(model_config, "activation", CONST_RELU),
+            getattr(model_config, "output_activation", CONST_IDENTITY),
+        )
+    elif model_config.architecture == CONST_CNN:
+        return CNN(
+            model_config.features,
+            model_config.kernel_sizes,
             model_config.layers + list(np.prod(output_dim, keepdims=True)),
             getattr(model_config, "activation", CONST_RELU),
             getattr(model_config, "output_activation", CONST_IDENTITY),
