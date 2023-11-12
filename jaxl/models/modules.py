@@ -27,13 +27,9 @@ class CNNModule(nn.Module):
     features: Sequence[int]
     kernel_sizes: Sequence[Sequence[int]]
     activation: Callable
-    output_activation: Callable
 
     @nn.compact
     def __call__(self, x: chex.Array) -> chex.Array:
-        for feature, kernel_size in zip(self.features[:-1], self.kernel_sizes[:-1]):
-            x = self.activation(nn.Conv(feature, kernel_size)(x))
-        x = self.output_activation(
-            nn.Dense(self.features[-1], self.kernel_sizes[-1])(x)
-        )
+        for feature, kernel_size in zip(self.features, self.kernel_sizes):
+            x = self.activation(nn.Conv(feature, kernel_size, padding=)(x))
         return x

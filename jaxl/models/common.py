@@ -435,7 +435,6 @@ class CNN(Model):
             features,
             kernel_sizes,
             get_activation(activation),
-            get_activation(activation),
         )
         self.mlp = MLPModule(
             layers,
