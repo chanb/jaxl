@@ -271,7 +271,7 @@ class ParameterizedCarRacing(gym.Env, EzPickle):
             # do nothing, left, right, gas, brake
 
         self.observation_space = spaces.Box(
-            low=0, high=255, shape=(STATE_H, STATE_W, 3), dtype=np.uint8
+            low=0, high=255, shape=(3, STATE_H, STATE_W), dtype=np.uint8
         )
 
         self.render_mode = render_mode
