@@ -570,7 +570,10 @@ class ParameterizedCarRacing(gym.Env, EzPickle):
         self.world.Step(1.0 / FPS, 6 * 30, 2 * 30)
         self.t += 1.0 / FPS
 
-        self.state = self._render("state_pixels")
+        rgb = self._render("state_pixels")
+        rgb = np.transpose(rgb, axes=(2, 0, 1))
+        gray = (0.2989 * rgb[0] + 0.5870 * rgb[1] + 0.1140 * rgb[2])[None]
+        self.state = rgb
 
         step_reward = 0
         terminated = False
