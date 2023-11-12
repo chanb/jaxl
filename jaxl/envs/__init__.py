@@ -176,3 +176,10 @@ register(
     max_episode_steps=200,
     kwargs={},
 )
+register(
+    id="ParameterizedCarRacing-v0",
+    entry_point="jaxl.envs.box2d.car_racing:ParameterizedCarRacing",
+    max_episode_steps=1000,
+    reward_threshold=900,
+    kwargs={},
+)
