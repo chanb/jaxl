@@ -29,6 +29,7 @@ class MetaWorldRollout(EvaluationRollout):
         num_samples: int,
         subsampling_length: int,
         max_episode_length: int = None,
+        use_image_for_inference: bool = False,
         get_image: bool = False,
         width: int = 84,
         height: int = 84,
@@ -101,19 +102,25 @@ class MetaWorldRollout(EvaluationRollout):
             curr_episode = []
             done = False
             while not done:
-                normalize_obs = self._curr_obs
+                if use_image_for_inference:
+                    self._curr_obs = save_curr_obs
+                normalize_obs = np.array([self._curr_obs])
+                if obs_rms:
+                    normalize_obs = obs_rms.normalize(normalize_obs)
 
                 act, next_h_state = policy.deterministic_action(
                     params,
                     normalize_obs,
-                    self._curr_h_state,
+                    np.array([self._curr_h_state]),
                 )
+                act = act[0]
+                next_h_state = next_h_state[0]
 
-                env_act = act
                 if isinstance(self._env.action_space, spaces.Box):
                     env_act = np.clip(
                         act, self._env.action_space.low, self._env.action_space.high
                     )
+                env_act = np.array(act)
                 next_obs, rew, terminated, truncated, info = self._env.step(env_act)
                 self._episodic_returns[-1] += float(rew)
                 self._episode_lengths[-1] += 1

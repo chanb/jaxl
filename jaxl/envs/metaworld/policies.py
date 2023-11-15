@@ -115,7 +115,7 @@ class MetaWorldPolicy:
         self.policy = policy
 
     def deterministic_action(self, params, obs, carry):
-        return self.policy.get_action(obs), carry
+        return self.policy.get_action(obs[0])[None], carry
 
     def reset(self) -> chex.Array:
         """
