@@ -251,15 +251,26 @@ def bhattacharyya(
     model_dict = all_params["model_dict"]
     num_classes = target_env_buffer["act_dim"][-1]
 
-    def loss_fn(params, x, carry, y):
-        preds, _ = model.predictor.model.forward(
-            params,
-            x,
-            carry
-        )
-        y_one_hot = jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
-        
-        return jnp.sum(jnp.sqrt(preds * y_one_hot)), {}
+    if num_classes == 1:
+        def loss_fn(params, x, carry, y):
+            preds, _ = model.predictor.model.forward(
+                params,
+                x,
+                carry
+            )
+            
+            return -jnp.log(jnp.sum(jnp.sqrt(preds * jnp.squeeze(y))) + eps), {}
+    else:
+        def loss_fn(params, x, carry, y):
+            preds, _ = model.predictor.model.forward(
+                params,
+                x,
+                carry
+            )
+            preds = jax.nn.softmax(preds, axis=-1)
+            y_one_hot = jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
+            
+            return -jnp.log(jnp.sum(jnp.sqrt(preds * y_one_hot)) + eps), {}
 
     def loss(
         model_dicts,
@@ -269,7 +280,6 @@ def bhattacharyya(
         *args,
         **kwargs,
     ):
-        print(model_dicts.keys())
         reps, _ = jax.vmap(model.encode, in_axes=[None, 0, 0])(
             model_dicts["encoder"], obss, h_states
         )
@@ -578,6 +588,10 @@ for env_name in env_names:
                             diversities[2],
                             diversities[3],
                         )
+                        if not np.all(np.isfinite(to_add)):
+                            print(mtbc_variant)
+                            print(to_add)
+                            assert 0
                         xs.append(to_add)
                         ys.append(normalize(mtbc_variant[2][variant_i]))
 
@@ -660,6 +674,10 @@ envs = (
     ("frozenlake", "pendulum", "cheetah", "walker"),
     ("cartpole", "pendulum", "cheetah", "walker"),
 )
+# control_modes = ["discrete"]
+# envs = (
+#     ("frozenlake", "pendulum", "cheetah", "walker"),
+# )
 diversity_names = (
     "L2",
     "Data Perf.",
