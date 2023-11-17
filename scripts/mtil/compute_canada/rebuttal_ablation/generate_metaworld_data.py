@@ -102,7 +102,7 @@ def main(config: FlagValues):
             save_buffer = os.path.join(
                 out_dir,
                 (
-                    f"metaworld-{config.exp_name}.env_seed_{env_seed}"
+                    f"metaworld-{config.exp_name}.control_mode_continuous.env_seed_{env_seed}"
                     f".num_samples_{config.num_samples}.subsampling_length_{subsampling_length}.gzip"
                 )
             )

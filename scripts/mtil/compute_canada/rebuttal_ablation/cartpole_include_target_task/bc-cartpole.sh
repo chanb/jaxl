@@ -8,7 +8,7 @@ source ~/jaxl_env/bin/activate
 python ../sweep_bc-include_target_task.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
-    --out_dir=${HOME}/scratch/data/bc_less_data-include_target_task \
+    --out_dir=${HOME}/scratch/data/bc-include_target_task \
     --run_seed=0 \
     --num_runs=5 \
     --hyperparam_set=single_sweep \
