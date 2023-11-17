@@ -7,7 +7,7 @@ source ~/jaxl_env/bin/activate
 
 python ../../sweep_bc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
-    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/bc.json \
+    --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/metaworld/bc.json \
     --out_dir=${HOME}/scratch/data/bc_less_data \
     --run_seed=0 \
     --num_runs=5 \

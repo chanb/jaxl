@@ -13,10 +13,6 @@ def set_ppo(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=N
             }
             template["learner_config"]["load_pretrain"] = pretrain_config
     elif hyperparam_keys is not None:
-        if "model" in hyperparam_keys:
-            template["model_config"]["policy"]["layers"] = hyperparam_map("model")
-            template["model_config"]["vf"]["layers"] = hyperparam_map("model")
-
         if "lr" in hyperparam_keys:
             template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"][
                 "value"
@@ -74,9 +70,6 @@ def set_bc(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=No
         if key == "loss":
             template["learner_config"]["losses"] = [val, "l2"]
     elif hyperparam_keys is not None:
-        if "model" in hyperparam_keys:
-            template["model_config"]["layers"] = hyperparam_map("model")
-
         if "lr" in hyperparam_keys:
             template["optimizer_config"]["lr"]["scheduler_kwargs"][
                 "value"
