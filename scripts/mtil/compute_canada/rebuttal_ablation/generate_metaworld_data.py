@@ -138,6 +138,8 @@ def main(config: FlagValues):
     sbatch_content += "module load python/3.9\n"
     sbatch_content += "module load mujoco\n"
     sbatch_content += "source ~/jaxl_env/bin/activate\n"
+    sbatch_content += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/chanb/.mujoco/mujoco210/bin:/usr/lib/nvidia\n"
+    sbatch_content += "export MUJOCO_GL=egl\n"
     sbatch_content += '`sed -n "${SLURM_ARRAY_TASK_ID}p"'
     sbatch_content += " < {}`\n".format(dat_path)
     sbatch_content += "echo ${SLURM_ARRAY_TASK_ID}\n"

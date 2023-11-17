@@ -12,7 +12,7 @@ python ../generate_metaworld_data.py \
     --num_samples=100000 \
     --subsampling_lengths=500 \
     --scrambling_step=5 \
-    --run_time=00:30:00 \
+    --run_time=01:00:00 \
     --max_episode_length=500 \
     --exp_name=open_drawer
 
