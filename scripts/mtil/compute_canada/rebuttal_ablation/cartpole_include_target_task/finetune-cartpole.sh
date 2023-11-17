@@ -5,15 +5,15 @@ module load mujoco
 source ~/jaxl_env/bin/activate
 
 
-python ../sweep_finetune_mtbc-include_pretrain_seed.py \
+python ../sweep_finetune_mtbc-include_target_task.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/finetune_mtbc.json \
-    --out_dir=${HOME}/scratch/data/finetune_mtbc_main-include_representation \
+    --out_dir=${HOME}/scratch/data/finetune_mtbc_main-include_target_task \
     --run_seed=0 \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/cartpole_cont \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-include_representation/cartpole/continuous \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-include_target_task/cartpole/continuous \
     --num_samples=500 \
     --exp_name=cartpole
 
