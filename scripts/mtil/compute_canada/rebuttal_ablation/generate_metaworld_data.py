@@ -9,6 +9,7 @@ from absl.flags import FlagValues
 
 import jax
 import json
+import numpy as np
 import os
 
 
@@ -18,12 +19,6 @@ flags.DEFINE_string(
     default="./gather_metaworld_data.py",
     help="Path to gather_metaworld_data.py",
     required=False,
-)
-flags.DEFINE_string(
-    "runs_dir",
-    default=None,
-    help="The directory storing the runs",
-    required=True,
 )
 flags.DEFINE_string(
     "exp_name",
@@ -74,7 +69,6 @@ NUM_FILES_PER_DIRECTORY = 100
 
 def main(config: FlagValues):
     assert os.path.isfile(config.main_path), f"{config.main_path} is not a file"
-    assert os.path.isdir(config.runs_dir), f"{config.runs_dir} is not a directory"
     assert (
         len(config.run_time.split(":")) == 3
     ), f"run_time needs to be in format hh:mm:ss, got {config.run_time}"
@@ -108,8 +102,7 @@ def main(config: FlagValues):
             save_buffer = os.path.join(
                 out_dir,
                 (
-                    f"{env_name}.control_mode_{control_mode}"
-                    f".env_seed_{env_seed}.model_seed_{model_seed}"
+                    f"metaworld-{config.exp_name}.env_seed_{env_seed}"
                     f".num_samples_{config.num_samples}.subsampling_length_{subsampling_length}.gzip"
                 )
             )
