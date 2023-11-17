@@ -18,4 +18,4 @@ python ../../../sweep_bc.py \
     --exp_name=cartpole
 
 chmod +x run_all-*.sh
-sbatch run_all-bc-single_sweep-cartpole_continuous.sh
+# sbatch run_all-bc-single_sweep-cartpole_continuous.sh

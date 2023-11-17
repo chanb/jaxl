@@ -44,7 +44,8 @@ exp_suffix = ""
 # exp_suffix = "-main-double_target_data"
 
 # extra ablation on including target task
-exp_name = "finetune_mtbc_main-include_representation"
+# exp_name = "bc_less_data-include_target_task"
+exp_name = "finetune_mtbc_main-include_target_task"
 exp_suffix = ""
 
 run_time = "00:25:00"

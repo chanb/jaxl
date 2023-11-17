@@ -19,4 +19,4 @@ python ../../../sweep_finetune_mtbc.py \
     --exp_name=cartpole-main-double_target_data
 
 chmod +x run_all-*.sh
-# sbatch run_all-finetune-mtbc-single_sweep-cartpole-main-double_target_data_continuous.sh
+sbatch run_all-finetune-mtbc-single_sweep-cartpole-main-double_target_data_continuous.sh
