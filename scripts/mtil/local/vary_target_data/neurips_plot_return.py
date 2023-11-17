@@ -29,20 +29,37 @@ plt.rc('axes', prop_cycle=linestyle_cycler)
 # doc_width_pt = 397.48499 # neurips
 doc_width_pt = 452.9679 # iclr
 
+# experiment_name = "results-finetune_mtbc_main"
+# experiment_name_suffixes = (
+#     "",
+#     "-quarter_more_target_data",
+#     "-half_more_target_data",
+#     "-double_target_data",
+# )
+# # bc_name = "results-bc_less_data"
+# bc_name = "results-bc_double"
+# # bc_name = "results-bc_half_more"
+
+# results_per_experiment = {}
+# experiment_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{experiment_name}"
+# bc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{bc_name}"
+
+# rebuttal
 experiment_name = "results-finetune_mtbc_main"
 experiment_name_suffixes = (
     "",
-    "-quarter_more_target_data",
-    "-half_more_target_data",
-    "-double_target_data",
+    "-main-quarter_more_target_data",
+    "-main-half_more_target_data",
+    "-main-double_target_data",
 )
 # bc_name = "results-bc_less_data"
 bc_name = "results-bc_double"
 # bc_name = "results-bc_half_more"
 
 results_per_experiment = {}
-experiment_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{experiment_name}"
+experiment_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/rebuttal/evaluations/{experiment_name}"
 bc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{bc_name}"
+
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
 for exp_i, suffix in enumerate(experiment_name_suffixes):

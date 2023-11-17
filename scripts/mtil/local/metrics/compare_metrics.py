@@ -258,8 +258,9 @@ def bhattacharyya(
                 x,
                 carry
             )
-            
-            return -jnp.log(jnp.sum(jnp.sqrt(preds * jnp.squeeze(y))) + eps), {}
+
+            prods = jnp.sum(preds * jnp.isclose(preds, jnp.squeeze(y)), axis=-1)
+            return -jnp.log(jnp.sum(jnp.sqrt(prods)) + eps), {}
     else:
         def loss_fn(params, x, carry, y):
             preds, _ = model.predictor.model.forward(
