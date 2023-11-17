@@ -125,8 +125,8 @@ def main(config):
 
     assert os.path.isdir(config.data_dir), f"{config.data_dir} is not a directory"
     assert (
-        config.num_heldouts > 0
-    ), f"num_heldouts needs to be at least 1, got {config.num_heldouts}"
+        config.num_heldouts >= 0
+    ), f"num_heldouts needs to be at least 0, got {config.num_heldouts}"
 
     num_tasks_variants = np.array(
         [int(num_tasks) for num_tasks in config.num_tasks_variants]

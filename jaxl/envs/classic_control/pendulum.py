@@ -117,17 +117,17 @@ class ParameterizedPendulumEnv(gym.Env):
     ):
         self.max_speed = 8
 
-        self.l = 1.0
+        self.max_torque = 2.0
         self.g = 9.8
         self.dt = 0.05
         self.m = 1.0
         if use_default:
-            self.max_torque = 2.0
+            self.l = 1.0
         else:
             self._rng = np.random.RandomState(seed)
-            self.max_torque = sample_data(0.01, 4.0, self._rng)
+            self.l = sample_data(0.01, 1.2, self._rng)
         self.modified_attributes = {
-            "max_torque": self.max_torque,
+            "l": self.l,
         }
 
         self.render_mode = render_mode

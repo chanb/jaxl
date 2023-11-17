@@ -52,7 +52,7 @@ flags.DEFINE_integer(
 flags.DEFINE_boolean(
     "discrete_control", default=False, help="Whether or not to use discrete control"
 )
-flags.DEFINE_string("run_time", default="00:20:00", help="The run time per variant")
+flags.DEFINE_string("run_time", default="00:40:00", help="The run time per variant")
 flags.DEFINE_integer("num_runs", default=1, help="The number of runs per variation")
 flags.DEFINE_string(
     "data_dir",

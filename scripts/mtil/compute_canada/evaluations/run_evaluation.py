@@ -99,6 +99,7 @@ def get_returns(
         num_evaluation_episodes,
         None,
         use_tqdm=False,
+        random=reference_agent_path is not None,
     )
     env.close()
 
