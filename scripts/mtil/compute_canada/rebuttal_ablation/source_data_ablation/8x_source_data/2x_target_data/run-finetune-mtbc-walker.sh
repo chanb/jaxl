@@ -5,36 +5,36 @@ module load mujoco
 source ~/jaxl_env/bin/activate
 
 
-python ../../../sweep_finetune_mtbc.py \
+python ../../../../sweep_finetune_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/finetune_mtbc.json \
-    --out_dir=${HOME}/scratch/data/finetune_mtbc_main-main-double_target_data \
+    --out_dir=${HOME}/scratch/data/finetune_mtbc_main-8x_source_data-2x_target_data \
     --run_seed=0 \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_cont \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/walker/continuous \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-8x_source_data/walker/continuous \
     --num_heldouts=10 \
     --num_samples=4000 \
-    --exp_name=walker-main-double_target_data \
+    --exp_name=walker-8x_source_data-2x_target_data \
     --run_time=00:30:00
 
 
-python ../../../sweep_finetune_mtbc.py \
+python ../../../../sweep_finetune_mtbc.py \
     --main_path=${JAXL_PATH}/jaxl/main.py \
     --config_template=${JAXL_PATH}/scripts/mtil/experiments/configs/main/finetune_mtbc.json \
-    --out_dir=${HOME}/scratch/data/finetune_mtbc_main-main-double_target_data \
+    --out_dir=${HOME}/scratch/data/finetune_mtbc_main-8x_source_data-2x_target_data \
     --run_seed=0 \
     --num_runs=1 \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/walker_disc \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main/walker/discrete \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-8x_source_data/walker/discrete \
     --num_heldouts=10 \
     --num_samples=1000 \
     --discrete_control \
-    --exp_name=walker-main-double_target_data \
+    --exp_name=walker-8x_source_data-2x_target_data \
     --run_time=00:30:00
 
 chmod +x run_all-*.sh
-sbatch run_all-finetune-mtbc-single_sweep-walker-main-double_target_data_continuous.sh
-sbatch run_all-finetune-mtbc-single_sweep-walker-main-double_target_data_discrete.sh
+sbatch run_all-finetune-mtbc-single_sweep-walker-8x_source_data-2x_target_data_continuous.sh
+sbatch run_all-finetune-mtbc-single_sweep-walker-8x_source_data-2x_target_data_discrete.sh

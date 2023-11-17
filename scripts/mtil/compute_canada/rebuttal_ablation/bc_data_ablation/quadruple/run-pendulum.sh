@@ -32,5 +32,5 @@ python ../../../sweep_bc.py \
     --exp_name=pendulum
 
 chmod +x run_all-*.sh
-sbatch run_all-bc-single_sweep-pendulum_continuous.sh
-sbatch run_all-bc-single_sweep-pendulum_discrete.sh
+# sbatch run_all-bc-single_sweep-pendulum_continuous.sh
+# sbatch run_all-bc-single_sweep-pendulum_discrete.sh

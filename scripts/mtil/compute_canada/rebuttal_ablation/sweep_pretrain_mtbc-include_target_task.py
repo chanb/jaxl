@@ -138,9 +138,8 @@ def main(config):
 
     # Gather expert datasets
     dataset_paths = []
-    for data_path in os.listdir(config.data_dir)[config.num_heldouts :]:
+    for data_path in sorted(os.listdir(config.data_dir))[config.num_heldouts :]:
         dataset_paths.append(os.path.join(config.data_dir, data_path))
-    dataset_paths = sorted(dataset_paths)
 
     os.makedirs(config.out_dir, exist_ok=True)
 
