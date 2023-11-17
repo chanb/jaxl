@@ -144,7 +144,6 @@ def main(
                 {
                     CONST_EPISODIC_RETURNS: rollout.episodic_returns,
                     CONST_EPISODE_LENGTHS: rollout.episode_lengths,
-                    CONST_RUN_PATH: config.run_path,
                     CONST_BUFFER_PATH: config.save_buffer,
                 },
                 f,

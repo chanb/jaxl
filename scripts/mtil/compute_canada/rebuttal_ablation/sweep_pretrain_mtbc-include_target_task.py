@@ -274,8 +274,8 @@ def main(config):
         f.writelines(dat_content)
 
     os.makedirs(
-        "/home/chanb/scratch/run_reports/pretrain-mtbc-{}-{}_{}-env_seed_{}".format(
-            config.hyperparam_set, config.exp_name, control_mode, env_seed
+        "/home/chanb/scratch/run_reports/pretrain-mtbc-{}-{}_{}".format(
+            config.hyperparam_set, config.exp_name, control_mode
         ),
         exist_ok=True,
     )
