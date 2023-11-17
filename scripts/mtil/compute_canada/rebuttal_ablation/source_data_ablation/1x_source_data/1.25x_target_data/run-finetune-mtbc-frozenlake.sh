@@ -14,7 +14,7 @@ python ../../../../sweep_finetune_mtbc.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/frozenlake_disc \
     --num_heldouts=10 \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-1x_source_data/frozenlake/discrete \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-1x_source_data/frozenlake-1x_source_data/discrete \
     --num_samples=625 \
     --discrete_control \
     --exp_name=frozenlake-1x_source_data-1.25x_target_data

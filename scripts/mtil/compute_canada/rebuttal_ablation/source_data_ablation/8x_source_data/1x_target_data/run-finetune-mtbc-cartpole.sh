@@ -14,7 +14,7 @@ python ../../../../sweep_finetune_mtbc.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/cartpole_cont \
     --num_heldouts=10 \
-    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-8x_source_data/cartpole/continuous \
+    --pretrain_dir=${HOME}/scratch/data/pretrain_mtbc_main-8x_source_data/cartpole-8x_source_data/continuous \
     --num_samples=1000 \
     --exp_name=cartpole-8x_source_data-1x_target_data
 

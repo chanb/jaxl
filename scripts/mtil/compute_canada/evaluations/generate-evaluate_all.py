@@ -1,14 +1,14 @@
 import os
 
 env_names = [
-    ("frozenlake", "discrete"),
+    # ("frozenlake", "discrete"),
     ("cartpole", "continuous"),
-    ("pendulum", "discrete"),
-    ("pendulum", "continuous"),
-    ("cheetah", "discrete"),
-    ("cheetah", "continuous"),
-    ("walker", "discrete"),
-    ("walker", "continuous"),
+    # ("pendulum", "discrete"),
+    # ("pendulum", "continuous"),
+    # ("cheetah", "discrete"),
+    # ("cheetah", "continuous"),
+    # ("walker", "discrete"),
+    # ("walker", "continuous"),
 ]
 
 # exp_name = "bc_less_data"
@@ -33,8 +33,8 @@ exp_suffix = ""
 # exp_suffix = ""
 
 # extra ablation on bc
-exp_name = "bc"
-exp_suffix = "-1x_target_data"
+# exp_name = "bc"
+# exp_suffix = "-1x_target_data"
 # exp_suffix = "-2x_target_data"
 # exp_suffix = "-4x_target_data"
 # exp_suffix = "-8x_target_data"
@@ -45,9 +45,9 @@ exp_suffix = "-1x_target_data"
 # exp_suffix = "-main-double_target_data"
 
 # extra ablation on including target task
-# exp_name = "bc_less_data-include_target_task"
-# exp_name = "finetune_mtbc_main-include_target_task"
-# exp_suffix = ""
+# exp_name = "bc-include_target_task"
+exp_name = "finetune_mtbc_main-include_target_task"
+exp_suffix = ""
 
 run_time = "00:25:00"
 num_evaluation_episodes = 30

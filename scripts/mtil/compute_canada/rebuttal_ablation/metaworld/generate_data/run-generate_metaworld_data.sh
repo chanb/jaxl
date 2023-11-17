@@ -9,10 +9,10 @@ python ../../generate_metaworld_data.py \
     --out_dir=${HOME}/scratch/data/expert_data \
     --run_seed=0 \
     --num_envs=50 \
-    --num_samples=50000 \
+    --num_samples=10000 \
     --subsampling_lengths=500 \
     --scrambling_step=5 \
-    --run_time=05:00:00 \
+    --run_time=01:00:00 \
     --max_episode_length=500 \
     --exp_name=open_drawer
 
