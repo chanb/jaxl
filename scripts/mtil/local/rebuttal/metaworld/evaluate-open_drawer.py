@@ -37,7 +37,7 @@ flags.DEFINE_integer(
 )
 flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=False)
 flags.DEFINE_integer(
-    "num_samples", default=None, help="Number of samples", required=True
+    "num_episodes", default=None, help="Number of episodes", required=True
 )
 flags.DEFINE_string(
     "save_stats",
@@ -51,22 +51,10 @@ flags.DEFINE_string(
     help="Where to save the samples",
     required=False,
 )
-flags.DEFINE_integer(
-    "subsampling_length",
-    default=1,
-    help="The length of subtrajectories to gather per episode",
-    required=False,
-)
 flags.DEFINE_boolean(
     "record_video",
     default=False,
     help="Whether or not to record video. Only enabled when save_stats=True",
-    required=False,
-)
-flags.DEFINE_integer(
-    "max_episode_length",
-    default=None,
-    help="Maximum episode length",
     required=False,
 )
 
@@ -103,28 +91,14 @@ def main(
     tic = timeit.default_timer()
     set_seed(config.run_seed)
     assert (
-        config.subsampling_length > 0
-    ), f"subsampling_length should be at least 1, got {config.subsampling_length}"
-    assert (
-        config.num_samples > 0
-    ), f"num_samples should be at least 1, got {config.num_samples}"
-    assert (
-        config.max_episode_length is None or config.max_episode_length > 0
-    ), f"max_episode_length should be at least 1, got {config.max_episode_length}"
+        config.num_episodes > 0
+    ), f"num_episodes should be at least 1, got {config.num_episodes}"
 
     if config.env_seed is not None:
         env_seed = config.env_seed
 
     env = get_env(env_seed)
     act_dim = (*env.action_space.shape, 1)
-
-    buffer = MemoryEfficientNumPyBuffer(
-        buffer_size=config.num_samples,
-        obs_dim=(3, HEIGHT, WIDTH),
-        h_state_dim=(1,),
-        act_dim=act_dim,
-        rew_dim=(1,),
-    )
 
     with open(os.path.join(config.run_path, "config.json"), "r") as f:
         agent_config_dict = json.load(f)
@@ -159,22 +133,17 @@ def main(
     rollout = MetaWorldRollout(
         env, seed=env_seed, num_scrambling_steps=config.scrambling_step
     )
-    rollout.rollout_with_subsampling(
+    rollout.rollout(
         agent_policy_params,
         policy,
         False,
-        buffer,
-        config.num_samples,
-        config.subsampling_length,
-        config.max_episode_length,
+        config.num_episodes,
+        None,
         use_image_for_inference=True,
         get_image=True,
         width=WIDTH,
         height=HEIGHT,
     )
-    if config.save_buffer:
-        print("Saving buffer with {} transitions".format(len(buffer)))
-        buffer.save(config.save_buffer, end_with_done=False)
 
     if config.save_stats:
         print("Saving episodic statistics")
@@ -184,7 +153,6 @@ def main(
                     CONST_EPISODIC_RETURNS: rollout.episodic_returns,
                     CONST_EPISODE_LENGTHS: rollout.episode_lengths,
                     CONST_RUN_PATH: config.run_path,
-                    CONST_BUFFER_PATH: config.save_buffer,
                 },
                 f,
             )

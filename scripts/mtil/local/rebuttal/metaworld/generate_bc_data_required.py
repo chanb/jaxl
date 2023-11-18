@@ -7,12 +7,12 @@ expert_dataset = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaw
 bc_template = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/bc_template.json"
 
 save_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/results"
-experiment_name = "bc_data_ablation"
+experiment_name = "bc_data_ablation-smaller_network"
 
-config_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/bc_data_ablation"
-script_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/bc_data_ablation.sh"
+config_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/bc_data_ablation-smaller_network"
+script_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/bc_data_ablation-smaller_network.sh"
 main_path = "/home/bryanpu1/projects/jaxl/jaxl/main.py"
-device = "gpu:0"
+device = "gpu:1"
 
 os.makedirs(config_out_path, exist_ok=True)
 assert os.path.isfile(bc_template), f"{bc_template} is not a file"
@@ -22,7 +22,6 @@ with open(bc_template, "r") as f:
 
 sh_content = "#!/bin/bash\n"
 sh_content += "conda activate jaxl\n"
-sh_content += "mkdir -p expert_data\n"
 for num_data in num_data_to_check:
     template["learner_config"]["buffer_config"]["load_buffer"] = expert_dataset
     template["learner_config"]["buffer_config"]["set_size"] = num_data
