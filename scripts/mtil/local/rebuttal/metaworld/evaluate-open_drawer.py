@@ -16,7 +16,6 @@ import numpy as np
 import os
 import timeit
 
-from jaxl.buffers.ram_buffers import MemoryEfficientNumPyBuffer
 from jaxl.constants import *
 from jaxl.envs.metaworld.policies import get_policy
 from jaxl.envs.metaworld.rollouts import MetaWorldRollout

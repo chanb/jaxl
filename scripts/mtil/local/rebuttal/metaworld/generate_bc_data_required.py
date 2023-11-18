@@ -7,12 +7,12 @@ expert_dataset = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaw
 bc_template = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/bc_template.json"
 
 save_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/results"
-experiment_name = "bc_data_ablation-smaller_network"
+arch_name = "medium_network"
 
-config_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/bc_data_ablation-smaller_network"
-script_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/bc_data_ablation-smaller_network.sh"
+config_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/bc_data_ablation-{}".format(arch_name)
+script_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/bc_data_ablation-{}.sh".format(arch_name)
 main_path = "/home/bryanpu1/projects/jaxl/jaxl/main.py"
-device = "gpu:1"
+device = "gpu:2"
 
 os.makedirs(config_out_path, exist_ok=True)
 assert os.path.isfile(bc_template), f"{bc_template} is not a file"
@@ -26,8 +26,8 @@ for num_data in num_data_to_check:
     template["learner_config"]["buffer_config"]["load_buffer"] = expert_dataset
     template["learner_config"]["buffer_config"]["set_size"] = num_data
     template["learner_config"]["losses"][0] = "gaussian"
-    template["logging_config"]["save_path"] = save_path
-    template["logging_config"]["experiment_name"] = experiment_name
+    template["logging_config"]["save_path"] = os.path.join(save_path, arch_name)
+    template["logging_config"]["experiment_name"] = f"num_data-{num_data}"
 
     curr_config_path = os.path.join(config_out_path, "bc_data_ablation-{}.json".format(num_data))
     with open(curr_config_path, "w+") as f:
