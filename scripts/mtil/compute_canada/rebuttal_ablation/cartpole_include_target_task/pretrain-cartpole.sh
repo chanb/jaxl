@@ -15,7 +15,7 @@ python ../sweep_pretrain_mtbc-include_target_task.py \
     --hyperparam_set=single_sweep \
     --data_dir=${HOME}/scratch/data/expert_data/cartpole_cont \
     --num_tasks_variants=1,2,4,8,16 \
-    --offset=4 \
+    --offset=0 \
     --num_samples=500 \
     --samples_per_task \
     --exp_name=cartpole \
@@ -23,4 +23,4 @@ python ../sweep_pretrain_mtbc-include_target_task.py \
     --run_time=01:30:00
 
 chmod +x run_all-*.sh
-sbatch run_all-pretrain-mtbc-single_sweep-cartpole_continuous-offset_4.sh
+sbatch run_all-pretrain-mtbc-single_sweep-cartpole_continuous-offset_0.sh

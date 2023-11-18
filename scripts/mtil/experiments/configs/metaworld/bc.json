@@ -25,7 +25,7 @@
         "task": "imitation_learning",
         "buffer_config": {
             "load_buffer": "<TO_MODIFY>",
-            "buffer_type": "default",
+            "buffer_type": "memory_efficient",
             "set_size": "<TO_MODIFY>"
         },
         "seeds": {
