@@ -53,9 +53,7 @@ flags.DEFINE_boolean(
     "discrete_control", default=False, help="Whether or not to use discrete control"
 )
 flags.DEFINE_integer("num_runs", default=1, help="The number of runs per variation")
-flags.DEFINE_integer(
-    "offset", default=None, required=True, help="The starting task id"
-)
+flags.DEFINE_integer("offset", default=None, required=True, help="The starting task id")
 flags.DEFINE_string(
     "data_dir",
     default=None,

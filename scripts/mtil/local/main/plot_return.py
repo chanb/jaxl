@@ -21,11 +21,10 @@ sns.set_palette("colorblind")
 plt.rcParams.update(pgf_with_latex)
 
 
-linestyle_cycler = (
-    cycler(color=sns.color_palette()[:4]) +
-    cycler(linestyle=['-','--',':','-.'])
+linestyle_cycler = cycler(color=sns.color_palette()[:4]) + cycler(
+    linestyle=["-", "--", ":", "-."]
 )
-plt.rc('axes', prop_cycle=linestyle_cycler)
+plt.rc("axes", prop_cycle=linestyle_cycler)
 
 # Using the set_size function as defined earlier
 doc_width_pt = 452.9679

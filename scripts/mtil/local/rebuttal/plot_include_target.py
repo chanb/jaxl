@@ -21,23 +21,19 @@ sns.set_palette("colorblind")
 plt.rcParams.update(pgf_with_latex)
 
 
-linestyle_cycler = (
-    cycler(color=sns.color_palette()[:4]) +
-    cycler(linestyle=['-','--',':','-.'])
+linestyle_cycler = cycler(color=sns.color_palette()[:4]) + cycler(
+    linestyle=["-", "--", ":", "-."]
 )
-plt.rc('axes', prop_cycle=linestyle_cycler)
+plt.rc("axes", prop_cycle=linestyle_cycler)
 
 # Using the set_size function as defined earlier
 # doc_width_pt = 397.48499 # neurips
-doc_width_pt = 452.9679 # iclr
+doc_width_pt = 452.9679  # iclr
 
 # ablation
 results_per_experiment = {}
 experiment_name = "results-finetune_mtbc_main-include_target_task"
-experiment_name_suffixes = (
-    "",
-    "-exclude"
-)
+experiment_name_suffixes = ("", "-exclude")
 bc_name = "results-bc-include_target_task"
 
 experiment_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/rebuttal/evaluations/{experiment_name}"
@@ -140,7 +136,9 @@ def map_exp(name):
     else:
         return "Exclude"
 
+
 from pprint import pprint
+
 pprint(results_per_experiment)
 
 # Plot main return
@@ -152,7 +150,9 @@ for env_name in env_names:
     fig, axes = plt.subplots(
         num_rows,
         num_cols,
-        figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=True),
+        figsize=set_size(
+            doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=True
+        ),
         layout="constrained",
     )
 

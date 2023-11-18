@@ -26,8 +26,15 @@ from jaxl.utils import set_seed, parse_dict
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("run_path", default=None, help="The saved run", required=True)
-flags.DEFINE_integer("env_seed", default=None, help="The environment seed", required=True)
-flags.DEFINE_integer("scrambling_step", default=0, help="The number of random initialization steps", required=False)
+flags.DEFINE_integer(
+    "env_seed", default=None, help="The environment seed", required=True
+)
+flags.DEFINE_integer(
+    "scrambling_step",
+    default=0,
+    help="The number of random initialization steps",
+    required=False,
+)
 flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=False)
 flags.DEFINE_integer(
     "num_samples", default=None, help="Number of samples", required=True
@@ -75,10 +82,14 @@ This function constructs the model and executes evaluation.
 TASK_NAME = "drawer-open-v2"
 HEIGHT = 64
 WIDTH = 64
-def get_env(env_seed):
-    ml1 = metaworld.ML1(TASK_NAME) # Construct the benchmark, sampling tasks
 
-    env = ml1.train_classes[TASK_NAME](render_mode="rgb_array")  # Create an environment with task `pick_place`
+
+def get_env(env_seed):
+    ml1 = metaworld.ML1(TASK_NAME)  # Construct the benchmark, sampling tasks
+
+    env = ml1.train_classes[TASK_NAME](
+        render_mode="rgb_array"
+    )  # Create an environment with task `pick_place`
     task = ml1.train_tasks[np.random.RandomState(env_seed).choice(len(ml1.train_tasks))]
     env.set_task(task)  # Set task
     env.camera_name = "corner2"
@@ -119,7 +130,7 @@ def main(
         agent_config_dict = json.load(f)
         agent_config_dict["learner_config"]["policy_distribution"] = "deterministic"
         agent_config = parse_dict(agent_config_dict)
-    
+
     # input_dim = env.observation_space.shape
     input_dim = (3, HEIGHT, WIDTH)
     output_dim = policy_output_dim(act_dim, agent_config.learner_config)
@@ -135,7 +146,6 @@ def main(
             env, f"{os.path.dirname(config.save_stats)}/videos", disable_logger=True
         )
 
-
     checkpoint_manager = CheckpointManager(
         os.path.join(config.run_path, "models"),
         PyTreeCheckpointer(),
@@ -146,7 +156,9 @@ def main(
     model_dict = params[CONST_MODEL_DICT]
     agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
 
-    rollout = MetaWorldRollout(env, seed=env_seed, num_scrambling_steps=config.scrambling_step)
+    rollout = MetaWorldRollout(
+        env, seed=env_seed, num_scrambling_steps=config.scrambling_step
+    )
     rollout.rollout_with_subsampling(
         agent_policy_params,
         policy,

@@ -21,15 +21,14 @@ sns.set_palette("colorblind")
 plt.rcParams.update(pgf_with_latex)
 
 
-linestyle_cycler = (
-    cycler(color=sns.color_palette()[:4]) +
-    cycler(linestyle=['-','--',':','-.'])
+linestyle_cycler = cycler(color=sns.color_palette()[:4]) + cycler(
+    linestyle=["-", "--", ":", "-."]
 )
-plt.rc('axes', prop_cycle=linestyle_cycler)
+plt.rc("axes", prop_cycle=linestyle_cycler)
 
 # Using the set_size function as defined earlier
 # doc_width_pt = 397.48499 # neurips
-doc_width_pt = 452.9679 # iclr
+doc_width_pt = 452.9679  # iclr
 
 exp_suffixes = [
     "1x_target_data",
@@ -52,7 +51,7 @@ else:
         for filename in filenames:
             if not filename.endswith(".pkl"):
                 continue
-            
+
             print("Processing {}/{}".format(eval_path, filename))
             variant_name = eval_path.split("/")[-3:]
             (env_name, control_mode, env_seed) = variant_name
@@ -84,8 +83,10 @@ else:
     with open(f"{save_path}/results.pkl", "wb") as f:
         pickle.dump(results, f)
 
+
 def map_task(name):
     return int(name.split("x_target_data")[0])
+
 
 map_env = {
     "frozenlake": "Frozen Lake",
@@ -124,13 +125,16 @@ def map_exp(name):
             "quadruple": 4,
             "eightfold": 8,
         }
-        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(
+            map_amount[splitted_name[-1].split("_")[0]]
+        )
 
 
 num_plots_per_fig = 4
 num_rows = 1
 num_cols = 4
 from pprint import pprint
+
 pprint(results)
 for env_i, env_name in enumerate(env_names):
     ax_i = env_i % num_plots_per_fig
@@ -139,7 +143,9 @@ for env_i, env_name in enumerate(env_names):
         fig, axes = plt.subplots(
             num_rows,
             num_cols,
-            figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False),
+            figsize=set_size(
+                doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False
+            ),
             layout="constrained",
         )
 
@@ -155,7 +161,10 @@ for env_i, env_name in enumerate(env_names):
 
         def normalize(rets):
             return (rets - random_rets) / (expert_rets - random_rets)
-        keys = [bc_name for bc_name in ref_result[env_seed].keys() if bc_name != "expert"]
+
+        keys = [
+            bc_name for bc_name in ref_result[env_seed].keys() if bc_name != "expert"
+        ]
         num_datas = [map_task(key) for key in keys]
         idxes = np.argsort(num_datas)
 
@@ -169,18 +178,8 @@ for env_i, env_name in enumerate(env_names):
             all_bc_rets[num_data].append(np.mean(normalized_bc_rets))
 
     num_datas = [num_datas[idx] for idx in idxes]
-    means = np.array(
-        [
-            np.mean(all_bc_rets[num_data])
-            for num_data in num_datas
-        ]
-    )
-    stds = np.array(
-        [
-            np.std(all_bc_rets[num_data])
-            for num_data in num_datas
-        ]
-    )
+    means = np.array([np.mean(all_bc_rets[num_data]) for num_data in num_datas])
+    stds = np.array([np.std(all_bc_rets[num_data]) for num_data in num_datas])
     print(stds)
     ax.plot(
         num_datas,

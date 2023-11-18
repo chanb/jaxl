@@ -1,9 +1,9 @@
 {
     "logging_config": {
-        "save_path": "./logs/car_racing",
+        "save_path": "/home/bryanpu1/projects/jaxl/jaxl/logs/car_racing",
         "experiment_name": "ppo",
         "log_interval": 1,
-        "checkpoint_interval": 5
+        "checkpoint_interval": 25
     },
     "model_config": {
         "policy": {
@@ -25,21 +25,20 @@
             "lr": {
                 "scheduler": "constant_schedule",
                 "scheduler_kwargs": {
-                    "value": 1e-3
+                    "value": 3e-4
                 }
             },
-            "max_grad_norm": 0.5,
-            "weight_decay": 0.1
+            "max_grad_norm": false
         },
         "vf": {
             "optimizer": "adam",
             "lr": {
                 "scheduler": "constant_schedule",
                 "scheduler_kwargs": {
-                    "value": 1e-3
+                    "value": 3e-4
                 }
             },
-            "max_grad_norm": 0.5
+            "max_grad_norm": false
         }
     },
     "learner_config": {
@@ -66,35 +65,36 @@
         "gamma": 0.99,
         "gae_lambda": 0.95,
         "normalize_advantage": true,
-        "temperature": 1.0,
         "eps": 1e-5,
         "obs_rms": false,
         "value_rms": false,
         "policy_distribution": "softmax",
-        "opt_batch_size": 128,
-        "opt_epochs": 80,
-        "kl_threshold": 0.015,
-        "update_before_early_stopping": true,
+        "temperature": 1.0,
+	    "min_std": 1e-6,
+        "opt_batch_size": 256,
+        "opt_epochs": 100,
+        "kl_threshold": false,
+        "update_before_early_stopping": false,
         "ent_loss_setting": {
             "scheduler": "constant_schedule",
             "scheduler_kwargs": {
-                "value": 0.0
+                "value": 0
             }
         },
         "vf_loss_setting": {
-            "coefficient": 1.0,
+            "coefficient": 0.5,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": false
         },
         "pi_loss_setting": {
-            "objective": "clip",
+            "objective": "reverse_kl",
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2,
-            "beta": 0.0
+            "clip_param": 0.0,
+            "beta": 0.02
         }
     },
     "train_config": {
-        "num_epochs": 6
+        "num_epochs": 1000
     }
 }

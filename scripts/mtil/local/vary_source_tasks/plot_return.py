@@ -22,7 +22,9 @@ experiment_name = "results-finetune_mtbc-vary_source_tasks"
 bc_name = "results-bc_less_data"
 
 results_per_experiment = {}
-experiment_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/"
+experiment_dir = (
+    f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/"
+)
 bc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{bc_name}"
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
@@ -78,14 +80,24 @@ for exp_i, exp_name in enumerate([ref_name, experiment_name]):
                     num_tasks = int(filename[:-4].split(".")[0].split("num_tasks_")[-1])
 
                     if exp_i > 0:
-                        dataset_sample_seed = int(filename[:-4].split(".")[1].split("dataset_sample_seed_")[-1])
-                        results[(env_name, control_mode)][env_seed].setdefault("mtbc", {})
-                        results[(env_name, control_mode)][env_seed]["mtbc"].setdefault(dataset_sample_seed, [])
-                        results[(env_name, control_mode)][env_seed]["mtbc"][dataset_sample_seed].append(
-                            (num_tasks, paths, data)
+                        dataset_sample_seed = int(
+                            filename[:-4]
+                            .split(".")[1]
+                            .split("dataset_sample_seed_")[-1]
                         )
+                        results[(env_name, control_mode)][env_seed].setdefault(
+                            "mtbc", {}
+                        )
+                        results[(env_name, control_mode)][env_seed]["mtbc"].setdefault(
+                            dataset_sample_seed, []
+                        )
+                        results[(env_name, control_mode)][env_seed]["mtbc"][
+                            dataset_sample_seed
+                        ].append((num_tasks, paths, data))
                     else:
-                        results[(env_name, control_mode)][env_seed].setdefault("mtbc", [])
+                        results[(env_name, control_mode)][env_seed].setdefault(
+                            "mtbc", []
+                        )
                         results[(env_name, control_mode)][env_seed]["mtbc"].append(
                             (num_tasks, paths, data)
                         )
@@ -195,7 +207,7 @@ for env_name in env_names:
                     unique_num_tasks,
                     means,
                     marker="^",
-                    label="ref." if exp_i == 0 and ax_i == 0 else ""
+                    label="ref." if exp_i == 0 and ax_i == 0 else "",
                 )
                 ax.fill_between(
                     unique_num_tasks,
