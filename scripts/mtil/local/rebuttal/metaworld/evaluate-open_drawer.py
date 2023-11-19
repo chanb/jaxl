@@ -138,6 +138,7 @@ def main(
         height=HEIGHT,
     )
 
+    os.makedirs(os.path.dirname(config.save_stats), exist_ok=True)
     if config.save_stats:
         print("Saving episodic statistics")
         with open(config.save_stats, "wb") as f:

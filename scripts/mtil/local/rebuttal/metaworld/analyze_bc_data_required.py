@@ -24,7 +24,7 @@ for run_dir in os.listdir(runs_dir):
         env_seed,
         scrambling_step,
         num_episodes,
-        os.path.join(out_dir, runs_dir.split("/")[-1], run_dir.split("-")[0])
+        os.path.join(out_dir, runs_dir.split("/")[-1], "num_data_{}".format(run_dir.split("-")[0]))
     )
 
 with open(script_out_path, "w+") as f:
