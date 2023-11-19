@@ -1,7 +1,7 @@
 import os
 
 arch_name = "default_network"
-runs_dir = "results/{}".format(arch_name)
+runs_dir = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/results/{}".format(arch_name)
 assert os.path.isdir(runs_dir), f"{runs_dir} does not exist."
 
 eval_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/evaluate-open_drawer.py"
@@ -17,7 +17,8 @@ num_episodes = 30
 sh_content = "#!/bin/bash\n"
 sh_content += "conda activate jaxl\n"
 for run_dir in os.listdir(runs_dir):
-    sh_content += "python {} --run_path={} --env_seed={} --scrambling_step={} --num_episodes={} --save_stats={}".format(
+    print(run_dir)
+    sh_content += "python {} --run_path={} --env_seed={} --scrambling_step={} --num_episodes={} --save_stats={}\n".format(
         eval_path,
         os.path.join(runs_dir, run_dir),
         env_seed,

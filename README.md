@@ -28,6 +28,14 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 ### Compute Canada
 You may install this code on Compute Canada by simply running `jaxl/installation/compute_canada/initial_setup.sh`.
 
+### Salient Conda
+```
+conda install -c conda-forge glew
+conda install -c conda-forge mesalib
+conda install -c menpo glfw3
+pip install patchelf
+```
+
 ## Experiments
 ### Locally
 To run a single experiment, you may execute:
