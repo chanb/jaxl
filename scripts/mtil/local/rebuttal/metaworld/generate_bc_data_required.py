@@ -6,7 +6,7 @@ num_data_to_check = [100, 250, 500, 1000, 5000, 10000, 15000, 20000, 25000, 5000
 expert_dataset = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/expert_data/test_metaworld-seed_0.gzip"
 bc_template = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/bc_template.json"
 
-save_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/results"
+save_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/results/bc"
 arch_name = "large_network"
 
 config_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/bc_data_ablation-{}".format(arch_name)
