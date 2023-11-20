@@ -56,7 +56,7 @@ for task_i, num_tasks in enumerate(num_taskss):
 
         modify_network(template, arch_name)
 
-        curr_config_path = os.path.join(config_out_path, "mtbc_data_ablation-model_seed_{}-num_tasks_{}.json".format(model_seed, num_tasks))
+        curr_config_path = os.path.join(config_out_path, "pretrain_mtbc-model_seed_{}-num_tasks_{}.json".format(model_seed, num_tasks))
         with open(curr_config_path, "w+") as f:
             json.dump(template, f)
 
