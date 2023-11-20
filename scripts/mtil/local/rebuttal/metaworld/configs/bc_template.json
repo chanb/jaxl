@@ -9,7 +9,7 @@
         "architecture": "cnn",
         "features": [32, 32],
         "kernel_sizes": [[3, 3], [3, 3]],
-        "layers": [32]
+        "layers": [32, 32]
     },
     "optimizer_config": {
         "optimizer": "adam",
