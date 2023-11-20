@@ -41,15 +41,17 @@ for task_i, num_tasks in enumerate(num_taskss):
     device = device_range[task_i % num_devices]
     sh_content = "#!/bin/bash\n"
     sh_content += "conda activate jaxl\n"
+
+    template["learner_config"]["buffer_configs"] = []
+    for buffer_seed in range(num_tasks):
+        expert_dataset = os.path.join(expert_datasets_dir, "test_metaworld-seed_{}.gzip".format(buffer_seed))
+        curr_buffer_config = {
+            "load_buffer": expert_dataset,
+            "set_size": num_data,
+            "buffer_type": "memory_efficient",
+        }
+        template["learner_config"]["buffer_configs"].append(curr_buffer_config)
     for model_seed in range(num_runs):
-        template["learner_config"]["buffer_configs"] = []
-        for buffer_seed in range(num_tasks):
-            expert_dataset = os.path.join(expert_datasets_dir, "test_metaworld-seed_{}.gzip".format(buffer_seed))
-            curr_buffer_config = {
-                "load_buffer": expert_dataset,
-                "set_size": num_data,
-                "buffer_type": "memory_efficient",
-            }
         template["learner_config"]["losses"][0] = "gaussian"
         template["logging_config"]["save_path"] = os.path.join(save_path, arch_name, f"num_tasks_{num_tasks}")
         template["logging_config"]["experiment_name"] = f"model_seed_{model_seed}"
