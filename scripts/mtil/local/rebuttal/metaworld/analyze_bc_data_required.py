@@ -16,7 +16,11 @@ num_episodes = 30
 
 sh_content = "#!/bin/bash\n"
 sh_content += "conda activate jaxl\n"
-for run_dir in os.listdir(runs_dir):
+run_dirs = {
+    int(run_dir.split("-")[1]): run_dir for run_dir in os.listdir(runs_dir)
+}
+for num_data in sorted(list(run_dirs.keys())):
+    run_dir = run_dirs[num_data]
     print(run_dir)
     sh_content += "python {} --run_path={} --env_seed={} --scrambling_step={} --num_episodes={} --save_stats={}\n".format(
         eval_path,
