@@ -28,10 +28,16 @@ flags.DEFINE_string(
 )
 flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=True)
 flags.DEFINE_integer(
-    "num_envs", default=None, help="Amount of environments to generate data from", required=True
+    "num_envs",
+    default=None,
+    help="Amount of environments to generate data from",
+    required=True,
 )
 flags.DEFINE_integer(
-    "scrambling_step", default=None, help="The number of random initialization steps", required=True
+    "scrambling_step",
+    default=None,
+    help="The number of random initialization steps",
+    required=True,
 )
 flags.DEFINE_string(
     "out_dir",
@@ -104,9 +110,9 @@ def main(config: FlagValues):
                 (
                     f"metaworld-{config.exp_name}.control_mode_continuous.env_seed_{env_seed}"
                     f".num_samples_{config.num_samples}.subsampling_length_{subsampling_length}.gzip"
-                )
+                ),
             )
-            
+
             dat_content += (
                 f"export env_seed={env_seed} scrambling_step={config.scrambling_step}"
                 f" run_seed={config.run_seed} num_samples={config.num_samples}"

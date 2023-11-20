@@ -221,7 +221,9 @@ def main(config):
                 dataset_info = dataset_path.split(".")
 
                 env_seed = int(dataset_info[2].split("env_seed_")[-1])
-                pretrain_env_seed = int(os.path.basename(run_path).split("-")[1].split("env_seed_")[-1])
+                pretrain_env_seed = int(
+                    os.path.basename(run_path).split("-")[1].split("env_seed_")[-1]
+                )
                 if pretrain_env_seed != env_seed:
                     continue
 

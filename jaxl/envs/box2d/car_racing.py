@@ -270,8 +270,11 @@ class ParameterizedCarRacing(gym.Env, EzPickle):
             self.action_space = spaces.Discrete(5)
             # do nothing, left, right, gas, brake
 
+        # self.observation_space = spaces.Box(
+        #     low=0, high=255, shape=(3, STATE_H, STATE_W), dtype=np.uint8
+        # )
         self.observation_space = spaces.Box(
-            low=0, high=255, shape=(3, STATE_H, STATE_W), dtype=np.uint8
+            low=0, high=1, shape=(1, STATE_H, STATE_W), dtype=np.float32
         )
 
         self.render_mode = render_mode
@@ -572,8 +575,8 @@ class ParameterizedCarRacing(gym.Env, EzPickle):
 
         rgb = self._render("state_pixels")
         rgb = np.transpose(rgb, axes=(2, 0, 1))
-        gray = (0.2989 * rgb[0] + 0.5870 * rgb[1] + 0.1140 * rgb[2])[None]
-        self.state = rgb
+        gray = (0.2989 * rgb[0] + 0.5870 * rgb[1] + 0.1140 * rgb[2])[None] / 255
+        self.state = gray.astype(np.float32)
 
         step_reward = 0
         terminated = False

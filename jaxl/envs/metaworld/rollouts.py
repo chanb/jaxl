@@ -20,6 +20,130 @@ class MetaWorldRollout(EvaluationRollout):
         super().__init__(env, seed)
         self.num_scrambling_steps = num_scrambling_steps
 
+
+    def rollout(
+        self,
+        params: Union[optax.Params, Dict[str, Any]],
+        policy: Policy,
+        obs_rms: Union[bool, RunningMeanStd],
+        num_episodes: int,
+        buffer: ReplayBuffer = None,
+        use_image_for_inference: bool = False,
+        get_image: bool = False,
+        width: int = 84,
+        height: int = 84,
+        use_tqdm: bool = True,
+        random = False,
+    ):
+        """
+        Executes the policy in the environment.
+
+        :param params: the model parameters
+        :param policy: the policy
+        :param obs_rms: the running statistics for observations
+        :param num_episodes: the number of interaction episodes with the environment
+        :param buffer: the buffer to store the transitions with
+        :param max_episode_length: the maximum episode length
+        :param get_image: whether or not to get image observation
+        :param use_tqdm: whether or not to show progress bar
+        :param width: width of the image
+        :param height: height of the image
+        :type params: Union[optax.Params, Dict[str, Any]]
+        :type policy: Policy
+        :type obs_rms: Union[bool, RunningMeanStd]
+        :type num_episodes: int
+        :type buffer: ReplayBuffer (DefaultValue = None)
+        :type max_episode_length: int (DefaultValue = None)
+        :type get_image: bool (DefaultValue = False)
+        :type width: int (DefaultValue = 84)
+        :type height: int (DefaultValue = 84)
+        :type use_tqdm: bool (DefaultValue = False)
+
+        """
+        it = range(num_episodes)
+        if use_tqdm:
+            it = tqdm(it)
+
+        exploration_key = jrandom.split(self._reset_key, 1)[0]
+        if random:
+            get_action = policy.compute_action
+        else:
+            get_action = lambda params, obs, h_state, key: policy.deterministic_action(params, obs, h_state)
+        for _ in it:
+            self._episodic_returns.append(0)
+            self._episode_lengths.append(0)
+            seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
+            self._reset_key = jrandom.split(self._reset_key, 1)[0]
+            self._curr_obs, self._curr_info = self._env.reset(seed=seed)
+
+            self._env.action_space.seed(seed)
+            for _ in range(self.num_scrambling_steps):
+                self._curr_obs, _, _, _, self._curr_info = self._env.step(self._env.action_space.sample())
+
+            self._curr_h_state = policy.reset()
+
+            save_curr_obs = self._curr_obs
+            if get_image:
+                save_curr_obs = np.transpose(resize(
+                    self._env.render(),
+                    (height, width)
+                ), axes=(2, 0, 1))
+
+            done = False
+            while not done:
+                if use_image_for_inference:
+                    self._curr_obs = save_curr_obs
+                normalize_obs = np.array([self._curr_obs])
+                if obs_rms:
+                    normalize_obs = obs_rms.normalize(normalize_obs)
+
+                act, next_h_state = get_action(
+                    params,
+                    normalize_obs,
+                    np.array([self._curr_h_state]),
+                    exploration_key
+                )
+                exploration_key = jrandom.split(exploration_key, 1)[0]
+                act = act[0]
+                next_h_state = next_h_state[0]
+
+                env_act = act
+                if isinstance(self._env.action_space, spaces.Box):
+                    env_act = np.clip(
+                        act, self._env.action_space.low, self._env.action_space.high
+                    )
+                env_act = np.array(env_act)
+                next_obs, rew, terminated, truncated, info = self._env.step(env_act)
+                self._episodic_returns[-1] += float(rew)
+                self._episode_lengths[-1] += 1
+
+                save_next_obs = next_obs
+                if get_image:
+                    save_next_obs = np.transpose(resize(
+                        self._env.render(),
+                        (height, width)
+                    ), axes=(2, 0, 1))
+
+                done = terminated or truncated
+
+                if buffer is not None:
+                    buffer.push(
+                        save_curr_obs,
+                        self._curr_h_state,
+                        act,
+                        rew,
+                        terminated,
+                        truncated,
+                        info,
+                        save_next_obs,
+                        next_h_state,
+                    )
+
+                save_curr_obs = save_next_obs
+                self._curr_obs = next_obs
+                self._curr_h_state = next_h_state
+        self._env.reset()
+
     def rollout_with_subsampling(
         self,
         params: Union[optax.Params, Dict[str, Any]],
@@ -120,7 +244,7 @@ class MetaWorldRollout(EvaluationRollout):
                     env_act = np.clip(
                         act, self._env.action_space.low, self._env.action_space.high
                     )
-                env_act = np.array(act)
+                env_act = np.array(env_act)
                 next_obs, rew, terminated, truncated, info = self._env.step(env_act)
                 self._episodic_returns[-1] += float(rew)
                 self._episode_lengths[-1] += 1

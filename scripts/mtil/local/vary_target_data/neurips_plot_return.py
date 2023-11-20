@@ -19,15 +19,14 @@ sns.set_palette("colorblind")
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
 
-linestyle_cycler = (
-    cycler(color=sns.color_palette()[:4]) +
-    cycler(linestyle=['-','--',':','-.'])
+linestyle_cycler = cycler(color=sns.color_palette()[:4]) + cycler(
+    linestyle=["-", "--", ":", "-."]
 )
-plt.rc('axes', prop_cycle=linestyle_cycler)
+plt.rc("axes", prop_cycle=linestyle_cycler)
 
 # Using the set_size function as defined earlier
 # doc_width_pt = 397.48499 # neurips
-doc_width_pt = 452.9679 # iclr
+doc_width_pt = 452.9679  # iclr
 
 # experiment_name = "results-finetune_mtbc_main"
 # experiment_name_suffixes = (
@@ -90,7 +89,9 @@ for exp_i, suffix in enumerate(experiment_name_suffixes):
 
                 curr_path = eval_path
                 if suffix == "":
-                    curr_path = eval_path.replace(env_name, f"{env_name}-eightfold_source_data")
+                    curr_path = eval_path.replace(
+                        env_name, f"{env_name}-eightfold_source_data"
+                    )
                 with open(os.path.join(curr_path, filename), "rb") as f:
                     (data, paths) = pickle.load(f)
 
@@ -163,7 +164,9 @@ def map_exp(name):
             "quarter": 1.25,
             "half": 1.5,
         }
-        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(
+            map_amount[splitted_name[-1].split("_")[0]]
+        )
 
 
 # Plot main return
@@ -289,7 +292,9 @@ for env_i, env_name in enumerate(env_names):
         fig, axes = plt.subplots(
             num_rows,
             num_cols,
-            figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False),
+            figsize=set_size(
+                doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False
+            ),
             layout="constrained",
         )
 

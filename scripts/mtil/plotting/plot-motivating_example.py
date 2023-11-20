@@ -49,9 +49,7 @@ seeds_to_plot = np.array(all_env_seeds)
 
 torques = np.array(
     [
-        2.0
-        if env_seed is None
-        else all_env_configs[env_seed]["max_torque"]
+        2.0 if env_seed is None else all_env_configs[env_seed]["max_torque"]
         for env_seed in all_env_seeds
     ]
 )
@@ -110,8 +108,12 @@ print(num_sampless)
 for num_samples in num_sampless:
     variant_name = f"buffer_size_{num_samples}"
 
-    means.append(np.mean(result_per_variant[result_per_variant[:, 0] == num_samples][:, 1]))
-    stds.append(np.std(result_per_variant[result_per_variant[:, 0] == num_samples][:, 1]))
+    means.append(
+        np.mean(result_per_variant[result_per_variant[:, 0] == num_samples][:, 1])
+    )
+    stds.append(
+        np.std(result_per_variant[result_per_variant[:, 0] == num_samples][:, 1])
+    )
 
 means = np.array(means)
 stds = np.array(stds)

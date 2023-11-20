@@ -19,15 +19,14 @@ sns.set_palette("colorblind")
 # But with fonts from the document body
 plt.rcParams.update(pgf_with_latex)
 
-linestyle_cycler = (
-    cycler(color=sns.color_palette()[:4]) +
-    cycler(linestyle=['-','--',':','-.'])
+linestyle_cycler = cycler(color=sns.color_palette()[:4]) + cycler(
+    linestyle=["-", "--", ":", "-."]
 )
-plt.rc('axes', prop_cycle=linestyle_cycler)
+plt.rc("axes", prop_cycle=linestyle_cycler)
 
 # Using the set_size function as defined earlier
 # doc_width_pt = 397.48499 # neurips
-doc_width_pt = 452.9679 # iclr
+doc_width_pt = 452.9679  # iclr
 
 # experiment_name = "results-finetune_mtbc_main"
 # experiment_name_suffixes = (
@@ -84,7 +83,6 @@ else:
                 print(num_target_data)
                 assert 0
 
-
             results.setdefault(num_source_data, {})
             results[num_source_data].setdefault((env_name, control_mode), {})
             results[num_source_data][(env_name, control_mode)].setdefault(env_seed, {})
@@ -92,19 +90,20 @@ else:
             with open(os.path.join(eval_path, filename), "rb") as f:
                 (data, paths) = pickle.load(f)
 
-
             if filename == "expert.pkl":
-                if "expert" in results[num_source_data][(env_name, control_mode)][env_seed]:
+                if (
+                    "expert"
+                    in results[num_source_data][(env_name, control_mode)][env_seed]
+                ):
                     continue
-                results[num_source_data][(env_name, control_mode)][env_seed]["expert"] = data
+                results[num_source_data][(env_name, control_mode)][env_seed][
+                    "expert"
+                ] = data
 
                 # Get BC
                 results[num_source_data][(env_name, control_mode)][env_seed]["bc"] = []
                 bc_run_dir = os.path.join(
-                    bc_dir,
-                    f"{env_name}-{bc_suffix}",
-                    control_mode,
-                    env_seed
+                    bc_dir, f"{env_name}-{bc_suffix}", control_mode, env_seed
                 )
                 for bc_run in os.listdir(bc_run_dir):
                     if bc_run == "expert.pkl":
@@ -117,11 +116,15 @@ else:
                     ] += bc_run_result[0]
             else:
                 num_tasks = int(filename[:-4].split("num_tasks_")[-1])
-                results[num_source_data][(env_name, control_mode)][env_seed].setdefault("mtbc", {})
-                results[num_source_data][(env_name, control_mode)][env_seed]["mtbc"].setdefault(num_target_data, [])
-                results[num_source_data][(env_name, control_mode)][env_seed]["mtbc"][num_target_data].append(
-                    (num_tasks, paths, data)
+                results[num_source_data][(env_name, control_mode)][env_seed].setdefault(
+                    "mtbc", {}
                 )
+                results[num_source_data][(env_name, control_mode)][env_seed][
+                    "mtbc"
+                ].setdefault(num_target_data, [])
+                results[num_source_data][(env_name, control_mode)][env_seed]["mtbc"][
+                    num_target_data
+                ].append((num_tasks, paths, data))
 
     with open(f"{save_path}/results.pkl", "wb") as f:
         pickle.dump(results, f)
@@ -165,10 +168,13 @@ def map_exp(name):
             "quarter": 1.25,
             "half": 1.5,
         }
-        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(map_amount[splitted_name[-1].split("_")[0]])
+        return "${}\\lvert \\mathcal{{D}} \\rvert$".format(
+            map_amount[splitted_name[-1].split("_")[0]]
+        )
 
 
 from pprint import pprint
+
 pprint(results.keys())
 
 # Plot main return
@@ -239,7 +245,14 @@ for num_source_data in results:
                 #     print("-----")
                 #     print(env_seed, num_tasks, returns)
                 if len(num_tasks) < 5:
-                    print(num_source_data, num_target_data, env_name, env_seed, num_tasks, returns)
+                    print(
+                        num_source_data,
+                        num_target_data,
+                        env_name,
+                        env_seed,
+                        num_tasks,
+                        returns,
+                    )
                 for num_task in unique_num_tasks:
                     curr_num_task_rets = normalize(returns[num_tasks == num_task])
                     means.append(np.mean(curr_num_task_rets))
@@ -253,7 +266,9 @@ for num_source_data in results:
                     means,
                     marker="^",
                     ms=3.0,
-                    label="{} {}".format(num_source_data, num_target_data) if ax_i == 0 else "",
+                    label="{} {}".format(num_source_data, num_target_data)
+                    if ax_i == 0
+                    else "",
                 )
                 ax.fill_between(
                     unique_num_tasks,
@@ -285,8 +300,10 @@ for num_source_data in results:
             dpi=600,
         )
 
+
 def map_label(name):
     return "$M = {}\\lvert D \\rvert$".format(name.split("x_target_data")[0])
+
 
 num_plots_per_fig = 4
 num_rows = 2
@@ -300,7 +317,9 @@ for env_i, env_name in enumerate(env_names):
             fig, axes = plt.subplots(
                 num_rows,
                 num_cols,
-                figsize=set_size(doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False),
+                figsize=set_size(
+                    doc_width_pt, 0.95, (num_rows, num_cols), use_golden_ratio=False
+                ),
                 layout="constrained",
             )
 
@@ -347,7 +366,9 @@ for env_i, env_name in enumerate(env_names):
                     mtbc_rets[num_target_data].setdefault(num_task, [])
 
                     curr_num_task_rets = normalize(returns[num_tasks == num_task])
-                    mtbc_rets[num_target_data][num_task].append(np.mean(curr_num_task_rets))
+                    mtbc_rets[num_target_data][num_task].append(
+                        np.mean(curr_num_task_rets)
+                    )
 
         bc_mean = np.mean(bc_rets)
         bc_std = np.std(bc_rets)
