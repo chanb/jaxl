@@ -14,7 +14,8 @@ arch_name = "large_network"
 config_out_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/pretrain_mtbc-{}".format(arch_name)
 script_out_dir = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/"
 main_path = "/home/bryanpu1/projects/jaxl/jaxl/main.py"
-device = "gpu:1"
+num_devices = 4
+device_range = list(range(num_devices))
 
 os.makedirs(config_out_path, exist_ok=True)
 assert os.path.isfile(mtbc_template), f"{mtbc_template} is not a file"
@@ -35,8 +36,9 @@ def modify_network(template, arch_name):
     else:
         assert 0
 
-for num_tasks in num_taskss:
+for task_i, num_tasks in enumerate(num_taskss):
     script_out_path = os.path.join(script_out_dir, "pretrain_mtbc-{}-num_tasks_{}.sh".format(arch_name, num_tasks))
+    device = device_range[task_i % num_devices]
     sh_content = "#!/bin/bash\n"
     sh_content += "conda activate jaxl\n"
     for model_seed in range(num_runs):
@@ -58,7 +60,7 @@ for num_tasks in num_taskss:
         with open(curr_config_path, "w+") as f:
             json.dump(template, f)
 
-        sh_content += "python {} --config_path={} --device={} \n".format(main_path, curr_config_path, device)
+        sh_content += "python {} --config_path={} --device=gpu:{} \n".format(main_path, curr_config_path, device)
 
     with open(script_out_path, "w+") as f:
         f.writelines(sh_content)
