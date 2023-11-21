@@ -3,7 +3,7 @@ import os
 
 
 num_data_to_check = [100, 250, 500, 1000, 5000, 10000, 15000, 20000, 25000, 50000]
-expert_dataset = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/expert_data/test_metaworld-seed_0.gzip"
+expert_dataset = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/expert_data/test_metaworld-img_res_84-subsampling_250-scrambling_5-seed_0.gzip"
 bc_template = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/configs/bc_template.json"
 
 save_path = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/results/bc"
@@ -35,6 +35,10 @@ def modify_network(template, arch_name):
     elif arch_name == "large_network":
         template["model_config"]["features"] = [64, 64]
         template["model_config"]["kernel_sizes"] = [[3, 3], [3, 3]]
+        template["model_config"]["layers"] = [32, 32]
+    elif arch_name == "larger_network":
+        template["model_config"]["features"] = [64, 64, 64]
+        template["model_config"]["kernel_sizes"] = [[3, 3], [3, 3], [3, 3]]
         template["model_config"]["layers"] = [32, 32]
     else:
         assert 0

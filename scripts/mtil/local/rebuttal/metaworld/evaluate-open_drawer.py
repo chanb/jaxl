@@ -16,15 +16,21 @@ import numpy as np
 import os
 import timeit
 
+import jaxl.envs.metaworld.policies as metaworld_policies
 from jaxl.constants import *
-from jaxl.envs.metaworld.policies import get_policy
 from jaxl.envs.metaworld.rollouts import MetaWorldRollout
 from jaxl.models import get_model, get_policy, policy_output_dim
 from jaxl.utils import set_seed, parse_dict
 
+CONST_CPU = "cpu"
+CONST_GPU = "gpu"
+
+TASK_NAME = "drawer-open-v2"
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("run_path", default=None, help="The saved run", required=True)
+flags.DEFINE_boolean("expert", default=False, help="Whether or not to use expert policy", required=False)
+flags.DEFINE_integer("img_res", default=64, help="Image resolution", required=False)
 flags.DEFINE_integer(
     "env_seed", default=None, help="The environment seed", required=True
 )
@@ -50,6 +56,12 @@ flags.DEFINE_boolean(
     help="Whether or not to record video. Only enabled when save_stats=True",
     required=False,
 )
+flags.DEFINE_string(
+    "device",
+    default=CONST_CPU,
+    help="JAX device to use. To specify specific GPU device, do gpu:<device_ids>",
+    required=False,
+)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -59,12 +71,6 @@ log.setLevel(logging.DEBUG)
 This function constructs the model and executes evaluation.
 """
 
-
-TASK_NAME = "drawer-open-v2"
-HEIGHT = 64
-WIDTH = 64
-
-
 def get_env(env_seed):
     ml1 = metaworld.ML1(TASK_NAME)  # Construct the benchmark, sampling tasks
 
@@ -73,7 +79,7 @@ def get_env(env_seed):
     )  # Create an environment with task `pick_place`
     task = ml1.train_tasks[np.random.RandomState(env_seed).choice(len(ml1.train_tasks))]
     env.set_task(task)  # Set task
-    env.camera_name = "corner2"
+    env.camera_name = "corner3"
     return env
 
 
@@ -83,6 +89,19 @@ def main(
     """Orchestrates the evaluation."""
     tic = timeit.default_timer()
     set_seed(config.run_seed)
+
+    (device_name, *device_ids) = config.device.split(":")
+    if device_name == CONST_CPU:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+    elif device_name == CONST_GPU:
+        assert (
+            len(device_ids) > 0
+        ), f"at least one device_id is needed, got {device_ids}"
+        os.environ["CUDA_VISIBLE_DEVICES"] = device_ids[0]
+    else:
+        raise ValueError(f"{device_name} is not a supported device.")
+
+
     assert (
         config.num_episodes > 0
     ), f"num_episodes should be at least 1, got {config.num_episodes}"
@@ -99,29 +118,33 @@ def main(
         agent_config = parse_dict(agent_config_dict)
 
     # input_dim = env.observation_space.shape
-    input_dim = (3, HEIGHT, WIDTH)
+    input_dim = (3, config.img_res, config.img_res)
     output_dim = policy_output_dim(act_dim, agent_config.learner_config)
-    model = get_model(
-        input_dim,
-        output_dim,
-        getattr(agent_config.model_config, "policy", agent_config.model_config),
-    )
-    policy = get_policy(model, agent_config.learner_config)
+    if config.expert:
+        policy = metaworld_policies.get_policy(TASK_NAME)
+        agent_policy_params = None
+    else:
+        model = get_model(
+            input_dim,
+            output_dim,
+            getattr(agent_config.model_config, "policy", agent_config.model_config),
+        )
+        policy = get_policy(model, agent_config.learner_config)
 
-    if config.save_stats and config.record_video:
-        env = RecordVideoV0(
-            env, f"{os.path.dirname(config.save_stats)}/videos", disable_logger=True
+        if config.save_stats and config.record_video:
+            env = RecordVideoV0(
+                env, f"{os.path.dirname(config.save_stats)}/videos", disable_logger=True
+            )
+
+        checkpoint_manager = CheckpointManager(
+            os.path.join(config.run_path, "models"),
+            PyTreeCheckpointer(),
         )
 
-    checkpoint_manager = CheckpointManager(
-        os.path.join(config.run_path, "models"),
-        PyTreeCheckpointer(),
-    )
-
-    checkpoint_step = checkpoint_manager.latest_step()
-    params = checkpoint_manager.restore(checkpoint_step)
-    model_dict = params[CONST_MODEL_DICT]
-    agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
+        checkpoint_step = checkpoint_manager.latest_step()
+        params = checkpoint_manager.restore(checkpoint_step)
+        model_dict = params[CONST_MODEL_DICT]
+        agent_policy_params = model_dict[CONST_MODEL][CONST_POLICY]
 
     rollout = MetaWorldRollout(
         env, seed=env_seed, num_scrambling_steps=config.scrambling_step
@@ -134,8 +157,8 @@ def main(
         None,
         use_image_for_inference=True,
         get_image=True,
-        width=WIDTH,
-        height=HEIGHT,
+        width=config.img_res,
+        height=config.img_res,
     )
 
     os.makedirs(os.path.dirname(config.save_stats), exist_ok=True)

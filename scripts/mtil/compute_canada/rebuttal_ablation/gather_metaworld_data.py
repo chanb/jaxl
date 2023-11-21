@@ -93,7 +93,7 @@ def get_env(env_seed):
     )  # Create an environment with task `pick_place`
     task = ml1.train_tasks[np.random.RandomState(env_seed).choice(len(ml1.train_tasks))]
     env.set_task(task)  # Set task
-    env.camera_name = "corner2"
+    env.camera_name = "corner3"
     return env
 
 

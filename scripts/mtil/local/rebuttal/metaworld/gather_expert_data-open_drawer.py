@@ -70,6 +70,12 @@ flags.DEFINE_integer(
     help="Maximum episode length",
     required=False,
 )
+flags.DEFINE_integer(
+    "img_res",
+    default=64,
+    help="Image resolution",
+    required=False,
+)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -81,8 +87,6 @@ This function constructs the model and executes evaluation.
 
 
 TASK_NAME = "drawer-open-v2"
-HEIGHT = 64
-WIDTH = 64
 
 
 def get_env(env_seed):
@@ -93,7 +97,7 @@ def get_env(env_seed):
     )  # Create an environment with task `pick_place`
     task = ml1.train_tasks[np.random.RandomState(env_seed).choice(len(ml1.train_tasks))]
     env.set_task(task)  # Set task
-    env.camera_name = "corner2"
+    env.camera_name = "corner3"
     return env
 
 
@@ -120,7 +124,7 @@ def main(
     env = get_env(env_seed)
     buffer = MemoryEfficientNumPyBuffer(
         buffer_size=config.num_samples,
-        obs_dim=(3, HEIGHT, WIDTH),
+        obs_dim=(3, config.img_res, config.img_res),
         h_state_dim=(1,),
         act_dim=(*env.action_space.shape, 1),
         rew_dim=(1,),
@@ -143,8 +147,8 @@ def main(
         config.subsampling_length,
         config.max_episode_length,
         get_image=True,
-        width=WIDTH,
-        height=HEIGHT,
+        width=config.img_res,
+        height=config.img_res,
     )
     if config.save_buffer:
         print("Saving buffer with {} transitions".format(len(buffer)))

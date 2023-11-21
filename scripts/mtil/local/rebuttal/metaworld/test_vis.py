@@ -14,7 +14,7 @@ env = ml1.train_classes[task](
 )  # Create an environment with task `pick_place`
 task = random.choice(ml1.train_tasks)
 env.set_task(task)  # Set task
-env.camera_name = "corner2"
+env.camera_name = "corner3"
 
 obs = env.reset(seed=0)  # Reset environment
 

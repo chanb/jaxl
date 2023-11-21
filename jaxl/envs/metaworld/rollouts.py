@@ -85,7 +85,7 @@ class MetaWorldRollout(EvaluationRollout):
             save_curr_obs = self._curr_obs
             if get_image:
                 save_curr_obs = np.transpose(resize(
-                    self._env.render(),
+                    self._env.render()[:, 50:350, :300],
                     (height, width)
                 ), axes=(2, 0, 1))
 
@@ -120,7 +120,7 @@ class MetaWorldRollout(EvaluationRollout):
                 save_next_obs = next_obs
                 if get_image:
                     save_next_obs = np.transpose(resize(
-                        self._env.render(),
+                        self._env.render()[:, 50:350, :300],
                         (height, width)
                     ), axes=(2, 0, 1))
 
@@ -219,7 +219,7 @@ class MetaWorldRollout(EvaluationRollout):
             save_curr_obs = self._curr_obs
             if get_image:
                 save_curr_obs = np.transpose(resize(
-                    self._env.render(),
+                    self._env.render()[:, 50:350, :300],
                     (height, width)
                 ), axes=(2, 0, 1))
 
@@ -256,7 +256,7 @@ class MetaWorldRollout(EvaluationRollout):
                 save_next_obs = next_obs
                 if get_image:
                     save_next_obs = np.transpose(resize(
-                        self._env.render(),
+                        self._env.render()[:, 50:350, :300],
                         (height, width)
                     ), axes=(2, 0, 1))
 
