@@ -12,6 +12,9 @@ from jaxl.datasets.linear_regression import (
 from jaxl.datasets.linear_classification import (
     MultitaskLinearClassificationND,
 )
+from jaxl.datasets.random_classification import (
+    MultitaskRandomClassificationND,
+)
 from jaxl.datasets.wrappers import *
 
 import chex
@@ -114,6 +117,19 @@ def get_dataset(
                 "margin",
                 0.0,
             ),
+            save_path=getattr(
+                dataset_kwargs,
+                "save_path",
+                None,
+            ),
+        )
+    elif dataset_config.dataset_name == CONST_MULTITASK_ND_RANDOM_CLASSIFICATION:
+        dataset = MultitaskRandomClassificationND(
+            num_sequences=dataset_kwargs.num_sequences,
+            sequence_length=dataset_kwargs.sequence_length,
+            input_dim=dataset_kwargs.input_dim,
+            seed=seed,
+            inputs_range=getattr(dataset_kwargs, "inputs_range", [-1.0, 1.0]),
             save_path=getattr(
                 dataset_kwargs,
                 "save_path",

@@ -21,25 +21,40 @@ LR = "lr"
 
 
 def make_test_dataset(
-    num_tasks, seq_len, seed, input_range=[-1.0, 1.0], params_bound=[-1.0, 1.0]
+    num_tasks, seq_len, seed, input_range=[-1.0, 1.0], params_bound=[-1.0, 1.0], random_labels=False,
 ):
-    dataset_config = {
-        "dataset_name": "multitask_nd_linear_classification",
-        "dataset_kwargs": {
-            "input_dim": 2,
-            "input_range": input_range,
-            "num_sequences": num_tasks,
-            "sequence_length": seq_len,
-            "noise": 0.0,
-            "params_bound": params_bound,
-            "num_active_params": None,
-            "val_frac": 0.0005,
-            "margin": 0.2,
-            "save_path": "./data/test_set-num_tasks_{}-seq_len_{}-seed_{}.pkl".format(
-                num_tasks, seq_len, seed
-            ),
-        },
-    }
+    if random_labels:
+        dataset_config = {
+            "dataset_name": "multitask_nd_random_classification",
+            "dataset_kwargs": {
+                "input_dim": 2,
+                "input_range": input_range,
+                "num_sequences": num_tasks,
+                "sequence_length": seq_len,
+                "val_frac": 0.0005,
+                "save_path": "./data/test_set-num_tasks_{}-seq_len_{}-seed_{}-random_labels.pkl".format(
+                    num_tasks, seq_len, seed
+                ),
+            },
+        }
+    else:
+        dataset_config = {
+            "dataset_name": "multitask_nd_linear_classification",
+            "dataset_kwargs": {
+                "input_dim": 2,
+                "input_range": input_range,
+                "num_sequences": num_tasks,
+                "sequence_length": seq_len,
+                "noise": 0.0,
+                "params_bound": params_bound,
+                "num_active_params": None,
+                "val_frac": 0.0005,
+                "margin": 0.2,
+                "save_path": "./data/test_set-num_tasks_{}-seq_len_{}-seed_{}.pkl".format(
+                    num_tasks, seq_len, seed
+                ),
+            },
+        }
     dataset_config["dataset_kwargs"] = parse_dict(dataset_config["dataset_kwargs"])
     ns_test_config = parse_dict(dataset_config)
     return get_dataset(ns_test_config, seed=seed)
@@ -89,23 +104,30 @@ def build_baseline_models(context_data, num_tasks, hyperparams, make_model):
     return model_res
 
 
-def get_ground_truth(dataset, num_tasks, delta=0.01, input_range=[-1.0, 1.0]):
+def get_ground_truth(dataset, num_tasks, seed, delta=0.01, input_range=[-1.0, 1.0], random_labels=False):
     xs_grid = np.arange(input_range[0], input_range[1] + delta, delta)
     test_queries = np.stack(np.meshgrid(xs_grid, xs_grid)).reshape((2, -1)).T
     test_data = {"inputs": test_queries, "outputs": {}, "decision_boundary": {}}
+    rng = np.random.RandomState(seed)
 
-    for task_i in range(num_tasks):
-        test_data["outputs"][task_i] = np.eye(2)[
-            (
-                (test_queries @ dataset.params[task_i, 1:] + dataset.params[task_i, :1])
-                >= 0
-            )
-            .flatten()
-            .astype(int)
-        ]
+    if random_labels:
+        for task_i in range(num_tasks):
+            test_outputs = rng.binomial(1, 0.5, size=test_queries.shape[:2])
+            test_data["outputs"][task_i] = np.eye(2)[test_outputs][:, :]
+            test_data["decision_boundary"][task_i] = input_range
+    else:
+        for task_i in range(num_tasks):
+            test_data["outputs"][task_i] = np.eye(2)[
+                (
+                    (test_queries @ dataset.params[task_i, 1:] + dataset.params[task_i, :1])
+                    >= 0
+                )
+                .flatten()
+                .astype(int)
+            ]
 
-        gt = dataset.params[task_i]
-        test_data["decision_boundary"][task_i] = -np.array(input_range) * gt[1] / gt[2]
+            gt = dataset.params[task_i]
+            test_data["decision_boundary"][task_i] = -np.array(input_range) * gt[1] / gt[2]
     return test_data
 
 
@@ -154,6 +176,7 @@ def main(
     seq_len: int,
     seed: int,
     delta: float = 0.01,
+    random_labels: bool = False,
     input_range: list = [-1.0, 1.0],
 ):
     time_tag = datetime.strftime(datetime.now(), "%m-%d-%y_%H_%M_%S")
@@ -182,6 +205,7 @@ def main(
         seq_len,
         seed,
         input_range=input_range,
+        random_labels=random_labels,
     )
 
     context_data = {}
@@ -211,7 +235,7 @@ def main(
         pickle.dump(baseline_results, f)
 
     ground_truth = get_ground_truth(
-        test_dataset, num_tasks, delta=delta, input_range=input_range
+        test_dataset, num_tasks, seed, delta=delta, input_range=input_range, random_labels=random_labels
     )
 
     with open(os.path.join(save_path, "ground_truth.pkl"), "wb") as f:
@@ -255,6 +279,12 @@ if __name__ == "__main__":
         help="The spacing for test queries",
     )
 
+    parser.add_argument(
+        "--random_labels",
+        action="store_true",
+        help="Whether or not to use random labels instead",
+    )
+
     args = parser.parse_args()
     main(
         args.save_path_prefix,
@@ -262,4 +292,5 @@ if __name__ == "__main__":
         args.seq_len,
         args.seed,
         args.delta,
+        args.random_labels,
     )
