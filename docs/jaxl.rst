@@ -51,6 +51,14 @@ jaxl.plot\_utils module
    :undoc-members:
    :show-inheritance:
 
+jaxl.transforms module
+----------------------
+
+.. automodule:: jaxl.transforms
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jaxl.utils module
 -----------------
 

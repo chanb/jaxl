@@ -28,6 +28,22 @@ jaxl.datasets.linear\_regression module
    :undoc-members:
    :show-inheritance:
 
+jaxl.datasets.mnist module
+--------------------------
+
+.. automodule:: jaxl.datasets.mnist
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+jaxl.datasets.random\_classification module
+-------------------------------------------
+
+.. automodule:: jaxl.datasets.random_classification
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jaxl.datasets.wrappers module
 -----------------------------
 

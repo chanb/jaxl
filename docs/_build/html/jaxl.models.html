@@ -274,7 +274,32 @@ Tuple[chex.Array, chex.Array],</p>
 <dd><p>Makes the get latent call of the ICL model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the forward call.</p>
+<dd class="field-odd"><p>the get latent call.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Callable[
+[</p>
+<blockquote>
+<div><p>Union[optax.Params, Dict[str, Any]],
+chex.Array,
+chex.Array,
+chex.Array,</p>
+</div></blockquote>
+<p>],
+Tuple[chex.Array, chex.Array],</p>
+</p>
+</dd>
+</dl>
+<p>]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.models.common.InContextSupervisedTransformer.make_tokenize">
+<span class="sig-name descname"><span class="pre">make_tokenize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.models.common.InContextSupervisedTransformer.make_tokenize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the tokenize call of the ICL model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the tokenize call.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><p>Callable[
@@ -1243,7 +1268,7 @@ Tuple[chex.Array, chex.Array],</p>
 <span id="jaxl-models-svm-module"></span><h2>jaxl.models.svm module<a class="headerlink" href="#module-jaxl.models.svm" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="jaxl.models.svm.dual_svm">
-<span class="sig-prename descclassname"><span class="pre">jaxl.models.svm.</span></span><span class="sig-name descname"><span class="pre">dual_svm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel=&lt;function</span> <span class="pre">linear_kernel&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.svm.dual_svm" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">jaxl.models.svm.</span></span><span class="sig-name descname"><span class="pre">dual_svm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel=&lt;function</span> <span class="pre">linear_kernel&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps=1e-07</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.svm.dual_svm" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -1258,7 +1283,7 @@ Tuple[chex.Array, chex.Array],</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="jaxl.models.svm.primal_svm">
-<span class="sig-prename descclassname"><span class="pre">jaxl.models.svm.</span></span><span class="sig-name descname"><span class="pre">primal_svm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.svm.primal_svm" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">jaxl.models.svm.</span></span><span class="sig-name descname"><span class="pre">primal_svm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.models.svm.primal_svm" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </section>

@@ -188,6 +188,19 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#jaxl-datasets-mnist-module">jaxl.datasets.mnist module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#module-jaxl.datasets.random_classification">jaxl.datasets.random_classification module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.random_classification.MultitaskRandomClassificationND"><code class="docutils literal notranslate"><span class="pre">MultitaskRandomClassificationND</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.random_classification.MultitaskRandomClassificationND.input_dim"><code class="docutils literal notranslate"><span class="pre">MultitaskRandomClassificationND.input_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.random_classification.MultitaskRandomClassificationND.ls_estimators"><code class="docutils literal notranslate"><span class="pre">MultitaskRandomClassificationND.ls_estimators</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.random_classification.MultitaskRandomClassificationND.output_dim"><code class="docutils literal notranslate"><span class="pre">MultitaskRandomClassificationND.output_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.random_classification.MultitaskRandomClassificationND.params"><code class="docutils literal notranslate"><span class="pre">MultitaskRandomClassificationND.params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.random_classification.MultitaskRandomClassificationND.plot"><code class="docutils literal notranslate"><span class="pre">MultitaskRandomClassificationND.plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.random_classification.MultitaskRandomClassificationND.sequence_length"><code class="docutils literal notranslate"><span class="pre">MultitaskRandomClassificationND.sequence_length</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#module-jaxl.datasets.wrappers">jaxl.datasets.wrappers module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.ContextDataset"><code class="docutils literal notranslate"><span class="pre">ContextDataset</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.DatasetWrapper"><code class="docutils literal notranslate"><span class="pre">DatasetWrapper</span></code></a></li>
@@ -469,6 +482,7 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.init"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.init()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.make_forward"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.make_forward()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.make_get_latent"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.make_get_latent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.make_tokenize"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.make_tokenize()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.MLP"><code class="docutils literal notranslate"><span class="pre">MLP</span></code></a><ul>
@@ -734,6 +748,17 @@ Set figure dimensions to sit nicely in our document.</p>
 <dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
+</dd></dl>
+
+</section>
+<section id="module-jaxl.transforms">
+<span id="jaxl-transforms-module"></span><h2>jaxl.transforms module<a class="headerlink" href="#module-jaxl.transforms" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxl.transforms.DefaultPILToImageTransform">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.transforms.</span></span><span class="sig-name descname"><span class="pre">DefaultPILToImageTransform</span></span><a class="headerlink" href="#jaxl.transforms.DefaultPILToImageTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A transform that converts PIL to a tensor scaled between 0 to 1.
+Assumes that the PIL images are in range [0, 255].</p>
 </dd></dl>
 
 </section>
