@@ -136,6 +136,8 @@ def get_dataset(
                 None,
             ),
         )
+    elif dataset_config.dataset_name == CONST_MNIST:
+        pass
     else:
         raise ValueError(
             f"{dataset_config.dataset_name} is not supported (one of {VALID_DATASET})"

@@ -60,7 +60,9 @@ class MultitaskRandomClassificationND(Dataset):
                 self._inputs_range[1],
                 (num_sequences, self._sequence_length, self._input_dim),
             )
-            targets = data_gen_rng.binomial(1, 0.5, size=(num_sequences, self._sequence_length))
+            targets = data_gen_rng.binomial(
+                1, 0.5, size=(num_sequences, self._sequence_length)
+            )
 
             if np.all(
                 np.logical_and(
