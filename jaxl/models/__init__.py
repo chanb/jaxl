@@ -13,9 +13,9 @@ from jaxl.models.common import (
     Policy,
     EnsembleModel,
     EncoderPredictorModel,
-    InContextSupervisedTransformer,
 )
 from jaxl.models.policies import *
+from jaxl.models.transformers import InContextSupervisedTransformer
 
 
 """
