@@ -14,7 +14,7 @@ import timeit
 import uuid
 
 from jaxl.learning_utils import get_learner, train
-from jaxl.utils import flatten_dict, parse_dict, set_seed
+from jaxl.utils import flatten_dict, parse_dict, set_seed, get_device
 
 CONST_CPU = "cpu"
 CONST_GPU = "gpu"
@@ -54,17 +54,7 @@ def main(config_path: str, run_seed: int = None, device: str = CONST_CPU):
     """
     tic = timeit.default_timer()
 
-    (device_name, *device_ids) = device.split(":")
-    if device_name == CONST_CPU:
-        os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    elif device_name == CONST_GPU:
-        assert (
-            len(device_ids) > 0
-        ), f"at least one device_id is needed, got {device_ids}"
-        os.environ["CUDA_VISIBLE_DEVICES"] = device_ids[0]
-    else:
-        raise ValueError(f"{device_name} is not a supported device.")
-
+    get_device(device)
     set_seed(run_seed)
     assert os.path.isfile(config_path), f"{config_path} is not a file"
     with open(config_path, "r") as f:

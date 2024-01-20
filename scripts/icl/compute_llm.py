@@ -15,7 +15,7 @@ from functools import partial
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
 
-from utils import get_device
+from jaxl.utils import get_device
 
 
 def make_model_specific(config: SimpleNamespace):

@@ -14,9 +14,11 @@ class MLPModule(nn.Module):
 
     @nn.compact
     def __call__(self, x: chex.Array) -> chex.Array:
-        for layer in self.layers[:-1]:
+        for idx, layer in enumerate(self.layers[:-1]):
             x = self.activation(nn.Dense(layer)(x))
+            self.sow("mlp_latents", "mlp_{}".format(idx), x)
         x = self.output_activation(nn.Dense(self.layers[-1])(x))
+        self.sow("mlp_latents", "mlp_{}".format(idx + 1), x)
         return x
     
 
@@ -30,8 +32,9 @@ class CNNModule(nn.Module):
 
     @nn.compact
     def __call__(self, x: chex.Array) -> chex.Array:
-        for feature, kernel_size in zip(self.features, self.kernel_sizes):
+        for idx, (feature, kernel_size) in enumerate(zip(self.features, self.kernel_sizes)):
             x = self.activation(nn.Conv(feature, kernel_size)(x))
+            self.sow("cnn_latents", "cnn_{}".format(idx), x)
         return x
 
 
@@ -67,7 +70,9 @@ class GPTModule(nn.Module):
 
     @nn.compact
     def __call__(self, x: chex.Array) -> chex.Array:
-        for _ in range(self.num_blocks):
+        for idx, _ in enumerate(range(self.num_blocks)):
             x = GPTBlock(self.num_heads, self.embed_dim)(x)
+            self.sow("gpt_latents", "gpt_{}".format(idx), x)
         x = nn.LayerNorm()(x)
+        self.sow("gpt_latents", "gpt_{}".format(idx + 1), x)
         return x

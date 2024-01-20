@@ -12,6 +12,7 @@ import jaxl.transforms as jaxl_transforms
 def construct_mnist(
     save_path: str,
     task_name: str = None,
+    train: bool = True,
 ) -> Dataset:
     """
     Constructs a customized MNIST dataset.
@@ -38,6 +39,7 @@ def construct_mnist(
 
     return torch_datasets.MNIST(
         save_path,
+        train=train,
         download=True,
         transform=torch_transforms.Compose(input_transforms),
         target_transform=target_transform,
