@@ -53,6 +53,8 @@ def get_learner(
         make_learner = jaxl_learners.get_il_learner
     elif learner_config.task == CONST_ICL:
         make_learner = jaxl_learners.get_icl_learner
+    elif learner_config.task == CONST_SUPERVISED:
+        make_learner = jaxl_learners.get_supervised_learner
     else:
         raise NotImplementedError
     return make_learner(learner_config, model_config, optimizer_config)

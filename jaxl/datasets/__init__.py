@@ -12,6 +12,9 @@ from jaxl.datasets.linear_regression import (
 from jaxl.datasets.linear_classification import (
     MultitaskLinearClassificationND,
 )
+from jaxl.datasets.mnist import (
+    construct_mnist
+)
 from jaxl.datasets.random_classification import (
     MultitaskRandomClassificationND,
 )
@@ -137,14 +140,19 @@ def get_dataset(
             ),
         )
     elif dataset_config.dataset_name == CONST_MNIST:
-        pass
+        dataset = construct_mnist(
+            dataset_kwargs.save_path,
+            dataset_kwargs.task_name,
+        )
     else:
         raise ValueError(
             f"{dataset_config.dataset_name} is not supported (one of {VALID_DATASET})"
         )
 
     if hasattr(dataset_config, CONST_DATASET_WRAPPER):
-        if dataset_config.dataset_wrapper.type == "FixedLengthTrajectoryDataset":
+        if dataset_config.dataset_wrapper.type == "StandardSupervisedDataset":
+            dataset = StandardSupervisedDataset(dataset)
+        elif dataset_config.dataset_wrapper.type == "FixedLengthTrajectoryDataset":
             dataset = FixedLengthTrajectoryDataset(
                 dataset, dataset_config.dataset_wrapper.kwargs.sample_seq_len
             )

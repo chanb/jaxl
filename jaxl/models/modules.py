@@ -18,6 +18,21 @@ class MLPModule(nn.Module):
             x = self.activation(nn.Dense(layer)(x))
         x = self.output_activation(nn.Dense(self.layers[-1])(x))
         return x
+    
+
+class CNNModule(nn.Module):
+    """Convolutional layer."""
+
+    # The number of hidden units in each hidden layer.
+    features: Sequence[int]
+    kernel_sizes: Sequence[Sequence[int]]
+    activation: Callable
+
+    @nn.compact
+    def __call__(self, x: chex.Array) -> chex.Array:
+        for feature, kernel_size in zip(self.features, self.kernel_sizes):
+            x = self.activation(nn.Conv(feature, kernel_size)(x))
+        return x
 
 
 class GPTBlock(nn.Module):

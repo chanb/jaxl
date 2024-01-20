@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 
+import chex
 import jax.random as jrandom
-import math
 import numpy as np
 
 
@@ -16,6 +16,24 @@ class DatasetWrapper(Dataset):
 
     def __len__(self):
         return len(self._dataset)
+    
+
+class StandardSupervisedDataset(DatasetWrapper):
+    """Dataset for standard supervised learning."""
+    def __init__(self, dataset: Dataset):
+        super().__init__(dataset)
+
+    def __getitem__(self, idx):
+        input, output = self._dataset[idx]
+        return input, np.zeros((1,)), output, idx
+    
+    @property
+    def output_dim(self) -> chex.Array:
+        return (self._dataset.targets.max() + 1,)
+
+    @property
+    def input_dim(self) -> chex.Array:
+        return self._dataset.data.shape[1:]
 
 
 class FixedLengthTrajectoryDataset(DatasetWrapper):
