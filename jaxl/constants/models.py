@@ -13,6 +13,11 @@ VALID_ARCHITECTURE = [
     CONST_MLP,
 ]
 
+VALID_TOKENIZER_TYPE = [
+    CONST_CNN,
+    CONST_MLP,
+]
+
 CONST_BANG_BANG = "bang_bang"
 CONST_DETERMINISTIC = "deterministic"
 CONST_GAUSSIAN = "gaussian"

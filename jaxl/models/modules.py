@@ -14,6 +14,7 @@ class MLPModule(nn.Module):
 
     @nn.compact
     def __call__(self, x: chex.Array) -> chex.Array:
+        idx = -1
         for idx, layer in enumerate(self.layers[:-1]):
             x = self.activation(nn.Dense(layer)(x))
             self.sow("mlp_latents", "mlp_{}".format(idx), x)

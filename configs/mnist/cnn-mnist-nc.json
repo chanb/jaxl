@@ -1,15 +1,15 @@
 {
     "logging_config": {
         "save_path": "./logs/nc-mnist",
-        "experiment_name": "cnn",
+        "experiment_name": "cnn-dim_2-deeper",
         "log_interval": 10,
         "checkpoint_interval": 100
     },
     "model_config": {
         "architecture": "cnn",
-        "features": [32, 32],
-        "kernel_sizes": [[3, 3], [3, 3]],
-        "layers": [32, 2]
+        "features": [32, 32, 32],
+        "kernel_sizes": [[3, 3], [3, 3], [3, 3]],
+        "layers": [32, 32, 2]
     },
     "optimizer_config": {
         "optimizer": "adam",
@@ -27,7 +27,8 @@
             "dataset_name": "mnist",
             "dataset_kwargs": {
                 "save_path": "/Users/chanb/research/personal/jaxl",
-                "task_name": null
+                "task_name": null,
+                "task_config": {}
             },
             "dataset_wrapper": {
                 "type": "StandardSupervisedDataset",
@@ -43,13 +44,14 @@
         "loss_settings": [
             {
                 "coefficient": 1.0,
-                "reduction": "mean"
+                "reduction": "mean",
+                "is_one_hot": false
             },
             {
                 "coefficient": 0.0
             }
         ],
-        "num_updates_per_epoch": 100,
+        "num_updates_per_epoch": 600,
         "batch_size": 100,
         "learner_settings": {
             "store_val_preds": false

@@ -143,6 +143,7 @@ def get_dataset(
         dataset = construct_mnist(
             dataset_kwargs.save_path,
             dataset_kwargs.task_name,
+            dataset_kwargs.task_config,
         )
     else:
         raise ValueError(

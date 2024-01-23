@@ -538,7 +538,7 @@ class CNN(Model):
             """
             # NOTE: Assume batch size is first dim
             conv_latent = self.conv.apply(params[CONST_CNN], input)
-            conv_latent = conv_latent.reshape((conv_latent.shape[0], -1))
+            conv_latent = conv_latent.reshape((*conv_latent.shape[:-2], -1))
             out = self.mlp.apply(params[CONST_MLP], conv_latent)
             return out, carry
 
