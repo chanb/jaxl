@@ -5,6 +5,7 @@ from typing import Tuple
 from jaxl.constants import (
     VALID_MNIST_TASKS,
     CONST_MULTITASK_MNIST_FINEGRAIN,
+    CONST_MULTITASK_MNIST_RANDOM_BINARY,
 )
 
 import _pickle as pickle
@@ -14,8 +15,6 @@ import jax.random as jrandom
 import numpy as np
 import os
 import torchvision.datasets as torch_datasets
-import torchvision.transforms as torch_transforms
-import torch
 
 import jaxl.transforms as jaxl_transforms
 
@@ -66,6 +65,20 @@ def construct_mnist(
             ),
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
+            random_label=getattr(task_config, "random_label", False),
+            save_path=task_config.save_path,
+        )
+    elif task_name == CONST_MULTITASK_MNIST_RANDOM_BINARY:
+        return MultitaskMNISTRandomBinary(
+            dataset=torch_datasets.MNIST(
+                save_path,
+                train=train,
+                download=True,
+                transform=jaxl_transforms.StandardImageTransform(),
+                target_transform=target_transform,
+            ),
+            num_sequences=task_config.num_sequences,
+            sequence_length=task_config.sequence_length,
             save_path=task_config.save_path,
         )
     else:
@@ -83,27 +96,31 @@ class MultitaskMNISTFineGrain(Dataset):
         num_sequences: int,
         sequence_length: int,
         seed: int = 0,
+        replace: bool=False,
+        random_label: bool=False,
         save_path: str = None,
     ):
         self._dataset = dataset
         self._sequence_length = sequence_length
+        self._random_label = random_label
 
         if save_path is None or not os.path.isfile(save_path):
-            self.sample_idxes = self._generate_data(
+            (self.sample_idxes, self.label_map) = self._generate_data(
                 dataset=dataset,
                 num_sequences=num_sequences,
                 seed=seed,
+                replace=replace,
             )
             if save_path is not None:
                 print("Saving to {}".format(save_path))
                 os.makedirs(os.path.dirname(save_path), exist_ok=True)
                 pickle.dump(
-                    self.sample_idxes,
+                    (self.sample_idxes, self.label_map),
                     open(save_path, "wb"),
                 )
         else:
             print("Loading from {}".format(save_path))
-            self.sample_idxes = pickle.load(
+            (self.sample_idxes, self.label_map) = pickle.load(
                 open(save_path, "rb")
             )
 
@@ -112,11 +129,22 @@ class MultitaskMNISTFineGrain(Dataset):
         dataset: Dataset,
         num_sequences: int,
         seed: int,
+        replace: bool,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
-        keys = jrandom.split(jrandom.PRNGKey(seed), num=num_sequences)
-        return jax.vmap(
-            lambda key: jrandom.choice(key, np.arange(len(dataset)), shape=(self._sequence_length,))
+        sample_key, label_key = jrandom.split(jrandom.PRNGKey(seed))
+        keys = jrandom.split(sample_key, num=num_sequences)
+
+        sample_idxes = jax.vmap(
+            lambda key: jrandom.choice(
+                key,
+                np.arange(len(dataset)),
+                replace=replace,
+                shape=(self._sequence_length,)
+            )
         )(keys)
+
+        label_map = jrandom.permutation(label_key, np.arange(self.output_dim[0]))
+        return sample_idxes, label_map
 
     @property
     def input_dim(self) -> chex.Array:
@@ -136,5 +164,93 @@ class MultitaskMNISTFineGrain(Dataset):
     def __getitem__(self, idx):
         sample_idxes = self.sample_idxes[idx].tolist()
         inputs = self._dataset.transform(self._dataset.data[sample_idxes])
-        outputs = np.eye(self.output_dim[0])[self._dataset.targets[sample_idxes]]
+        outputs = np.eye(self.output_dim[0])[self.label_map[self._dataset.targets[sample_idxes]]]
+        return (inputs, outputs)
+
+
+class MultitaskMNISTRandomBinary(Dataset):
+    """
+    The dataset contains multiple ND (fixed) linear classification problems.
+    """
+
+    def __init__(
+        self,
+        dataset: Dataset,
+        num_sequences: int,
+        sequence_length: int,
+        seed: int = 0,
+        replace: bool = False,
+        save_path: str = None,
+    ):
+        self._dataset = dataset
+        self._sequence_length = sequence_length
+
+        if save_path is None or not os.path.isfile(save_path):
+            self.sample_idxes, self.label_map = self._generate_data(
+                dataset=dataset,
+                num_sequences=num_sequences,
+                seed=seed,
+                replace=replace,
+            )
+            if save_path is not None:
+                print("Saving to {}".format(save_path))
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                pickle.dump(
+                    (self.sample_idxes, self.label_map),
+                    open(save_path, "wb"),
+                )
+        else:
+            print("Loading from {}".format(save_path))
+            (self.sample_idxes, self.label_map) = pickle.load(
+                open(save_path, "rb")
+            )
+
+    def _generate_data(
+        self,
+        dataset: Dataset,
+        num_sequences: int,
+        seed: int,
+        replace: bool,
+    ) -> Tuple[chex.Array, chex.Array, chex.Array]:
+        sample_key, label_key = jrandom.split(jrandom.PRNGKey(seed))
+        keys = jrandom.split(sample_key, num=num_sequences)
+
+        sample_idxes = jax.vmap(
+            lambda key: jrandom.choice(
+                key,
+                np.arange(len(dataset)),
+                replace=replace,
+                shape=(self._sequence_length,)
+            )
+        )(keys)
+
+        label_map = np.zeros((10,), dtype=np.int32)
+        ones = jrandom.choice(
+            label_key,
+            np.arange(10),
+            replace=False,
+            shape=(5,),
+        )
+        label_map[ones] = 1
+        return sample_idxes, label_map
+
+    @property
+    def input_dim(self) -> chex.Array:
+        return [*self._dataset.data[0].shape]
+
+    @property
+    def output_dim(self) -> chex.Array:
+        return (10,)
+
+    @property
+    def sequence_length(self) -> int:
+        return self._sequence_length
+
+    def __len__(self):
+        return len(self.sample_idxes)
+
+    def __getitem__(self, idx):
+        sample_idxes = self.sample_idxes[idx].tolist()
+        inputs = self._dataset.transform(self._dataset.data[sample_idxes])
+        outputs = np.eye(self.output_dim[0])[self.label_map[self._dataset.targets[sample_idxes]]]
         return (inputs, outputs)
