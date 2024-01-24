@@ -107,6 +107,7 @@ class MultitaskMNISTFineGrain(Dataset):
             (self.sample_idxes, self.label_map) = self._generate_data(
                 dataset=dataset,
                 num_sequences=num_sequences,
+                random_label=random_label,
                 seed=seed,
             )
             if save_path is not None:
@@ -126,6 +127,7 @@ class MultitaskMNISTFineGrain(Dataset):
         self,
         dataset: Dataset,
         num_sequences: int,
+        random_label: bool,
         seed: int,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         print("Generating Data")
@@ -138,7 +140,10 @@ class MultitaskMNISTFineGrain(Dataset):
             size=(num_sequences, self._sequence_length)
         )
 
-        label_map = label_rng.permutation(self.output_dim[0])
+        if random_label:
+            label_map = label_rng.permutation(self.output_dim[0])
+        else:
+            label_map = np.arange(self.output_dim[0])
         return sample_idxes, label_map
 
     @property
