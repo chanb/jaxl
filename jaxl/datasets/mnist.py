@@ -96,7 +96,6 @@ class MultitaskMNISTFineGrain(Dataset):
         num_sequences: int,
         sequence_length: int,
         seed: int = 0,
-        replace: bool=False,
         random_label: bool=False,
         save_path: str = None,
     ):
@@ -109,7 +108,6 @@ class MultitaskMNISTFineGrain(Dataset):
                 dataset=dataset,
                 num_sequences=num_sequences,
                 seed=seed,
-                replace=replace,
             )
             if save_path is not None:
                 print("Saving to {}".format(save_path))
@@ -129,21 +127,18 @@ class MultitaskMNISTFineGrain(Dataset):
         dataset: Dataset,
         num_sequences: int,
         seed: int,
-        replace: bool,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
+        print("Generating Data")
         sample_key, label_key = jrandom.split(jrandom.PRNGKey(seed))
-        keys = jrandom.split(sample_key, num=num_sequences)
+        sample_rng = np.random.RandomState(sample_key)
+        label_rng = np.random.RandomState(label_key)
 
-        sample_idxes = jax.vmap(
-            lambda key: jrandom.choice(
-                key,
-                np.arange(len(dataset)),
-                replace=replace,
-                shape=(self._sequence_length,)
-            )
-        )(keys)
+        sample_idxes = sample_rng.choice(
+            np.arange(len(dataset)),
+            size=(num_sequences, self._sequence_length)
+        )
 
-        label_map = jrandom.permutation(label_key, np.arange(self.output_dim[0]))
+        label_map = label_rng.permutation(self.output_dim[0])
         return sample_idxes, label_map
 
     @property
@@ -179,7 +174,6 @@ class MultitaskMNISTRandomBinary(Dataset):
         num_sequences: int,
         sequence_length: int,
         seed: int = 0,
-        replace: bool = False,
         save_path: str = None,
     ):
         self._dataset = dataset
@@ -190,7 +184,6 @@ class MultitaskMNISTRandomBinary(Dataset):
                 dataset=dataset,
                 num_sequences=num_sequences,
                 seed=seed,
-                replace=replace,
             )
             if save_path is not None:
                 print("Saving to {}".format(save_path))
@@ -210,26 +203,21 @@ class MultitaskMNISTRandomBinary(Dataset):
         dataset: Dataset,
         num_sequences: int,
         seed: int,
-        replace: bool,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         sample_key, label_key = jrandom.split(jrandom.PRNGKey(seed))
-        keys = jrandom.split(sample_key, num=num_sequences)
+        sample_rng = np.random.RandomState(sample_key)
+        label_rng = np.random.RandomState(label_key)
 
-        sample_idxes = jax.vmap(
-            lambda key: jrandom.choice(
-                key,
-                np.arange(len(dataset)),
-                replace=replace,
-                shape=(self._sequence_length,)
-            )
-        )(keys)
-
+        sample_idxes = sample_rng.choice(
+            np.arange(len(dataset)),
+            size=(num_sequences, self._sequence_length)
+        )
+        
         label_map = np.zeros((10,), dtype=np.int32)
-        ones = jrandom.choice(
-            label_key,
+        ones = label_rng.choice(
             np.arange(10),
             replace=False,
-            shape=(5,),
+            size=(5,),
         )
         label_map[ones] = 1
         return sample_idxes, label_map
