@@ -55,7 +55,7 @@
                     "num_sequences": 500000,
                     "sequence_length": 30,
                     "random_label": true,
-                    "save_path": "./data/icl-mnist-seq_len_30-500k_tasks-random_label.pkl"
+                    "save_path": "/home/bryanpu1/projects/jaxl/data/icl-mnist-seq_len_30-500k_tasks-train-random_label.pkl"
                 }
             },
             "dataset_wrapper": {
@@ -63,7 +63,8 @@
                 "kwargs": {
                     "context_len": 16
                 }
-            }
+            },
+            "num_workers": 4
         },
         "seeds": {
             "model_seed": 42,

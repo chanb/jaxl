@@ -206,6 +206,7 @@ class OfflineLearner(Learner):
                 batch_size=self._config.batch_size,
                 shuffle=True,
                 drop_last=True,
+                num_workers=getattr(self._config.dataset_config, "num_workers", 0),
             )
             self._train_loader = iter(self._train_dataloader)
 

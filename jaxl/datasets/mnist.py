@@ -140,10 +140,11 @@ class MultitaskMNISTFineGrain(Dataset):
             size=(num_sequences, self._sequence_length)
         )
 
+
+        label_map = np.tile(np.arange(self.output_dim[0]), reps=(num_sequences, 1))
         if random_label:
-            label_map = label_rng.permutation(self.output_dim[0])
-        else:
-            label_map = np.arange(self.output_dim[0])
+            label_map = np.apply_along_axis(label_rng.permutation, axis=1, arr=label_map)
+
         return sample_idxes, label_map
 
     @property
@@ -164,7 +165,7 @@ class MultitaskMNISTFineGrain(Dataset):
     def __getitem__(self, idx):
         sample_idxes = self.sample_idxes[idx].tolist()
         inputs = self._dataset.transform(self._dataset.data[sample_idxes])
-        outputs = np.eye(self.output_dim[0])[self.label_map[self._dataset.targets[sample_idxes]]]
+        outputs = np.eye(self.output_dim[0])[self.label_map[idx][self._dataset.targets[sample_idxes]]]
         return (inputs, outputs)
 
 
