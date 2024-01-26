@@ -173,12 +173,26 @@ class ContextDataset(DatasetWrapper):
             np.clip(timestep_i - self._total_seq_len, a_min=0, a_max=np.inf)
         )
 
-        context_inputs[out_seq_start_idx:] = inputs[seq_copy_start_idx : timestep_i + 1]
-        context_outputs[out_seq_start_idx:] = outputs[
-            seq_copy_start_idx : timestep_i + 1
-        ]
-        query = inputs[[timestep_i + 1]]
-        output = outputs[timestep_i + 1]
+        inputs = inputs[seq_copy_start_idx : timestep_i + 2]
+        outputs = outputs[seq_copy_start_idx : timestep_i + 2]
+
+        # if getattr(self._dataset, "_random_label", False):
+        #     _, output_start_idxes, counts = np.unique(
+        #         np.argmax(outputs, -1),
+        #         return_index=True,
+        #         return_counts=True
+        #     )
+        #     print(output_start_idxes, len(outputs))
+        #     if np.max(output_start_idxes) == len(outputs) - 1:
+        #         idx_to_swap = np.where(counts > 1)[0][0]
+        #         print(idx_to_swap)
+        #         inputs[[idx_to_swap, -1]] = inputs[[-1, idx_to_swap]]
+        #         outputs[[idx_to_swap, -1]] = outputs[[-1, idx_to_swap]]
+
+        context_inputs[out_seq_start_idx:] = inputs[:-1]
+        context_outputs[out_seq_start_idx:] = outputs[:-1]
+        query = inputs[[-1]]
+        output = outputs[-1]
 
         return context_inputs, context_outputs, query, output
 

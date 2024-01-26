@@ -83,13 +83,13 @@
             }
         ],
         "num_updates_per_epoch": 100,
-        "batch_size": 32,
+        "batch_size": 128,
         "learner_settings": {
             "store_val_preds": false
         },
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 5000
+        "num_epochs": 10000
     }
 }

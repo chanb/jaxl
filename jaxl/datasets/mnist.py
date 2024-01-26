@@ -165,7 +165,8 @@ class MultitaskMNISTFineGrain(Dataset):
     def __getitem__(self, idx):
         sample_idxes = self.sample_idxes[idx].tolist()
         inputs = self._dataset.transform(self._dataset.data[sample_idxes])
-        outputs = np.eye(self.output_dim[0])[self.label_map[idx][self._dataset.targets[sample_idxes]]]
+        labels = self.label_map[idx][self._dataset.targets[sample_idxes]]
+        outputs = np.eye(self.output_dim[0])[labels]
         return (inputs, outputs)
 
 
