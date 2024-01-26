@@ -91,10 +91,10 @@ class FixedLengthContextDataset(DatasetWrapper):
         context_inputs = np.zeros((self._context_len, *inputs.shape[1:]))
         context_outputs = np.zeros((self._context_len, *outputs.shape[1:]))
 
-        context_inputs = inputs[timestep_i : timestep_i + self._total_seq_len + 1]
-        context_outputs = outputs[timestep_i : timestep_i + self._total_seq_len + 1]
-        query = inputs[[timestep_i + self._total_seq_len]]
-        output = outputs[timestep_i + self._total_seq_len]
+        context_inputs = inputs[timestep_i : timestep_i + self._context_len]
+        context_outputs = outputs[timestep_i : timestep_i + self._context_len]
+        query = inputs[[timestep_i + self._context_len]]
+        output = outputs[timestep_i + self._context_len]
 
         return context_inputs, context_outputs, query, output
 
@@ -130,10 +130,10 @@ class PermutationFixedLengthContextDataset(DatasetWrapper):
         context_inputs = np.zeros((self._context_len, *inputs.shape[1:]))
         context_outputs = np.zeros((self._context_len, *outputs.shape[1:]))
 
-        context_inputs = inputs[timestep_i : timestep_i + self._total_seq_len + 1]
-        context_outputs = outputs[timestep_i : timestep_i + self._total_seq_len + 1]
-        query = inputs[[timestep_i + self._total_seq_len]]
-        output = outputs[timestep_i + self._total_seq_len]
+        context_inputs = inputs[timestep_i : timestep_i + self._context_len]
+        context_outputs = outputs[timestep_i : timestep_i + self._context_len]
+        query = inputs[[timestep_i + self._context_len]]
+        output = outputs[timestep_i + self._context_len]
 
         return context_inputs, context_outputs, query, output
 
