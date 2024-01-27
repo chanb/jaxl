@@ -53,9 +53,6 @@
         ],
         "num_updates_per_epoch": 600,
         "batch_size": 100,
-        "learner_settings": {
-            "store_val_preds": false
-        }
     },
     "train_config": {
         "num_epochs": 5000
