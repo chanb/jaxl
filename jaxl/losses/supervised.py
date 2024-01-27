@@ -117,7 +117,10 @@ def make_cross_entropy_loss(
         logits, _ = model.forward(params, x, carry)
         y_one_hot = convert_to_one_hot(y)
 
-        return reduction(optax.softmax_cross_entropy(logits, y_one_hot)), {}
+        return reduction(optax.softmax_cross_entropy(logits, y_one_hot)), {
+            "logits": logits,
+            "y_one_hot": y_one_hot,
+        }
 
     return cross_entropy_loss
 

@@ -14,6 +14,7 @@ from jaxl.constants import *
 from jaxl.envs import get_environment
 from jaxl.learners import Learner
 from jaxl.models import get_model, get_policy, policy_output_dim, Policy
+from jaxl.plot_utils import icl_image_grid, plot_to_image
 from jaxl.utils import DummySummaryWriter, parse_dict, RunningMeanStd
 
 import jaxl.learners as jaxl_learners
@@ -121,6 +122,14 @@ def train(
                     # NOTE: we expect the user to properly define the logging scalars in the learner
                     for key, val in train_aux[CONST_LOG].items():
                         summary_writer.add_scalar(key, val, true_epoch)
+
+                if "plot_image" in train_aux:
+                    os.makedirs(os.path.join(save_path, "imgs"), exist_ok=True)
+                    icl_image_grid(
+                        *train_aux["plot_image"],
+                        doc_width_pt=1000,
+                        filename=os.path.join(save_path, "imgs/train_{}.png".format(true_epoch))
+                    )
 
             if (
                 save_path
