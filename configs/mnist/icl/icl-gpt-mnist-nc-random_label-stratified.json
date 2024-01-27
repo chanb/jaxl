@@ -23,7 +23,7 @@
             "kwargs": {
                 "features": [32, 32],
                 "kernel_sizes": [[3, 3], [3, 3]],
-                "layers": []
+                "layers": [32]
             }
         },
         "output_tokenizer": {
@@ -90,6 +90,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 5000
+        "num_epochs": 10000
     }
 }

@@ -71,7 +71,7 @@ class InContextSupervisedTransformer(Model):
             model_key, 5
         )
         dummy_token = np.zeros((1, 1, self.embed_dim))
-        dummy_repr = np.zeros((1, 1, self.embed_dim * self.num_heads))
+        dummy_repr = np.zeros((1, 1, self.embed_dim))
         return {
             CONST_INPUT_TOKENIZER: self.input_tokenizer.init(input_key, dummy_input),
             CONST_OUTPUT_TOKENIZER: self.output_tokenizer.init(
