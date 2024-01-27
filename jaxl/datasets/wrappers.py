@@ -74,7 +74,6 @@ class FixedLengthContextDataset(DatasetWrapper):
     def __init__(self, dataset: Dataset, context_len: int):
         super().__init__(dataset)
         self._context_len = context_len
-        self._total_seq_len = context_len - 1
 
         # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
         self._seq_mod = self._dataset.sequence_length - 1 - context_len
@@ -105,7 +104,6 @@ class PermutationFixedLengthContextDataset(DatasetWrapper):
     def __init__(self, dataset: Dataset, context_len: int, seed: int = 0):
         super().__init__(dataset)
         self._context_len = context_len
-        self._total_seq_len = context_len - 1
 
         # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
         self._seq_mod = self._dataset.sequence_length - 1 - context_len
@@ -144,7 +142,7 @@ class ContextDataset(DatasetWrapper):
     def __init__(self, dataset: Dataset, context_len: int):
         super().__init__(dataset)
         self._context_len = context_len
-        self._total_seq_len = context_len - 1
+        self._last_context_idx = context_len - 1
 
         # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
         self._seq_mod = self._dataset.sequence_length - 1
@@ -163,31 +161,18 @@ class ContextDataset(DatasetWrapper):
 
         out_seq_start_idx = int(
             np.clip(
-                self._context_len - 1 - timestep_i,
+                self._last_context_idx - timestep_i,
                 a_min=0,
-                a_max=self._context_len - 1,
+                a_max=self._last_context_idx,
             )
         )
 
         seq_copy_start_idx = int(
-            np.clip(timestep_i - self._total_seq_len, a_min=0, a_max=np.inf)
+            np.clip(timestep_i - self._last_context_idx, a_min=0, a_max=np.inf)
         )
 
         inputs = inputs[seq_copy_start_idx : timestep_i + 2]
         outputs = outputs[seq_copy_start_idx : timestep_i + 2]
-
-        # if getattr(self._dataset, "_random_label", False):
-        #     _, output_start_idxes, counts = np.unique(
-        #         np.argmax(outputs, -1),
-        #         return_index=True,
-        #         return_counts=True
-        #     )
-        #     print(output_start_idxes, len(outputs))
-        #     if np.max(output_start_idxes) == len(outputs) - 1:
-        #         idx_to_swap = np.where(counts > 1)[0][0]
-        #         print(idx_to_swap)
-        #         inputs[[idx_to_swap, -1]] = inputs[[-1, idx_to_swap]]
-        #         outputs[[idx_to_swap, -1]] = outputs[[-1, idx_to_swap]]
 
         context_inputs[out_seq_start_idx:] = inputs[:-1]
         context_outputs[out_seq_start_idx:] = outputs[:-1]
@@ -205,7 +190,7 @@ class PermutationContextDataset(DatasetWrapper):
     def __init__(self, dataset: Dataset, context_len: int, seed: int = 0):
         super().__init__(dataset)
         self._context_len = context_len
-        self._total_seq_len = context_len - 1
+        self._last_context_idx = context_len - 1
 
         # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
         self._seq_mod = self._dataset.sequence_length - 1
@@ -232,14 +217,14 @@ class PermutationContextDataset(DatasetWrapper):
 
         out_seq_start_idx = int(
             np.clip(
-                self._context_len - 1 - timestep_i,
+                self._last_context_idx - timestep_i,
                 a_min=0,
-                a_max=self._context_len - 1,
+                a_max=self._last_context_idx,
             )
         )
 
         seq_copy_start_idx = int(
-            np.clip(timestep_i - self._total_seq_len, a_min=0, a_max=np.inf)
+            np.clip(timestep_i - self._last_context_idx, a_min=0, a_max=np.inf)
         )
 
         context_inputs[out_seq_start_idx:] = inputs[seq_copy_start_idx : timestep_i + 1]
@@ -252,3 +237,56 @@ class PermutationContextDataset(DatasetWrapper):
         return context_inputs, context_outputs, query, output
 
     # TODO: Generate test query for visualization on context length, then use that for ICL plots
+
+
+class RepeatedContextDataset(DatasetWrapper):
+    """Dataset for in-context learning. The context is reused for the same task."""
+
+    def __init__(self, dataset: Dataset, context_len: int):
+        super().__init__(dataset)
+        self._context_len = context_len
+        self._num_classes = self.output_dim[0]
+        self._remaining_context_len = context_len - self._num_classes
+
+    def __len__(self):
+        return len(self._dataset) * self.num_queries
+
+    def __getitem__(self, idx):
+        seq_i = idx // self.num_queries
+        query_i = idx % self.num_queries
+
+        context_inputs, context_outputs, queries, labels = self._dataset[seq_i]
+
+        query = queries[[query_i]]
+        label = labels[query_i]
+
+        remaining_context_inputs = np.zeros((self._remaining_context_len, *context_inputs.shape[1:]))
+        remaining_context_outputs = np.zeros((self._remaining_context_len, *context_outputs.shape[1:]))
+
+        seq_copy_start_idx = int(
+            np.clip(
+                query_i - self._remaining_context_len,
+                a_min=0,
+                a_max=np.inf
+            )
+        )
+
+        out_seq_start_idx = int(
+            np.clip(
+                self._remaining_context_len - query_i,
+                a_min=0,
+                a_max=self._remaining_context_len,
+            )
+        )
+
+        remaining_context_inputs[out_seq_start_idx:] = queries[seq_copy_start_idx:query_i]
+        remaining_context_outputs[out_seq_start_idx:] = labels[seq_copy_start_idx:query_i]
+
+        context_inputs = np.concatenate(
+            (remaining_context_inputs, context_inputs)
+        )
+        context_outputs = np.concatenate(
+            (remaining_context_outputs, context_outputs)
+        )
+
+        return context_inputs, context_outputs, query, label

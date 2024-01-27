@@ -161,6 +161,10 @@ def get_dataset(
             dataset = ContextDataset(
                 dataset, dataset_config.dataset_wrapper.kwargs.context_len
             )
+        elif dataset_config.dataset_wrapper.type == "RepeatedContextDataset":
+            dataset = RepeatedContextDataset(
+                dataset, dataset_config.dataset_wrapper.kwargs.context_len
+            )
         elif dataset_config.dataset_wrapper.type == "FixedLengthContextDataset":
             dataset = FixedLengthContextDataset(
                 dataset, dataset_config.dataset_wrapper.kwargs.context_len
