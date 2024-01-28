@@ -21,8 +21,8 @@
         "input_tokenizer": {
             "type": "cnn",
             "kwargs": {
-                "features": [32, 32],
-                "kernel_sizes": [[3, 3], [3, 3]],
+                "features": [32, 32, 32],
+                "kernel_sizes": [[3, 3], [3, 3], [3, 3]],
                 "layers": [32]
             }
         },

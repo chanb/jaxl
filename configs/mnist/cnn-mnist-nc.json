@@ -9,7 +9,7 @@
         "architecture": "cnn",
         "features": [32, 32, 32],
         "kernel_sizes": [[3, 3], [3, 3], [3, 3]],
-        "layers": [32, 32, 2]
+        "layers": [32, 10]
     },
     "optimizer_config": {
         "optimizer": "adam",
@@ -26,14 +26,15 @@
         "dataset_config": {
             "dataset_name": "mnist",
             "dataset_kwargs": {
-                "save_path": "/Users/chanb/research/personal/jaxl",
+                "save_path": "/home/bryanpu1/projects/icl_nc/data",
                 "task_name": null,
                 "task_config": {}
             },
             "dataset_wrapper": {
                 "type": "StandardSupervisedDataset",
                 "kwargs": {}
-            }
+            },
+            "num_workers": 4
         },
         "seeds": {
             "model_seed": 42,
