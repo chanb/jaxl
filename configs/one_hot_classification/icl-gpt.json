@@ -47,11 +47,11 @@
         "dataset_config": {
             "dataset_name": "one_hot_classification",
             "dataset_kwargs": {
-                "num_sequences": 500000,
+                "num_sequences": 50000,
                 "sequence_length": 30,
-                "num_classes": 1000,
+                "num_classes": 500,
                 "split": "train",
-                "save_dir": "/home/bryanpu1/projects/jaxl/data"
+                "save_dir": "/Users/chanb/research/personal/jaxl/data"
             },
             "dataset_wrapper": {
                 "type": "ContextDataset",
@@ -59,7 +59,7 @@
                     "context_len": 16
                 }
             },
-            "num_workers": 4
+            "num_workers": 0
         },
         "seeds": {
             "model_seed": 42,

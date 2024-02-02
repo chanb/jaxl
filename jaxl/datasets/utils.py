@@ -12,7 +12,7 @@ def maybe_save_dataset(data: Any, save_dir: str, dataset_name: str):
             os.makedirs(os.path.dirname(save_dir), exist_ok=True)
             pickle.dump(
                 data,
-                open(save_dir, "wb"),
+                open(full_path, "wb"),
             )
 
 
@@ -24,5 +24,5 @@ def maybe_load_dataset(save_dir: str, dataset_name: str) -> Tuple[bool, Any]:
             return True, pickle.load(
                 open(full_path, "rb")
             )
-    print("{} not found".format(full_path))
+        print("{} not found".format(full_path))
     return False, None

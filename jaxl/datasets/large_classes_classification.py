@@ -37,7 +37,7 @@ class OneHotClassification(Dataset):
         )
         assert split in VALID_SPLIT, "support one of {}".format(VALID_SPLIT)
 
-        dataset_name = "one_hot_classification-num_sequences_{}-sequence_length-num_classes_{}-seed_{}".format(
+        dataset_name = "one_hot_classification-num_sequences_{}-sequence_length-num_classes_{}-seed_{}.pkl".format(
             num_sequences,
             sequence_length,
             num_classes,
@@ -45,7 +45,7 @@ class OneHotClassification(Dataset):
         )
         loaded, data = maybe_load_dataset(save_dir, dataset_name)
         if not loaded:
-            inputs, targets = self._generate_data(
+            inputs = self._generate_data(
                 num_sequences=num_sequences,
                 sequence_length=sequence_length,
                 num_classes=num_classes,
@@ -55,7 +55,6 @@ class OneHotClassification(Dataset):
             )
             data = {
                 "inputs": inputs,
-                "targets": targets,
                 "num_sequences": num_sequences,
                 "sequence_length": sequence_length,
                 "num_classes": num_classes,
@@ -89,18 +88,15 @@ class OneHotClassification(Dataset):
             size=(num_sequences, sequence_length),
         )
 
-        targets = np.eye(num_classes)[targets]
+        inputs = np.eye(num_classes)[targets]
         noise = inputs_range[1] - data_gen_rng.uniform(
             inputs_range[0],
             inputs_range[1],
             (num_sequences, sequence_length, 1),
         )
-        inputs = targets * noise
+        inputs = inputs * noise
 
-        return (
-            inputs,
-            targets,
-        )
+        return inputs
 
     @property
     def input_dim(self) -> chex.Array:
@@ -115,7 +111,9 @@ class OneHotClassification(Dataset):
         return self._data["sequence_length"]
 
     def __len__(self):
-        return len(self._data["num_sequences"])
+        return self._data["num_sequences"]
 
     def __getitem__(self, idx):
-        return (self._data["inputs"][idx], self._data["targets"][idx])
+        inputs = self._data["inputs"][idx]
+        targets = np.eye(self._data["num_classes"])[np.argmax(np.abs(inputs), axis=-1)]
+        return (inputs, targets)

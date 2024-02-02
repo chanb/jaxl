@@ -137,10 +137,10 @@ def train(
                 ) as f:
                     pickle.dump(train_aux, f)
 
-                if "plot_image" in train_aux:
+                if "data" in train_aux and getattr(config.logging_config, "image_data", False):
                     os.makedirs(os.path.join(save_path, "imgs"), exist_ok=True)
                     icl_image_grid(
-                        *train_aux["plot_image"],
+                        *train_aux["data"],
                         doc_width_pt=1000,
                         filename=os.path.join(save_path, "imgs/train_{}.png".format(true_epoch))
                     )

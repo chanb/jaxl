@@ -199,7 +199,7 @@ class InContextLearner(OfflineLearner):
                 CONST_LOSS
             ].item()
 
-        aux["plot_image"] = [
+        aux["data"] = [
             context_inputs,
             context_outputs,
             queries,
