@@ -286,7 +286,7 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
 
         query_idxes = self.query_idxes[idx].tolist()
         queries = self._dataset.transform(self._dataset.data[query_idxes])
-        labels = self.label_map[idx][self._dataset.targets[query_idxes]]
+        labels = np.atleast_1d(self.label_map[idx][self._dataset.targets[query_idxes]])
         labels = np.eye(self.output_dim[0])[labels]
 
         return (context_inputs, context_outputs, queries, labels)

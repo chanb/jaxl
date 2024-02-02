@@ -204,7 +204,7 @@ class OfflineLearner(Learner):
             self._train_dataloader = DataLoader(
                 self._buffer,
                 batch_size=self._config.batch_size,
-                shuffle=True,
+                shuffle=getattr(self._config.dataset_config, "shuffle", True),
                 drop_last=True,
                 num_workers=getattr(self._config.dataset_config, "num_workers", 0),
             )

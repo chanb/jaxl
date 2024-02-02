@@ -123,14 +123,6 @@ def train(
                     for key, val in train_aux[CONST_LOG].items():
                         summary_writer.add_scalar(key, val, true_epoch)
 
-                if "plot_image" in train_aux:
-                    os.makedirs(os.path.join(save_path, "imgs"), exist_ok=True)
-                    icl_image_grid(
-                        *train_aux["plot_image"],
-                        doc_width_pt=1000,
-                        filename=os.path.join(save_path, "imgs/train_{}.png".format(true_epoch))
-                    )
-
             if (
                 save_path
                 and logging_config.checkpoint_interval
@@ -144,6 +136,14 @@ def train(
                     "wb",
                 ) as f:
                     pickle.dump(train_aux, f)
+
+                if "plot_image" in train_aux:
+                    os.makedirs(os.path.join(save_path, "imgs"), exist_ok=True)
+                    icl_image_grid(
+                        *train_aux["plot_image"],
+                        doc_width_pt=1000,
+                        filename=os.path.join(save_path, "imgs/train_{}.png".format(true_epoch))
+                    )
                 checkpoint_manager.save(true_epoch, learner.checkpoint(final=False))
     except KeyboardInterrupt:
         pass

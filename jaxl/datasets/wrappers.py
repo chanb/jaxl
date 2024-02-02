@@ -260,9 +260,6 @@ class RepeatedContextDataset(DatasetWrapper):
         query = queries[[query_i]]
         label = labels[query_i]
 
-        remaining_context_inputs = np.zeros((self._remaining_context_len, *context_inputs.shape[1:]))
-        remaining_context_outputs = np.zeros((self._remaining_context_len, *context_outputs.shape[1:]))
-
         seq_copy_start_idx = int(
             np.clip(
                 query_i - self._remaining_context_len,
@@ -279,14 +276,38 @@ class RepeatedContextDataset(DatasetWrapper):
             )
         )
 
-        remaining_context_inputs[out_seq_start_idx:] = queries[seq_copy_start_idx:query_i]
-        remaining_context_outputs[out_seq_start_idx:] = labels[seq_copy_start_idx:query_i]
+        # if self._remaining_context_len > 0:
+        #     remaining_context_inputs = np.zeros((self._remaining_context_len, *context_inputs.shape[1:]))
+        #     remaining_context_outputs = np.zeros((self._remaining_context_len, *context_outputs.shape[1:]))
+        #     remaining_context_inputs[out_seq_start_idx:] = queries[seq_copy_start_idx:query_i]
+        #     remaining_context_outputs[out_seq_start_idx:] = labels[seq_copy_start_idx:query_i]
 
-        context_inputs = np.concatenate(
-            (remaining_context_inputs, context_inputs)
-        )
-        context_outputs = np.concatenate(
-            (remaining_context_outputs, context_outputs)
-        )
+        #     context_inputs = np.concatenate(
+        #         (remaining_context_inputs, context_inputs)
+        #     )
+        #     context_outputs = np.concatenate(
+        #         (remaining_context_outputs, context_outputs)
+        #     )
+
+        if self._remaining_context_len > 0:
+            context_inputs = np.concatenate(
+                (queries[seq_copy_start_idx:query_i], context_inputs)
+            )
+            context_outputs = np.concatenate(
+                (labels[seq_copy_start_idx:query_i], context_outputs)
+            )
+            permute_idxes = np.random.RandomState(idx).permutation(len(context_inputs))
+            context_inputs = context_inputs[permute_idxes]
+            context_outputs = context_outputs[permute_idxes]
+            context_inputs = np.concatenate(
+                (np.zeros((out_seq_start_idx, *context_inputs.shape[1:])), context_inputs)
+            )
+            context_outputs = np.concatenate(
+                (np.zeros((out_seq_start_idx, *context_outputs.shape[1:])), context_outputs)
+            )
+        else:
+            permute_idxes = np.random.RandomState(idx).permutation(len(context_inputs))
+            context_inputs = context_inputs[permute_idxes]
+            context_outputs = context_outputs[permute_idxes]
 
         return context_inputs, context_outputs, query, label
