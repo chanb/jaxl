@@ -6,6 +6,9 @@ from jaxl.constants import *
 from jaxl.datasets.basis_regression import (
     MultitaskFixedBasisRegression1D,
 )
+from jaxl.datasets.large_classes_classification import (
+    OneHotClassification,
+)
 from jaxl.datasets.linear_regression import (
     MultitaskLinearRegressionND,
 )
@@ -144,6 +147,20 @@ def get_dataset(
             dataset_kwargs.save_path,
             dataset_kwargs.task_name,
             dataset_kwargs.task_config,
+        )
+    elif dataset_config.dataset_name == CONST_ONE_HOT_CLASSIFICATION:
+        dataset = OneHotClassification(
+            num_sequences=dataset_kwargs.num_sequences,
+            sequence_length=dataset_kwargs.sequence_length,
+            num_classes=dataset_kwargs.num_classes,
+            split=dataset_kwargs.split,
+            seed=seed,
+            inputs_range=getattr(dataset_kwargs, "inputs_range", [0.0, 0.5]),
+            save_dir=getattr(
+                dataset_kwargs,
+                "save_dir",
+                None,
+            ),
         )
     else:
         raise ValueError(
