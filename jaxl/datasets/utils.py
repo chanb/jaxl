@@ -9,7 +9,7 @@ def maybe_save_dataset(data: Any, save_dir: str, dataset_name: str):
         full_path = os.path.join(save_dir, dataset_name)
         if not os.path.isfile(full_path):
             print("Saving to {}".format(full_path))
-            os.makedirs(os.path.dirname(save_dir), exist_ok=True)
+            os.makedirs(save_dir, exist_ok=True)
             pickle.dump(
                 data,
                 open(full_path, "wb"),
