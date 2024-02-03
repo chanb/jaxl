@@ -37,7 +37,7 @@ class OneHotClassification(Dataset):
         )
         assert split in VALID_SPLIT, "support one of {}".format(VALID_SPLIT)
 
-        dataset_name = "one_hot_classification-num_sequences_{}-sequence_length-num_classes_{}-seed_{}.pkl".format(
+        dataset_name = "one_hot_classification-num_sequences_{}-sequence_length_{}-num_classes_{}-seed_{}.pkl".format(
             num_sequences,
             sequence_length,
             num_classes,

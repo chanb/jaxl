@@ -295,7 +295,9 @@ def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
         return MLP(
             layers=tokenizer_kwargs.layers + [embed_dim],
             activation=getattr(tokenizer_kwargs, "activation", CONST_RELU),
-            output_activation=getattr(tokenizer_kwargs, "output_activation", CONST_IDENTITY),
+            output_activation=getattr(
+                tokenizer_kwargs, "output_activation", CONST_IDENTITY
+            ),
         )
     elif tokenizer_config.type == CONST_CNN:
         return CNN(
@@ -303,10 +305,14 @@ def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
             kernel_sizes=tokenizer_kwargs.kernel_sizes,
             layers=tokenizer_kwargs.layers + [embed_dim],
             activation=getattr(tokenizer_kwargs, "activation", CONST_RELU),
-            output_activation=getattr(tokenizer_kwargs, "output_activation", CONST_IDENTITY),
+            output_activation=getattr(
+                tokenizer_kwargs, "output_activation", CONST_IDENTITY
+            ),
         )
     else:
-        raise ValueError(f"{tokenizer_config.type} is not supported (one of {VALID_TOKENIZER_TYPE})")
+        raise ValueError(
+            f"{tokenizer_config.type} is not supported (one of {VALID_TOKENIZER_TYPE})"
+        )
 
 
 class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
@@ -404,9 +410,13 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
                 None,
             )
 
-            context_input_embedding = context_input_embedding.reshape((num_samples, context_len, -1))
+            context_input_embedding = context_input_embedding.reshape(
+                (num_samples, context_len, -1)
+            )
             query_embedding = query_embedding.reshape((num_samples, 1, -1))
-            context_output_embedding = context_output_embedding.reshape((num_samples, context_len, -1))
+            context_output_embedding = context_output_embedding.reshape(
+                (num_samples, context_len, -1)
+            )
 
             input_embedding = self.positional_encoding.apply(
                 params[CONST_POSITIONAL_ENCODING],

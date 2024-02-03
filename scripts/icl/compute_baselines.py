@@ -21,7 +21,12 @@ LR = "lr"
 
 
 def make_test_dataset(
-    num_tasks, seq_len, seed, input_range=[-1.0, 1.0], params_bound=[-1.0, 1.0], random_labels=False,
+    num_tasks,
+    seq_len,
+    seed,
+    input_range=[-1.0, 1.0],
+    params_bound=[-1.0, 1.0],
+    random_labels=False,
 ):
     if random_labels:
         dataset_config = {
@@ -104,7 +109,9 @@ def build_baseline_models(context_data, num_tasks, hyperparams, make_model):
     return model_res
 
 
-def get_ground_truth(dataset, num_tasks, seed, delta=0.01, input_range=[-1.0, 1.0], random_labels=False):
+def get_ground_truth(
+    dataset, num_tasks, seed, delta=0.01, input_range=[-1.0, 1.0], random_labels=False
+):
     xs_grid = np.arange(input_range[0], input_range[1] + delta, delta)
     test_queries = np.stack(np.meshgrid(xs_grid, xs_grid)).reshape((2, -1)).T
     test_data = {"inputs": test_queries, "outputs": {}, "decision_boundary": {}}
@@ -119,7 +126,10 @@ def get_ground_truth(dataset, num_tasks, seed, delta=0.01, input_range=[-1.0, 1.
         for task_i in range(num_tasks):
             test_data["outputs"][task_i] = np.eye(2)[
                 (
-                    (test_queries @ dataset.params[task_i, 1:] + dataset.params[task_i, :1])
+                    (
+                        test_queries @ dataset.params[task_i, 1:]
+                        + dataset.params[task_i, :1]
+                    )
                     >= 0
                 )
                 .flatten()
@@ -127,7 +137,9 @@ def get_ground_truth(dataset, num_tasks, seed, delta=0.01, input_range=[-1.0, 1.
             ]
 
             gt = dataset.params[task_i]
-            test_data["decision_boundary"][task_i] = -np.array(input_range) * gt[1] / gt[2]
+            test_data["decision_boundary"][task_i] = (
+                -np.array(input_range) * gt[1] / gt[2]
+            )
     return test_data
 
 
@@ -235,7 +247,12 @@ def main(
         pickle.dump(baseline_results, f)
 
     ground_truth = get_ground_truth(
-        test_dataset, num_tasks, seed, delta=delta, input_range=input_range, random_labels=random_labels
+        test_dataset,
+        num_tasks,
+        seed,
+        delta=delta,
+        input_range=input_range,
+        random_labels=random_labels,
     )
 
     with open(os.path.join(save_path, "ground_truth.pkl"), "wb") as f:

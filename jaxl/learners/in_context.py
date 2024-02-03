@@ -199,7 +199,7 @@ class InContextLearner(OfflineLearner):
                 CONST_LOSS
             ].item()
 
-        aux["data"] = [
+        aux[CONST_DATA] = [
             context_inputs,
             context_outputs,
             queries,

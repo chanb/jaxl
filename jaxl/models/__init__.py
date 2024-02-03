@@ -17,7 +17,7 @@ from jaxl.models.common import (
 from jaxl.models.policies import *
 from jaxl.models.transformers import (
     InContextSupervisedTransformer,
-    CustomTokenizerICSupervisedTransformer
+    CustomTokenizerICSupervisedTransformer,
 )
 
 
@@ -206,7 +206,9 @@ def get_model(
             model, model_config.num_models, getattr(model_config, "vmap_all", True)
         )
     elif model_config.architecture == CONST_ICL_GPT:
-        if hasattr(model_config, CONST_INPUT_TOKENIZER) and hasattr(model_config, CONST_OUTPUT_TOKENIZER):
+        if hasattr(model_config, CONST_INPUT_TOKENIZER) and hasattr(
+            model_config, CONST_OUTPUT_TOKENIZER
+        ):
             return CustomTokenizerICSupervisedTransformer(
                 output_dim,
                 model_config.num_contexts,

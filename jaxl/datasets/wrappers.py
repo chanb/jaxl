@@ -17,17 +17,18 @@ class DatasetWrapper(Dataset):
 
     def __len__(self):
         return len(self._dataset)
-    
+
 
 class StandardSupervisedDataset(DatasetWrapper):
     """Dataset for standard supervised learning."""
+
     def __init__(self, dataset: Dataset):
         super().__init__(dataset)
 
     def __getitem__(self, idx):
         input, output = self._dataset[idx]
         return input, np.zeros((1,)), output, idx
-    
+
     @property
     def output_dim(self) -> chex.Array:
         return (self._dataset.targets.max() + 1,)
@@ -261,11 +262,7 @@ class RepeatedContextDataset(DatasetWrapper):
         label = labels[query_i]
 
         seq_copy_start_idx = int(
-            np.clip(
-                query_i - self._remaining_context_len,
-                a_min=0,
-                a_max=np.inf
-            )
+            np.clip(query_i - self._remaining_context_len, a_min=0, a_max=np.inf)
         )
 
         out_seq_start_idx = int(
@@ -300,10 +297,16 @@ class RepeatedContextDataset(DatasetWrapper):
             context_inputs = context_inputs[permute_idxes]
             context_outputs = context_outputs[permute_idxes]
             context_inputs = np.concatenate(
-                (np.zeros((out_seq_start_idx, *context_inputs.shape[1:])), context_inputs)
+                (
+                    np.zeros((out_seq_start_idx, *context_inputs.shape[1:])),
+                    context_inputs,
+                )
             )
             context_outputs = np.concatenate(
-                (np.zeros((out_seq_start_idx, *context_outputs.shape[1:])), context_outputs)
+                (
+                    np.zeros((out_seq_start_idx, *context_outputs.shape[1:])),
+                    context_outputs,
+                )
             )
         else:
             permute_idxes = np.random.RandomState(idx).permutation(len(context_inputs))

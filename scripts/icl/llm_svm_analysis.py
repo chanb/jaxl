@@ -150,18 +150,25 @@ def get_svms(repr_dict, context_data, bias):
 
 def llm_pred_on_support_vectors(context_data, queries, agent_path, baseline_results):
     llm_params, llm_model, llm_config = load_llm(agent_path)
-    context_len = llm_config.learner_config.dataset_config.dataset_wrapper.kwargs.context_len
+    context_len = (
+        llm_config.learner_config.dataset_config.dataset_wrapper.kwargs.context_len
+    )
 
     process_prediction = make_model_specific(llm_config)
 
     agent_result = {}
     for task_i in context_data:
-
         curr_svms = baseline_results["svm"][task_i]
-        support_vector_indices = curr_svms[max(curr_svms.keys())]["support_vector_indices"]
+        support_vector_indices = curr_svms[max(curr_svms.keys())][
+            "support_vector_indices"
+        ]
 
-        support_vectors = context_data[task_i][CONST_CONTEXT_INPUT][support_vector_indices]
-        support_labels = context_data[task_i][CONST_CONTEXT_OUTPUT][support_vector_indices]
+        support_vectors = context_data[task_i][CONST_CONTEXT_INPUT][
+            support_vector_indices
+        ]
+        support_labels = context_data[task_i][CONST_CONTEXT_OUTPUT][
+            support_vector_indices
+        ]
 
         support_vectors = np.concatenate(
             (
@@ -236,11 +243,10 @@ def main(baseline_path, bias, seed):
             ),
         }
 
-        agent_results[agent_path]["pred_on_support_vectors"] = llm_pred_on_support_vectors(
-            context_data,
-            gt["inputs"],
-            agent_path,
-            baseline_results
+        agent_results[agent_path][
+            "pred_on_support_vectors"
+        ] = llm_pred_on_support_vectors(
+            context_data, gt["inputs"], agent_path, baseline_results
         )
 
     with open(os.path.join(baseline_path, "agent_reprs.pkl"), "wb") as f:

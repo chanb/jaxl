@@ -37,24 +37,24 @@ class SupervisedLearner(OfflineLearner):
         super().__init__(config, model_config, optimizer_config)
 
         if getattr(self._config, CONST_BUFFER_CONFIG, False):
+
             def sample():
                 input, carry, output, _ = self._buffer.sample(self._config.batch_size)
                 return input, carry, output
+
         else:
+
             def sample():
                 try:
-                    inputs, carries, outputs, _ = next(
-                        self._train_loader
-                    )
+                    inputs, carries, outputs, _ = next(self._train_loader)
                 except StopIteration:
                     self._train_loader = iter(self._train_dataloader)
-                    inputs, carries, outputs, _ = next(
-                        self._train_loader
-                    )
+                    inputs, carries, outputs, _ = next(self._train_loader)
                 inputs = inputs.numpy()
                 carries = carries.numpy()
                 outputs = outputs.numpy()
                 return inputs, carries, outputs
+
         self.sample = sample
 
         self._initialize_losses()

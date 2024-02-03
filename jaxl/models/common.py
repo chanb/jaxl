@@ -486,8 +486,7 @@ class CNN(Model):
         conv_params = self.conv.init(model_key, dummy_x)
         dummy_latent = self.conv.apply(conv_params, dummy_x)
         mlp_params = self.mlp.init(
-            model_key,
-            dummy_latent.reshape((dummy_latent.shape[0], -1))
+            model_key, dummy_latent.reshape((dummy_latent.shape[0], -1))
         )
         return {
             CONST_CNN: conv_params,

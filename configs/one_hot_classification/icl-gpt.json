@@ -49,7 +49,7 @@
             "dataset_kwargs": {
                 "num_sequences": 50000,
                 "sequence_length": 30,
-                "num_classes": 500,
+                "num_classes": 2000,
                 "split": "train",
                 "save_dir": "/Users/chanb/research/personal/jaxl/data"
             },
@@ -82,6 +82,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 5000
+        "num_epochs": 2000
     }
 }

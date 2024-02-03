@@ -110,7 +110,7 @@ class MultitaskMNISTFineGrain(Dataset):
         num_sequences: int,
         sequence_length: int,
         seed: int = 0,
-        random_label: bool=False,
+        random_label: bool = False,
         save_path: str = None,
     ):
         self._dataset = dataset
@@ -133,9 +133,7 @@ class MultitaskMNISTFineGrain(Dataset):
                 )
         else:
             print("Loading from {}".format(save_path))
-            (self.sample_idxes, self.label_map) = pickle.load(
-                open(save_path, "rb")
-            )
+            (self.sample_idxes, self.label_map) = pickle.load(open(save_path, "rb"))
 
     def _generate_data(
         self,
@@ -150,14 +148,14 @@ class MultitaskMNISTFineGrain(Dataset):
         label_rng = np.random.RandomState(label_key)
 
         sample_idxes = sample_rng.choice(
-            np.arange(len(dataset)),
-            size=(num_sequences, self._sequence_length)
+            np.arange(len(dataset)), size=(num_sequences, self._sequence_length)
         )
-
 
         label_map = np.tile(np.arange(self.output_dim[0]), reps=(num_sequences, 1))
         if random_label:
-            label_map = np.apply_along_axis(label_rng.permutation, axis=1, arr=label_map)
+            label_map = np.apply_along_axis(
+                label_rng.permutation, axis=1, arr=label_map
+            )
 
         return sample_idxes, label_map
 
@@ -195,7 +193,7 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
         num_sequences: int,
         num_queries: int,
         seed: int = 0,
-        random_label: bool=False,
+        random_label: bool = False,
         save_path: str = None,
     ):
         self._dataset = dataset
@@ -203,13 +201,21 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
         _, counts = np.unique(dataset.targets, return_counts=True)
         self._min_num_per_class = np.min(counts)
         self._label_to_idx = np.vstack(
-            [np.where(dataset.targets == class_i)[0][:self._min_num_per_class] for class_i in range(self.output_dim[0])]
+            [
+                np.where(dataset.targets == class_i)[0][: self._min_num_per_class]
+                for class_i in range(self.output_dim[0])
+            ]
         )
         self._num_queries = num_queries
         self._random_label = random_label
 
         if save_path is None or not os.path.isfile(save_path):
-            (self.context_idxes, self.query_idxes, self.swap_idxes, self.label_map) = self._generate_data(
+            (
+                self.context_idxes,
+                self.query_idxes,
+                self.swap_idxes,
+                self.label_map,
+            ) = self._generate_data(
                 dataset=dataset,
                 num_sequences=num_sequences,
                 random_label=random_label,
@@ -219,14 +225,22 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
                 print("Saving to {}".format(save_path))
                 os.makedirs(os.path.dirname(save_path), exist_ok=True)
                 pickle.dump(
-                    (self.context_idxes, self.query_idxes, self.swap_idxes, self.label_map),
+                    (
+                        self.context_idxes,
+                        self.query_idxes,
+                        self.swap_idxes,
+                        self.label_map,
+                    ),
                     open(save_path, "wb"),
                 )
         else:
             print("Loading from {}".format(save_path))
-            (self.context_idxes, self.query_idxes, self.swap_idxes, self.label_map) = pickle.load(
-                open(save_path, "rb")
-            )
+            (
+                self.context_idxes,
+                self.query_idxes,
+                self.swap_idxes,
+                self.label_map,
+            ) = pickle.load(open(save_path, "rb"))
 
     def _generate_data(
         self,
@@ -241,13 +255,11 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
         label_rng = np.random.RandomState(label_key)
 
         query_idxes = sample_rng.choice(
-            np.arange(len(dataset)),
-            size=(num_sequences, self._num_queries)
+            np.arange(len(dataset)), size=(num_sequences, self._num_queries)
         )
 
         context_idxes = sample_rng.choice(
-            np.arange(self._min_num_per_class),
-            size=(num_sequences, self.output_dim[0])
+            np.arange(self._min_num_per_class), size=(num_sequences, self.output_dim[0])
         )
 
         label_map = np.tile(np.arange(self.output_dim[0]), reps=(num_sequences, 1))
@@ -255,7 +267,9 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
         swap_idxes = np.apply_along_axis(sample_rng.permutation, axis=1, arr=label_map)
 
         if random_label:
-            label_map = np.apply_along_axis(label_rng.permutation, axis=1, arr=label_map)
+            label_map = np.apply_along_axis(
+                label_rng.permutation, axis=1, arr=label_map
+            )
 
         return context_idxes, query_idxes, swap_idxes, label_map
 
@@ -276,7 +290,9 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
 
     def __getitem__(self, idx):
         context_idxes = self.context_idxes[idx]
-        context_idxes = np.take_along_axis(self._label_to_idx, context_idxes[:, None], axis=1).flatten()
+        context_idxes = np.take_along_axis(
+            self._label_to_idx, context_idxes[:, None], axis=1
+        ).flatten()
         context_inputs = self._dataset.transform(self._dataset.data[context_idxes])
         context_outputs = self.label_map[idx][self._dataset.targets[context_idxes]]
 
@@ -323,9 +339,7 @@ class MultitaskMNISTRandomBinary(Dataset):
                 )
         else:
             print("Loading from {}".format(save_path))
-            (self.sample_idxes, self.label_map) = pickle.load(
-                open(save_path, "rb")
-            )
+            (self.sample_idxes, self.label_map) = pickle.load(open(save_path, "rb"))
 
     def _generate_data(
         self,
@@ -338,10 +352,9 @@ class MultitaskMNISTRandomBinary(Dataset):
         label_rng = np.random.RandomState(label_key)
 
         sample_idxes = sample_rng.choice(
-            np.arange(len(dataset)),
-            size=(num_sequences, self._sequence_length)
+            np.arange(len(dataset)), size=(num_sequences, self._sequence_length)
         )
-        
+
         label_map = np.zeros((10,), dtype=np.int32)
         ones = label_rng.choice(
             np.arange(10),
@@ -369,5 +382,7 @@ class MultitaskMNISTRandomBinary(Dataset):
     def __getitem__(self, idx):
         sample_idxes = self.sample_idxes[idx].tolist()
         inputs = self._dataset.transform(self._dataset.data[sample_idxes])
-        outputs = np.eye(self.output_dim[0])[self.label_map[self._dataset.targets[sample_idxes]]]
+        outputs = np.eye(self.output_dim[0])[
+            self.label_map[self._dataset.targets[sample_idxes]]
+        ]
         return (inputs, outputs)

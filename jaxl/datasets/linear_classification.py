@@ -7,6 +7,8 @@ import os
 from torch.utils.data import Dataset
 from typing import Callable, Tuple
 
+from jaxl.datasets.utils import maybe_load_dataset, maybe_save_dataset
+
 
 class MultitaskLinearClassificationND(Dataset):
     """
@@ -25,7 +27,7 @@ class MultitaskLinearClassificationND(Dataset):
         num_active_params: int = None,
         bias: bool = False,
         margin: float = 0.0,
-        save_path: str = None,
+        save_dir: str = None,
     ):
         assert num_active_params is None or num_active_params >= 0
         self._noise = noise
@@ -33,36 +35,65 @@ class MultitaskLinearClassificationND(Dataset):
         self._input_dim = input_dim
         self._inputs_range = inputs_range
 
-        if save_path is None or not os.path.isfile(save_path):
-            self._inputs, self._targets, self._params = self._generate_data(
+        dataset_name = "multitask_linear_classification-num_sequences_{}-sequence_length_{}-input_dim_{}-noise_{}-num_active_params_{}-margin_{}-bias_{}-seed_{}.pkl".format(
+            num_sequences,
+            sequence_length,
+            input_dim,
+            noise,
+            num_active_params,
+            margin,
+            bias,
+            seed,
+        )
+        loaded, data = maybe_load_dataset(save_dir, dataset_name)
+
+        if not loaded:
+            inputs, targets, params = self._generate_data(
                 num_sequences=num_sequences,
+                sequence_length=sequence_length,
+                input_dim=input_dim,
                 seed=seed,
+                noise=noise,
                 params_bound=params_bound,
+                inputs_range=inputs_range,
                 num_active_params=num_active_params,
                 bias=bias,
                 margin=margin,
             )
-            if save_path is not None:
-                print("Saving to {}".format(save_path))
-                os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                pickle.dump(
-                    (self._inputs, self._targets, self._params),
-                    open(save_path, "wb"),
-                )
-        else:
-            print("Loading from {}".format(save_path))
-            self._inputs, self._targets, self._params = pickle.load(
-                open(save_path, "rb")
+            data = {
+                "inputs": inputs,
+                "targets": targets,
+                "params": params,
+                "num_sequences": num_sequences,
+                "sequence_length": sequence_length,
+                "input_dim": input_dim,
+                "inputs_range": inputs_range,
+                "params_bound": params_bound,
+                "noise": noise,
+                "num_active_params": num_active_params,
+                "margin": margin,
+                "bias": bias,
+                "seed": seed,
+            }
+            maybe_save_dataset(
+                data,
+                save_dir,
+                dataset_name,
             )
+        self._data = data
 
     def _generate_data(
         self,
         num_sequences: int,
-        seed: int,
-        params_bound: Tuple[float, float],
-        num_active_params: int,
-        bias: bool,
-        margin: float,
+        sequence_length: int,
+        input_dim: int,
+        seed: int = 0,
+        noise: float = 0.0,
+        params_bound: Tuple[float, float] = (-0.5, 0.5),
+        inputs_range: Tuple[float, float] = (-1.0, 1.0),
+        num_active_params: int = None,
+        bias: bool = False,
+        margin: float = 0.0,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         model_seed, data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)
         model_rng = np.random.RandomState(seed=model_seed)
@@ -71,7 +102,7 @@ class MultitaskLinearClassificationND(Dataset):
         params = model_rng.uniform(
             low=params_bound[0],
             high=params_bound[1],
-            size=(num_sequences, self._input_dim + 1, 1),
+            size=(num_sequences, input_dim + 1, 1),
         )
 
         params[:, 0] = params[:, 0] * int(bias)
@@ -80,14 +111,14 @@ class MultitaskLinearClassificationND(Dataset):
         while not done_generation:
             num_valid_pts = 0
             inputs = np.zeros(
-                (num_sequences, self._sequence_length, self._input_dim),
+                (num_sequences, sequence_length, input_dim),
             )
             replace_mask = inputs == 0
-            while num_valid_pts != num_sequences * self._sequence_length:
+            while num_valid_pts != num_sequences * sequence_length:
                 samples = data_gen_rng.uniform(
-                    self._inputs_range[0],
-                    self._inputs_range[1],
-                    (num_sequences, self._sequence_length, self._input_dim),
+                    inputs_range[0],
+                    inputs_range[1],
+                    (num_sequences, sequence_length, input_dim),
                 )
                 inputs = inputs * (1 - replace_mask) + samples * replace_mask
                 dists = np.abs(inputs @ params[:, 1:] + params[:, :1])[
@@ -98,21 +129,20 @@ class MultitaskLinearClassificationND(Dataset):
                 num_valid_pts = np.sum(dists >= margin)
 
             if num_active_params is not None:
-                params[:, -self._input_dim - num_active_params :] = 0
+                params[:, -input_dim - num_active_params :] = 0
 
             targets = (
                 (
                     inputs @ params[:, 1:]
                     + params[:, :1]
-                    + data_gen_rng.randn(num_sequences, self._sequence_length, 1)
-                    * self._noise
+                    + data_gen_rng.randn(num_sequences, sequence_length, 1) * noise
                 )
                 >= 0
             ).astype(int)[..., 0]
             if np.all(
                 np.logical_and(
                     0 < np.sum(targets, axis=-1),
-                    np.sum(targets, axis=-1) < self._sequence_length,
+                    np.sum(targets, axis=-1) < sequence_length,
                 )
             ):
                 done_generation = True
@@ -127,7 +157,7 @@ class MultitaskLinearClassificationND(Dataset):
 
     @property
     def input_dim(self) -> chex.Array:
-        return (self._input_dim,)
+        return (self._data["input_dim"],)
 
     @property
     def output_dim(self) -> chex.Array:
@@ -135,25 +165,27 @@ class MultitaskLinearClassificationND(Dataset):
 
     @property
     def sequence_length(self) -> int:
-        return self._sequence_length
+        return self._data["sequence_length"]
 
     def __len__(self):
-        return len(self._inputs)
+        return self._data["num_sequences"]
 
     def __getitem__(self, idx):
-        return (self._inputs[idx], self._targets[idx])
+        return (self._data["inputs"][idx], self._data["targets"][idx])
 
     def plot(self):
         raise NotImplementedError
 
     @property
     def params(self) -> chex.Array:
-        return self._params
+        return self._data["params"]
 
     @property
     def ls_estimators(self) -> chex.Array:
-        inputs_T = self._inputs.transpose((0, 2, 1))
+        inputs_T = self._data["inputs"].transpose((0, 2, 1))
         ls_estimator = (
-            np.linalg.pinv(inputs_T @ self._inputs) @ inputs_T @ self._targets
+            np.linalg.pinv(inputs_T @ self._data["inputs"])
+            @ inputs_T
+            @ self._data["targets"]
         )
         return ls_estimator

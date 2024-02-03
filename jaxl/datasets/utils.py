@@ -21,8 +21,6 @@ def maybe_load_dataset(save_dir: str, dataset_name: str) -> Tuple[bool, Any]:
         full_path = os.path.join(save_dir, dataset_name)
         if os.path.isfile(full_path):
             print("Loading from {}".format(full_path))
-            return True, pickle.load(
-                open(full_path, "rb")
-            )
+            return True, pickle.load(open(full_path, "rb"))
         print("{} not found".format(full_path))
     return False, None

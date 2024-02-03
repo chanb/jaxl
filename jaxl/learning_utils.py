@@ -137,12 +137,16 @@ def train(
                 ) as f:
                     pickle.dump(train_aux, f)
 
-                if "data" in train_aux and getattr(config.logging_config, "image_data", False):
+                if CONST_DATA in train_aux and getattr(
+                    config.logging_config, "image_data", False
+                ):
                     os.makedirs(os.path.join(save_path, "imgs"), exist_ok=True)
                     icl_image_grid(
-                        *train_aux["data"],
+                        *train_aux[CONST_DATA],
                         doc_width_pt=1000,
-                        filename=os.path.join(save_path, "imgs/train_{}.png".format(true_epoch))
+                        filename=os.path.join(
+                            save_path, "imgs/train_{}.png".format(true_epoch)
+                        ),
                     )
                 checkpoint_manager.save(true_epoch, learner.checkpoint(final=False))
     except KeyboardInterrupt:

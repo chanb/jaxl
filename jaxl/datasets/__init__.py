@@ -15,9 +15,7 @@ from jaxl.datasets.linear_regression import (
 from jaxl.datasets.linear_classification import (
     MultitaskLinearClassificationND,
 )
-from jaxl.datasets.mnist import (
-    construct_mnist
-)
+from jaxl.datasets.mnist import construct_mnist
 from jaxl.datasets.random_classification import (
     MultitaskRandomClassificationND,
 )

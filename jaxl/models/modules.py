@@ -21,7 +21,7 @@ class MLPModule(nn.Module):
         x = self.output_activation(nn.Dense(self.layers[-1])(x))
         self.sow("mlp_latents", "mlp_{}".format(idx + 1), x)
         return x
-    
+
 
 class CNNModule(nn.Module):
     """Convolutional layer."""
@@ -33,7 +33,9 @@ class CNNModule(nn.Module):
 
     @nn.compact
     def __call__(self, x: chex.Array) -> chex.Array:
-        for idx, (feature, kernel_size) in enumerate(zip(self.features, self.kernel_sizes)):
+        for idx, (feature, kernel_size) in enumerate(
+            zip(self.features, self.kernel_sizes)
+        ):
             x = self.activation(nn.Conv(feature, kernel_size)(x))
             self.sow("cnn_latents", "cnn_{}".format(idx), x)
         return x
