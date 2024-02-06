@@ -50,8 +50,9 @@
                 "num_sequences": 50000,
                 "sequence_length": 30,
                 "num_classes": 2000,
+                "num_holdout": 50,
                 "split": "train",
-                "save_dir": "/Users/chanb/research/personal/jaxl/data"
+                "save_dir": "/home/bryanpu1/projects/icl/data/one_hot_classification"
             },
             "dataset_wrapper": {
                 "type": "ContextDataset",
@@ -59,7 +60,7 @@
                     "context_len": 16
                 }
             },
-            "num_workers": 0
+            "num_workers": 4
         },
         "seeds": {
             "model_seed": 42,
@@ -78,7 +79,7 @@
             }
         ],
         "num_updates_per_epoch": 100,
-        "batch_size": 32,
+        "batch_size": 64,
         "predictor_type": "default"
     },
     "train_config": {

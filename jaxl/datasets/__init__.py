@@ -16,6 +16,7 @@ from jaxl.datasets.linear_classification import (
     MultitaskLinearClassificationND,
 )
 from jaxl.datasets.mnist import construct_mnist
+from jaxl.datasets.omniglot import construct_omniglot
 from jaxl.datasets.random_classification import (
     MultitaskRandomClassificationND,
 )
@@ -146,11 +147,18 @@ def get_dataset(
             dataset_kwargs.task_name,
             dataset_kwargs.task_config,
         )
+    elif dataset_config.dataset_name == CONST_OMNIGLOT:
+        dataset = construct_omniglot(
+            dataset_kwargs.save_path,
+            dataset_kwargs.task_name,
+            dataset_kwargs.task_config,
+        )
     elif dataset_config.dataset_name == CONST_ONE_HOT_CLASSIFICATION:
         dataset = OneHotClassification(
             num_sequences=dataset_kwargs.num_sequences,
             sequence_length=dataset_kwargs.sequence_length,
             num_classes=dataset_kwargs.num_classes,
+            num_holdout=dataset_kwargs.num_holdout,
             split=dataset_kwargs.split,
             seed=seed,
             inputs_range=getattr(dataset_kwargs, "inputs_range", [0.0, 0.5]),

@@ -52,7 +52,7 @@ class OneHotClassification(Dataset):
         )
         loaded, data = maybe_load_dataset(save_dir, dataset_name)
         if not loaded:
-            inputs = self._generate_data(
+            inputs, targets = self._generate_data(
                 num_sequences=num_sequences,
                 sequence_length=sequence_length,
                 num_classes=num_classes,
@@ -63,6 +63,7 @@ class OneHotClassification(Dataset):
             )
             data = {
                 "inputs": inputs,
+                "targets": targets,
                 "num_sequences": num_sequences,
                 "sequence_length": sequence_length,
                 "num_classes": num_classes,
@@ -105,7 +106,7 @@ class OneHotClassification(Dataset):
         )
         inputs = inputs * noise
 
-        return inputs
+        return inputs, targets
 
     @property
     def input_dim(self) -> chex.Array:
@@ -124,5 +125,5 @@ class OneHotClassification(Dataset):
 
     def __getitem__(self, idx):
         inputs = self._data["inputs"][idx]
-        targets = np.eye(self._data["num_classes"])[np.argmax(np.abs(inputs), axis=-1)]
+        targets = np.eye(self._data["num_classes"])[self._data["targets"][idx]]
         return (inputs, targets)
