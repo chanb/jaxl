@@ -1,9 +1,12 @@
+from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union, Sequence
 
 import chex
+import json
 import numpy as np
 import optax
+import os
 
 from jaxl.constants import *
 from jaxl.models.common import (
@@ -19,6 +22,7 @@ from jaxl.models.transformers import (
     InContextSupervisedTransformer,
     CustomTokenizerICSupervisedTransformer,
 )
+from jaxl.utils import parse_dict
 
 
 """
@@ -350,3 +354,46 @@ def get_update_function(
             return params, opt_state
 
         return update_default
+
+
+def load_model(
+    input_dim: Sequence[int],
+    output_dim: Sequence[int],
+    learner_path: str,
+    checkpoint_i: int,
+) -> Tuple[Dict, Model, SimpleNamespace]:
+    """
+    Loads the model and the parameters
+
+    :param input_dim: the input dimensionality
+    :param output_dim: the output dimensionality
+    :param learner_path: the path that stores the experiment configuation
+    :param checkpoint_i: the i'th checkpoint to load from
+    :type input_dim: Sequence[int]
+    :type output_dim: Sequence[int]
+    :type learner_path: str
+    :type checkpoint_i: int
+    :return: the parameters, the model, and the experiment configuration
+    :rtype: Tuple[Dict, Model, SimpleNamespace]
+    """
+    config_path = os.path.join(learner_path, "config.json")
+    with open(config_path, "r") as f:
+        config_dict = json.load(f)
+        config = parse_dict(config_dict)
+
+    model = get_model((1, 28, 28), (10,), config.model_config)
+
+    checkpoint_manager = CheckpointManager(
+        os.path.join(learner_path, "models"),
+        PyTreeCheckpointer(),
+    )
+
+    all_steps = checkpoint_manager.all_steps()
+    params = checkpoint_manager.restore(
+        all_steps[min(len(all_steps) - 1, checkpoint_i)]
+    )
+
+    if getattr(config.model_config, CONST_POSITIONAL_ENCODING, False):
+        params[CONST_MODEL_DICT][CONST_MODEL][CONST_POSITIONAL_ENCODING] = dict()
+
+    return params, model, config
