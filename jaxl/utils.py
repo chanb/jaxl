@@ -143,9 +143,9 @@ def get_dict_value(d: Dict, key: str) -> Tuple[bool, Any]:
 
     for k in d:
         if isinstance(d[k], dict):
-            val = get_dict_value(d[k], key)
-            if val[1]:
-                return val
+            (val, found) = get_dict_value(d[k], key)
+            if found:
+                return (val, found)
 
     return (None, False)
 

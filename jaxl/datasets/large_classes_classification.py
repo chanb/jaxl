@@ -21,6 +21,7 @@ class OneHotClassification(Dataset):
         num_sequences: int,
         sequence_length: int,
         num_classes: int,
+        num_holdout: int,
         split: str,
         seed: int = 0,
         inputs_range: Tuple[float, float] = (0.0, 0.5),
@@ -36,11 +37,17 @@ class OneHotClassification(Dataset):
             inputs_range[1],
         )
         assert split in VALID_SPLIT, "support one of {}".format(VALID_SPLIT)
+        assert (
+            0 <= num_holdout < num_classes
+        ), "num_holdout {} must be less than num_classes {} and non-negative".format(
+            num_holdout, num_classes
+        )
 
-        dataset_name = "one_hot_classification-num_sequences_{}-sequence_length_{}-num_classes_{}-seed_{}.pkl".format(
+        dataset_name = "one_hot_classification-num_sequences_{}-sequence_length_{}-num_classes_{}-num_holdout_{}-seed_{}.pkl".format(
             num_sequences,
             sequence_length,
             num_classes,
+            num_holdout,
             seed,
         )
         loaded, data = maybe_load_dataset(save_dir, dataset_name)
@@ -49,6 +56,7 @@ class OneHotClassification(Dataset):
                 num_sequences=num_sequences,
                 sequence_length=sequence_length,
                 num_classes=num_classes,
+                num_holdout=num_holdout,
                 split=split,
                 inputs_range=inputs_range,
                 seed=seed,
@@ -58,6 +66,7 @@ class OneHotClassification(Dataset):
                 "num_sequences": num_sequences,
                 "sequence_length": sequence_length,
                 "num_classes": num_classes,
+                "num_holdout": num_holdout,
                 "inputs_range": inputs_range,
                 "split": split,
                 "seed": seed,
@@ -74,17 +83,17 @@ class OneHotClassification(Dataset):
         num_sequences: int,
         sequence_length: int,
         num_classes: int,
+        num_holdout: int,
         split: str,
         inputs_range: Tuple[float, float],
         seed: int,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
-        data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)[
-            int(split == CONST_TRAIN)
-        ]
+        is_train = int(split == CONST_TRAIN)
+        data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)[is_train]
         data_gen_rng = np.random.RandomState(seed=data_gen_seed)
 
         targets = data_gen_rng.choice(
-            num_classes,
+            num_classes - num_holdout if is_train else num_classes,
             size=(num_sequences, sequence_length),
         )
 

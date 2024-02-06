@@ -22,7 +22,7 @@ from jaxl.models.transformers import (
     InContextSupervisedTransformer,
     CustomTokenizerICSupervisedTransformer,
 )
-from jaxl.utils import parse_dict
+from jaxl.utils import parse_dict, get_dict_value
 
 
 """
@@ -393,7 +393,11 @@ def load_model(
         all_steps[min(len(all_steps) - 1, checkpoint_i)]
     )
 
-    if getattr(config.model_config, CONST_POSITIONAL_ENCODING, False):
+    _, has_positional_encoding = get_dict_value(
+        config_dict,
+        CONST_POSITIONAL_ENCODING,
+    )
+    if has_positional_encoding:
         params[CONST_MODEL_DICT][CONST_MODEL][CONST_POSITIONAL_ENCODING] = dict()
 
     return params, model, config
