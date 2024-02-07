@@ -1,6 +1,5 @@
 from abc import ABC
 from flax import linen as nn
-from types import SimpleNamespace
 from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
 import chex
@@ -11,11 +10,6 @@ import optax
 
 from jaxl.constants import *
 from jaxl.models.modules import MLPModule, CNNModule
-from jaxl.models.encodings import (
-    NoEncoding,
-    PositionalEncoding,
-    ConcatenateInputsEncoding,
-)
 
 
 def get_activation(activation: str) -> Callable:
@@ -42,54 +36,6 @@ def get_activation(activation: str) -> Callable:
         return nn.relu
     elif activation == CONST_TANH:
         return nn.tanh
-    else:
-        raise NotImplementedError
-
-
-def get_positional_encoding(encoding: SimpleNamespace) -> nn.Module:
-    """
-    Gets a positional encoding
-
-    :param encoding: the positional encoding configuration
-    :type encoding: SimpleNamespace
-    :return: a positional encoding
-    :rtype: nn.Module
-
-    """
-    assert (
-        encoding.type in VALID_POSITIONAL_ENCODING
-    ), f"{encoding.type} is not supported (one of {VALID_POSITIONAL_ENCODING})"
-    if encoding.type == CONST_NO_ENCODING:
-        return NoEncoding()
-    elif encoding.type == CONST_DEFAULT_ENCODING:
-        return PositionalEncoding(
-            encoding.kwargs.embed_dim,
-            encoding.kwargs.max_len,
-        )
-    else:
-        raise NotImplementedError
-
-
-def get_state_action_encoding(obs_dim: chex.Array, act_dim: chex.Array, encoding: SimpleNamespace) -> nn.Module:
-    """
-    Gets a positional encoding
-
-    :param encoding: the positional encoding configuration
-    :type encoding: SimpleNamespace
-    :return: a positional encoding
-    :rtype: nn.Module
-
-    """
-    assert (
-        encoding.type in VALID_STATE_ACTION_ENCODING
-    ), f"{encoding.type} is not supported (one of {VALID_STATE_ACTION_ENCODING})"
-    if encoding.type == CONST_CONCATENATE_INPUTS_ENCODING:
-        return ConcatenateInputsEncoding(
-            {
-                CONST_OBSERVATION: obs_dim,
-                CONST_ACTION: act_dim,
-            }
-        )
     else:
         raise NotImplementedError
 
@@ -570,95 +516,3 @@ class CNN(Model):
             return out, carry
 
         return forward
-
-
-class Policy(ABC):
-    """Abstract policy class."""
-
-    #: Compute action for interacting with the environment.
-    compute_action: Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-            jrandom.PRNGKey,
-        ],
-        Tuple[chex.Array, chex.Array],
-    ]
-
-    #: Compute deterministic action.
-    deterministic_action: Callable[
-        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
-        Tuple[chex.Array, chex.Array],
-    ]
-
-    def __init__(self, model: Model) -> None:
-        self.reset = jax.jit(self.make_reset(model))
-
-    def make_reset(self, model: Model) -> Callable[..., chex.Array]:
-        """
-        Makes the function that resets the policy.
-        This is often used for resetting the hidden state.
-
-        :param model: the model
-        :type model: Model
-        :return: a function for initializing the hidden state
-        :rtype: chex.Array
-        """
-
-        def _reset() -> chex.Array:
-            """
-            Resets hidden state.
-
-            :return: a hidden state
-            :rtype: chex.Array
-            """
-            return model.reset_h_state()
-
-        return _reset
-
-
-class StochasticPolicy(Policy):
-    """Abstract stochastic policy class that extends ``Policy``."""
-
-    #: Compute random action.
-    random_action: Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-            jrandom.PRNGKey,
-        ],
-        Tuple[chex.Array, chex.Array],
-    ]
-
-    # . Compute action and its log probability.
-    act_lprob: Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-            jrandom.PRNGKey,
-        ],
-        Tuple[chex.Array, chex.Array, chex.Array],
-    ]
-
-    # . Compute action log probability.
-    lprob: Callable[
-        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
-        chex.Array,
-    ]
-
-
-class QFunction(ABC):
-    """Abstract Q-function class."""
-
-    #: Compute action-value for state-action pairs.
-    q_values: Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            Union[optax.Params, Dict[str, Any]],
-            Union[optax.Params, Dict[str, Any]],
-        ],
-        Tuple[chex.Array, chex.Array],
-    ]

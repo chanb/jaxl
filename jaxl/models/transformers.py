@@ -12,10 +12,10 @@ import optax
 from jaxl.constants import *
 from jaxl.models.common import (
     Model,
-    get_positional_encoding,
     CNN,
     MLP,
 )
+from jaxl.models.encodings import get_positional_encoding
 from jaxl.models.modules import GPTModule
 
 

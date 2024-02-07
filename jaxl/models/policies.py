@@ -1,23 +1,95 @@
+from abc import ABC
+from types import SimpleNamespace
 from typing import Any, Callable, Dict, Union, Tuple
 
 import chex
 import jax
-import jax.nn as nn
 import jax.numpy as jnp
 import jax.random as jrandom
 import optax
 
-from jaxl.constants import (
-    DEFAULT_MIN_STD,
-    DEFAULT_TEMPERATURE,
-    CONST_ENTROPY,
-    CONST_LOGITS,
-    CONST_MEAN,
-    CONST_STD,
-)
-from jaxl.distributions import Bernoulli, Normal, Softmax
+from jaxl.constants import *
+from jaxl.distributions import Bernoulli, Normal, Softmax, get_transform
 from jaxl.distributions.transforms import TanhTransform
-from jaxl.models.common import Model, Policy, StochasticPolicy
+from jaxl.models.common import Model
+
+
+class Policy(ABC):
+    """Abstract policy class."""
+
+    #: Compute action for interacting with the environment.
+    compute_action: Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            jrandom.PRNGKey,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]
+
+    #: Compute deterministic action.
+    deterministic_action: Callable[
+        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array],
+    ]
+
+    def __init__(self, model: Model) -> None:
+        self.reset = jax.jit(self.make_reset(model))
+
+    def make_reset(self, model: Model) -> Callable[..., chex.Array]:
+        """
+        Makes the function that resets the policy.
+        This is often used for resetting the hidden state.
+
+        :param model: the model
+        :type model: Model
+        :return: a function for initializing the hidden state
+        :rtype: chex.Array
+        """
+
+        def _reset() -> chex.Array:
+            """
+            Resets hidden state.
+
+            :return: a hidden state
+            :rtype: chex.Array
+            """
+            return model.reset_h_state()
+
+        return _reset
+
+
+class StochasticPolicy(Policy):
+    """Abstract stochastic policy class that extends ``Policy``."""
+
+    #: Compute random action.
+    random_action: Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            jrandom.PRNGKey,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]
+
+    # . Compute action and its log probability.
+    act_lprob: Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            jrandom.PRNGKey,
+        ],
+        Tuple[chex.Array, chex.Array, chex.Array],
+    ]
+
+    # . Compute action log probability.
+    lprob: Callable[
+        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+        chex.Array,
+    ]
 
 
 class MultitaskPolicy(Policy):
@@ -1308,3 +1380,65 @@ class BangBangPolicy(StochasticPolicy):
             }
 
         return lprob
+
+
+def get_policy(model: Model, config: SimpleNamespace) -> Policy:
+    """
+    Gets a policy
+
+    :param model: a model
+    :param config: the policy configuration
+    :type model: Model
+    :type config: SimpleNamespace
+    :return: a policy
+    :rtype: Policy
+
+    """
+    assert (
+        config.policy_distribution in VALID_POLICY_DISTRIBUTION
+    ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
+
+    if config.policy_distribution == CONST_GAUSSIAN:
+        return GaussianPolicy(
+            model,
+            getattr(config, CONST_MIN_STD, DEFAULT_MIN_STD),
+            get_transform(getattr(config, CONST_STD_TRANSFORM, CONST_SQUAREPLUS)),
+        )
+    elif config.policy_distribution == CONST_SQUASHED_GAUSSIAN:
+        return SquashedGaussianPolicy(
+            model,
+            getattr(config, CONST_MIN_STD, DEFAULT_MIN_STD),
+            get_transform(getattr(config, CONST_STD_TRANSFORM, CONST_SQUAREPLUS)),
+        )
+    elif config.policy_distribution == CONST_DETERMINISTIC:
+        return DeterministicPolicy(model)
+    elif config.policy_distribution == CONST_SOFTMAX:
+        return SoftmaxPolicy(
+            model, getattr(config, CONST_TEMPERATURE, DEFAULT_TEMPERATURE)
+        )
+    elif config.policy_distribution == CONST_BANG_BANG:
+        return BangBangPolicy(
+            model, getattr(config, CONST_TEMPERATURE, DEFAULT_TEMPERATURE)
+        )
+    else:
+        raise NotImplementedError
+
+
+def policy_output_dim(output_dim: chex.Array, config: SimpleNamespace) -> chex.Array:
+    """
+    Gets the policy output dimension based on its distribution.
+
+    :param output_dim: the original output dimension
+    :param config: the policy configuration
+    :type output_dim: chex.Array
+    :type config: SimpleNamespace
+    :return: the output dimension of the policy
+    :rtype: chex.Array
+
+    """
+    assert (
+        config.policy_distribution in VALID_POLICY_DISTRIBUTION
+    ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
+    if config.policy_distribution == CONST_GAUSSIAN:
+        return [*output_dim[:-1], output_dim[-1] * 2]
+    return output_dim

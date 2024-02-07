@@ -16,7 +16,9 @@ from jaxl.models import (
     get_model,
     get_optimizer,
     get_policy,
+    get_q_function,
     get_update_function,
+    q_function_dims,
     policy_output_dim,
 )
 from jaxl.utils import l2_norm, polyak_average_generator
@@ -41,8 +43,8 @@ class SAC(OffPolicyLearner):
         super().__init__(config, model_config, optimizer_config)
 
         self._pi = get_policy(self._model[CONST_POLICY], config)
-        self._qf = self._model[CONST_QF]
-        self._target_qf = self._model[CONST_TARGET_QF]
+        self._qf = get_q_function(self._model[CONST_QF], config)
+        self._target_qf = get_q_function(self._model[CONST_TARGET_QF], config)
 
         self._pi_loss = make_reinforce_loss(self._pi, self._config.pi_loss_setting)
         self._vf_loss = make_squared_loss(self._vf, self._config.vf_loss_setting)

@@ -1,9 +1,12 @@
 from flax import linen as nn
+from types import SimpleNamespace
 from typing import Dict, Any, Sequence
 
 import chex
 import math
 import numpy as np
+
+from jaxl.constants import *
 
 
 class NoEncoding(nn.Module):
@@ -50,3 +53,55 @@ class ConcatenateInputsEncoding(nn.Module):
         return np.concatenate([
             x[key].reshape((*x[key].shape[:-len(input_dim)], -1))for key, input_dim in self.input_dims.items()
         ])
+
+
+def get_positional_encoding(encoding: SimpleNamespace) -> nn.Module:
+    """
+    Gets a positional encoding
+
+    :param encoding: the positional encoding configuration
+    :type encoding: SimpleNamespace
+    :return: a positional encoding
+    :rtype: nn.Module
+
+    """
+    assert (
+        encoding.type in VALID_POSITIONAL_ENCODING
+    ), f"{encoding.type} is not supported (one of {VALID_POSITIONAL_ENCODING})"
+    if encoding.type == CONST_NO_ENCODING:
+        return NoEncoding()
+    elif encoding.type == CONST_DEFAULT_ENCODING:
+        return PositionalEncoding(
+            encoding.kwargs.embed_dim,
+            encoding.kwargs.max_len,
+        )
+    else:
+        raise NotImplementedError
+
+
+def get_state_action_encoding(
+    obs_dim: chex.Array,
+    act_dim: chex.Array,
+    encoding: SimpleNamespace
+) -> nn.Module:
+    """
+    Gets a positional encoding
+
+    :param encoding: the positional encoding configuration
+    :type encoding: SimpleNamespace
+    :return: a positional encoding
+    :rtype: nn.Module
+
+    """
+    assert (
+        encoding.type in VALID_STATE_ACTION_ENCODING
+    ), f"{encoding.type} is not supported (one of {VALID_STATE_ACTION_ENCODING})"
+    if encoding.type == CONST_CONCATENATE_INPUTS_ENCODING:
+        return ConcatenateInputsEncoding(
+            {
+                CONST_OBSERVATION: obs_dim,
+                CONST_ACTION: act_dim,
+            }
+        )
+    else:
+        raise NotImplementedError
