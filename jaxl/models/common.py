@@ -11,7 +11,11 @@ import optax
 
 from jaxl.constants import *
 from jaxl.models.modules import MLPModule, CNNModule
-from jaxl.models.encodings import NoEncoding, PositionalEncoding
+from jaxl.models.encodings import (
+    NoEncoding,
+    PositionalEncoding,
+    ConcatenateInputsEncoding,
+)
 
 
 def get_activation(activation: str) -> Callable:
@@ -61,6 +65,30 @@ def get_positional_encoding(encoding: SimpleNamespace) -> nn.Module:
         return PositionalEncoding(
             encoding.kwargs.embed_dim,
             encoding.kwargs.max_len,
+        )
+    else:
+        raise NotImplementedError
+
+
+def get_state_action_encoding(obs_dim: chex.Array, act_dim: chex.Array, encoding: SimpleNamespace) -> nn.Module:
+    """
+    Gets a positional encoding
+
+    :param encoding: the positional encoding configuration
+    :type encoding: SimpleNamespace
+    :return: a positional encoding
+    :rtype: nn.Module
+
+    """
+    assert (
+        encoding.type in VALID_STATE_ACTION_ENCODING
+    ), f"{encoding.type} is not supported (one of {VALID_STATE_ACTION_ENCODING})"
+    if encoding.type == CONST_CONCATENATE_INPUTS_ENCODING:
+        return ConcatenateInputsEncoding(
+            {
+                CONST_OBSERVATION: obs_dim,
+                CONST_ACTION: act_dim,
+            }
         )
     else:
         raise NotImplementedError
@@ -161,8 +189,8 @@ class EncoderPredictorModel(Model):
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
+            Union[chex.Array, Dict[str, Any]],
+            Union[chex.Array, Dict[str, Any]],
         ],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -182,8 +210,8 @@ class EncoderPredictorModel(Model):
 
         def forward(
             params: Union[optax.Params, Dict[str, Any]],
-            input: chex.Array,
-            carry: chex.Array,
+            input: Union[chex.Array, Dict[str, Any]],
+            carry: Union[chex.Array, Dict[str, Any]],
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Forward call of the encoder-predictor.
@@ -192,8 +220,8 @@ class EncoderPredictorModel(Model):
             :param input: the input
             :param carry: the hidden state (not used)
             :type params: Union[optax.Params
-            :type input: chex.Array
-            :type carry: chex.Array
+            :type input: Union[chex.Array, Dict[str, Any]]
+            :type carry: Union[chex.Array, Dict[str, Any]]
             :return: the output and a pass-through carry
             :rtype: Tuple[chex.Array, chex.Array]
 
@@ -240,8 +268,8 @@ class EncoderPredictorModel(Model):
 
         def encode(
             params: Union[optax.Params, Dict[str, Any]],
-            input: chex.Array,
-            carry: chex.Array,
+            input: Union[chex.Array, Dict[str, Any]],
+            carry: Union[chex.Array, Dict[str, Any]],
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Forward call of the encoder.
@@ -250,8 +278,8 @@ class EncoderPredictorModel(Model):
             :param input: the input
             :param carry: the hidden state (not used)
             :type params: Union[optax.Params
-            :type input: chex.Array
-            :type carry: chex.Array
+            :type input: Union[chex.Array, Dict[str, Any]]
+            :type carry: Union[chex.Array, Dict[str, Any]]
             :return: the encoded input and next carry
             :rtype: Tuple[chex.Array, chex.Array]
 
@@ -309,8 +337,8 @@ class EnsembleModel(Model):
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
+            Union[chex.Array, Dict[str, Any]],
+            Union[chex.Array, Dict[str, Any]],
         ],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -334,8 +362,8 @@ class EnsembleModel(Model):
 
         def forward(
             params: Union[optax.Params, Dict[str, Any]],
-            input: chex.Array,
-            carry: chex.Array,
+            input: Union[chex.Array, Dict[str, Any]],
+            carry: Union[chex.Array, Dict[str, Any]],
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Forward call of the ensemble.
@@ -344,8 +372,8 @@ class EnsembleModel(Model):
             :param input: the input
             :param carry: the hidden state (not used)
             :type params: Union[optax.Params
-            :type input: chex.Array
-            :type carry: chex.Array
+            :type input: Union[chex.Array, Dict[str, Any]]
+            :type carry: Union[chex.Array, Dict[str, Any]]
             :return: the output and a pass-through carry
             :rtype: Tuple[chex.Array, chex.Array]
 
@@ -402,8 +430,8 @@ class MLP(Model):
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
+            Union[chex.Array, Dict[str, Any]],
+            Union[chex.Array, Dict[str, Any]],
         ],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -423,8 +451,8 @@ class MLP(Model):
 
         def forward(
             params: Union[optax.Params, Dict[str, Any]],
-            input: chex.Array,
-            carry: chex.Array,
+            input: Union[chex.Array, Dict[str, Any]],
+            carry: Union[chex.Array, Dict[str, Any]],
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Forward call of the MLP.
@@ -433,8 +461,8 @@ class MLP(Model):
             :param input: the input
             :param carry: the hidden state (not used)
             :type params: Union[optax.Params
-            :type input: chex.Array
-            :type carry: chex.Array
+            :type input: Union[chex.Array, Dict[str, Any]]
+            :type carry: Union[chex.Array, Dict[str, Any]]
             :return: the output and a pass-through carry
             :rtype: Tuple[chex.Array, chex.Array]
 
@@ -498,8 +526,8 @@ class CNN(Model):
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
+            Union[chex.Array, Dict[str, Any]],
+            Union[chex.Array, Dict[str, Any]],
         ],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -519,8 +547,8 @@ class CNN(Model):
 
         def forward(
             params: Union[optax.Params, Dict[str, Any]],
-            input: chex.Array,
-            carry: chex.Array,
+            input: Union[chex.Array, Dict[str, Any]],
+            carry: Union[chex.Array, Dict[str, Any]],
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Forward call of the CNN.
@@ -529,8 +557,8 @@ class CNN(Model):
             :param input: the input
             :param carry: the hidden state (not used)
             :type params: Union[optax.Params
-            :type input: chex.Array
-            :type carry: chex.Array
+            :type input: Union[chex.Array, Dict[str, Any]]
+            :type carry: Union[chex.Array, Dict[str, Any]]
             :return: the output and a pass-through carry
             :rtype: Tuple[chex.Array, chex.Array]
 
@@ -619,4 +647,18 @@ class StochasticPolicy(Policy):
     lprob: Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
+    ]
+
+
+class QFunction(ABC):
+    """Abstract Q-function class."""
+
+    #: Compute action-value for state-action pairs.
+    q_values: Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
+            Union[optax.Params, Dict[str, Any]],
+        ],
+        Tuple[chex.Array, chex.Array],
     ]

@@ -36,6 +36,7 @@ CONST_VALUE_RMS = "value_rms"
 
 CONST_UPDATE_TIME = "update_time"
 CONST_ROLLOUT_TIME = "rollout_time"
+CONST_SAMPLING_TIME = "sampling_time"
 
 CONST_PI_LOSS_SETTING = "pi_loss_setting"
 CONST_VF_LOSS_SETTING = "vf_loss_setting"

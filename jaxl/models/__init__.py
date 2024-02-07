@@ -15,6 +15,7 @@ from jaxl.models.common import (
     MLP,
     Model,
     Policy,
+    QFunction,
     EnsembleModel,
     EncoderPredictorModel,
 )
@@ -236,6 +237,14 @@ def get_model(
         )
     else:
         raise NotImplementedError
+
+
+def get_q_function(
+    obs_dim: chex.Array,
+    act_dim: chex.Array,
+    config: SimpleNamespace
+) -> QFunction:
+    pass
 
 
 def get_policy(model: Model, config: SimpleNamespace) -> Policy:

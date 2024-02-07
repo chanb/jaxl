@@ -104,6 +104,24 @@ class ReplayBuffer(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def sample_with_next_obs(
+        self, batch_size: int, idxes: Optional[chex.Array] = None, **kwargs
+    ) -> Any:
+        """
+        Sample transitions from the buffer.
+
+        :param batch_size: batch size
+        :param idxes: the specified indices if needed.
+        :param **kwargs:
+        :type batch_size: int
+        :param idxes: Optional[chex.Array]:  (Default value = None)
+        :return: the data
+        :rtype: Any
+
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def sample_init_obs(self, batch_size: int, **kwargs) -> Any:
         """
         Sample initial observations from the buffer.

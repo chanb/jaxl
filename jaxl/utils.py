@@ -197,6 +197,23 @@ def per_leaf_l2_norm(params: chex.PyTreeDef) -> chex.PyTreeDef:
     return jax.tree_util.tree_map(lambda p: jnp.sum(p**2), params)
 
 
+def polyak_average_generator(
+    x: float,
+) -> Callable[[chex.Array, chex.Array], chex.Array]:
+    """
+    Takes the Polyak average between two arrays.
+
+    :param x: the Polyak averaging step
+    :type x: float
+    :return: A Polyak averaging function
+    :rtype: Callable[[chex.Array, chex.Array], chex.Array]
+    """
+    def polyak_average(p: chex.Array, q: chex.Array) -> chex.Array:
+        return x * p + (1 - x) * q
+
+    return polyak_average
+
+
 class DummySummaryWriter:
     """
     A fake SummaryWriter class for Tensorboard.

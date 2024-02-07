@@ -220,37 +220,15 @@ class OnPolicyLearner(ReinforcementLearner):
         self._sample_idxes = np.arange(self._update_frequency)
         self._rollout = StandardRollout(self._env, self._config.seeds.env_seed)
 
-    def checkpoint(self, final=False) -> Dict[str, Any]:
-        """
-        Returns the parameters to checkpoint
 
-        :param final: whether or not this is the final checkpoint
-        :type final: bool (DefaultValue = False)
-        :return: the checkpoint parameters
-        :rtype: Dict[str, Any]
-
-        """
-        params = super().checkpoint(final=final)
-        if self.obs_rms:
-            params[CONST_OBS_RMS] = self.obs_rms.get_state()
-        if self.val_rms:
-            params[CONST_VALUE_RMS] = self.val_rms.get_state()
-        return params
-
-
-# TODO: Fix
 class OffPolicyLearner(ReinforcementLearner):
     """
     Off-policy learner class that extends the ``ReinforcementLearner`` class.
-    This is the general learner for on-policy reinforcement learning agents.
+    This is the general learner for off-policy reinforcement learning agents.
     """
 
-    #: The number of model updates within an update call.
-    _num_update_steps: int
-
-    #: The sampling indices when sampling from the buffer.
-    #: Often assumes consecutive indices.
-    _sample_idxes: chex.Array
+    #: The batch size per update.
+    _batch_size: int
 
     #: Uses purely the policy to interact with the environment.
     _rollout: StandardRollout
@@ -262,24 +240,5 @@ class OffPolicyLearner(ReinforcementLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
-
-        self._num_update_steps = self._num_steps_per_epoch // self._update_frequency
-        self._sample_idxes = np.arange(self._update_frequency)
+        self._batch_size = self._config.batch_size
         self._rollout = StandardRollout(self._env, self._config.seeds.env_seed)
-
-    def checkpoint(self, final=False) -> Dict[str, Any]:
-        """
-        Returns the parameters to checkpoint
-
-        :param final: whether or not this is the final checkpoint
-        :type final: bool (DefaultValue = False)
-        :return: the checkpoint parameters
-        :rtype: Dict[str, Any]
-
-        """
-        params = super().checkpoint(final=final)
-        if self.obs_rms:
-            params[CONST_OBS_RMS] = self.obs_rms.get_state()
-        if self.val_rms:
-            params[CONST_VALUE_RMS] = self.val_rms.get_state()
-        return params

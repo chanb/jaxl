@@ -1,5 +1,7 @@
 from flax import linen as nn
+from typing import Dict, Any, Sequence
 
+import chex
 import math
 import numpy as np
 
@@ -8,7 +10,7 @@ class NoEncoding(nn.Module):
     """No encoding."""
 
     @nn.compact
-    def __call__(self, x):
+    def __call__(self, x: Any):
         return x
 
 
@@ -31,6 +33,20 @@ class PositionalEncoding(nn.Module):
         pe[:, 1::2] = np.cos(position * div_term)
         self.pe = pe[None]
 
-    def __call__(self, x):
+    def __call__(self, x: chex.Array):
         x = x + self.pe[:, : x.shape[1]]
         return x
+
+
+class ConcatenateInputsEncoding(nn.Module):
+    """
+    Concatenates all the values in the PyTree.
+    """
+
+    input_dims: Dict[str, Sequence[int]]
+
+    @nn.compact
+    def __call__(self, x: Dict[str, chex.Array]):
+        return np.concatenate([
+            x[key].reshape((*x[key].shape[:-len(input_dim)], -1))for key, input_dim in self.input_dims.items()
+        ])
