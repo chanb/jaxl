@@ -39,6 +39,19 @@ class Transform(ABC):
         """
         pass
 
+    @abstractstaticmethod
+    def inv(self, x: chex.Array) -> chex.Array:
+        """
+        Invert the transformed samples.
+
+        :param x: the transformed samples
+        :type x: chex.Array
+        :return: the original samples
+        :rtype: chex.Array
+
+        """
+        pass
+
 
 class TanhTransform(Transform):
     """
@@ -71,3 +84,16 @@ class TanhTransform(Transform):
 
         """
         return 2.0 * (math.log(2.0) - x - jax.nn.softplus(-2.0 * x))
+
+    @abstractstaticmethod
+    def inv(self, x: chex.Array) -> chex.Array:
+        """
+        Invert the transformed samples.
+
+        :param x: the transformed samples
+        :type x: chex.Array
+        :return: the original samples
+        :rtype: chex.Array
+
+        """
+        return jax.nn.arctanh(x)

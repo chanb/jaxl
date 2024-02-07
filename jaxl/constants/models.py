@@ -38,6 +38,8 @@ CONST_PREDICTOR = "predictor"
 CONST_REPRESENTATION = "representation"
 CONST_VF = "vf"
 
+CONST_STD_TRANSFORM = "std_transform"
+
 CONST_MIN_STD = "min_std"
 CONST_TEMPERATURE = "temperature"
 

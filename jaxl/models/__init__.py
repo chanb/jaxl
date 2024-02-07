@@ -9,6 +9,7 @@ import optax
 import os
 
 from jaxl.constants import *
+from jaxl.distributions import get_transform
 from jaxl.models.common import (
     CNN,
     MLP,
@@ -254,7 +255,17 @@ def get_policy(model: Model, config: SimpleNamespace) -> Policy:
     ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
 
     if config.policy_distribution == CONST_GAUSSIAN:
-        return GaussianPolicy(model, getattr(config, CONST_MIN_STD, DEFAULT_MIN_STD))
+        return GaussianPolicy(
+            model,
+            getattr(config, CONST_MIN_STD, DEFAULT_MIN_STD),
+            get_transform(getattr(config, CONST_STD_TRANSFORM, CONST_SQUAREPLUS)),
+        )
+    elif config.policy_distribution == CONST_SQUASHED_GAUSSIAN:
+        return SquashedGaussianPolicy(
+            model,
+            getattr(config, CONST_MIN_STD, DEFAULT_MIN_STD),
+            get_transform(getattr(config, CONST_STD_TRANSFORM, CONST_SQUAREPLUS)),
+        )
     elif config.policy_distribution == CONST_DETERMINISTIC:
         return DeterministicPolicy(model)
     elif config.policy_distribution == CONST_SOFTMAX:

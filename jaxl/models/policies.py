@@ -16,6 +16,7 @@ from jaxl.constants import (
     CONST_STD,
 )
 from jaxl.distributions import Bernoulli, Normal, Softmax
+from jaxl.distributions.transforms import TanhTransform
 from jaxl.models.common import Model, Policy, StochasticPolicy
 
 
@@ -224,9 +225,11 @@ class GaussianPolicy(StochasticPolicy):
         self,
         model: Model,
         min_std: float = DEFAULT_MIN_STD,
+        std_transform: Callable[chex.Array, chex.Array] = jax.nn.squareplus,
     ):
         super().__init__(model)
         self._min_std = min_std
+        self._std_transform = std_transform
         self.deterministic_action = jax.jit(self.make_deterministic_action(model))
         self.random_action = jax.jit(self.make_random_action(model))
         self.compute_action = jax.jit(self.make_compute_action(model))
@@ -280,7 +283,7 @@ class GaussianPolicy(StochasticPolicy):
             """
             act_params, h_state = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
-            act_std = jax.nn.softplus(act_raw_std) + self._min_std
+            act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
             return act, h_state
 
@@ -376,7 +379,7 @@ class GaussianPolicy(StochasticPolicy):
             """
             act_params, h_state = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
-            act_std = jax.nn.softplus(act_raw_std) + self._min_std
+            act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
             return act, h_state
 
@@ -429,7 +432,7 @@ class GaussianPolicy(StochasticPolicy):
             """
             act_params, h_state = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
-            act_std = jax.nn.softplus(act_raw_std) + self._min_std
+            act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
             return act, lprob, h_state
@@ -478,12 +481,295 @@ class GaussianPolicy(StochasticPolicy):
             """
             act_params, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
-            act_std = jax.nn.softplus(act_raw_std) + self._min_std
+            act_std = self._std_transform(act_raw_std) + self._min_std
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
             return lprob, {
                 CONST_MEAN: act_mean,
                 CONST_STD: act_std,
                 CONST_ENTROPY: Normal.entropy(act_mean, act_std),
+            }
+
+        return lprob
+
+
+class SquashedGaussianPolicy(StochasticPolicy):
+    """Squashed Gaussian Policy."""
+
+    def __init__(
+        self,
+        model: Model,
+        min_std: float = DEFAULT_MIN_STD,
+        std_transform: Callable[chex.Array, chex.Array] = jax.nn.squareplus,
+    ):
+        super().__init__(model)
+        self._min_std = min_std
+        self._std_transform = std_transform
+        self.deterministic_action = jax.jit(self.make_deterministic_action(model))
+        self.random_action = jax.jit(self.make_random_action(model))
+        self.compute_action = jax.jit(self.make_compute_action(model))
+        self.act_lprob = jax.jit(self.make_act_lprob(model))
+        self.lprob = jax.jit(self.make_lprob(model))
+
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            jrandom.PRNGKey,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the function for taking action during interaction
+
+        :param model: the model
+        :type model: Model
+        :return: a function for taking action during interaction
+        :rtype: Callable[
+            [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
+            Tuple[chex.Array, chex.Array],
+        ]
+
+        """
+
+        def compute_action(
+            params: Union[optax.Params, Dict[str, Any]],
+            obs: chex.Array,
+            h_state: chex.Array,
+            key: jrandom.PRNGKey,
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Compute action to take in environment.
+
+            :param params: the model parameters
+            :param obs: the observation
+            :param h_state: the hidden state
+            :param key: the random number generator key for sampling
+            :type params: Union[optax.Params, Dict[str, Any]]
+            :type obs: chex.Array
+            :type h_state: chex.Array
+            :type key: jrandom.PRNGKey
+            :return: an action and the next hidden state
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            act_params, h_state = model.forward(params, obs, h_state)
+            act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
+            act_std = self._std_transform(act_raw_std) + self._min_std
+            act = Normal.sample(act_mean, act_std, key)
+            act = TanhTransform.transform(act)
+            return act, h_state
+
+        return compute_action
+
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
+        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the function for taking deterministic action.
+
+        :param model: the model
+        :type model: Model
+        :return: a function for taking deterministic action
+        :rtype: Callable[
+            [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
+            Tuple[chex.Array, chex.Array],
+        ]
+
+        """
+
+        def deterministic_action(
+            params: Union[optax.Params, Dict[str, Any]],
+            obs: chex.Array,
+            h_state: chex.Array,
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Compute deterministic action.
+
+            :param params: the model parameters
+            :param obs: the observation
+            :param h_state: the hidden state
+            :type params: Union[optax.Params, Dict[str, Any]]
+            :type obs: chex.Array
+            :type h_state: chex.Array
+            :return: an action and the next hidden state
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            act_params, h_state = model.forward(params, obs, h_state)
+            act_mean, _ = jnp.split(act_params, 2, axis=-1)
+            act_mean = TanhTransform.transform(act_mean)
+            return act_mean, h_state
+
+        return deterministic_action
+
+    def make_random_action(
+        self, model: Model
+    ) -> Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            jrandom.PRNGKey,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the function for taking random action.
+
+        :param model: the model
+        :type model: Model
+        :return: a function for taking random action
+        :rtype: Callable[
+            [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
+            Tuple[chex.Array, chex.Array],
+        ]
+
+        """
+
+        def random_action(
+            params: Union[optax.Params, Dict[str, Any]],
+            obs: chex.Array,
+            h_state: chex.Array,
+            key: jrandom.PRNGKey,
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Compute random action.
+
+            :param params: the model parameters
+            :param obs: the observation
+            :param h_state: the hidden state
+            :param key: the random number generator key for sampling
+            :type params: Union[optax.Params, Dict[str, Any]]
+            :type obs: chex.Array
+            :type h_state: chex.Array
+            :type key: jrandom.PRNGKey
+            :return: an action and the next hidden state
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            act_params, h_state = model.forward(params, obs, h_state)
+            act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
+            act_std = self._std_transform(act_raw_std) + self._min_std
+            act = Normal.sample(act_mean, act_std, key)
+            act = TanhTransform.transform(act)
+            return act, h_state
+
+        return random_action
+
+    def make_act_lprob(
+        self, model: Model
+    ) -> Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            jrandom.PRNGKey,
+        ],
+        Tuple[chex.Array, chex.Array, chex.Array],
+    ]:
+        """
+        Makes the function for taking random action and computing its log probability.
+
+        :param model: the model
+        :type model: Model
+        :return: a function for taking random action and computing its log probability
+        :rtype: Callable[
+            [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, jrandom.PRNGKey],
+            Tuple[chex.Array, chex.Array, chex.Array],
+        ]
+
+        """
+
+        def act_lprob(
+            params: Union[optax.Params, Dict[str, Any]],
+            obs: chex.Array,
+            h_state: chex.Array,
+            key: jrandom.PRNGKey,
+        ) -> Tuple[chex.Array, chex.Array, chex.Array]:
+            """
+            Compute action and its log probability.
+
+            :param params: the model parameters
+            :param obs: the observation
+            :param h_state: the hidden state
+            :param key: the random number generator key for sampling
+            :type params: Union[optax.Params, Dict[str, Any]]
+            :type obs: chex.Array
+            :type h_state: chex.Array
+            :type key: jrandom.PRNGKey
+            :return: an action, its log probability, and the next hidden state
+            :rtype: Tuple[chex.Array, chex.Array, chex.Array]
+
+            """
+            act_params, h_state = model.forward(params, obs, h_state)
+            act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
+            act_std = self._std_transform(act_raw_std) + self._min_std
+            act = Normal.sample(act_mean, act_std, key)
+            act_t = TanhTransform.transform(act)
+            lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
+            lprob = lprob - TanhTransform.log_abs_det_jacobian(act, act_t)
+            return act_t, lprob, h_state
+
+        return act_lprob
+
+    def make_lprob(
+        self, model: Model
+    ) -> Callable[
+        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+        chex.Array,
+    ]:
+        """
+        Makes the function for computing action log probability.
+
+        :param model: the model
+        :type model: Model
+        :return: a function for computing action log probability
+        :rtype: Callable[
+            [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+            chex.Array,
+        ]
+
+        """
+
+        def lprob(
+            params: Union[optax.Params, Dict[str, Any]],
+            obs: chex.Array,
+            h_state: chex.Array,
+            act: chex.Array,
+        ) -> Tuple[chex.Array, Dict[str, Any]]:
+            """
+            Compute action log probability.
+
+            :param params: the model parameters
+            :param obs: the observation
+            :param h_state: the hidden state
+            :param act: the action
+            :type params: Union[optax.Params, Dict[str, Any]]
+            :type obs: chex.Array
+            :type h_state: chex.Array
+            :type act: chex.Array
+            :return: an action log probability and distribution parameters
+            :rtype: Tuple[chex.Array, Dict[str, Any]]
+
+            """
+            act_params, _ = model.forward(params, obs, h_state)
+            act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
+            act_std = self._std_transform(act_raw_std) + self._min_std
+
+            act_inv = TanhTransform.inv(act)
+
+            lprob = Normal.lprob(act_inv, act_std, act).sum(-1, keepdims=True)
+            lprob = lprob - TanhTransform.log_abs_det_jacobian(act_inv, act)
+            return lprob, {
+                CONST_MEAN: act_mean,
+                CONST_STD: act_std,
+                CONST_ENTROPY: Normal.entropy(act_inv, act_std),
             }
 
         return lprob

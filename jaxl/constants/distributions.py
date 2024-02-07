@@ -1,0 +1,9 @@
+
+
+CONST_SQUAREPLUS = "squareplus"
+CONST_SOFTPLUS = "softplus"
+
+VALID_TRANSFORM = [
+    CONST_SQUAREPLUS,
+    CONST_SOFTPLUS
+]

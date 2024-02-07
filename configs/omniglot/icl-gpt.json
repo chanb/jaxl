@@ -1,0 +1,92 @@
+{
+    "logging_config": {
+        "save_path": "./logs/icl-omniglot",
+        "experiment_name": "context_len_16-num_blocks_8",
+        "log_interval": 10,
+        "checkpoint_interval": 100
+    },
+    "model_config": {
+        "architecture": "icl_gpt",
+        "num_contexts": 16,
+        "num_blocks": 8,
+        "num_heads": 1,
+        "embed_dim": 32,
+        "positional_encoding": {
+            "type": "default",
+            "kwargs": {
+                "embed_dim": 32,
+                "max_len": 17
+            }
+        },
+        "input_tokenizer": {
+            "type": "cnn",
+            "kwargs": {
+                "features": [32, 32],
+                "kernel_sizes": [[3, 3], [3, 3]],
+                "layers": []
+            }
+        },
+        "output_tokenizer": {
+            "type": "mlp",
+            "kwargs": {
+                "layers": [10]
+            }
+        },
+        "query_pred_only": true
+    },
+    "optimizer_config": {
+        "optimizer": "adam",
+        "lr": {
+            "scheduler": "constant_schedule",
+            "scheduler_kwargs": {
+                "value": 0.0003
+            }
+        },
+        "max_grad_norm": false
+    },
+    "learner_config": {
+        "task": "in_context_learning",
+        "dataset_config": {
+            "dataset_name": "omniglot",
+            "dataset_kwargs": {
+                "save_path": "/home/bryanpu1/projects/icl/data",
+                "task_name": "multitask_omniglot_finegrain",
+                "task_config": {
+                    "num_sequences": 500000,
+                    "sequence_length": 30,
+                    "random_label": false,
+                    "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl"
+                }
+            },
+            "dataset_wrapper": {
+                "type": "ContextDataset",
+                "kwargs": {
+                    "context_len": 16
+                }
+            },
+            "num_workers": 4
+        },
+        "seeds": {
+            "model_seed": 42,
+            "data_seed": 42
+        },
+        "learner": "mle",
+        "losses": ["categorical", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean",
+                "is_one_hot": true
+            },
+            {
+                "coefficient": 0.0
+            }
+        ],
+        "num_updates_per_epoch": 100,
+        "batch_size": 32,
+        "predictor_type": "default"
+    },
+    "train_config": {
+        "num_epochs": 10000
+    }
+}

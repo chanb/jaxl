@@ -1,4 +1,5 @@
 from jaxl.constants.buffers import *
+from jaxl.constants.distributions import *
 from jaxl.constants.envs import *
 from jaxl.constants.learners import *
 from jaxl.constants.losses import *

@@ -60,9 +60,9 @@ def construct_omniglot(
         return MultitaskOmniglotFineGrain(
             dataset=torch_datasets.Omniglot(
                 save_path,
-                train=train,
+                background=train,
                 download=True,
-                transform=jaxl_transforms.StandardImageTransform(),
+                transform=jaxl_transforms.DefaultPILToImageTransform(),
                 target_transform=target_transform,
             ),
             num_sequences=task_config.num_sequences,
@@ -98,12 +98,16 @@ class MultitaskOmniglotFineGrain(Dataset):
         loaded, data = maybe_load_dataset(save_dir, dataset_name)
 
         if not loaded:
+            num_classes = int(len(dataset) / 20)
             sample_idxes, label_map = self._generate_data(
                 dataset=dataset,
                 num_sequences=num_sequences,
+                sequence_length=sequence_length,
                 random_label=random_label,
+                num_classes=num_classes,
                 seed=seed,
             )
+
             data = {
                 "sample_idxes": sample_idxes,
                 "label_map": label_map,
@@ -111,8 +115,8 @@ class MultitaskOmniglotFineGrain(Dataset):
                 "sequence_length": sequence_length,
                 "random_label": random_label,
                 "background": dataset.background,
-                "input_shape": [*self._dataset.data[0].shape],
-                "num_classes": int(len(dataset) / 20),
+                "input_shape": [*dataset[0][0].shape],
+                "num_classes": num_classes,
                 "seed": seed,
             }
             maybe_save_dataset(
@@ -128,6 +132,8 @@ class MultitaskOmniglotFineGrain(Dataset):
         self,
         dataset: Dataset,
         num_sequences: int,
+        sequence_length: int,
+        num_classes: int,
         random_label: bool,
         seed: int,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
@@ -137,10 +143,10 @@ class MultitaskOmniglotFineGrain(Dataset):
         label_rng = np.random.RandomState(label_key)
 
         sample_idxes = sample_rng.choice(
-            np.arange(len(dataset)), size=(num_sequences, self._sequence_length)
+            np.arange(len(dataset)), size=(num_sequences, sequence_length)
         )
 
-        label_map = np.tile(np.arange(self.output_dim[0]), reps=(num_sequences, 1))
+        label_map = np.tile(np.arange(num_classes), reps=(num_sequences, 1))
         if random_label:
             label_map = np.apply_along_axis(
                 label_rng.permutation, axis=1, arr=label_map
@@ -165,7 +171,8 @@ class MultitaskOmniglotFineGrain(Dataset):
 
     def __getitem__(self, idx):
         sample_idxes = self._data["sample_idxes"][idx].tolist()
-        inputs = self._dataset.transform(self._dataset.data[sample_idxes])
-        labels = self._data["label_map"][idx][self._dataset.targets[sample_idxes]]
+        inputs, labels = zip(*list(map(lambda ii: self._dataset[ii], sample_idxes)))
+        inputs = np.concatenate(list(inputs))
+        labels = np.array(labels)
         outputs = np.eye(self._data["num_classes"])[labels]
         return (inputs, outputs)
