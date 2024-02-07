@@ -63,5 +63,6 @@ CONST_AVERAGE_RETURN = "average_return"
 CONST_AVERAGE_EPISODE_LENGTH = "average_episode_length"
 CONST_EPISODE_LENGTHS = "episode_lengths"
 CONST_EPISODIC_RETURNS = "episodic_returns"
+CONST_GLOBAL_STEP = "global_step"
 
 CONST_IS_RATIO = "is_ratio"
