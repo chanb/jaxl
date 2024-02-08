@@ -49,6 +49,16 @@
                 }
             },
             "max_grad_norm": false
+        },
+        "temp": {
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 0.0003
+                }
+            },
+            "max_grad_norm": false
         }
     },
     "learner_config": {
@@ -78,7 +88,16 @@
         "value_rms": false,
         "policy_distribution": "squashed_gaussian",
         "gamma": 0.99,
-        "update_frequency": 1
+        "update_frequency": 1,
+        "target_entropy": "auto",
+        "initial_temperature": 1.0,
+        "qf_loss_setting": {
+            "coefficient": 1.0,
+            "reduction": "mean"
+        },
+        "actor_update_frequency": 10000,
+        "target_update_frequency": 1,
+        "tau": 0.01
     },
     "train_config": {
         "num_epochs": 2500

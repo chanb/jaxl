@@ -208,6 +208,7 @@ def polyak_average_generator(
     :return: A Polyak averaging function
     :rtype: Callable[[chex.Array, chex.Array], chex.Array]
     """
+
     def polyak_average(p: chex.Array, q: chex.Array) -> chex.Array:
         return x * p + (1 - x) * q
 

@@ -1,15 +1,20 @@
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, Union, Tuple
+from typing import Any, Callable, Dict, Union, Tuple, Sequence
 
 import chex
 import jax
 import jax.numpy as jnp
+import jax.random as jrandom
 import numpy as np
 import optax
 
 from jaxl.constants import *
 from jaxl.models.common import Model
-from jaxl.models.policies import StochasticPolicy
+from jaxl.models import (
+    StochasticPolicy,
+    QFunction,
+    Temperature,
+)
 from jaxl.utils import get_reduction
 
 
@@ -438,5 +443,109 @@ def make_ppo_vf_loss(
     return vf_loss
 
 
-def make_sac_loss():
-    pass
+def make_sac_qf_loss(
+    models: Dict[str, Any],
+    loss_setting: SimpleNamespace,
+) -> Callable[
+    [
+        Union[optax.Params, Dict[str, Any]],
+        chex.Array,
+        chex.Array,
+        chex.Array,
+        chex.Array,
+    ],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets SAC critic loss function.
+
+    :param models: the models involved for SAC critic update
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    # XXX: It's designed this way so that we don't keep track of gradient of other models.
+    def qf_loss(
+        qf_params: Union[optax.Params, Dict[str, Any]],
+        target_qf_params: Union[optax.Params, Dict[str, Any]],
+        pi_params: Union[optax.Params, Dict[str, Any]],
+        temp_params: Union[optax.Params, Dict[str, Any]],
+        obss: chex.Array,
+        h_states: chex.Array,
+        acts: chex.Array,
+        rews: chex.Array,
+        terminateds: chex.Array,
+        next_obss: chex.Array,
+        next_h_states: chex.Array,
+        gamma: chex.Array,
+        keys: Sequence[jrandom.PRNGKey],
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        SAC critic loss.
+
+        :param qf_params: the model parameters
+        :param target_qf_params: the model parameters
+        :param pi_params: the model parameters
+        :param obss: current observations
+        :param h_states: current hidden states
+        :param acts: actions taken for current observations
+        :param rews: received rewards
+        :param terminateds: whether or not the episode is terminated
+        :param next_obss: next observations
+        :param next_h_states: next hidden states
+        :param gamma: discount factor
+        :param keys: random keys for sampling next actions
+        :type qf_params: Union[optax.Params, Dict[str, Any]]
+        :type target_qf_params: Union[optax.Params, Dict[str, Any]]
+        :type pi_params: Union[optax.Params, Dict[str, Any]]
+        :type obss: chex.Array
+        :type h_states: chex.Array
+        :type acts: chex.Array
+        :type rews: chex.Array
+        :type terminateds: chex.Array
+        :type next_obss: chex.Array
+        :type next_h_states: chex.Array
+        :type gamma: chex.Array
+        :type keys: Sequence[jrandom.PRNGKey]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+        curr_q_preds, _ = models[CONST_QF].q_values(qf_params, obss, h_states, acts)
+        curr_q_preds_min = jnp.min(curr_q_preds, axis=0)
+
+        next_acts, next_lprobs, _ = models[CONST_POLICY].act_lprob(
+            pi_params, obss, acts, keys
+        )
+        next_lprobs = jnp.sum(next_lprobs, axis=-1, keepdims=True)
+
+        next_q_preds, _ = models[CONST_TARGET_QF].q_values(
+            target_qf_params, next_obss, next_h_states, next_acts
+        )
+        next_q_preds_min = jnp.min(next_q_preds, axis=0)
+
+        temp = models[CONST_TEMPERATURE].apply(temp_params)
+
+        next_vs = next_q_preds_min - temp * next_lprobs
+        curr_q_targets = rews + gamma * (1 - terminateds) * next_vs
+        td_errors = (curr_q_preds - curr_q_targets[None]) ** 2
+        loss = reduction(td_errors)
+
+        return loss, {
+            "max_next_q": jnp.max(next_q_preds_min),
+            "min_next_q": jnp.min(next_q_preds_min),
+            "mean_next_q": jnp.mean(next_q_preds_min),
+            "max_curr_q": jnp.max(curr_q_preds_min),
+            "min_curr_q": jnp.min(curr_q_preds_min),
+            "mean_curr_q": jnp.mean(curr_q_preds_min),
+            "max_td_error": jnp.max(td_errors),
+            "min_td_error": jnp.min(td_errors),
+            "max_q_log_prob": jnp.max(next_lprobs),
+            "min_q_log_prob": jnp.min(next_lprobs),
+            "mean_q_log_prob": jnp.mean(next_lprobs),
+        }
+
+    return qf_loss

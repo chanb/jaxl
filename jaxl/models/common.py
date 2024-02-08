@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
 import chex
 import jax
+import jax.numpy as jnp
 import jax.random as jrandom
 import numpy as np
 import optax

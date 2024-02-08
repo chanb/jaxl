@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from typing import Dict, Any, Sequence, Tuple
 
 import chex
+import jax.numpy as jnp
 import math
 import numpy as np
 
@@ -74,15 +75,17 @@ class ConcatenateInputsEncoding(nn.Module):
 
     @nn.compact
     def __call__(self, x: Dict[str, chex.Array]):
-        return np.concatenate([
-            x[key].reshape((*x[key].shape[:-len(input_dim)], -1)).shape for key, input_dim in self.input_dims.items()
-        ])
+        return jnp.concatenate(
+            [
+                x[key].reshape((*x[key].shape[: -len(input_dim)], -1))
+                for key, input_dim in self.input_dims.items()
+            ],
+            axis=-1,
+        )
 
 
 def get_state_action_encoding(
-    obs_dim: chex.Array,
-    act_dim: chex.Array,
-    encoding: SimpleNamespace
+    obs_dim: chex.Array, act_dim: chex.Array, encoding: SimpleNamespace
 ) -> nn.Module:
     """
     Gets a state-action pair encoding

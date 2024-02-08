@@ -51,3 +51,6 @@ VALID_PPO_OBJECTIVE = [CONST_CLIP, CONST_REVERSE_KL]
 
 CONST_CONTEXT_INPUT = "context_input"
 CONST_CONTEXT_OUTPUT = "context_output"
+
+CONST_ACTOR_UPDATE_FREQUENCY = "actor_update_frequency"
+CONST_TARGET_UPDATE_FREQUENCY = "target_update_frequency"

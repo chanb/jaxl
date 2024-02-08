@@ -2,6 +2,7 @@ from flax import linen as nn
 from typing import Callable, Sequence
 
 import chex
+import jax.numpy as jnp
 
 
 class MLPModule(nn.Module):
@@ -79,3 +80,15 @@ class GPTModule(nn.Module):
         x = nn.LayerNorm()(x)
         self.sow("gpt_latents", "gpt_{}".format(idx + 1), x)
         return x
+
+
+class Temperature(nn.Module):
+    initial_temperature: float = 1.0
+
+    @nn.compact
+    def __call__(self) -> jnp.ndarray:
+        log_temp = self.param(
+            "log_temp",
+            init_fn=lambda _: jnp.full((), jnp.log(self.initial_temperature)),
+        )
+        return jnp.exp(log_temp)

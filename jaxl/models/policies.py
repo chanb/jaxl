@@ -1439,6 +1439,6 @@ def policy_output_dim(output_dim: chex.Array, config: SimpleNamespace) -> chex.A
     assert (
         config.policy_distribution in VALID_POLICY_DISTRIBUTION
     ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
-    if config.policy_distribution == CONST_GAUSSIAN:
+    if config.policy_distribution in [CONST_GAUSSIAN, CONST_SQUASHED_GAUSSIAN]:
         return [*output_dim[:-1], output_dim[-1] * 2]
     return output_dim

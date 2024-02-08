@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Sequence
 
 import chex
 import jax
@@ -10,8 +10,7 @@ import timeit
 
 from jaxl.constants import *
 from jaxl.learners.reinforcement import OffPolicyLearner
-from jaxl.losses.reinforcement import monte_carlo_returns, make_reinforce_loss
-from jaxl.losses.supervised import make_squared_loss
+from jaxl.losses.reinforcement import make_sac_qf_loss
 from jaxl.models import (
     get_model,
     get_optimizer,
@@ -21,6 +20,7 @@ from jaxl.models import (
     q_function_dims,
     policy_output_dim,
     get_state_action_encoding,
+    Temperature,
 )
 from jaxl.utils import l2_norm, polyak_average_generator
 
@@ -36,6 +36,7 @@ class SAC(OffPolicyLearner):
     """
 
     _target_entropy: float
+    _num_qf_updates: int
 
     def __init__(
         self,
@@ -44,71 +45,17 @@ class SAC(OffPolicyLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
-        assert 0
+        self._actor_update_frequency = getattr(config, CONST_ACTOR_UPDATE_FREQUENCY, 1)
+        self._target_update_frequency = getattr(
+            config, CONST_TARGET_UPDATE_FREQUENCY, 1
+        )
+        self._num_qf_updates = 0
 
-        self._pi_loss = make_reinforce_loss(self._pi, self._config.pi_loss_setting)
-        self._vf_loss = make_squared_loss(self._vf, self._config.vf_loss_setting)
+        self._qf_loss = make_sac_qf_loss(self._agent, self._config.qf_loss_setting)
 
-        def joint_loss(
-            model_dicts: Dict[str, Any],
-            obss: chex.Array,
-            h_states: chex.Array,
-            acts: chex.Array,
-            rets: chex.Array,
-            *args,
-            **kwargs,
-        ) -> Tuple[chex.Array, Dict[str, Any]]:
-            """
-            Aggregates the actor loss and the critic loss.
+        self.qf_step = self.make_qf_step()
 
-            :param model_dict: the actor and critic states and their optimizers state
-            :param obss: the training observations
-            :param h_states: the training hidden states for memory-based models
-            :param acts: the training actions
-            :param rets: the Monte-Carlo returns
-            :param *args:
-            :param **kwargs:
-            :type model_dict: Dict[str, Any]
-            :type obss: chex.Array
-            :type h_states: chex.Array
-            :type acts: chex.Array
-            :type rets: chex.Array
-            :return: the aggregate loss and auxiliary information
-            :rtype: Tuple[chex.Array, Dict[str, Any]]
-
-            """
-            vf_loss, vf_aux = self._vf_loss(
-                model_dicts[CONST_VF],
-                obss,
-                h_states,
-                rets,
-            )
-
-            baselines = jax.lax.stop_gradient(vf_aux[CONST_PREDICTIONS])
-            pi_loss, pi_aux = self._pi_loss(
-                model_dicts[CONST_POLICY],
-                obss,
-                h_states,
-                acts,
-                rets,
-                baselines,
-            )
-
-            agg_loss = (
-                self._config.pi_loss_setting.coefficient * pi_loss
-                + self._config.vf_loss_setting.coefficient * vf_loss
-            )
-
-            aux = {
-                CONST_POLICY: pi_loss,
-                CONST_VF: vf_loss,
-                CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
-                CONST_ADVANTAGE: (rets - baselines).mean(),
-            }
-            return agg_loss, aux
-
-        self._joint_loss = joint_loss
-        self.joint_step = jax.jit(self.make_joint_step())
+        self.polyak_average = polyak_average_generator(config.tau)
 
     @property
     def policy(self):
@@ -134,42 +81,25 @@ class SAC(OffPolicyLearner):
         :type output_dim: chex.Array
 
         """
-        self._target_entropy = getattr(self._config, CONST_TARGET_ENTROPY, CONST_AUTO)
-        if self._target_entropy == CONST_AUTO:
-            self._target_entropy = int(np.product(output_dim))
-
         act_dim = policy_output_dim(output_dim, self._config)
+
+        encoding_input_dim = (1, *input_dim)
+        encoding_output_dim = output_dim[:-1]
         qf_input_dim, qf_output_dim = q_function_dims(
-            input_dim,
-            output_dim,
-            self._model_config.qf_encoding
+            encoding_input_dim, encoding_output_dim, self._model_config.qf_encoding
         )
         self._model = {
             CONST_POLICY: get_model(input_dim, act_dim, self._model_config.policy),
             CONST_QF: get_model(qf_input_dim, qf_output_dim, self._model_config.qf),
-            CONST_TARGET_QF: get_model(qf_input_dim, qf_output_dim, self._model_config.qf),
+            CONST_TARGET_QF: get_model(
+                qf_input_dim, qf_output_dim, self._model_config.qf
+            ),
         }
 
-        self._state_action_encoding = get_state_action_encoding(
-            input_dim,
-            output_dim,
-            self._model_config.qf_encoding
+        # Initialize parameters for policy and critics
+        model_keys = jrandom.split(
+            jrandom.PRNGKey(self._config.seeds.model_seed), num=4
         )
-
-        self._pi = get_policy(self._model[CONST_POLICY], self._config)
-        self._qf = get_q_function(
-            self._state_action_encoding,
-            self._model[CONST_QF],
-            self._model_config.qf_encoding,
-        )
-        self._target_qf = get_q_function(
-            self._state_action_encoding,
-            self._model[CONST_TARGET_QF],
-            self._model_config.qf_encoding,
-        )
-
-        # Initialize parameters
-        model_keys = jrandom.split(jrandom.PRNGKey(self._config.seeds.model_seed), num=3)
         dummy_x = self._generate_dummy_x(input_dim)
         pi_params = self._model[CONST_POLICY].init(model_keys[0], dummy_x)
 
@@ -177,10 +107,15 @@ class SAC(OffPolicyLearner):
         qf_params = self._model[CONST_QF].init(model_keys[1], dummy_x)
         target_qf_params = self._model[CONST_TARGET_QF].init(model_keys[1], dummy_x)
 
+        self._state_action_encoding = get_state_action_encoding(
+            encoding_input_dim, encoding_output_dim, self._model_config.qf_encoding
+        )
+
         enc_params = self._state_action_encoding.init(
-            model_keys[2], {
-                CONST_OBSERVATION: self._generate_dummy_x(input_dim),
-                CONST_ACTION: self._generate_dummy_x(output_dim),
+            model_keys[2],
+            {
+                CONST_OBSERVATION: self._generate_dummy_x(encoding_input_dim),
+                CONST_ACTION: self._generate_dummy_x(encoding_output_dim),
             },
         )
 
@@ -201,7 +136,6 @@ class SAC(OffPolicyLearner):
                 CONST_POLICY: pi_params,
                 CONST_QF: qf_params,
                 CONST_TARGET_QF: target_qf_params,
-                CONST_QF_ENCODING: enc_params,
             },
             CONST_OPT_STATE: {
                 CONST_POLICY: pi_opt_state,
@@ -209,20 +143,69 @@ class SAC(OffPolicyLearner):
             },
         }
 
-    def make_joint_step(self):
+        self._pi = get_policy(self._model[CONST_POLICY], self._config)
+        self._qf = get_q_function(
+            self._state_action_encoding,
+            enc_params,
+            self._model[CONST_QF],
+            self._model_config.qf_encoding,
+        )
+        self._target_qf = get_q_function(
+            self._state_action_encoding,
+            enc_params,
+            self._model[CONST_TARGET_QF],
+            self._model_config.qf_encoding,
+        )
+
+        self._agent = {
+            CONST_POLICY: self._pi,
+            CONST_QF: self._qf,
+            CONST_TARGET_QF: self._target_qf,
+        }
+
+        # Temperature
+        self._target_entropy = getattr(self._config, CONST_TARGET_ENTROPY, CONST_AUTO)
+        if self._target_entropy == CONST_AUTO:
+            self._target_entropy = -int(np.product(output_dim))
+
+        if self._target_entropy is not None:
+            self._model[CONST_TEMPERATURE] = Temperature(
+                self._config.initial_temperature
+            )
+            temp_params = self._model[CONST_TEMPERATURE].init(model_keys[3])
+            temp_opt, temp_opt_state = get_optimizer(
+                self._optimizer_config.temp, self._model[CONST_TEMPERATURE], temp_params
+            )
+
+            self._optimizer[CONST_TEMPERATURE] = temp_opt
+            self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = temp_params
+            self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = temp_opt_state
+            self._agent[CONST_TEMPERATURE] = self._model[CONST_TEMPERATURE]
+
+    def update_target_model(self):
+        self._model_dict[CONST_TARGET_QF] = jax.tree_map(
+            self.polyak_average,
+            self._model_dict[CONST_MODEL][CONST_QF],
+            self._model_dict[CONST_MODEL][CONST_TARGET_QF],
+        )
+
+    def make_qf_step(self):
         """
-        Makes the training step for both actor update and critic update.
+        Makes the training step for the critic update.
         """
 
-        pi_update = get_update_function(self._model[CONST_POLICY])
-        vf_update = get_update_function(self._model[CONST_VF])
+        qf_update = get_update_function(self._model[CONST_QF])
 
-        def _joint_step(
+        def _qf_step(
             model_dict: Dict[str, Any],
             obss: chex.Array,
             h_states: chex.Array,
             acts: chex.Array,
-            rets: chex.Array,
+            rews: chex.Array,
+            terminateds: chex.Array,
+            next_obss: chex.Array,
+            next_h_states: chex.Array,
+            keys: Sequence[jrandom.PRNGKey],
             *args,
             **kwargs,
         ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
@@ -232,59 +215,64 @@ class SAC(OffPolicyLearner):
             :param model_dict: the model state and optimizer state
             :param obss: the training observations
             :param h_states: the training hidden states for memory-based models
-            :param acts: the training actions
-            :param rets: the Monte-Carlo returns
+            :param obss: current observations
+            :param h_states: current hidden states
+            :param acts: actions taken for current observations
+            :param rews: received rewards
+            :param terminateds: whether or not the episode is terminated
+            :param next_obss: next observations
+            :param next_h_states: next hidden states
+            :param keys: random keys for sampling next actions
             :param *args:
             :param **kwargs:
             :type model_dict: Dict[str, Any]
             :type obss: chex.Array
             :type h_states: chex.Array
             :type acts: chex.Array
-            :type rets: chex.Array
-            :return: the updated actor state and critic state, their corresponding updated
+            :type rews: chex.Array
+            :type terminateds: chex.Array
+            :type next_obss: chex.Array
+            :type next_h_states: chex.Array
+            :type keys: Sequence[jrandom.PRNGKey]
+            :return: the updated critic state, the corresponding updated
                      optimizer state, and auxiliary information
             :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
 
             """
-            (agg_loss, aux), grads = jax.value_and_grad(self._joint_loss, has_aux=True)(
-                model_dict[CONST_MODEL],
+            (agg_loss, aux), grads = jax.value_and_grad(self._qf_loss, has_aux=True)(
+                model_dict[CONST_MODEL][CONST_QF],
+                model_dict[CONST_MODEL][CONST_TARGET_QF],
+                model_dict[CONST_MODEL][CONST_POLICY],
+                model_dict[CONST_MODEL][CONST_TEMPERATURE],
                 obss,
                 h_states,
                 acts,
-                rets,
+                rews,
+                terminateds,
+                next_obss,
+                next_h_states,
+                self._gamma,
+                keys,
             )
+
             aux[CONST_AGG_LOSS] = agg_loss
             aux[CONST_GRAD_NORM] = {
-                CONST_POLICY: l2_norm(grads[CONST_POLICY]),
-                CONST_VF: l2_norm(grads[CONST_VF]),
+                CONST_QF: l2_norm(grads),
             }
 
-            pi_params, pi_opt_state = pi_update(
-                self._optimizer[CONST_POLICY],
-                grads[CONST_POLICY],
-                model_dict[CONST_OPT_STATE][CONST_POLICY],
-                model_dict[CONST_MODEL][CONST_POLICY],
-            )
-
-            vf_params, vf_opt_state = vf_update(
-                self._optimizer[CONST_VF],
-                grads[CONST_VF],
-                model_dict[CONST_OPT_STATE][CONST_VF],
-                model_dict[CONST_MODEL][CONST_VF],
+            qf_params, qf_opt_state = qf_update(
+                self._optimizer[CONST_QF],
+                grads,
+                model_dict[CONST_OPT_STATE][CONST_QF],
+                model_dict[CONST_MODEL][CONST_QF],
             )
 
             return {
-                CONST_MODEL: {
-                    CONST_POLICY: pi_params,
-                    CONST_VF: vf_params,
-                },
-                CONST_OPT_STATE: {
-                    CONST_POLICY: pi_opt_state,
-                    CONST_VF: vf_opt_state,
-                },
+                CONST_MODEL: qf_params,
+                CONST_OPT_STATE: qf_opt_state,
             }, aux
 
-        return _joint_step
+        return _qf_step
 
     def update(self, *args, **kwargs) -> Dict[str, Any]:
         """
@@ -305,6 +293,7 @@ class SAC(OffPolicyLearner):
         total_qf_update_time = 0
         total_pi_update_time = 0
         total_temp_update_time = 0
+        total_target_qf_update_time = 0
 
         carried_steps = self._global_step % self._update_frequency
         num_update_steps = (
@@ -348,14 +337,13 @@ class SAC(OffPolicyLearner):
                 _,
                 lengths,
                 _,
-            ) = self._buffer.sample_with_next_obs(
-                batch_size=self._batch_size
-            )
+            ) = self._buffer.sample_with_next_obs(batch_size=self._batch_size)
             obss = self.update_obs_rms_and_normalize(obss, lengths)
             total_sampling_time += timeit.default_timer() - tic
 
             tic = timeit.default_timer()
-            self.model_dict, qf_aux = self.qf_step(
+            qf_keys = jrandom.split(jrandom.PRNGKey(self._global_step), num=1)
+            qf_model_dict, qf_aux = self.qf_step(
                 self._model_dict,
                 obss,
                 h_states,
@@ -364,40 +352,52 @@ class SAC(OffPolicyLearner):
                 terminateds,
                 next_obss,
                 next_h_states,
+                qf_keys,
             )
-            assert np.isfinite(qf_aux[CONST_AGG_LOSS]), f"Loss became NaN\nqf_aux: {qf_aux}"
+            self._model_dict[CONST_MODEL][CONST_QF] = qf_model_dict[CONST_MODEL]
+            self._model_dict[CONST_OPT_STATE][CONST_QF] = qf_model_dict[CONST_OPT_STATE]
+            assert np.isfinite(
+                qf_aux[CONST_AGG_LOSS]
+            ), f"Loss became NaN\nqf_aux: {qf_aux}"
+            self._num_qf_updates += 1
             total_qf_update_time += timeit.default_timer() - tic
 
-            qf_auxes[-1][CONST_AUX][CONST_QF] = qf_aux
-            if self._step % self._target_update_frequency == 0:
+            qf_auxes[-1] = qf_aux
+            if self._num_qf_updates % self._target_update_frequency == 0:
+                tic = timeit.default_timer()
                 self.update_target_model()
+                total_target_qf_update_time += timeit.default_timer() - tic
 
             # Update Actor
-            if self._global_step % self._actor_update_frequency == 0:
+            if self._num_qf_updates % self._actor_update_frequency == 0:
                 pi_auxes.append({})
                 tic = timeit.default_timer()
-                self.model_dict, pi_aux = self.pi_step(
+                pi_model_dict, pi_aux = self.pi_step(
                     self._model_dict,
                     obss,
                     h_states,
                     acts,
                 )
-                assert np.isfinite(pi_aux[CONST_AGG_LOSS]), f"Loss became NaN\npi_aux: {pi_aux}"
+                assert np.isfinite(
+                    pi_aux[CONST_AGG_LOSS]
+                ), f"Loss became NaN\npi_aux: {pi_aux}"
                 total_pi_update_time += timeit.default_timer() - tic
-                pi_auxes[-1][CONST_AUX][CONST_POLICY] = pi_aux
+                pi_auxes[-1] = pi_aux
 
                 # Update temperature
                 if self._target_entropy is not None:
                     temp_auxes.append({})
                     tic = timeit.default_timer()
-                    self.model_dict, temp_aux = self.temp_step(
+                    temp_model_dict, temp_aux = self.temp_step(
                         self._model_dict,
                         obss,
                         h_states,
                     )
-                    assert np.isfinite(temp_aux[CONST_AGG_LOSS]), f"Loss became NaN\ntemp_aux: {temp_aux}"
+                    assert np.isfinite(
+                        temp_aux[CONST_AGG_LOSS]
+                    ), f"Loss became NaN\ntemp_aux: {temp_aux}"
                     total_temp_update_time += timeit.default_timer() - tic
-                    temp_auxes[-1][CONST_AUX][CONST_TEMPERATURE] = temp_aux
+                    temp_auxes[-1] = temp_aux
 
             qf_auxes[-1][CONST_ACTION] = {
                 i: {
@@ -410,18 +410,25 @@ class SAC(OffPolicyLearner):
         aux[CONST_LOG][f"time/{CONST_ROLLOUT_TIME}"] = total_rollout_time
         aux[CONST_LOG][f"time/{CONST_SAMPLING_TIME}"] = total_sampling_time
         aux[CONST_LOG][f"time/update_{CONST_QF}"] = total_qf_update_time
+        aux[CONST_LOG][f"time/update_{CONST_TARGET_QF}"] = total_target_qf_update_time
         aux[CONST_LOG][f"time/update_{CONST_POLICY}"] = total_pi_update_time
         aux[CONST_LOG][f"time/update_{CONST_TEMPERATURE}"] = total_temp_update_time
 
-        aux[CONST_LOG][f"interaction/{CONST_AVERAGE_RETURN}"] = self._rollout.latest_average_return()
-        aux[CONST_LOG][f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}"] = self._rollout.latest_average_episode_length()
+        aux[CONST_LOG][
+            f"interaction/{CONST_AVERAGE_RETURN}"
+        ] = self._rollout.latest_average_return()
+        aux[CONST_LOG][
+            f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}"
+        ] = self._rollout.latest_average_episode_length()
 
         # TODO: Fix logging for different training
         qf_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *qf_auxes)
-        aux[CONST_LOG][f"losses/vf"] = qf_auxes[CONST_AUX][CONST_VF].item()        
-        aux[CONST_LOG][f"{CONST_GRAD_NORM}/vf"] = qf_auxes[CONST_AUX][CONST_GRAD_NORM][CONST_VF].item()
-        aux[CONST_LOG][f"{CONST_PARAM_NORM}/vf"] = l2_norm(
-            self.model_dict[CONST_MODEL][CONST_VF]
+        aux[CONST_LOG][f"losses/qf"] = qf_auxes[CONST_AUX][CONST_QF].item()
+        aux[CONST_LOG][f"{CONST_GRAD_NORM}/qf"] = qf_auxes[CONST_AUX][CONST_GRAD_NORM][
+            CONST_QF
+        ].item()
+        aux[CONST_LOG][f"{CONST_PARAM_NORM}/qf"] = l2_norm(
+            self.model_dict[CONST_MODEL][CONST_QF]
         ).item()
 
         for act_i in range(acts.shape[-1]):
@@ -436,7 +443,9 @@ class SAC(OffPolicyLearner):
             pi_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *pi_auxes)
 
         if temp_auxes:
-            temp_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *temp_auxes)
+            temp_auxes = jax.tree_util.tree_map(
+                lambda *args: np.mean(args), *temp_auxes
+            )
 
         self.gather_rms(aux)
         return aux
