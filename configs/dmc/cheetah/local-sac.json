@@ -81,6 +81,7 @@
             "buffer_type": "default",
             "buffer_size": 10000
         },
+        "buffer_warmup": 10000,
         "num_steps_per_epoch": 2048,
         "batch_size": 100,
         "learner": "sac",

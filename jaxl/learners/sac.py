@@ -45,10 +45,14 @@ class SAC(OffPolicyLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
+        self.initialize_exploration_strategy()
+
         self._actor_update_frequency = getattr(config, CONST_ACTOR_UPDATE_FREQUENCY, 1)
         self._target_update_frequency = getattr(
             config, CONST_TARGET_UPDATE_FREQUENCY, 1
         )
+        self._buffer_warmup = config.buffer_warmup
+
         self._num_qf_updates = 0
 
         self._qf_loss = make_sac_qf_loss(self._agent, self._config.qf_loss_setting)
@@ -70,6 +74,12 @@ class SAC(OffPolicyLearner):
         Policy parameters.
         """
         return self._model_dict[CONST_MODEL][CONST_POLICY]
+
+    def initialize_exploration_strategy(self):
+        """
+        Creates a exploration agent for collecting the initial transitions for replay buffer.
+        """
+        
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
         """
@@ -303,6 +313,11 @@ class SAC(OffPolicyLearner):
         aux = {
             CONST_LOG: {},
         }
+
+        # Initial exploration to populate the replay buffer
+        if self._global_step < self._buffer_warmup:
+            step_count = self._buffer_warmup - self._global_step
+
         for update_i in range(num_update_steps):
             qf_auxes.append({})
             tic = timeit.default_timer()
@@ -422,22 +437,23 @@ class SAC(OffPolicyLearner):
         ] = self._rollout.latest_average_episode_length()
 
         # TODO: Fix logging for different training
-        qf_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *qf_auxes)
-        aux[CONST_LOG][f"losses/qf"] = qf_auxes[CONST_AUX][CONST_QF].item()
-        aux[CONST_LOG][f"{CONST_GRAD_NORM}/qf"] = qf_auxes[CONST_AUX][CONST_GRAD_NORM][
-            CONST_QF
-        ].item()
-        aux[CONST_LOG][f"{CONST_PARAM_NORM}/qf"] = l2_norm(
-            self.model_dict[CONST_MODEL][CONST_QF]
-        ).item()
+        if qf_auxes:
+            qf_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *qf_auxes)
+            aux[CONST_LOG][f"losses/qf"] = qf_auxes[CONST_AUX][CONST_QF].item()
+            aux[CONST_LOG][f"{CONST_GRAD_NORM}/qf"] = qf_auxes[CONST_AUX][CONST_GRAD_NORM][
+                CONST_QF
+            ].item()
+            aux[CONST_LOG][f"{CONST_PARAM_NORM}/qf"] = l2_norm(
+                self.model_dict[CONST_MODEL][CONST_QF]
+            ).item()
 
-        for act_i in range(acts.shape[-1]):
-            aux[CONST_LOG][
-                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_SATURATION}"
-            ] = qf_auxes[CONST_ACTION][act_i][CONST_SATURATION]
-            aux[CONST_LOG][
-                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
-            ] = qf_auxes[CONST_ACTION][act_i][CONST_MEAN]
+            for act_i in range(acts.shape[-1]):
+                aux[CONST_LOG][
+                    f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_SATURATION}"
+                ] = qf_auxes[CONST_ACTION][act_i][CONST_SATURATION]
+                aux[CONST_LOG][
+                    f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
+                ] = qf_auxes[CONST_ACTION][act_i][CONST_MEAN]
 
         if pi_auxes:
             pi_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *pi_auxes)
