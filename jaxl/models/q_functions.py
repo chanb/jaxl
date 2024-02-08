@@ -1,17 +1,15 @@
 from abc import ABC
+from flax import linen as nn
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Union, Tuple
 
 import chex
 import jax
-import jax.nn as nn
 import numpy as np
 import optax
 
 from jaxl.constants import *
 from jaxl.models.common import Model
-from jaxl.models.encodings import get_state_action_encoding
-from jaxl.models.utils import get_model
 
 
 class QFunction(ABC):
@@ -44,12 +42,13 @@ class StateActionInputQ(QFunction):
         )
 
     def make_q_values(
-        self, model: Model, encoding: Model,
+        self, model: Model, encoding: nn.Module,
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
-            Union[optax.Params, Dict[str, Any]],
-            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            Union[chex.Array, Dict[str, Any]],
         ],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -64,8 +63,9 @@ class StateActionInputQ(QFunction):
         :rtype: Callable[
             [
                 Union[optax.Params, Dict[str, Any]],
-                Union[optax.Params, Dict[str, Any]],
-                Union[optax.Params, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+                Union[chex.Array, Dict[str, Any]],
             ],
             Tuple[chex.Array, chex.Array],
         ]
@@ -74,24 +74,30 @@ class StateActionInputQ(QFunction):
 
         def compute_q_value(
             params: Union[optax.Params, Dict[str, Any]],
-            state_action: Union[optax.Params, Dict[str, Any]],
-            h_state: Union[optax.Params, Dict[str, Any]],
+            obs: chex.Array,
+            act: chex.Array,
+            h_state: Union[chex.Array, Dict[str, Any]],
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Compute action-value based on a state-aciton pair.
 
             :param params: the model parameters
-            :param state_action: the state-action pair
+            :param obs: the observation
+            :param act: the action
             :param h_state: the hidden state
             :type params: Union[optax.Params, Dict[str, Any]]
             :type obs: chex.Array
+            :type act: chex.Array
             :type h_state: chex.Array
             :return: the action-value given the state-action pair
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            enc_state_action, h_state = encoding.forward(params, state_action, h_state)
-            q_val, h_state = model.forward(params, enc_state_action, h_state)
+            state_action = encoding.forward({
+                CONST_OBSERVATION: obs,
+                CONST_ACTION: act,
+            })
+            q_val, h_state = model.forward(params, state_action, h_state)
             return q_val, h_state
 
         return compute_q_value
@@ -118,28 +124,32 @@ def q_function_dims(
     assert (
         qf_config.q_function in VALID_Q_FUNCTION
     ), f"{qf_config.q_function} is not supported (one of {VALID_Q_FUNCTION})"
+    assert (
+        qf_config.type in VALID_Q_ENCODING
+    ), f"{qf_config.type} is not supported (one of {VALID_Q_ENCODING})"
 
     if qf_config.q_function == CONST_STATE_ACTION_INPUT:
-        return (int(np.product(obs_dim) + np.product(act_dim)),), (1,)
+        if qf_config.type == CONST_CONCATENATE_INPUTS_ENCODING:
+            return (int(np.product(obs_dim) + np.product(act_dim)),), (1,)
+        else:
+            raise NotImplementedError
     else:
         raise NotImplementedError
 
 
 def get_q_function(
-    obs_dim: chex.Array,
-    act_dim: chex.Array,
+    encoding: nn.Module,
+    model: Model,
     qf_config: SimpleNamespace,
 ) -> QFunction:
     """
     Gets a Q-function
 
-    :param obs_dim: the observation dimensionality
-    :param act_dim: the action dimensionality
-    :param get_model: the function to get a Q-function model
-    :param qf_config: the policy configuration
-    :type obs_dim: chex.Array
-    :type act_dim: chex.Array
-    :type get_model: Callable
+    :param encoding: the state-action encoding
+    :param model: the model
+    :param qf_config: the Q-function configuration
+    :type encoding: nn.Module
+    :type model: Model
     :type qf_config: SimpleNamespace
     :return: a Q-function
     :rtype: QFunction
@@ -151,12 +161,8 @@ def get_q_function(
 
     if qf_config.q_function == CONST_STATE_ACTION_INPUT:
         return StateActionInputQ(
-            encoding=get_state_action_encoding(obs_dim, act_dim, qf_config.encoding),
-            model=get_model(
-                (int(np.product(obs_dim) + np.product(act_dim)),),
-                (1,),
-                qf_config.model,
-            )
+            encoding=encoding,
+            model=model,
         )
     else:
         raise NotImplementedError

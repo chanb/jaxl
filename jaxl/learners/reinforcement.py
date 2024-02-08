@@ -40,7 +40,6 @@ class ReinforcementLearner(OnlineLearner):
     ):
         super().__init__(config, model_config, optimizer_config)
         self._global_step = 0
-        self._update_frequency = config.buffer_config.buffer_size
         self._gamma = config.gamma
 
         self._obs_rms = False
@@ -217,6 +216,7 @@ class OnPolicyLearner(ReinforcementLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
+        self._update_frequency = config.buffer_config.buffer_size
         self._sample_idxes = np.arange(self._update_frequency)
         self._rollout = StandardRollout(self._env, self._config.seeds.env_seed)
 
@@ -240,5 +240,6 @@ class OffPolicyLearner(ReinforcementLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
+        self._update_frequency = self._config.update_frequency
         self._batch_size = self._config.batch_size
         self._rollout = StandardRollout(self._env, self._config.seeds.env_seed)

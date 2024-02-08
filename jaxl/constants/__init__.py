@@ -67,3 +67,5 @@ CONST_EPISODIC_RETURNS = "episodic_returns"
 CONST_GLOBAL_STEP = "global_step"
 
 CONST_IS_RATIO = "is_ratio"
+
+CONST_AUTO = "auto"

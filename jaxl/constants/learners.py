@@ -14,6 +14,8 @@ CONST_PPO = "ppo"
 CONST_REINFORCE = "reinforce"
 CONST_SAC = "sac"
 
+CONST_TARGET_ENTROPY = "target_entropy"
+
 CONST_BC = "bc"
 CONST_MTBC = "mtbc"
 

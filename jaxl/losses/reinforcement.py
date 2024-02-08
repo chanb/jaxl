@@ -436,3 +436,7 @@ def make_ppo_vf_loss(
         }
 
     return vf_loss
+
+
+def make_sac_loss():
+    pass

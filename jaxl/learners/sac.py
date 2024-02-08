@@ -20,6 +20,7 @@ from jaxl.models import (
     get_update_function,
     q_function_dims,
     policy_output_dim,
+    get_state_action_encoding,
 )
 from jaxl.utils import l2_norm, polyak_average_generator
 
@@ -34,6 +35,8 @@ class SAC(OffPolicyLearner):
     Soft Actor Critic (SAC) algorithm. This extends `OffPolicyLearner`.
     """
 
+    _target_entropy: float
+
     def __init__(
         self,
         config: SimpleNamespace,
@@ -41,10 +44,7 @@ class SAC(OffPolicyLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
-
-        self._pi = get_policy(self._model[CONST_POLICY], config)
-        self._qf = get_q_function(self._model[CONST_QF], config)
-        self._target_qf = get_q_function(self._model[CONST_TARGET_QF], config)
+        assert 0
 
         self._pi_loss = make_reinforce_loss(self._pi, self._config.pi_loss_setting)
         self._vf_loss = make_squared_loss(self._vf, self._config.vf_loss_setting)
@@ -134,38 +134,78 @@ class SAC(OffPolicyLearner):
         :type output_dim: chex.Array
 
         """
+        self._target_entropy = getattr(self._config, CONST_TARGET_ENTROPY, CONST_AUTO)
+        if self._target_entropy == CONST_AUTO:
+            self._target_entropy = int(np.product(output_dim))
+
         act_dim = policy_output_dim(output_dim, self._config)
+        qf_input_dim, qf_output_dim = q_function_dims(
+            input_dim,
+            output_dim,
+            self._model_config.qf_encoding
+        )
         self._model = {
             CONST_POLICY: get_model(input_dim, act_dim, self._model_config.policy),
-            CONST_QF: get_model(input_dim, (1,), self._model_config.qf),
-            CONST_TARGET_QF: get_model(input_dim, (1,), self._model_config.qf),
+            CONST_QF: get_model(qf_input_dim, qf_output_dim, self._model_config.qf),
+            CONST_TARGET_QF: get_model(qf_input_dim, qf_output_dim, self._model_config.qf),
         }
 
-        model_keys = jrandom.split(jrandom.PRNGKey(self._config.seeds.model_seed))
+        self._state_action_encoding = get_state_action_encoding(
+            input_dim,
+            output_dim,
+            self._model_config.qf_encoding
+        )
+
+        self._pi = get_policy(self._model[CONST_POLICY], self._config)
+        self._qf = get_q_function(
+            self._state_action_encoding,
+            self._model[CONST_QF],
+            self._model_config.qf_encoding,
+        )
+        self._target_qf = get_q_function(
+            self._state_action_encoding,
+            self._model[CONST_TARGET_QF],
+            self._model_config.qf_encoding,
+        )
+
+        # Initialize parameters
+        model_keys = jrandom.split(jrandom.PRNGKey(self._config.seeds.model_seed), num=3)
         dummy_x = self._generate_dummy_x(input_dim)
         pi_params = self._model[CONST_POLICY].init(model_keys[0], dummy_x)
-        vf_params = self._model[CONST_VF].init(model_keys[1], dummy_x)
+
+        dummy_x = self._generate_dummy_x(qf_input_dim)
+        qf_params = self._model[CONST_QF].init(model_keys[1], dummy_x)
+        target_qf_params = self._model[CONST_TARGET_QF].init(model_keys[1], dummy_x)
+
+        enc_params = self._state_action_encoding.init(
+            model_keys[2], {
+                CONST_OBSERVATION: self._generate_dummy_x(input_dim),
+                CONST_ACTION: self._generate_dummy_x(output_dim),
+            },
+        )
 
         pi_opt, pi_opt_state = get_optimizer(
             self._optimizer_config.policy, self._model[CONST_POLICY], pi_params
         )
-        vf_opt, vf_opt_state = get_optimizer(
-            self._optimizer_config.vf, self._model[CONST_VF], vf_params
+        qf_opt, qf_opt_state = get_optimizer(
+            self._optimizer_config.qf, self._model[CONST_QF], qf_params
         )
 
         self._optimizer = {
             CONST_POLICY: pi_opt,
-            CONST_VF: vf_opt,
+            CONST_QF: qf_opt,
         }
 
         self._model_dict = {
             CONST_MODEL: {
                 CONST_POLICY: pi_params,
-                CONST_VF: vf_params,
+                CONST_QF: qf_params,
+                CONST_TARGET_QF: target_qf_params,
+                CONST_QF_ENCODING: enc_params,
             },
             CONST_OPT_STATE: {
                 CONST_POLICY: pi_opt_state,
-                CONST_VF: vf_opt_state,
+                CONST_QF: qf_opt_state,
             },
         }
 

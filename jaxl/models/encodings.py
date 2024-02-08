@@ -1,6 +1,6 @@
 from flax import linen as nn
 from types import SimpleNamespace
-from typing import Dict, Any, Sequence
+from typing import Dict, Any, Sequence, Tuple
 
 import chex
 import math
@@ -41,20 +41,6 @@ class PositionalEncoding(nn.Module):
         return x
 
 
-class ConcatenateInputsEncoding(nn.Module):
-    """
-    Concatenates all the values in the PyTree.
-    """
-
-    input_dims: Dict[str, Sequence[int]]
-
-    @nn.compact
-    def __call__(self, x: Dict[str, chex.Array]):
-        return np.concatenate([
-            x[key].reshape((*x[key].shape[:-len(input_dim)], -1))for key, input_dim in self.input_dims.items()
-        ])
-
-
 def get_positional_encoding(encoding: SimpleNamespace) -> nn.Module:
     """
     Gets a positional encoding
@@ -79,17 +65,35 @@ def get_positional_encoding(encoding: SimpleNamespace) -> nn.Module:
         raise NotImplementedError
 
 
+class ConcatenateInputsEncoding(nn.Module):
+    """
+    Concatenates all the values in the PyTree.
+    """
+
+    input_dims: Dict[str, Sequence[int]]
+
+    @nn.compact
+    def __call__(self, x: Dict[str, chex.Array]):
+        return np.concatenate([
+            x[key].reshape((*x[key].shape[:-len(input_dim)], -1)).shape for key, input_dim in self.input_dims.items()
+        ])
+
+
 def get_state_action_encoding(
     obs_dim: chex.Array,
     act_dim: chex.Array,
     encoding: SimpleNamespace
 ) -> nn.Module:
     """
-    Gets a positional encoding
+    Gets a state-action pair encoding
 
-    :param encoding: the positional encoding configuration
+    :param obs_dim: the observation dimensionality
+    :param act_dim: the action dimensionality
+    :param encoding: the state-action pair configuration
+    :type obs_dim: chex.Array
+    :type act_dim: chex.Array
     :type encoding: SimpleNamespace
-    :return: a positional encoding
+    :return: a state-action pair encoding
     :rtype: nn.Module
 
     """

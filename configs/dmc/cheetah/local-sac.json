@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/walker_continuous",
+        "save_path": null,
         "experiment_name": "sac",
         "log_interval": 1,
         "checkpoint_interval": false
@@ -15,12 +15,18 @@
             "activation": "tanh"
         },
         "qf": {
-            "architecture": "mlp",
-            "layers": [
-                64,
-                64
-            ],
-            "activation": "tanh"
+            "architecture": "ensemble",
+            "model": {
+                "architecture": "mlp",
+                "layers": [64, 64]
+            },
+            "num_models": 2,
+            "vmap_all": false
+        },
+        "qf_encoding": {
+            "q_function": "state_action_input",
+            "type": "concatenate_inputs_encoding",
+            "kwargs": {}
         }
     },
     "optimizer_config": {
@@ -34,7 +40,7 @@
             },
             "max_grad_norm": false
         },
-        "vf": {
+        "qf": {
             "optimizer": "adam",
             "lr": {
                 "scheduler": "constant_schedule",
@@ -63,46 +69,16 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 2048
+            "buffer_size": 10000
         },
         "num_steps_per_epoch": 2048,
-        "learner": "ppo",
-        "gamma": 0.99,
-        "gae_lambda": 0.95,
-        "normalize_advantage": true,
-        "eps": 1e-05,
-        "obs_rms": true,
+        "batch_size": 100,
+        "learner": "sac",
+        "obs_rms": false,
         "value_rms": false,
         "policy_distribution": "squashed_gaussian",
-        "q_function": "state_action_input",
-        "q_encoding": "concatenate_inputs_encoding",
-        "temperature": 1.0,
-        "min_std": 1e-06,
-        "opt_batch_size": 64,
-        "opt_epochs": 200,
-        "kl_threshold": false,
-        "update_before_early_stopping": false,
-        "ent_loss_setting": {
-            "scheduler": "linear_schedule",
-            "scheduler_kwargs": {
-                "init_value": 0.002,
-                "end_value": 0.0,
-                "transition_begin": 0,
-                "transition_steps": 100
-            }
-        },
-        "vf_loss_setting": {
-            "coefficient": 0.5,
-            "reduction": "mean",
-            "clip_param": false
-        },
-        "pi_loss_setting": {
-            "objective": "clip",
-            "coefficient": 1.0,
-            "reduction": "mean",
-            "clip_param": 0.1,
-            "beta": 0.02
-        }
+        "gamma": 0.99,
+        "update_frequency": 1
     },
     "train_config": {
         "num_epochs": 2500
