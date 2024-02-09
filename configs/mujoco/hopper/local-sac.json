@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "/Users/chanb/research/personal/cont_policy_parameterization/logs/dmc-cheetah",
+        "save_path": "/Users/chanb/research/personal/cont_policy_parameterization/logs/mujoco-hopper",
         "experiment_name": "sac",
         "log_interval": 1,
         "checkpoint_interval": false
@@ -65,12 +65,8 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "DMCCheetah-v0",
-            "env_kwargs": {
-                "use_default": true,
-                "seed": 42,
-                "control_mode": "continuous"
-            }
+            "env_name": "Hopper-v3",
+            "env_kwargs": {}
         },
         "seeds": {
             "model_seed": 42,
@@ -89,7 +85,7 @@
                 "stds": 1.0
             }
         },
-        "num_steps_per_epoch": 5000,
+        "num_steps_per_epoch": 2048,
         "batch_size": 256,
         "learner": "sac",
         "obs_rms": false,
