@@ -19,7 +19,7 @@ python ../../sweep_pretrain_mtbc.py \
     --samples_per_task \
     --exp_name=cartpole-quadruple_source_data \
     --num_epochs=5000 \
-    --run_time=01:30:00
+    --run_time=02:00:00
 
 
 python ../../sweep_pretrain_mtbc.py \
@@ -107,7 +107,7 @@ python ../../sweep_pretrain_mtbc.py \
     --discrete_control \
     --exp_name=pendulum-quadruple_source_data \
     --num_epochs=5000 \
-    --run_time=01:30:00
+    --run_time=02:00:00
 
 
 python ../../sweep_pretrain_mtbc.py \

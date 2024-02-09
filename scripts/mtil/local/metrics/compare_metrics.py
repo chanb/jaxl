@@ -193,6 +193,159 @@ def approx_kl(
     return diversity
 
 
+def bhattacharyya(
+    pretrain_run_dir,
+    finetune_config,
+    pretrain_config,
+    finetune_dataset_path,
+    pretrain_dataset_paths,
+):
+    target_env_buffer = pickle.load(gzip.open(finetune_dataset_path, "rb"))
+    target_buffer_size = finetune_config["learner_config"]["buffer_configs"][0][
+        "set_size"
+    ]
+    # target_buffer_size = target_env_buffer["buffer_size"]
+
+    source_statess = []
+    source_h_statess = []
+    source_actionss = []
+    num_tasks = 0
+    for buffer_config, pretrain_dataset_path in zip(
+        pretrain_config["learner_config"]["buffer_configs"], pretrain_dataset_paths
+    ):
+        source_env_buffer = pickle.load(gzip.open(pretrain_dataset_path, "rb"))
+        source_buffer_size = buffer_config["set_size"]
+        # source_buffer_size = target_env_buffer["buffer_size"]
+        source_statess.append(source_env_buffer["observations"][:source_buffer_size])
+        source_h_statess.append(source_env_buffer["hidden_states"][:source_buffer_size])
+        source_actionss.append(source_env_buffer["actions"][:source_buffer_size])
+        num_tasks += 1
+
+    source_statess = np.stack(source_statess)
+    source_h_statess = np.stack(source_h_statess)
+    source_actionss = np.stack(source_actionss)
+
+    target_states = np.tile(
+        target_env_buffer["observations"][:target_buffer_size][None, ...],
+        (num_tasks, 1, 1),
+    )
+    target_h_states = np.tile(
+        target_env_buffer["hidden_states"][:target_buffer_size][None, ...],
+        (num_tasks, 1, 1),
+    )
+    target_actions = np.tile(
+        target_env_buffer["actions"][:target_buffer_size][None, ...], (num_tasks, 1, 1)
+    )
+
+    model = get_model(
+        target_states.shape[1:],
+        target_env_buffer["act_dim"],
+        parse_dict(pretrain_config["model_config"]),
+    )
+
+    checkpoint_manager = CheckpointManager(
+        os.path.join(pretrain_run_dir, "models"),
+        PyTreeCheckpointer(),
+    )
+    all_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+    model_dict = all_params["model_dict"]
+    num_classes = target_env_buffer["act_dim"][-1]
+
+    if num_classes == 1:
+
+        def loss_fn(params, x, carry, y):
+            preds, _ = model.predictor.model.forward(params, x, carry)
+
+            prods = jnp.sum(preds * jnp.isclose(preds, jnp.squeeze(y)), axis=-1)
+            return -jnp.log(jnp.sum(jnp.sqrt(prods)) + eps), {}
+
+    else:
+
+        def loss_fn(params, x, carry, y):
+            preds, _ = model.predictor.model.forward(params, x, carry)
+            preds = jax.nn.softmax(preds, axis=-1)
+            y_one_hot = jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
+
+            return -jnp.log(jnp.sum(jnp.sqrt(preds * y_one_hot)) + eps), {}
+
+    def loss(
+        model_dicts,
+        obss,
+        h_states,
+        acts,
+        *args,
+        **kwargs,
+    ):
+        reps, _ = jax.vmap(model.encode, in_axes=[None, 0, 0])(
+            model_dicts["encoder"], obss, h_states
+        )
+
+        bhattacharyya_loss, bhattacharyya_aux = jax.vmap(loss_fn)(
+            model_dicts["predictor"],
+            reps,
+            h_states,
+            acts,
+        )
+
+        return bhattacharyya_loss, bhattacharyya_aux
+
+    compute_source_loss = jax.jit(loss)
+    compute_target_loss = jax.jit(loss)
+
+    source_loss, _ = compute_source_loss(
+        model_dict["model"]["policy"],
+        source_statess,
+        source_h_statess,
+        source_actionss,
+    )
+
+    target_loss, _ = compute_target_loss(
+        model_dict["model"]["policy"],
+        target_states,
+        target_h_states,
+        target_actions,
+    )
+    best_target_loss = jnp.min(target_loss)
+
+    diversity = jnp.mean(source_loss) / (best_target_loss + eps)
+    return diversity
+
+expert_path = "/Users/chanb/research/personal/mtil_results/final_results/data/experts"
+def repr_l2(
+    task,
+    control_mode,
+    pretrain_run_dir,
+    finetune_config,
+):
+    finetune_task_buffer_path = finetune_config["learner_config"]["buffer_configs"][0]["load_buffer"]
+    env_seed = int(os.path.basename(finetune_task_buffer_path).split(".")[2].split("env_seed_")[-1])
+    expert_dir = os.path.join(expert_path, task, control_mode, "runs/hyperparam_0/env_seed_{}".format(env_seed))
+
+    for run_dir, _, filenames in os.walk(expert_dir):
+        for filename in filenames:
+            if filename != "config.json":
+                continue
+
+            checkpoint_manager = CheckpointManager(
+                os.path.join(run_dir, "models"),
+                PyTreeCheckpointer(),
+            )
+            expert_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+            expert_params = expert_params["model_dict"]["model"]["policy"]["params"]
+
+            checkpoint_manager = CheckpointManager(
+                os.path.join(pretrain_run_dir, "models"),
+                PyTreeCheckpointer(),
+            )
+            pretrain_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+            pretrain_params = pretrain_params["model_dict"]["model"]["policy"]["encoder"]["params"]
+
+            sums_of_squares = 0.0
+            for (expert_layer, pretrain_layer) in zip(jax.jax.tree_util.tree_leaves(expert_params)[:-2], jax.jax.tree_util.tree_leaves(pretrain_params)):
+                sums_of_squares += np.sum((expert_layer - pretrain_layer) ** 2)
+
+            return 1 / (np.sqrt(sums_of_squares) + eps)
+
 def expert_data_performance(
     pretrain_config, finetune_dataset_path, pretrain_dataset_paths
 ):
@@ -347,28 +500,14 @@ else:
                         ]
                     ]
 
-                    avg_distance, std_distance, min_distance = l2_distance(
-                        finetune_config, pretrain_config
-                    )
-                    l2_diversity = (avg_distance, std_distance, min_distance)
-
-                    avg_distance, std_distance, min_distance = expert_data_performance(
-                        pretrain_config, finetune_dataset_path, pretrain_dataset_paths
-                    )
-                    data_performance_diversity = (
-                        avg_distance,
-                        std_distance,
-                        min_distance,
-                    )
-
-                    kl_diversity = approx_kl(
+                    l2_norm_diversity = repr_l2(
+                        task,
+                        control_mode,
                         pretrain_run_dir,
                         finetune_config,
-                        pretrain_config,
-                        finetune_dataset_path,
-                        pretrain_dataset_paths,
                     )
-
+                    l2_diversity = data_performance_diversity = (1, 1, 1)
+                    kl_diversity = bhattacharyya_diversity = 1
                     results[env_name].setdefault(num_task_int, [])
                     results[env_name][num_task_int].append(
                         (
@@ -379,9 +518,55 @@ else:
                                 l2_diversity,
                                 data_performance_diversity,
                                 kl_diversity,
+                                l2_norm_diversity,
                             ),
                         )
                     )
+
+                    # bhattacharyya_diversity = bhattacharyya(
+                    #     pretrain_run_dir,
+                    #     finetune_config,
+                    #     pretrain_config,
+                    #     finetune_dataset_path,
+                    #     pretrain_dataset_paths,
+                    # )
+
+                    # avg_distance, std_distance, min_distance = l2_distance(
+                    #     finetune_config, pretrain_config
+                    # )
+                    # l2_diversity = (avg_distance, std_distance, min_distance)
+
+                    # avg_distance, std_distance, min_distance = expert_data_performance(
+                    #     pretrain_config, finetune_dataset_path, pretrain_dataset_paths
+                    # )
+                    # data_performance_diversity = (
+                    #     avg_distance,
+                    #     std_distance,
+                    #     min_distance,
+                    # )
+
+                    # kl_diversity = approx_kl(
+                    #     pretrain_run_dir,
+                    #     finetune_config,
+                    #     pretrain_config,
+                    #     finetune_dataset_path,
+                    #     pretrain_dataset_paths,
+                    # )
+
+                    # results[env_name].setdefault(num_task_int, [])
+                    # results[env_name][num_task_int].append(
+                    #     (
+                    #         env_seed,
+                    #         pretrain_model_seed_int,
+                    #         suffix,
+                    #         (
+                    #             l2_diversity,
+                    #             data_performance_diversity,
+                    #             kl_diversity,
+                    #             bhattacharyya_diversity,
+                    #         ),
+                    #     )
+                    # )
 
     with open(os.path.join(save_path, "diversity.pkl"), "wb") as f:
         pickle.dump(results, f)
@@ -403,6 +588,7 @@ map_diversity = [
     "L2",
     "Data Performance",
     "Approx. KL",
+    "Bhattacharyya",
 ]
 
 returns = {}
@@ -421,7 +607,7 @@ correlation_per_env = {}
 for env_name in env_names:
     num_envs = len(results[env_name])
     num_rows = num_envs
-    num_cols = 3
+    num_cols = 4
 
     fig, axes = plt.subplots(
         num_rows,
@@ -462,7 +648,12 @@ for env_name in env_names:
                             diversities[0][0] / (diversities[0][2] + eps),
                             diversities[1][0] / (diversities[1][2] + eps),
                             diversities[2],
+                            diversities[3],
                         )
+                        if not np.all(np.isfinite(to_add)):
+                            print(mtbc_variant)
+                            print(to_add)
+                            assert 0
                         xs.append(to_add)
                         ys.append(normalize(mtbc_variant[2][variant_i]))
 
@@ -480,9 +671,9 @@ for env_name in env_names:
             # elif col_i == 2:
             #     x = jax.nn.sigmoid(x)
 
-            res = linregress(x, ys)
-            lin_x = np.array([np.min(x), np.max(x)])
-            lin_y = res.intercept + res.slope * lin_x
+            # res = linregress(x, ys)
+            # lin_x = np.array([np.min(x), np.max(x)])
+            # lin_y = res.intercept + res.slope * lin_x
 
             correlations.append(
                 (
@@ -494,14 +685,14 @@ for env_name in env_names:
 
             x = (x - np.min(x)) / (np.max(x) - np.min(x))
             lin_x = np.array([0, 1])
-            ax.plot(
-                lin_x,
-                lin_y,
-                "red",
-                label=f"fitted line" if row_i + col_i == 0 else "",
-                linewidth=1.0,
-                linestyle="--",
-            )
+            # ax.plot(
+            #     lin_x,
+            #     lin_y,
+            #     "red",
+            #     label=f"fitted line" if row_i + col_i == 0 else "",
+            #     linewidth=1.0,
+            #     linestyle="--",
+            # )
             ax.scatter(
                 x,
                 ys,
@@ -545,10 +736,15 @@ envs = (
     ("frozenlake", "pendulum", "cheetah", "walker"),
     ("cartpole", "pendulum", "cheetah", "walker"),
 )
+# control_modes = ["discrete"]
+# envs = (
+#     ("frozenlake", "pendulum", "cheetah", "walker"),
+# )
 diversity_names = (
     "L2",
     "Data Perf.",
     "Approx. KL",
+    "Bhattacharyya",
 )
 map_env = {
     "frozenlake": "Frozen Lake",

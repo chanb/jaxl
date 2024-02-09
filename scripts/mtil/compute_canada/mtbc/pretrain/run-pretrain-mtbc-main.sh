@@ -89,7 +89,7 @@ python ../../sweep_pretrain_mtbc.py \
     --samples_per_task \
     --exp_name=pendulum \
     --num_epochs=5000 \
-    --run_time=01:30:00
+    --run_time=02:00:00
 
 
 python ../../sweep_pretrain_mtbc.py \

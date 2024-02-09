@@ -125,8 +125,8 @@ def main(config):
 
     assert os.path.isdir(config.data_dir), f"{config.data_dir} is not a directory"
     assert (
-        config.num_heldouts > 0
-    ), f"num_heldouts needs to be at least 1, got {config.num_heldouts}"
+        config.num_heldouts >= 0
+    ), f"num_heldouts needs to be at least 0, got {config.num_heldouts}"
 
     num_tasks_variants = np.array(
         [int(num_tasks) for num_tasks in config.num_tasks_variants]
@@ -135,9 +135,8 @@ def main(config):
 
     # Gather expert datasets
     dataset_paths = []
-    for data_path in os.listdir(config.data_dir)[config.num_heldouts :]:
+    for data_path in sorted(os.listdir(config.data_dir))[config.num_heldouts :]:
         dataset_paths.append(os.path.join(config.data_dir, data_path))
-    dataset_paths = sorted(dataset_paths)
 
     os.makedirs(config.out_dir, exist_ok=True)
 

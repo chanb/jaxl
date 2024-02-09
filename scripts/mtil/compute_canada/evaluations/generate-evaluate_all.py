@@ -1,14 +1,14 @@
 import os
 
 env_names = [
-    # ("frozenlake", "discrete"),
-    # ("cartpole", "continuous"),
+    ("frozenlake", "discrete"),
+    ("cartpole", "continuous"),
     ("pendulum", "discrete"),
     ("pendulum", "continuous"),
-    # ("cheetah", "discrete"),
-    # ("cheetah", "continuous"),
-    # ("walker", "discrete"),
-    # ("walker", "continuous"),
+    ("cheetah", "discrete"),
+    ("cheetah", "continuous"),
+    ("walker", "discrete"),
+    ("walker", "continuous"),
 ]
 
 # exp_name = "bc_less_data"
@@ -16,7 +16,7 @@ env_names = [
 # exp_name = "bc_double"
 # exp_name = "bc_half_more"
 # exp_name = "bc_quarter_more"
-# exp_suffix = ""
+exp_suffix = ""
 
 # main
 # exp_suffix = "-double_source_data"
@@ -29,8 +29,32 @@ env_names = [
 # exp_suffix = "-double_target_data"
 
 # varying source task
-exp_name = "finetune_mtbc-vary_source_tasks"
-exp_suffix = ""
+# exp_name = "finetune_mtbc-vary_source_tasks"
+# exp_suffix = ""
+
+# extra ablation on bc
+# exp_name = "bc"
+# exp_suffix = "-1x_target_data"
+# exp_suffix = "-2x_target_data"
+# exp_suffix = "-4x_target_data"
+# exp_suffix = "-8x_target_data"
+
+# extra ablation on target data with source data = |D| and 8|D|
+exp_name = "finetune_mtbc_main"
+# exp_suffix = "-1x_source_data-1x_target_data"
+# exp_suffix = "-1x_source_data-1.25x_target_data"
+# exp_suffix = "-1x_source_data-1.5x_target_data"
+exp_suffix = "-1x_source_data-2x_target_data"
+
+# exp_suffix = "-8x_source_data-1x_target_data"
+# exp_suffix = "-8x_source_data-1.25x_target_data"
+# exp_suffix = "-8x_source_data-1.5x_target_data"
+# exp_suffix = "-8x_source_data-2x_target_data"
+
+# extra ablation on including target task
+# exp_name = "bc-include_target_task"
+# exp_name = "finetune_mtbc_main-include_target_task"
+# exp_suffix = ""
 
 run_time = "00:25:00"
 num_evaluation_episodes = 30
@@ -107,7 +131,7 @@ for task, control_mode in env_names:
                     curr_save_dir,
                 )
 
-dat_path = os.path.join(f"./export-evaluate_all-{exp_name}.dat")
+dat_path = os.path.join(f"./export-evaluate_all-{exp_name}{exp_suffix}.dat")
 with open(dat_path, "w+") as f:
     f.writelines(dat_content)
 
@@ -146,7 +170,7 @@ sbatch_content += "  --save_dir=${save_dir}\n"
 sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
 with open(
-    os.path.join(f"./run_all-evaluate_all-{exp_name}.sh"),
+    os.path.join(f"./run_all-evaluate_all-{exp_name}{exp_suffix}.sh"),
     "w+",
 ) as f:
     f.writelines(sbatch_content)
