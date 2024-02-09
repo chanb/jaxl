@@ -64,6 +64,7 @@ TEMP_LOG_KEYS = [
     "max_temp_penalty",
     "min_temp_penalty",
     "mean_temp_penalty",
+    "temperature",
 ]
 
 class SAC(OffPolicyLearner):
@@ -643,7 +644,7 @@ class SAC(OffPolicyLearner):
             ).item()
 
             for key in PI_LOG_KEYS:
-                aux[CONST_LOG][f"{CONST_POLICY}/{key}"] = pi_auxes[key].item()
+                aux[CONST_LOG][f"{CONST_POLICY}_info/{key}"] = pi_auxes[key].item()
 
         if temp_auxes:
             temp_auxes = jax.tree_util.tree_map(
@@ -659,7 +660,7 @@ class SAC(OffPolicyLearner):
             ).item()
 
             for key in TEMP_LOG_KEYS:
-                aux[CONST_LOG][f"{CONST_TEMPERATURE}/{key}"] = temp_auxes[key].item()
+                aux[CONST_LOG][f"{CONST_TEMPERATURE}_info/{key}"] = temp_auxes[key].item()
 
         self.gather_rms(aux)
         return aux

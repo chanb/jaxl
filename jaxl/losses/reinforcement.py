@@ -703,6 +703,7 @@ def make_sac_temp_loss(
             "max_temp_penalty": jnp.max(temp_penalty),
             "min_temp_penalty": jnp.min(temp_penalty),
             "mean_temp_penalty": jnp.mean(temp_penalty),
+            "temperature": temp,
         }
 
     return temp_loss
