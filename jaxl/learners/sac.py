@@ -103,6 +103,7 @@ class SAC(OffPolicyLearner):
         self.temp_step = jax.jit(self.make_temp_step())
 
         self.polyak_average = polyak_average_generator(config.tau)
+        self.update_target_model = jax.jit(self.make_update_target_model())
 
     @property
     def policy(self):
@@ -235,12 +236,18 @@ class SAC(OffPolicyLearner):
             self._optimizer[CONST_TEMPERATURE] = temp_opt
             self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = temp_opt_state
 
-    def update_target_model(self):
-        self._model_dict[CONST_MODEL][CONST_TARGET_QF] = jax.tree_map(
-            self.polyak_average,
-            self._model_dict[CONST_MODEL][CONST_QF],
-            self._model_dict[CONST_MODEL][CONST_TARGET_QF],
-        )
+    def make_update_target_model(self):
+        "Makes the target model update"
+
+        def update_target_model(
+            model_dict
+        ):
+            return jax.tree_map(
+                self.polyak_average,
+                model_dict[CONST_MODEL][CONST_QF],
+                model_dict[CONST_MODEL][CONST_TARGET_QF],
+            )
+        return update_target_model
 
     def make_qf_step(self):
         """
@@ -552,7 +559,7 @@ class SAC(OffPolicyLearner):
             qf_auxes[-1] = qf_aux
             if self._num_qf_updates % self._target_update_frequency == 0:
                 tic = timeit.default_timer()
-                self.update_target_model()
+                self._model_dict[CONST_MODEL][CONST_TARGET_QF] = self.update_target_model(self._model_dict)
                 total_target_qf_update_time += timeit.default_timer() - tic
 
             # Update Actor
