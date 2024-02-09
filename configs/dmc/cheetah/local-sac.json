@@ -82,6 +82,13 @@
             "buffer_size": 10000
         },
         "buffer_warmup": 10000,
+        "exploration_policy": {
+            "policy_distribution": "squashed_gaussian",
+            "kwargs": {
+                "means": 0.0,
+                "stds": 1.0
+            }
+        },
         "num_steps_per_epoch": 2048,
         "batch_size": 100,
         "learner": "sac",
@@ -96,7 +103,15 @@
             "coefficient": 1.0,
             "reduction": "mean"
         },
-        "actor_update_frequency": 10000,
+        "pi_loss_setting": {
+            "coefficient": 1.0,
+            "reduction": "mean"
+        },
+        "temp_loss_setting": {
+            "coefficient": 1.0,
+            "reduction": "mean"
+        },
+        "actor_update_frequency": 1,
         "target_update_frequency": 1,
         "tau": 0.01
     },

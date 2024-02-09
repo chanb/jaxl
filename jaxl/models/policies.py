@@ -836,7 +836,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
 
             act_inv = TanhTransform.inv(act)
 
-            lprob = Normal.lprob(act_inv, act_std, act).sum(-1, keepdims=True)
+            lprob = Normal.lprob(act_mean, act_std, act_inv).sum(-1, keepdims=True)
             lprob = lprob - TanhTransform.log_abs_det_jacobian(act_inv, act)
             return lprob, {
                 CONST_MEAN: act_mean,

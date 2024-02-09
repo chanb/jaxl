@@ -10,7 +10,11 @@ import timeit
 
 from jaxl.constants import *
 from jaxl.learners.reinforcement import OffPolicyLearner
-from jaxl.losses.reinforcement import make_sac_qf_loss
+from jaxl.losses.reinforcement import (
+    make_sac_qf_loss,
+    make_sac_pi_loss,
+    make_sac_temp_loss,
+)
 from jaxl.models import (
     get_model,
     get_optimizer,
@@ -21,6 +25,7 @@ from jaxl.models import (
     policy_output_dim,
     get_state_action_encoding,
     Temperature,
+    get_fixed_policy,
 )
 from jaxl.utils import l2_norm, polyak_average_generator
 
@@ -29,6 +34,37 @@ from jaxl.utils import l2_norm, polyak_average_generator
 Standard SAC.
 """
 
+QF_LOG_KEYS = [
+    "max_next_q",
+    "min_next_q",
+    "mean_next_q",
+    "max_curr_q",
+    "min_curr_q",
+    "mean_curr_q",
+    "max_td_error",
+    "min_td_error",
+    "max_q_log_prob",
+    "min_q_log_prob",
+    "mean_q_log_prob",
+]
+
+PI_LOG_KEYS = [
+    "max_policy_log_prob",
+    "min_policy_log_prob",
+    "mean_policy_log_prob",
+    "max_estimated_value",
+    "min_estimated_value",
+    "mean_estimated_value",
+]
+
+TEMP_LOG_KEYS = [
+    "max_policy_log_prob",
+    "min_policy_log_prob",
+    "mean_policy_log_prob",
+    "max_temp_penalty",
+    "min_temp_penalty",
+    "mean_temp_penalty",
+]
 
 class SAC(OffPolicyLearner):
     """
@@ -45,7 +81,6 @@ class SAC(OffPolicyLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
-        self.initialize_exploration_strategy()
 
         self._actor_update_frequency = getattr(config, CONST_ACTOR_UPDATE_FREQUENCY, 1)
         self._target_update_frequency = getattr(
@@ -56,8 +91,12 @@ class SAC(OffPolicyLearner):
         self._num_qf_updates = 0
 
         self._qf_loss = make_sac_qf_loss(self._agent, self._config.qf_loss_setting)
+        self._pi_loss = make_sac_pi_loss(self._agent, self._config.pi_loss_setting)
+        self._temp_loss = make_sac_temp_loss(self._agent, self._config.temp_loss_setting)
 
-        self.qf_step = self.make_qf_step()
+        self.qf_step = jax.jit(self.make_qf_step())
+        self.pi_step = jax.jit(self.make_pi_step())
+        self.temp_step = jax.jit(self.make_temp_step())
 
         self.polyak_average = polyak_average_generator(config.tau)
 
@@ -74,11 +113,6 @@ class SAC(OffPolicyLearner):
         Policy parameters.
         """
         return self._model_dict[CONST_MODEL][CONST_POLICY]
-
-    def initialize_exploration_strategy(self):
-        """
-        Creates a exploration agent for collecting the initial transitions for replay buffer.
-        """
         
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
@@ -95,9 +129,14 @@ class SAC(OffPolicyLearner):
 
         encoding_input_dim = (1, *input_dim)
         encoding_output_dim = output_dim[:-1]
+
         qf_input_dim, qf_output_dim = q_function_dims(
             encoding_input_dim, encoding_output_dim, self._model_config.qf_encoding
         )
+
+        self._exploration_pi = get_fixed_policy(output_dim, self._config.exploration_policy)
+
+        # Initialize parameters for policy and critics
         self._model = {
             CONST_POLICY: get_model(input_dim, act_dim, self._model_config.policy),
             CONST_QF: get_model(qf_input_dim, qf_output_dim, self._model_config.qf),
@@ -106,7 +145,6 @@ class SAC(OffPolicyLearner):
             ),
         }
 
-        # Initialize parameters for policy and critics
         model_keys = jrandom.split(
             jrandom.PRNGKey(self._config.seeds.model_seed), num=4
         )
@@ -178,19 +216,20 @@ class SAC(OffPolicyLearner):
         if self._target_entropy == CONST_AUTO:
             self._target_entropy = -int(np.product(output_dim))
 
+        self._model[CONST_TEMPERATURE] = Temperature(
+            self._config.initial_temperature
+        )
+        temp_params = self._model[CONST_TEMPERATURE].init(model_keys[3])
+        self._agent[CONST_TEMPERATURE] = self._model[CONST_TEMPERATURE]
+        self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = temp_params
+
         if self._target_entropy is not None:
-            self._model[CONST_TEMPERATURE] = Temperature(
-                self._config.initial_temperature
-            )
-            temp_params = self._model[CONST_TEMPERATURE].init(model_keys[3])
             temp_opt, temp_opt_state = get_optimizer(
                 self._optimizer_config.temp, self._model[CONST_TEMPERATURE], temp_params
             )
 
             self._optimizer[CONST_TEMPERATURE] = temp_opt
-            self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = temp_params
             self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = temp_opt_state
-            self._agent[CONST_TEMPERATURE] = self._model[CONST_TEMPERATURE]
 
     def update_target_model(self):
         self._model_dict[CONST_TARGET_QF] = jax.tree_map(
@@ -220,11 +259,9 @@ class SAC(OffPolicyLearner):
             **kwargs,
         ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
             """
-            The training step that computes the A2C loss and performs actor update and critic update.
+            The training step that computes the SAC critic loss and performs critic update.
 
             :param model_dict: the model state and optimizer state
-            :param obss: the training observations
-            :param h_states: the training hidden states for memory-based models
             :param obss: current observations
             :param h_states: current hidden states
             :param acts: actions taken for current observations
@@ -284,6 +321,128 @@ class SAC(OffPolicyLearner):
 
         return _qf_step
 
+    def make_pi_step(self):
+        """
+        Makes the training step for the actor update.
+        """
+
+        pi_update = get_update_function(self._model[CONST_POLICY])
+
+        def _pi_step(
+            model_dict: Dict[str, Any],
+            obss: chex.Array,
+            h_states: chex.Array,
+            keys: Sequence[jrandom.PRNGKey],
+            *args,
+            **kwargs,
+        ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            """
+            The training step that computes the SAC actor loss and performs actor update.
+
+            :param model_dict: the model state and optimizer state
+            :param obss: current observations
+            :param h_states: current hidden states
+            :param keys: random keys for sampling next actions
+            :param *args:
+            :param **kwargs:
+            :type model_dict: Dict[str, Any]
+            :type obss: chex.Array
+            :type h_states: chex.Array
+            :type keys: Sequence[jrandom.PRNGKey]
+            :return: the updated actor state, the corresponding updated
+                     optimizer state, and auxiliary information
+            :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
+
+            """
+            (agg_loss, aux), grads = jax.value_and_grad(self._pi_loss, has_aux=True)(
+                model_dict[CONST_MODEL][CONST_POLICY],
+                model_dict[CONST_MODEL][CONST_QF],
+                model_dict[CONST_MODEL][CONST_TEMPERATURE],
+                obss,
+                h_states,
+                keys,
+            )
+
+            aux[CONST_AGG_LOSS] = agg_loss
+            aux[CONST_GRAD_NORM] = {
+                CONST_POLICY: l2_norm(grads),
+            }
+
+            pi_params, pi_opt_state = pi_update(
+                self._optimizer[CONST_POLICY],
+                grads,
+                model_dict[CONST_OPT_STATE][CONST_POLICY],
+                model_dict[CONST_MODEL][CONST_POLICY],
+            )
+
+            return {
+                CONST_MODEL: pi_params,
+                CONST_OPT_STATE: pi_opt_state,
+            }, aux
+
+        return _pi_step
+    
+    def make_temp_step(self):
+        """
+        Makes the training step for the temperature update.
+        """
+
+        temp_update = get_update_function(self._model[CONST_TEMPERATURE])
+
+        def _temp_step(
+            model_dict: Dict[str, Any],
+            obss: chex.Array,
+            h_states: chex.Array,
+            keys: Sequence[jrandom.PRNGKey],
+            *args,
+            **kwargs,
+        ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            """
+            The training step that computes the SAC temperature loss and performs temperature update.
+
+            :param model_dict: the model state and optimizer state
+            :param obss: current observations
+            :param h_states: current hidden states
+            :param keys: random keys for sampling next actions
+            :param *args:
+            :param **kwargs:
+            :type model_dict: Dict[str, Any]
+            :type obss: chex.Array
+            :type h_states: chex.Array
+            :type keys: Sequence[jrandom.PRNGKey]
+            :return: the updated actor state, the corresponding updated
+                     optimizer state, and auxiliary information
+            :rtype: Tuple[Dict[str, Any], Dict[str, Any]]
+
+            """
+            (agg_loss, aux), grads = jax.value_and_grad(self._temp_loss, has_aux=True)(
+                model_dict[CONST_MODEL][CONST_TEMPERATURE],
+                model_dict[CONST_MODEL][CONST_POLICY],
+                obss,
+                h_states,
+                self._target_entropy,
+                keys,
+            )
+
+            aux[CONST_AGG_LOSS] = agg_loss
+            aux[CONST_GRAD_NORM] = {
+                CONST_TEMPERATURE: l2_norm(grads),
+            }
+
+            temp_params, temp_opt_state = temp_update(
+                self._optimizer[CONST_TEMPERATURE],
+                grads,
+                model_dict[CONST_OPT_STATE][CONST_TEMPERATURE],
+                model_dict[CONST_MODEL][CONST_TEMPERATURE],
+            )
+
+            return {
+                CONST_MODEL: temp_params,
+                CONST_OPT_STATE: temp_opt_state,
+            }, aux
+
+        return _temp_step
+
     def update(self, *args, **kwargs) -> Dict[str, Any]:
         """
         Updates the actor and the critic.
@@ -305,7 +464,7 @@ class SAC(OffPolicyLearner):
         total_temp_update_time = 0
         total_target_qf_update_time = 0
 
-        carried_steps = self._global_step % self._update_frequency
+        carried_steps = (self._global_step - self._buffer_warmup) % self._update_frequency
         num_update_steps = (
             self._num_steps_per_epoch + carried_steps
         ) // self._update_frequency
@@ -316,7 +475,17 @@ class SAC(OffPolicyLearner):
 
         # Initial exploration to populate the replay buffer
         if self._global_step < self._buffer_warmup:
+            tic = timeit.default_timer()
             step_count = self._buffer_warmup - self._global_step
+            self._rollout.rollout(
+                None,
+                self._exploration_pi,
+                self._obs_rms,
+                self._buffer,
+                step_count,
+            )
+            self._global_step += step_count
+            total_rollout_time += timeit.default_timer() - tic
 
         for update_i in range(num_update_steps):
             qf_auxes.append({})
@@ -326,7 +495,6 @@ class SAC(OffPolicyLearner):
             else:
                 step_count = self._update_frequency - carried_steps
 
-            # TODO: Include exploration strategy
             self._rollout.rollout(
                 self._model_dict[CONST_MODEL][CONST_POLICY],
                 self._pi,
@@ -357,7 +525,7 @@ class SAC(OffPolicyLearner):
             total_sampling_time += timeit.default_timer() - tic
 
             tic = timeit.default_timer()
-            qf_keys = jrandom.split(jrandom.PRNGKey(self._global_step), num=1)
+            qf_keys, pi_keys, temp_keys = jrandom.split(jrandom.PRNGKey(self._global_step), num=3)
             qf_model_dict, qf_aux = self.qf_step(
                 self._model_dict,
                 obss,
@@ -391,11 +559,13 @@ class SAC(OffPolicyLearner):
                     self._model_dict,
                     obss,
                     h_states,
-                    acts,
+                    pi_keys,
                 )
                 assert np.isfinite(
                     pi_aux[CONST_AGG_LOSS]
                 ), f"Loss became NaN\npi_aux: {pi_aux}"
+                self._model_dict[CONST_MODEL][CONST_POLICY] = pi_model_dict[CONST_MODEL]
+                self._model_dict[CONST_OPT_STATE][CONST_POLICY] = pi_model_dict[CONST_OPT_STATE]
                 total_pi_update_time += timeit.default_timer() - tic
                 pi_auxes[-1] = pi_aux
 
@@ -407,10 +577,13 @@ class SAC(OffPolicyLearner):
                         self._model_dict,
                         obss,
                         h_states,
+                        temp_keys,
                     )
                     assert np.isfinite(
                         temp_aux[CONST_AGG_LOSS]
                     ), f"Loss became NaN\ntemp_aux: {temp_aux}"
+                    self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = temp_model_dict[CONST_MODEL]
+                    self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = temp_model_dict[CONST_OPT_STATE]
                     total_temp_update_time += timeit.default_timer() - tic
                     temp_auxes[-1] = temp_aux
 
@@ -439,11 +612,11 @@ class SAC(OffPolicyLearner):
         # TODO: Fix logging for different training
         if qf_auxes:
             qf_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *qf_auxes)
-            aux[CONST_LOG][f"losses/qf"] = qf_auxes[CONST_AUX][CONST_QF].item()
-            aux[CONST_LOG][f"{CONST_GRAD_NORM}/qf"] = qf_auxes[CONST_AUX][CONST_GRAD_NORM][
+            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_QF}"] = qf_auxes[CONST_AGG_LOSS].item()
+            aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_QF}"] = qf_auxes[CONST_GRAD_NORM][
                 CONST_QF
             ].item()
-            aux[CONST_LOG][f"{CONST_PARAM_NORM}/qf"] = l2_norm(
+            aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_QF}"] = l2_norm(
                 self.model_dict[CONST_MODEL][CONST_QF]
             ).item()
 
@@ -454,14 +627,39 @@ class SAC(OffPolicyLearner):
                 aux[CONST_LOG][
                     f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
                 ] = qf_auxes[CONST_ACTION][act_i][CONST_MEAN]
+                
+            for key in QF_LOG_KEYS:
+                aux[CONST_LOG][f"{CONST_QF}_info/{key}"] = qf_auxes[key].item()
 
         if pi_auxes:
             pi_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *pi_auxes)
+
+            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_POLICY}"] = pi_auxes[CONST_AGG_LOSS].item()
+            aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_POLICY}"] = pi_auxes[CONST_GRAD_NORM][
+                CONST_POLICY
+            ].item()
+            aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_POLICY}"] = l2_norm(
+                self.model_dict[CONST_MODEL][CONST_POLICY]
+            ).item()
+
+            for key in PI_LOG_KEYS:
+                aux[CONST_LOG][f"{CONST_POLICY}/{key}"] = pi_auxes[key].item()
 
         if temp_auxes:
             temp_auxes = jax.tree_util.tree_map(
                 lambda *args: np.mean(args), *temp_auxes
             )
+
+            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_TEMPERATURE}"] = temp_auxes[CONST_AGG_LOSS].item()
+            aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_TEMPERATURE}"] = temp_auxes[CONST_GRAD_NORM][
+                CONST_TEMPERATURE
+            ].item()
+            aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_TEMPERATURE}"] = l2_norm(
+                self.model_dict[CONST_MODEL][CONST_TEMPERATURE]
+            ).item()
+
+            for key in TEMP_LOG_KEYS:
+                aux[CONST_LOG][f"{CONST_TEMPERATURE}/{key}"] = temp_auxes[key].item()
 
         self.gather_rms(aux)
         return aux

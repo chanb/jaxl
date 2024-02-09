@@ -1093,8 +1093,8 @@ class NextStateNumPyBuffer(TransitionNumPyBuffer):
         :rtype: Tuple[chex.Array, chex.Array]
 
         """
-        next_obss = self.next_observations[next_idxes]
-        next_h_states = self.next_hidden_states[next_idxes]
+        next_obss = self.next_observations[next_idxes - 1]
+        next_h_states = self.next_hidden_states[next_idxes - 1]
         return next_obss, next_h_states
 
     def get_buffer_dict(self) -> Dict[str, Any]:
