@@ -23,6 +23,7 @@ class OneHotClassification(Dataset):
         num_classes: int,
         num_holdout: int,
         split: str,
+        remap: bool = False,
         seed: int = 0,
         inputs_range: Tuple[float, float] = (0.0, 0.5),
         save_dir: str = None,
@@ -43,11 +44,13 @@ class OneHotClassification(Dataset):
             num_holdout, num_classes
         )
 
-        dataset_name = "one_hot_classification-num_sequences_{}-sequence_length_{}-num_classes_{}-num_holdout_{}-seed_{}.pkl".format(
+        dataset_name = "one_hot_classification-num_sequences_{}-sequence_length_{}-num_classes_{}-num_holdout_{}-split_{}-remap_{}-seed_{}.pkl".format(
             num_sequences,
             sequence_length,
             num_classes,
             num_holdout,
+            split,
+            remap,
             seed,
         )
         loaded, data = maybe_load_dataset(save_dir, dataset_name)
@@ -58,6 +61,7 @@ class OneHotClassification(Dataset):
                 num_classes=num_classes,
                 num_holdout=num_holdout,
                 split=split,
+                remap=remap,
                 inputs_range=inputs_range,
                 seed=seed,
             )
@@ -70,6 +74,7 @@ class OneHotClassification(Dataset):
                 "num_holdout": num_holdout,
                 "inputs_range": inputs_range,
                 "split": split,
+                "remap": remap,
                 "seed": seed,
             }
             maybe_save_dataset(
@@ -86,6 +91,7 @@ class OneHotClassification(Dataset):
         num_classes: int,
         num_holdout: int,
         split: str,
+        remap: bool,
         inputs_range: Tuple[float, float],
         seed: int,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
@@ -94,9 +100,11 @@ class OneHotClassification(Dataset):
         data_gen_rng = np.random.RandomState(seed=data_gen_seed)
 
         targets = data_gen_rng.choice(
-            num_classes - num_holdout if is_train else num_classes,
+            num_classes - num_holdout if is_train else num_holdout,
             size=(num_sequences, sequence_length),
         )
+        if not is_train and not remap:
+                targets += num_classes - num_holdout
 
         inputs = np.eye(num_classes)[targets]
         noise = inputs_range[1] - data_gen_rng.uniform(
@@ -105,6 +113,9 @@ class OneHotClassification(Dataset):
             (num_sequences, sequence_length, 1),
         )
         inputs = inputs * noise
+
+        if remap:
+            targets = targets % 2
 
         return inputs, targets
 

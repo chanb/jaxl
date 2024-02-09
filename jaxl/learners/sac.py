@@ -240,8 +240,11 @@ class SAC(OffPolicyLearner):
         "Makes the target model update"
 
         def update_target_model(
-            model_dict
+            model_dict: Dict[str, Any],
         ):
+            """
+            Polyak averaging update to the target model.
+            """
             return jax.tree_map(
                 self.polyak_average,
                 model_dict[CONST_MODEL][CONST_QF],

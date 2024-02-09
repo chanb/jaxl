@@ -22,7 +22,7 @@ from jaxl.models.transformers import (
 )
 from jaxl.models.policies import *
 from jaxl.models.q_functions import *
-from jaxl.utils import parse_dict, get_dict_value
+from jaxl.utils import parse_dict
 
 
 """
@@ -304,12 +304,30 @@ def get_update_function(
         return update_default
 
 
+def load_config(learner_path) -> Tuple[Dict, SimpleNamespace]:
+    """
+    Loads the configuration file of an experiment
+
+    :param learner_path: the path that stores the experiment configuation
+    :type learner_path: str
+    :return: the experiment configuration
+    :rtype: Tuple[Dict, SimpleNamespace]
+
+    """
+    config_path = os.path.join(learner_path, "config.json")
+    with open(config_path, "r") as f:
+        config_dict = json.load(f)
+        config = parse_dict(config_dict)
+
+    return config_dict, config
+
+
 def load_model(
     input_dim: Sequence[int],
     output_dim: Sequence[int],
     learner_path: str,
     checkpoint_i: int,
-) -> Tuple[Dict, Model, SimpleNamespace]:
+) -> Tuple[Dict, Model]:
     """
     Loads the model and the parameters
 
@@ -322,7 +340,7 @@ def load_model(
     :type learner_path: str
     :type checkpoint_i: int
     :return: the parameters, the model, and the experiment configuration
-    :rtype: Tuple[Dict, Model, SimpleNamespace]
+    :rtype: Tuple[Dict, Model]
     """
     config_path = os.path.join(learner_path, "config.json")
     with open(config_path, "r") as f:
@@ -341,11 +359,4 @@ def load_model(
         all_steps[min(len(all_steps) - 1, checkpoint_i)]
     )
 
-    _, has_positional_encoding = get_dict_value(
-        config_dict,
-        CONST_POSITIONAL_ENCODING,
-    )
-    if has_positional_encoding:
-        params[CONST_MODEL_DICT][CONST_MODEL][CONST_POSITIONAL_ENCODING] = dict()
-
-    return params, model, config
+    return params, model
