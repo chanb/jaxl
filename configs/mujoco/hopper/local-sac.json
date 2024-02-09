@@ -9,8 +9,8 @@
         "policy": {
             "architecture": "mlp",
             "layers": [
-                64,
-                64
+                256,
+                256
             ],
             "activation": "tanh"
         },
@@ -18,7 +18,7 @@
             "architecture": "ensemble",
             "model": {
                 "architecture": "mlp",
-                "layers": [256, 256]
+                "layers": [1024, 1024]
             },
             "num_models": 2,
             "vmap_all": false
@@ -85,7 +85,7 @@
                 "stds": 1.0
             }
         },
-        "num_steps_per_epoch": 2048,
+        "num_steps_per_epoch": 5000,
         "batch_size": 256,
         "learner": "sac",
         "obs_rms": false,
@@ -112,6 +112,6 @@
         "tau": 5e-3
     },
     "train_config": {
-        "num_epochs": 2500
+        "num_epochs": 1000
     }
 }
