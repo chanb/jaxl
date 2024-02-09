@@ -12,6 +12,14 @@ jaxl.constants.buffers module
    :undoc-members:
    :show-inheritance:
 
+jaxl.constants.distributions module
+-----------------------------------
+
+.. automodule:: jaxl.constants.distributions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jaxl.constants.envs module
 --------------------------
 

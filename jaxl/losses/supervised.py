@@ -84,6 +84,16 @@ def make_cross_entropy_loss(
     """
     reduction = get_reduction(loss_setting.reduction)
 
+    if getattr(loss_setting, "is_one_hot", False):
+
+        def convert_to_one_hot(y):
+            return y
+
+    else:
+
+        def convert_to_one_hot(y):
+            return jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
+
     def cross_entropy_loss(
         params: Union[optax.Params, Dict[str, Any]],
         x: chex.Array,
@@ -105,8 +115,146 @@ def make_cross_entropy_loss(
 
         """
         logits, _ = model.forward(params, x, carry)
-        y_one_hot = jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
+        y_one_hot = convert_to_one_hot(y)
 
-        return reduction(optax.softmax_cross_entropy(logits, y_one_hot)), {}
+        return reduction(optax.softmax_cross_entropy(logits, y_one_hot)), {
+            "logits": logits,
+            "y_one_hot": y_one_hot,
+        }
 
     return cross_entropy_loss
+
+
+def make_hinge_loss(
+    model: Model,
+    loss_setting: SimpleNamespace,
+    num_classes: int,
+    margin: float = 1.0,
+    *args,
+    **kwargs,
+) -> Callable[
+    [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets hinge loss function.
+
+    :param model: the model
+    :param loss_setting: the loss configuration
+    :param num_classes: the number of classes
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+    :type num_classes: int
+    :return: the loss function
+    :rtype: Callable[..., chex.Array]
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "is_one_hot", False):
+
+        def convert_to_one_hot(y):
+            return y
+
+    else:
+
+        def convert_to_one_hot(y):
+            return jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
+
+    def hinge_loss(
+        params: Union[optax.Params, Dict[str, Any]],
+        x: chex.Array,
+        carry: chex.Array,
+        y: chex.Array,
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        Hinge Loss.
+
+        :param params: the model parameters
+        :param x: the input
+        :param carry: the hidden state
+        :param y: the output
+        :param *args:
+        :param **kwargs:
+        :type params: Union[optax.Params, Dict[str, Any]]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+        logits, _ = model.forward(params, x, carry)
+        y_one_hot = convert_to_one_hot(y)
+
+        return (
+            reduction(
+                jnp.clip(
+                    margin
+                    - jnp.sum(logits * y_one_hot, axis=-1)
+                    + jnp.sum(logits * (1 - y_one_hot), axis=-1),
+                    a_min=0.0,
+                    a_max=jnp.inf,
+                )
+            ),
+            {},
+        )
+
+    return hinge_loss
+
+
+def make_sigmoid_bce_loss(
+    model: Model,
+    loss_setting: SimpleNamespace,
+    *args,
+    **kwargs,
+) -> Callable[
+    [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets sigmoid binary cross-entropy loss function.
+
+    :param model: the model
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+    :return: the loss function
+    :rtype: Callable[..., chex.Array]
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "is_one_hot", False):
+
+        def convert_to_label(y):
+            return jnp.argmax(y, axis=-1, keepdims=True)
+
+    else:
+
+        def convert_to_label(y):
+            return y
+
+    def sigmoid_bce_loss(
+        params: Union[optax.Params, Dict[str, Any]],
+        x: chex.Array,
+        carry: chex.Array,
+        y: chex.Array,
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        Sigmoid binary cross-entropy Loss.
+
+        :param params: the model parameters
+        :param x: the input
+        :param carry: the hidden state
+        :param y: the output
+        :param *args:
+        :param **kwargs:
+        :type params: Union[optax.Params, Dict[str, Any]]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+        logits, _ = model.forward(params, x, carry)
+        y_label = convert_to_label(y)
+
+        return reduction(optax.sigmoid_binary_cross_entropy(logits, y_label)), {}
+
+    return sigmoid_bce_loss

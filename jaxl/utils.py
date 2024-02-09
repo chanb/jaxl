@@ -5,9 +5,28 @@ import chex
 import jax
 import jax.numpy as jnp
 import numpy as np
+import os
 import random
+import torch
 
 from jaxl.constants import *
+
+
+CONST_CPU = "cpu"
+CONST_GPU = "gpu"
+
+
+def get_device(device):
+    (device_name, *device_ids) = device.split(":")
+    if device_name == CONST_CPU:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+    elif device_name == CONST_GPU:
+        assert (
+            len(device_ids) > 0
+        ), f"at least one device_id is needed, got {device_ids}"
+        os.environ["CUDA_VISIBLE_DEVICES"] = device_ids[0]
+    else:
+        raise ValueError(f"{device_name} is not a supported device.")
 
 
 def set_seed(seed: int = 0):
@@ -20,6 +39,7 @@ def set_seed(seed: int = 0):
     """
     random.seed(seed)
     np.random.seed(seed)
+    torch.manual_seed(seed)
 
 
 def to_jnp(*args: Iterable) -> Iterable[chex.Array]:
@@ -123,9 +143,9 @@ def get_dict_value(d: Dict, key: str) -> Tuple[bool, Any]:
 
     for k in d:
         if isinstance(d[k], dict):
-            val = get_dict_value(d[k], key)
-            if val[1]:
-                return val
+            (val, found) = get_dict_value(d[k], key)
+            if found:
+                return (val, found)
 
     return (None, False)
 
@@ -175,6 +195,24 @@ def per_leaf_l2_norm(params: chex.PyTreeDef) -> chex.PyTreeDef:
 
     """
     return jax.tree_util.tree_map(lambda p: jnp.sum(p**2), params)
+
+
+def polyak_average_generator(
+    x: float,
+) -> Callable[[chex.Array, chex.Array], chex.Array]:
+    """
+    Takes the Polyak average between two arrays.
+
+    :param x: the Polyak averaging step
+    :type x: float
+    :return: A Polyak averaging function
+    :rtype: Callable[[chex.Array, chex.Array], chex.Array]
+    """
+
+    def polyak_average(p: chex.Array, q: chex.Array) -> chex.Array:
+        return x * p + (1 - x) * q
+
+    return polyak_average
 
 
 class DummySummaryWriter:

@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
 import chex
 import jax
+import jax.numpy as jnp
 import jax.random as jrandom
 import numpy as np
 import optax
@@ -519,79 +520,99 @@ class CNN(Model):
         return forward
 
 
-class Policy(ABC):
-    """Abstract policy class."""
+class CNN(Model):
+    """A convolutional network."""
 
-    #: Compute action for interacting with the environment.
-    compute_action: Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-            jrandom.PRNGKey,
-        ],
-        Tuple[chex.Array, chex.Array],
-    ]
+    def __init__(
+        self,
+        features: Sequence[int],
+        kernel_sizes: Sequence[int],
+        layers: Sequence[int],
+        activation: str = CONST_RELU,
+        output_activation: str = CONST_IDENTITY,
+    ) -> None:
+        self.conv = CNNModule(
+            features,
+            kernel_sizes,
+            get_activation(activation),
+        )
+        self.mlp = MLPModule(
+            layers,
+            get_activation(activation),
+            get_activation(output_activation),
+        )
+        self.forward = jax.jit(self.make_forward())
 
-    #: Compute deterministic action.
-    deterministic_action: Callable[
-        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
-        Tuple[chex.Array, chex.Array],
-    ]
-
-    def __init__(self, model: Model) -> None:
-        self.reset = jax.jit(self.make_reset(model))
-
-    def make_reset(self, model: Model) -> Callable[..., chex.Array]:
+    def init(
+        self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
+    ) -> Union[optax.Params, Dict[str, Any]]:
         """
-        Makes the function that resets the policy.
-        This is often used for resetting the hidden state.
+        Initialize model parameters.
 
-        :param model: the model
-        :type model: Model
-        :return: a function for initializing the hidden state
-        :rtype: chex.Array
+        :param model_key: the random number generation key for initializing parameters
+        :param dummy_x: the input data
+        :type model_key: jrandom.PRNGKey
+        :type dummy_x: chex.Array
+        :return: the initialized parameters
+        :rtype: Union[optax.Params, Dict[str, Any]]
+
         """
+        conv_params = self.conv.init(model_key, dummy_x)
+        dummy_latent = self.conv.apply(conv_params, dummy_x)
+        mlp_params = self.mlp.init(
+            model_key, dummy_latent.reshape((dummy_latent.shape[0], -1))
+        )
+        return {
+            CONST_CNN: conv_params,
+            CONST_MLP: mlp_params,
+        }
 
-        def _reset() -> chex.Array:
-            """
-            Resets hidden state.
-
-            :return: a hidden state
-            :rtype: chex.Array
-            """
-            return model.reset_h_state()
-
-        return _reset
-
-
-class StochasticPolicy(Policy):
-    """Abstract stochastic policy class that extends ``Policy``."""
-
-    #: Compute random action.
-    random_action: Callable[
+    def make_forward(
+        self,
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
-            jrandom.PRNGKey,
         ],
         Tuple[chex.Array, chex.Array],
-    ]
+    ]:
+        """
+        Makes the forward call of the CNN model.
 
-    # . Compute action and its log probability.
-    act_lprob: Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-            jrandom.PRNGKey,
-        ],
-        Tuple[chex.Array, chex.Array, chex.Array],
-    ]
+        :return: the forward call.
+        :rtype: Callable[
+            [
+                Union[optax.Params, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+            ],
+            Tuple[chex.Array, chex.Array],
+        ]
+        """
 
-    # . Compute action log probability.
-    lprob: Callable[
-        [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
-        chex.Array,
-    ]
+        def forward(
+            params: Union[optax.Params, Dict[str, Any]],
+            input: chex.Array,
+            carry: chex.Array,
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Forward call of the CNN.
+
+            :param params: the model parameters
+            :param input: the input
+            :param carry: the hidden state (not used)
+            :type params: Union[optax.Params
+            :type input: chex.Array
+            :type carry: chex.Array
+            :return: the output and a pass-through carry
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            # NOTE: Assume batch size is first dim
+            conv_latent = self.conv.apply(params[CONST_CNN], input)
+            conv_latent = conv_latent.reshape((*conv_latent.shape[:-2], -1))
+            out = self.mlp.apply(params[CONST_MLP], conv_latent)
+            return out, carry
+
+        return forward

@@ -40,8 +40,10 @@ experiment_name_suffixes = (
 bc_name = "results-bc_less_data"
 
 results_per_experiment = {}
-experiment_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{experiment_name}"
-bc_dir = f"/Users/chanb/research/personal/mtil_results/final_results/data/evaluations/{bc_name}"
+experiment_dir = f"/Users/chanb/research/personal/mtil_results/diff_len_envs/evaluations/{experiment_name}"
+bc_dir = (
+    f"/Users/chanb/research/personal/mtil_results/diff_len_envs/evaluations/{bc_name}"
+)
 assert os.path.isdir(experiment_dir), f"{experiment_dir} is not a directory"
 
 for exp_i, suffix in enumerate(experiment_name_suffixes):
@@ -116,14 +118,14 @@ map_control = {
 }
 
 env_names = [
-    ("frozenlake", "discrete"),
+    # ("frozenlake", "discrete"),
     ("pendulum", "discrete"),
-    ("cheetah", "discrete"),
-    ("walker", "discrete"),
+    # ("cheetah", "discrete"),
+    # ("walker", "discrete"),
     ("cartpole", "continuous"),
     ("pendulum", "continuous"),
-    ("cheetah", "continuous"),
-    ("walker", "continuous"),
+    # ("cheetah", "continuous"),
+    # ("walker", "continuous"),
 ]
 
 save_plot_dir = "./agg_plots"
@@ -188,6 +190,7 @@ for env_name in env_names:
             color="grey",
             linestyle="--",
         )
+        print(env_name, env_seed, ref_result[env_seed].keys())
         num_tasks, _, _ = list(zip(*ref_result[env_seed]["mtbc"]))
         num_tasks = np.array(num_tasks)
         unique_num_tasks = np.unique(num_tasks)
@@ -367,6 +370,7 @@ for env_i, env_name in enumerate(env_names):
                 for num_task in unique_num_tasks
             ]
         )
+        print(env_name, num_source_data, means)
         stds = np.array(
             [
                 np.std(mtbc_rets[num_source_data][num_task])

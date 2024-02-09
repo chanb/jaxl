@@ -9,6 +9,7 @@ Subpackages
 
    jaxl.buffers
    jaxl.constants
+   jaxl.datasets
    jaxl.distributions
    jaxl.envs
    jaxl.learners
@@ -46,6 +47,14 @@ jaxl.plot\_utils module
 -----------------------
 
 .. automodule:: jaxl.plot_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+jaxl.transforms module
+----------------------
+
+.. automodule:: jaxl.transforms
    :members:
    :undoc-members:
    :show-inheritance:

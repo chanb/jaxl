@@ -25,6 +25,25 @@ pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-re
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 ```
 
+If `torch` somehow conflicts, install the CPU-only version:
+```
+pip install torch>=1.13.0+cpu
+```
+
+Potential memory issue:
+```
+export XLA_FLAGS=--xla_gpu_graph_level=0
+```
+
+### Conda on Salient
+```
+conda create --name jaxl python=3.9
+conda install jaxlib=*=*cuda* jax cuda-nvcc -c conda-forge -c nvidia
+pip install -r requirements/conda.txt
+pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+pip install -e .
+```
+
 ### Compute Canada
 You may install this code on Compute Canada by simply running `jaxl/installation/compute_canada/initial_setup.sh`.
 

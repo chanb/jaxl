@@ -1,5 +1,11 @@
+import io
 import json
+import math
+import matplotlib.pyplot as plt
+import numpy as np
 import os
+
+from PIL import Image
 
 import jaxl.envs
 
@@ -60,7 +66,7 @@ pgf_with_latex = {  # setup matplotlib to use latex for output
     "xtick.labelsize": 8,
     "ytick.labelsize": 8,
     "pgf.rcfonts": False,  # don't setup fonts from rc parameters
-    'text.latex.preamble' : r'\usepackage{amsmath}'
+    "text.latex.preamble": r"\usepackage{amsmath}",
 }
 
 
@@ -142,3 +148,77 @@ def get_evaluation_components(agent_path, env_seed=None, ref_agent_path=None):
         policy = MultitaskPolicy(policy, model, aux["num_models"])
 
     return env, policy
+
+
+# NOTE: For plotting in Tensorboard
+def plot_to_image(fig):
+    """Convert a Matplotlib figure to a PIL Image and return it"""
+    fig.canvas.draw()
+    img = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+    img = img.reshape((3,) + fig.canvas.get_width_height()[::-1])
+    return img
+
+
+def icl_image_grid(
+    context_inputs,
+    context_outputs,
+    queries,
+    labels,
+    preds,
+    doc_width_pt=500.0,
+    filename=None,
+):
+    num_samples, context_len = context_inputs.shape[:2]
+
+    # Create a figure to contain the plot.
+    nrows = num_samples * 2
+    num_contexts_per_col = math.ceil(context_len / 2)
+    ncols = num_contexts_per_col + 1
+    fig, axes = plt.subplots(
+        nrows,
+        ncols,
+        figsize=set_size(doc_width_pt, 0.95, (nrows, ncols), False),
+        layout="constrained",
+    )
+
+    for sample_i, (
+        context_inputs_i,
+        context_outputs_i,
+        query_i,
+        label_i,
+        pred_i,
+    ) in enumerate(
+        zip(
+            context_inputs,
+            context_outputs,
+            queries,
+            labels,
+            preds,
+        )
+    ):
+        for context_i in range(context_len):
+            row_i = context_i // num_contexts_per_col + sample_i * 2
+            col_i = context_i % num_contexts_per_col
+
+            axes[row_i, col_i].set_xticks([])
+            axes[row_i, col_i].set_yticks([])
+            axes[row_i, col_i].grid(False)
+            axes[row_i, col_i].set_title(
+                "{}".format(np.argmax(context_outputs_i[context_i]))
+            )
+            axes[row_i, col_i].imshow(context_inputs_i[context_i], cmap=plt.cm.binary)
+        axes[sample_i * 2, -1].imshow(query_i[0])
+        axes[sample_i * 2, -1].set_title("Label: {}".format(np.argmax(label_i)))
+        axes[sample_i * 2, -1].set_xticks([])
+        axes[sample_i * 2, -1].set_yticks([])
+        axes[sample_i * 2 + 1, -1].axis("off")
+        axes[sample_i * 2 + 1, -1].set_title("Pred: {}".format(np.argmax(pred_i)))
+        title = ""
+        for logit in pred_i:
+            title += "{:.4f}\n".format(logit)
+        axes[sample_i * 2 + 1, -1].text(0.25, 0.0, title, fontsize=6)
+
+    if filename is not None:
+        fig.savefig(filename, format="png")
+
+    return fig

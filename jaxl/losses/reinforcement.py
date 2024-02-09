@@ -1,15 +1,18 @@
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, Union, Tuple
+from typing import Any, Callable, Dict, Union, Tuple, Sequence
 
 import chex
 import jax
 import jax.numpy as jnp
+import jax.random as jrandom
 import numpy as np
 import optax
 
 from jaxl.constants import *
 from jaxl.models.common import Model
-from jaxl.models.policies import StochasticPolicy
+from jaxl.models import (
+    StochasticPolicy,
+)
 from jaxl.utils import get_reduction
 
 
@@ -436,3 +439,275 @@ def make_ppo_vf_loss(
         }
 
     return vf_loss
+
+
+def make_sac_qf_loss(
+    models: Dict[str, Any],
+    loss_setting: SimpleNamespace,
+) -> Callable[
+    [
+        Union[optax.Params, Dict[str, Any]],
+        chex.Array,
+        chex.Array,
+        chex.Array,
+        chex.Array,
+    ],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets SAC critic loss function.
+
+    :param models: the models involved for SAC critic update
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    # XXX: It's designed this way so that we don't keep track of gradient of other models.
+    def qf_loss(
+        qf_params: Union[optax.Params, Dict[str, Any]],
+        target_qf_params: Union[optax.Params, Dict[str, Any]],
+        pi_params: Union[optax.Params, Dict[str, Any]],
+        temp_params: Union[optax.Params, Dict[str, Any]],
+        obss: chex.Array,
+        h_states: chex.Array,
+        acts: chex.Array,
+        rews: chex.Array,
+        terminateds: chex.Array,
+        next_obss: chex.Array,
+        next_h_states: chex.Array,
+        gamma: chex.Array,
+        keys: Sequence[jrandom.PRNGKey],
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        SAC critic loss.
+
+        :param qf_params: the Q parameters
+        :param target_qf_params: the target Q parameters
+        :param pi_params: the policy parameters
+        :param temp_params: the temperature
+        :param obss: current observations
+        :param h_states: current hidden states
+        :param acts: actions taken for current observations
+        :param rews: received rewards
+        :param terminateds: whether or not the episode is terminated
+        :param next_obss: next observations
+        :param next_h_states: next hidden states
+        :param gamma: discount factor
+        :param keys: random keys for sampling next actions
+        :type qf_params: Union[optax.Params, Dict[str, Any]]
+        :type target_qf_params: Union[optax.Params, Dict[str, Any]]
+        :type pi_params: Union[optax.Params, Dict[str, Any]]
+        :type temp_params: Union[optax.Params, Dict[str, Any]]
+        :type obss: chex.Array
+        :type h_states: chex.Array
+        :type acts: chex.Array
+        :type rews: chex.Array
+        :type terminateds: chex.Array
+        :type next_obss: chex.Array
+        :type next_h_states: chex.Array
+        :type gamma: chex.Array
+        :type keys: Sequence[jrandom.PRNGKey]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+        # Action for next timestep
+        next_acts, next_lprobs, _ = models[CONST_POLICY].act_lprob(
+            pi_params, next_obss, next_h_states, keys
+        )
+        next_lprobs = jnp.sum(next_lprobs, axis=-1, keepdims=True)
+
+        # Q-value for current timestep
+        curr_q_preds, _ = models[CONST_QF].q_values(qf_params, obss, h_states, acts)
+        curr_q_preds_min = jnp.min(curr_q_preds, axis=0)
+
+        # Q-value for next timestep
+        next_q_preds, _ = models[CONST_TARGET_QF].q_values(
+            target_qf_params, next_obss, next_h_states, next_acts
+        )
+        next_q_preds_min = jnp.min(next_q_preds, axis=0)
+
+        # Compute temperature
+        temp = models[CONST_TEMPERATURE].apply(temp_params)
+
+        # Compute min. clipped TD error
+        next_vs = next_q_preds_min - temp * next_lprobs
+        curr_q_targets = rews + gamma * (1 - terminateds) * next_vs
+        td_errors = (curr_q_preds - curr_q_targets[None]) ** 2
+        loss = reduction(td_errors)
+
+        return loss, {
+            "mean_var_q": jnp.mean(jnp.var(curr_q_preds, axis=0)),
+            "min_var_q": jnp.min(jnp.var(curr_q_preds, axis=0)),
+            "max_var_q": jnp.max(jnp.var(curr_q_preds, axis=0)),
+            "max_next_q": jnp.max(next_q_preds_min),
+            "min_next_q": jnp.min(next_q_preds_min),
+            "mean_next_q": jnp.mean(next_q_preds_min),
+            "max_curr_q": jnp.max(curr_q_preds_min),
+            "min_curr_q": jnp.min(curr_q_preds_min),
+            "mean_curr_q": jnp.mean(curr_q_preds_min),
+            "max_td_error": jnp.max(td_errors),
+            "min_td_error": jnp.min(td_errors),
+            "max_q_log_prob": jnp.max(next_lprobs),
+            "min_q_log_prob": jnp.min(next_lprobs),
+            "mean_q_log_prob": jnp.mean(next_lprobs),
+            "curr_q_targets": curr_q_targets,
+        }
+
+    return qf_loss
+
+
+def make_sac_pi_loss(
+    models: Dict[str, Any],
+    loss_setting: SimpleNamespace,
+) -> Callable[
+    [
+        Union[optax.Params, Dict[str, Any]],
+        chex.Array,
+        chex.Array,
+        chex.Array,
+        chex.Array,
+    ],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets SAC actor loss function.
+
+    :param models: the models involved for SAC actor update
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    # XXX: It's designed this way so that we don't keep track of gradient of other models.
+    def pi_loss(
+        pi_params: Union[optax.Params, Dict[str, Any]],
+        qf_params: Union[optax.Params, Dict[str, Any]],
+        temp_params: Union[optax.Params, Dict[str, Any]],
+        obss: chex.Array,
+        h_states: chex.Array,
+        keys: Sequence[jrandom.PRNGKey],
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        SAC actor loss.
+
+        :param pi_params: the policy parameters
+        :param qf_params: the Q parameters
+        :param temp_params: the temperature
+        :param obss: current observations
+        :param h_states: current hidden states
+        :param keys: random keys for sampling next actions
+        :type pi_params: Union[optax.Params, Dict[str, Any]]
+        :type qf_params: Union[optax.Params, Dict[str, Any]]
+        :type temp_params: Union[optax.Params, Dict[str, Any]]
+        :type obss: chex.Array
+        :type h_states: chex.Array
+        :type keys: Sequence[jrandom.PRNGKey]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+
+        acts, lprobs, _ = models[CONST_POLICY].act_lprob(
+            pi_params, obss, h_states, keys
+        )
+        lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
+        curr_q_preds, _ = models[CONST_QF].q_values(qf_params, obss, h_states, acts)
+        curr_q_preds_min = jnp.min(curr_q_preds, axis=0)
+
+        temp = models[CONST_TEMPERATURE].apply(temp_params)
+
+        vals = -(curr_q_preds_min - temp * lprobs)
+        loss = reduction(vals)
+
+        return loss, {
+            "max_policy_log_prob": jnp.max(lprobs),
+            "min_policy_log_prob": jnp.min(lprobs),
+            "mean_policy_log_prob": jnp.mean(lprobs),
+            "max_estimated_value": jnp.max(vals),
+            "min_estimated_value": jnp.min(vals),
+            "mean_estimated_value": jnp.mean(vals),
+        }
+
+    return pi_loss
+
+
+def make_sac_temp_loss(
+    models: Dict[str, Any],
+    loss_setting: SimpleNamespace,
+) -> Callable[
+    [
+        Union[optax.Params, Dict[str, Any]],
+        chex.Array,
+        chex.Array,
+        chex.Array,
+        chex.Array,
+    ],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets SAC temperature loss function.
+
+    :param models: the models involved for SAC temperature update
+    :param loss_setting: the loss configuration
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    # XXX: It's designed this way so that we don't keep track of gradient of other models.
+    def temp_loss(
+        temp_params: Union[optax.Params, Dict[str, Any]],
+        pi_params: Union[optax.Params, Dict[str, Any]],
+        obss: chex.Array,
+        h_states: chex.Array,
+        target_entropy: float,
+        keys: Sequence[jrandom.PRNGKey],
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        SAC temperature loss.
+
+        :param temp_params: the temperature
+        :param pi_params: the policy parameters
+        :param obss: current observations
+        :param h_states: current hidden states
+        :param target_entropy: the target entropy
+        :param keys: random keys for sampling next actions
+        :type temp_params: Union[optax.Params, Dict[str, Any]]
+        :type pi_params: Union[optax.Params, Dict[str, Any]]
+        :type obss: chex.Array
+        :type h_states: chex.Array
+        :type target_entropy: float
+        :type keys: Sequence[jrandom.PRNGKey]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+
+        _, lprobs, _ = models[CONST_POLICY].act_lprob(
+            pi_params, obss, h_states, keys
+        )
+        lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
+
+        temp = models[CONST_TEMPERATURE].apply(temp_params)
+
+        temp_penalty = temp * -(lprobs + target_entropy)
+        loss = reduction(temp_penalty)
+
+        return loss, {
+            "max_policy_log_prob": jnp.max(lprobs),
+            "min_policy_log_prob": jnp.min(lprobs),
+            "mean_policy_log_prob": jnp.mean(lprobs),
+            "max_temp_penalty": jnp.max(temp_penalty),
+            "min_temp_penalty": jnp.min(temp_penalty),
+            "mean_temp_penalty": jnp.mean(temp_penalty),
+            "temperature": temp,
+        }
+
+    return temp_loss

@@ -14,6 +14,7 @@ from jaxl.constants import *
 from jaxl.envs import get_environment
 from jaxl.learners import Learner
 from jaxl.models import get_model, get_policy, policy_output_dim, Policy
+from jaxl.plot_utils import icl_image_grid, plot_to_image
 from jaxl.utils import DummySummaryWriter, parse_dict, RunningMeanStd
 
 import jaxl.learners as jaxl_learners
@@ -51,6 +52,10 @@ def get_learner(
         make_learner = jaxl_learners.get_rl_learner
     elif learner_config.task == CONST_IL:
         make_learner = jaxl_learners.get_il_learner
+    elif learner_config.task == CONST_ICL:
+        make_learner = jaxl_learners.get_icl_learner
+    elif learner_config.task == CONST_SUPERVISED:
+        make_learner = jaxl_learners.get_supervised_learner
     else:
         raise NotImplementedError
     return make_learner(learner_config, model_config, optimizer_config)
@@ -98,10 +103,9 @@ def train(
                 hyperparameter_str,
             )
             learner.save_env_config(os.path.join(save_path, "env_config.pkl"))
-            params = learner.checkpoint(final=False)
 
             checkpoint_manager = CheckpointManager(
-                os.path.join(save_path, "models"),
+                os.path.join(os.path.abspath(save_path), "models"),
                 PyTreeCheckpointer(),
             )
 
@@ -132,6 +136,18 @@ def train(
                     "wb",
                 ) as f:
                     pickle.dump(train_aux, f)
+
+                if CONST_DATA in train_aux and getattr(
+                    config.logging_config, "image_data", False
+                ):
+                    os.makedirs(os.path.join(save_path, "imgs"), exist_ok=True)
+                    icl_image_grid(
+                        *train_aux[CONST_DATA],
+                        doc_width_pt=1000,
+                        filename=os.path.join(
+                            save_path, "imgs/train_{}.png".format(true_epoch)
+                        ),
+                    )
                 checkpoint_manager.save(true_epoch, learner.checkpoint(final=False))
     except KeyboardInterrupt:
         pass

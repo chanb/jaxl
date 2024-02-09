@@ -1,19 +1,23 @@
 from jaxl.constants.buffers import *
+from jaxl.constants.distributions import *
 from jaxl.constants.envs import *
 from jaxl.constants.learners import *
 from jaxl.constants.losses import *
 from jaxl.constants.models import *
 from jaxl.constants.optimizers import *
 
+CONST_BUFFER_CONFIG = "buffer_config"
 CONST_BUFFER_PATH = "buffer_path"
 CONST_CONFIG = "config"
 CONST_COUNT = "count"
+CONST_DATA = "data"
 CONST_HYPERPARAMETERS = "hyperparameters"
 CONST_MODEL_DICT = "model_dict"
 CONST_OPTIMIZER = "optimizer"
 CONST_OPT_STATE = "opt_state"
 CONST_PARAMS = "params"
 CONST_TRAIN = "train"
+CONST_TEST = "test"
 CONST_VALIDATION = "validation"
 CONST_VAL_PREDS = "validation_predictions"
 CONST_ENTROPY = "entropy"
@@ -28,16 +32,22 @@ CONST_SCALARS = "scalars"
 CONST_SHAPE = "shape"
 CONST_STD = "std"
 CONST_VAR = "var"
+CONST_DATASET_WRAPPER = "dataset_wrapper"
+CONST_WRAPPER = "wrapper"
+
+VALID_SPLIT = (CONST_TRAIN, CONST_TEST)
 
 CONST_A_MIN = "a_min"
 CONST_A_MAX = "a_max"
 
 CONST_EPSILON = "epsilon"
 
+CONST_ICL = "in_context_learning"
 CONST_IL = "imitation_learning"
 CONST_RL = "reinforcement_learning"
+CONST_SUPERVISED = "supervised_learning"
 
-VALID_TASK = [CONST_IL, CONST_RL]
+VALID_TASK = [CONST_ICL, CONST_IL, CONST_RL, CONST_SUPERVISED]
 
 CONST_ACTION = "action"
 CONST_ADVANTAGE = "advantage"
@@ -45,6 +55,7 @@ CONST_RETURN = "return"
 CONST_VALUE = "value"
 CONST_ADVANTAGES = "advantages"
 CONST_RETURNS = "returns"
+CONST_OBSERVATION = "observation"
 CONST_SATURATION = "saturation"
 CONST_VALUES = "values"
 CONST_LATEST_RETURN = "latest_return"
@@ -53,5 +64,8 @@ CONST_AVERAGE_RETURN = "average_return"
 CONST_AVERAGE_EPISODE_LENGTH = "average_episode_length"
 CONST_EPISODE_LENGTHS = "episode_lengths"
 CONST_EPISODIC_RETURNS = "episodic_returns"
+CONST_GLOBAL_STEP = "global_step"
 
 CONST_IS_RATIO = "is_ratio"
+
+CONST_AUTO = "auto"

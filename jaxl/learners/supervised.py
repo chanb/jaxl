@@ -5,13 +5,13 @@ import chex
 import jax
 import jax.random as jrandom
 import numpy as np
-import optax
+import timeit
 
 from jaxl.constants import *
 from jaxl.learners.learner import OfflineLearner
 from jaxl.losses import get_loss_function, make_aggregate_loss
 from jaxl.models import get_model, get_optimizer, get_update_function
-from jaxl.utils import parse_dict
+from jaxl.utils import l2_norm, parse_dict
 
 
 """
@@ -35,6 +35,28 @@ class SupervisedLearner(OfflineLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
+
+        if getattr(self._config, CONST_BUFFER_CONFIG, False):
+
+            def sample():
+                input, carry, output, _ = self._buffer.sample(self._config.batch_size)
+                return input, carry, output
+
+        else:
+
+            def sample():
+                try:
+                    inputs, carries, outputs, _ = next(self._train_loader)
+                except StopIteration:
+                    self._train_loader = iter(self._train_dataloader)
+                    inputs, carries, outputs, _ = next(self._train_loader)
+                inputs = inputs.numpy()
+                carries = carries.numpy()
+                outputs = outputs.numpy()
+                return inputs, carries, outputs
+
+        self.sample = sample
+
         self._initialize_losses()
         self.train_step = jax.jit(self.make_train_step())
 
@@ -122,6 +144,8 @@ class SupervisedLearner(OfflineLearner):
                 model_dict[CONST_MODEL],
             )
 
+            aux[CONST_GRAD_NORM] = {CONST_MODEL: l2_norm(grads)}
+
             return {CONST_MODEL: params, CONST_OPT_STATE: opt_state}, aux
 
         return _train_step
@@ -152,12 +176,33 @@ class SupervisedLearner(OfflineLearner):
         :rtype: Dict[str, Any]
 
         """
-        train_x, train_carry, train_y, _ = self._buffer.sample(self._config.batch_size)
-        self.model_dict, aux = self.train_step(
-            self._model_dict, train_x, train_carry, train_y
-        )
-        assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+        auxes = []
+        total_update_time = 0
+        for _ in range(self._num_updates_per_epoch):
+            tic = timeit.default_timer()
+            auxes.append({})
+            inputs, carries, outputs = self.sample()
 
-        aux[CONST_LOG] = {CONST_AGG_LOSS: aux[CONST_AGG_LOSS]}
+            self.model_dict, aux = self.train_step(
+                self._model_dict, inputs, carries, outputs
+            )
+            total_update_time += timeit.default_timer() - tic
+            assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+
+            auxes[-1][CONST_AUX] = aux
+
+        auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
+        aux[CONST_LOG] = {
+            f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
+            f"time/{CONST_UPDATE_TIME}": total_update_time,
+            f"{CONST_GRAD_NORM}/model": auxes[CONST_AUX][CONST_GRAD_NORM][
+                CONST_MODEL
+            ].item(),
+        }
+
+        for loss_key in self._config.losses:
+            aux[CONST_LOG][f"losses/{loss_key}"] = auxes[CONST_AUX][loss_key][
+                CONST_LOSS
+            ].item()
 
         return aux

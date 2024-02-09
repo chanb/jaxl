@@ -380,16 +380,28 @@ class PPO(OnPolicyLearner):
         total_rollout_time = 0
         total_update_time = 0
         stop_update = False
-        for _ in range(self._num_update_steps):
+
+        carried_steps = self._global_step % self._update_frequency
+        num_update_steps = (
+            self._num_steps_per_epoch + carried_steps
+        ) // self._update_frequency
+
+        for update_i in range(num_update_steps):
             auxes.append({})
             tic = timeit.default_timer()
+            if update_i > 0:
+                step_count = self._update_frequency
+            else:
+                step_count = self._update_frequency - carried_steps
+
             next_obs, next_h_state = self._rollout.rollout(
                 self._model_dict[CONST_MODEL][CONST_POLICY],
                 self._pi,
                 self._obs_rms,
                 self._buffer,
-                self._update_frequency,
+                step_count,
             )
+            self._global_step += step_count
             total_rollout_time += timeit.default_timer() - tic
 
             tic = timeit.default_timer()

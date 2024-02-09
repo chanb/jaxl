@@ -37,6 +37,10 @@ def get_loss_function(
         make_loss_function = make_squared_loss
     elif loss == CONST_CATEGORICAL:
         make_loss_function = make_cross_entropy_loss
+    elif loss == CONST_SIGMOID_BCE:
+        make_loss_function = make_sigmoid_bce_loss
+    elif loss == CONST_HINGE:
+        make_loss_function = make_hinge_loss
     elif loss == CONST_L2:
         make_loss_function = make_weight_decay
     else:

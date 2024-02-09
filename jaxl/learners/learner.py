@@ -1,5 +1,5 @@
 from abc import ABC
-from orbax.checkpoint import PyTreeCheckpointer
+from torch.utils.data import DataLoader
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Tuple, Union
 
@@ -7,10 +7,10 @@ import _pickle as pickle
 import chex
 import numpy as np
 import optax
-import os
 
 from jaxl.buffers import get_buffer, ReplayBuffer
 from jaxl.constants import *
+from jaxl.datasets import get_dataset
 from jaxl.envs import get_environment, DefaultGymWrapper
 from jaxl.models import Model
 
@@ -192,9 +192,23 @@ class OfflineLearner(Learner):
         """
         Construct the buffer
         """
-        self._buffer = get_buffer(
-            self._config.buffer_config, self._config.seeds.buffer_seed
-        )
+        if getattr(self._config, CONST_BUFFER_CONFIG, False):
+            self._buffer = get_buffer(
+                self._config.buffer_config, self._config.seeds.buffer_seed
+            )
+        else:
+            self._buffer = get_dataset(
+                self._config.dataset_config,
+                self._config.seeds.data_seed,
+            )
+            self._train_dataloader = DataLoader(
+                self._buffer,
+                batch_size=self._config.batch_size,
+                shuffle=getattr(self._config.dataset_config, "shuffle", True),
+                drop_last=True,
+                num_workers=getattr(self._config.dataset_config, "num_workers", 0),
+            )
+            self._train_loader = iter(self._train_dataloader)
 
 
 class OnlineLearner(Learner):
