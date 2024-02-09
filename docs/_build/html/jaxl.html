@@ -51,6 +51,7 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer.push"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.push()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer.sample"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.sample()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer.sample_init_obs"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.sample_init_obs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer.sample_with_next_obs"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.sample_with_next_obs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer.save"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.save()</span></code></a></li>
 </ul>
 </li>
@@ -141,6 +142,7 @@
 <li class="toctree-l1"><a class="reference internal" href="jaxl.constants.html">jaxl.constants package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.constants.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.buffers">jaxl.constants.buffers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.distributions">jaxl.constants.distributions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.envs">jaxl.constants.envs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.learners">jaxl.constants.learners module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.constants.html#module-jaxl.constants.losses">jaxl.constants.losses module</a></li>
@@ -160,6 +162,15 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.params"><code class="docutils literal notranslate"><span class="pre">MultitaskFixedBasisRegression1D.params</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.plot"><code class="docutils literal notranslate"><span class="pre">MultitaskFixedBasisRegression1D.plot()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.basis_regression.MultitaskFixedBasisRegression1D.sequence_length"><code class="docutils literal notranslate"><span class="pre">MultitaskFixedBasisRegression1D.sequence_length</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#module-jaxl.datasets.large_classes_classification">jaxl.datasets.large_classes_classification module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.large_classes_classification.OneHotClassification"><code class="docutils literal notranslate"><span class="pre">OneHotClassification</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.large_classes_classification.OneHotClassification.input_dim"><code class="docutils literal notranslate"><span class="pre">OneHotClassification.input_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.large_classes_classification.OneHotClassification.output_dim"><code class="docutils literal notranslate"><span class="pre">OneHotClassification.output_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.large_classes_classification.OneHotClassification.sequence_length"><code class="docutils literal notranslate"><span class="pre">OneHotClassification.sequence_length</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -188,7 +199,38 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#jaxl-datasets-mnist-module">jaxl.datasets.mnist module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#module-jaxl.datasets.mnist">jaxl.datasets.mnist module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.MultitaskMNISTFineGrain"><code class="docutils literal notranslate"><span class="pre">MultitaskMNISTFineGrain</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.MultitaskMNISTFineGrain.input_dim"><code class="docutils literal notranslate"><span class="pre">MultitaskMNISTFineGrain.input_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.MultitaskMNISTFineGrain.output_dim"><code class="docutils literal notranslate"><span class="pre">MultitaskMNISTFineGrain.output_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.MultitaskMNISTFineGrain.sequence_length"><code class="docutils literal notranslate"><span class="pre">MultitaskMNISTFineGrain.sequence_length</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.MultitaskMNISTRandomBinary"><code class="docutils literal notranslate"><span class="pre">MultitaskMNISTRandomBinary</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.MultitaskMNISTRandomBinary.input_dim"><code class="docutils literal notranslate"><span class="pre">MultitaskMNISTRandomBinary.input_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.MultitaskMNISTRandomBinary.output_dim"><code class="docutils literal notranslate"><span class="pre">MultitaskMNISTRandomBinary.output_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.MultitaskMNISTRandomBinary.sequence_length"><code class="docutils literal notranslate"><span class="pre">MultitaskMNISTRandomBinary.sequence_length</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.StratifiedMultitaskMNISTFineGrain"><code class="docutils literal notranslate"><span class="pre">StratifiedMultitaskMNISTFineGrain</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.StratifiedMultitaskMNISTFineGrain.input_dim"><code class="docutils literal notranslate"><span class="pre">StratifiedMultitaskMNISTFineGrain.input_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.StratifiedMultitaskMNISTFineGrain.num_queries"><code class="docutils literal notranslate"><span class="pre">StratifiedMultitaskMNISTFineGrain.num_queries</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.StratifiedMultitaskMNISTFineGrain.output_dim"><code class="docutils literal notranslate"><span class="pre">StratifiedMultitaskMNISTFineGrain.output_dim</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.mnist.construct_mnist"><code class="docutils literal notranslate"><span class="pre">construct_mnist()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#module-jaxl.datasets.omniglot">jaxl.datasets.omniglot module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.omniglot.MultitaskOmniglotFineGrain"><code class="docutils literal notranslate"><span class="pre">MultitaskOmniglotFineGrain</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.omniglot.MultitaskOmniglotFineGrain.input_dim"><code class="docutils literal notranslate"><span class="pre">MultitaskOmniglotFineGrain.input_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.omniglot.MultitaskOmniglotFineGrain.output_dim"><code class="docutils literal notranslate"><span class="pre">MultitaskOmniglotFineGrain.output_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.omniglot.MultitaskOmniglotFineGrain.sequence_length"><code class="docutils literal notranslate"><span class="pre">MultitaskOmniglotFineGrain.sequence_length</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.omniglot.construct_omniglot"><code class="docutils literal notranslate"><span class="pre">construct_omniglot()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#module-jaxl.datasets.random_classification">jaxl.datasets.random_classification module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.random_classification.MultitaskRandomClassificationND"><code class="docutils literal notranslate"><span class="pre">MultitaskRandomClassificationND</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.random_classification.MultitaskRandomClassificationND.input_dim"><code class="docutils literal notranslate"><span class="pre">MultitaskRandomClassificationND.input_dim</span></code></a></li>
@@ -201,6 +243,11 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#module-jaxl.datasets.utils">jaxl.datasets.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.utils.maybe_load_dataset"><code class="docutils literal notranslate"><span class="pre">maybe_load_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.utils.maybe_save_dataset"><code class="docutils literal notranslate"><span class="pre">maybe_save_dataset()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#module-jaxl.datasets.wrappers">jaxl.datasets.wrappers module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.ContextDataset"><code class="docutils literal notranslate"><span class="pre">ContextDataset</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.DatasetWrapper"><code class="docutils literal notranslate"><span class="pre">DatasetWrapper</span></code></a></li>
@@ -208,6 +255,12 @@
 <li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.FixedLengthTrajectoryDataset"><code class="docutils literal notranslate"><span class="pre">FixedLengthTrajectoryDataset</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.PermutationContextDataset"><code class="docutils literal notranslate"><span class="pre">PermutationContextDataset</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.PermutationFixedLengthContextDataset"><code class="docutils literal notranslate"><span class="pre">PermutationFixedLengthContextDataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.RepeatedContextDataset"><code class="docutils literal notranslate"><span class="pre">RepeatedContextDataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.StandardSupervisedDataset"><code class="docutils literal notranslate"><span class="pre">StandardSupervisedDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.StandardSupervisedDataset.input_dim"><code class="docutils literal notranslate"><span class="pre">StandardSupervisedDataset.input_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.datasets.html#jaxl.datasets.wrappers.StandardSupervisedDataset.output_dim"><code class="docutils literal notranslate"><span class="pre">StandardSupervisedDataset.output_dim</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.datasets.html#module-jaxl.datasets">Module contents</a><ul>
@@ -248,18 +301,23 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.distributions.html#module-jaxl.distributions.transforms">jaxl.distributions.transforms module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.distributions.html#jaxl.distributions.transforms.TanhTransform"><code class="docutils literal notranslate"><span class="pre">TanhTransform</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#jaxl.distributions.transforms.TanhTransform.inv"><code class="docutils literal notranslate"><span class="pre">TanhTransform.inv()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#jaxl.distributions.transforms.TanhTransform.log_abs_det_jacobian"><code class="docutils literal notranslate"><span class="pre">TanhTransform.log_abs_det_jacobian()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#jaxl.distributions.transforms.TanhTransform.transform"><code class="docutils literal notranslate"><span class="pre">TanhTransform.transform()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.distributions.html#jaxl.distributions.transforms.Transform"><code class="docutils literal notranslate"><span class="pre">Transform</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#jaxl.distributions.transforms.Transform.inv"><code class="docutils literal notranslate"><span class="pre">Transform.inv()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#jaxl.distributions.transforms.Transform.log_abs_det_jacobian"><code class="docutils literal notranslate"><span class="pre">Transform.log_abs_det_jacobian()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.distributions.html#jaxl.distributions.transforms.Transform.transform"><code class="docutils literal notranslate"><span class="pre">Transform.transform()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="jaxl.distributions.html#module-jaxl.distributions">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.distributions.html#module-jaxl.distributions">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.distributions.html#jaxl.distributions.get_transform"><code class="docutils literal notranslate"><span class="pre">get_transform()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="jaxl.envs.html">jaxl.envs package</a><ul>
@@ -388,10 +446,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.reinforcement">jaxl.learners.reinforcement module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.OnPolicyLearner"><code class="docutils literal notranslate"><span class="pre">OnPolicyLearner</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.OnPolicyLearner.checkpoint"><code class="docutils literal notranslate"><span class="pre">OnPolicyLearner.checkpoint()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.OffPolicyLearner"><code class="docutils literal notranslate"><span class="pre">OffPolicyLearner</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.OnPolicyLearner"><code class="docutils literal notranslate"><span class="pre">OnPolicyLearner</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner"><code class="docutils literal notranslate"><span class="pre">ReinforcementLearner</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.checkpoint"><code class="docutils literal notranslate"><span class="pre">ReinforcementLearner.checkpoint()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.gather_rms"><code class="docutils literal notranslate"><span class="pre">ReinforcementLearner.gather_rms()</span></code></a></li>
@@ -403,6 +459,19 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.update_obs_rms_and_normalize"><code class="docutils literal notranslate"><span class="pre">ReinforcementLearner.update_obs_rms_and_normalize()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.update_value_rms_and_normalize"><code class="docutils literal notranslate"><span class="pre">ReinforcementLearner.update_value_rms_and_normalize()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.reinforcement.ReinforcementLearner.val_rms"><code class="docutils literal notranslate"><span class="pre">ReinforcementLearner.val_rms</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.learners.html#module-jaxl.learners.sac">jaxl.learners.sac module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.sac.SAC"><code class="docutils literal notranslate"><span class="pre">SAC</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.sac.SAC.make_pi_step"><code class="docutils literal notranslate"><span class="pre">SAC.make_pi_step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.sac.SAC.make_qf_step"><code class="docutils literal notranslate"><span class="pre">SAC.make_qf_step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.sac.SAC.make_temp_step"><code class="docutils literal notranslate"><span class="pre">SAC.make_temp_step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.sac.SAC.policy"><code class="docutils literal notranslate"><span class="pre">SAC.policy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.sac.SAC.policy_params"><code class="docutils literal notranslate"><span class="pre">SAC.policy_params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.sac.SAC.update"><code class="docutils literal notranslate"><span class="pre">SAC.update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.sac.SAC.update_target_model"><code class="docutils literal notranslate"><span class="pre">SAC.update_target_model()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -424,6 +493,7 @@
 <li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.get_icl_learner"><code class="docutils literal notranslate"><span class="pre">get_icl_learner()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.get_il_learner"><code class="docutils literal notranslate"><span class="pre">get_il_learner()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.get_rl_learner"><code class="docutils literal notranslate"><span class="pre">get_rl_learner()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.learners.html#jaxl.learners.get_supervised_learner"><code class="docutils literal notranslate"><span class="pre">get_supervised_learner()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -440,6 +510,9 @@
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_ppo_clip_loss"><code class="docutils literal notranslate"><span class="pre">make_ppo_clip_loss()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_ppo_vf_loss"><code class="docutils literal notranslate"><span class="pre">make_ppo_vf_loss()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_reinforce_loss"><code class="docutils literal notranslate"><span class="pre">make_reinforce_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_sac_pi_loss"><code class="docutils literal notranslate"><span class="pre">make_sac_pi_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_sac_qf_loss"><code class="docutils literal notranslate"><span class="pre">make_sac_qf_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.make_sac_temp_loss"><code class="docutils literal notranslate"><span class="pre">make_sac_temp_loss()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.monte_carlo_returns"><code class="docutils literal notranslate"><span class="pre">monte_carlo_returns()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.scan_gae_lambda_returns"><code class="docutils literal notranslate"><span class="pre">scan_gae_lambda_returns()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.losses.html#jaxl.losses.reinforcement.scan_monte_carlo_returns"><code class="docutils literal notranslate"><span class="pre">scan_monte_carlo_returns()</span></code></a></li>
@@ -462,6 +535,12 @@
 <li class="toctree-l1"><a class="reference internal" href="jaxl.models.html">jaxl.models package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.common">jaxl.models.common module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.CNN"><code class="docutils literal notranslate"><span class="pre">CNN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.CNN.forward"><code class="docutils literal notranslate"><span class="pre">CNN.forward</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.CNN.init"><code class="docutils literal notranslate"><span class="pre">CNN.init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.CNN.make_forward"><code class="docutils literal notranslate"><span class="pre">CNN.make_forward()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.EncoderPredictorModel"><code class="docutils literal notranslate"><span class="pre">EncoderPredictorModel</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.EncoderPredictorModel.encode"><code class="docutils literal notranslate"><span class="pre">EncoderPredictorModel.encode</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.EncoderPredictorModel.init"><code class="docutils literal notranslate"><span class="pre">EncoderPredictorModel.init()</span></code></a></li>
@@ -477,14 +556,6 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.EnsembleModel.reset_h_state"><code class="docutils literal notranslate"><span class="pre">EnsembleModel.reset_h_state()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.forward"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.forward</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.init"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.init()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.make_forward"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.make_forward()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.make_get_latent"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.make_get_latent()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.InContextSupervisedTransformer.make_tokenize"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.make_tokenize()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.MLP"><code class="docutils literal notranslate"><span class="pre">MLP</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.MLP.forward"><code class="docutils literal notranslate"><span class="pre">MLP.forward</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.MLP.init"><code class="docutils literal notranslate"><span class="pre">MLP.init()</span></code></a></li>
@@ -497,23 +568,17 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.Model.reset_h_state"><code class="docutils literal notranslate"><span class="pre">Model.reset_h_state()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy"><code class="docutils literal notranslate"><span class="pre">Policy</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy.compute_action"><code class="docutils literal notranslate"><span class="pre">Policy.compute_action</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy.deterministic_action"><code class="docutils literal notranslate"><span class="pre">Policy.deterministic_action</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy.make_reset"><code class="docutils literal notranslate"><span class="pre">Policy.make_reset()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.StochasticPolicy"><code class="docutils literal notranslate"><span class="pre">StochasticPolicy</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.StochasticPolicy.act_lprob"><code class="docutils literal notranslate"><span class="pre">StochasticPolicy.act_lprob</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.StochasticPolicy.lprob"><code class="docutils literal notranslate"><span class="pre">StochasticPolicy.lprob</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.StochasticPolicy.random_action"><code class="docutils literal notranslate"><span class="pre">StochasticPolicy.random_action</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.get_activation"><code class="docutils literal notranslate"><span class="pre">get_activation()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.common.get_positional_encoding"><code class="docutils literal notranslate"><span class="pre">get_positional_encoding()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.encodings">jaxl.models.encodings module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.ConcatenateInputsEncoding"><code class="docutils literal notranslate"><span class="pre">ConcatenateInputsEncoding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.ConcatenateInputsEncoding.input_dims"><code class="docutils literal notranslate"><span class="pre">ConcatenateInputsEncoding.input_dims</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.ConcatenateInputsEncoding.name"><code class="docutils literal notranslate"><span class="pre">ConcatenateInputsEncoding.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.ConcatenateInputsEncoding.parent"><code class="docutils literal notranslate"><span class="pre">ConcatenateInputsEncoding.parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.ConcatenateInputsEncoding.scope"><code class="docutils literal notranslate"><span class="pre">ConcatenateInputsEncoding.scope</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.NoEncoding"><code class="docutils literal notranslate"><span class="pre">NoEncoding</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.NoEncoding.name"><code class="docutils literal notranslate"><span class="pre">NoEncoding.name</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.NoEncoding.parent"><code class="docutils literal notranslate"><span class="pre">NoEncoding.parent</span></code></a></li>
@@ -529,9 +594,39 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.PositionalEncoding.setup"><code class="docutils literal notranslate"><span class="pre">PositionalEncoding.setup()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.get_positional_encoding"><code class="docutils literal notranslate"><span class="pre">get_positional_encoding()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.encodings.get_state_action_encoding"><code class="docutils literal notranslate"><span class="pre">get_state_action_encoding()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.fixed_policies">jaxl.models.fixed_policies module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedModel"><code class="docutils literal notranslate"><span class="pre">FixedModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedModel.forward"><code class="docutils literal notranslate"><span class="pre">FixedModel.forward</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedModel.init"><code class="docutils literal notranslate"><span class="pre">FixedModel.init</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedSquashedGaussianPolicy"><code class="docutils literal notranslate"><span class="pre">FixedSquashedGaussianPolicy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedSquashedGaussianPolicy.compute_action"><code class="docutils literal notranslate"><span class="pre">FixedSquashedGaussianPolicy.compute_action</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedSquashedGaussianPolicy.deterministic_action"><code class="docutils literal notranslate"><span class="pre">FixedSquashedGaussianPolicy.deterministic_action</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedSquashedGaussianPolicy.make_act_lprob"><code class="docutils literal notranslate"><span class="pre">FixedSquashedGaussianPolicy.make_act_lprob()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedSquashedGaussianPolicy.make_compute_action"><code class="docutils literal notranslate"><span class="pre">FixedSquashedGaussianPolicy.make_compute_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedSquashedGaussianPolicy.make_deterministic_action"><code class="docutils literal notranslate"><span class="pre">FixedSquashedGaussianPolicy.make_deterministic_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedSquashedGaussianPolicy.make_lprob"><code class="docutils literal notranslate"><span class="pre">FixedSquashedGaussianPolicy.make_lprob()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.FixedSquashedGaussianPolicy.make_random_action"><code class="docutils literal notranslate"><span class="pre">FixedSquashedGaussianPolicy.make_random_action()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.fixed_policies.get_fixed_policy"><code class="docutils literal notranslate"><span class="pre">get_fixed_policy()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.modules">jaxl.models.modules module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.CNNModule"><code class="docutils literal notranslate"><span class="pre">CNNModule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.CNNModule.activation"><code class="docutils literal notranslate"><span class="pre">CNNModule.activation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.CNNModule.features"><code class="docutils literal notranslate"><span class="pre">CNNModule.features</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.CNNModule.kernel_sizes"><code class="docutils literal notranslate"><span class="pre">CNNModule.kernel_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.CNNModule.name"><code class="docutils literal notranslate"><span class="pre">CNNModule.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.CNNModule.parent"><code class="docutils literal notranslate"><span class="pre">CNNModule.parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.CNNModule.scope"><code class="docutils literal notranslate"><span class="pre">CNNModule.scope</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.GPTBlock"><code class="docutils literal notranslate"><span class="pre">GPTBlock</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.GPTBlock.embed_dim"><code class="docutils literal notranslate"><span class="pre">GPTBlock.embed_dim</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.GPTBlock.name"><code class="docutils literal notranslate"><span class="pre">GPTBlock.name</span></code></a></li>
@@ -558,13 +653,18 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.MLPModule.scope"><code class="docutils literal notranslate"><span class="pre">MLPModule.scope</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.Temperature"><code class="docutils literal notranslate"><span class="pre">Temperature</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.Temperature.initial_temperature"><code class="docutils literal notranslate"><span class="pre">Temperature.initial_temperature</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.Temperature.name"><code class="docutils literal notranslate"><span class="pre">Temperature.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.Temperature.parent"><code class="docutils literal notranslate"><span class="pre">Temperature.parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.modules.Temperature.scope"><code class="docutils literal notranslate"><span class="pre">Temperature.scope</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.policies">jaxl.models.policies module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.BangBangPolicy"><code class="docutils literal notranslate"><span class="pre">BangBangPolicy</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.BangBangPolicy.act_lprob"><code class="docutils literal notranslate"><span class="pre">BangBangPolicy.act_lprob</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.BangBangPolicy.compute_action"><code class="docutils literal notranslate"><span class="pre">BangBangPolicy.compute_action</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.BangBangPolicy.deterministic_action"><code class="docutils literal notranslate"><span class="pre">BangBangPolicy.deterministic_action</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.BangBangPolicy.lprob"><code class="docutils literal notranslate"><span class="pre">BangBangPolicy.lprob</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.BangBangPolicy.make_act_lprob"><code class="docutils literal notranslate"><span class="pre">BangBangPolicy.make_act_lprob()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.BangBangPolicy.make_compute_action"><code class="docutils literal notranslate"><span class="pre">BangBangPolicy.make_compute_action()</span></code></a></li>
@@ -583,8 +683,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.GaussianPolicy"><code class="docutils literal notranslate"><span class="pre">GaussianPolicy</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.act_lprob"><code class="docutils literal notranslate"><span class="pre">GaussianPolicy.act_lprob</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.compute_action"><code class="docutils literal notranslate"><span class="pre">GaussianPolicy.compute_action</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.deterministic_action"><code class="docutils literal notranslate"><span class="pre">GaussianPolicy.deterministic_action</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.lprob"><code class="docutils literal notranslate"><span class="pre">GaussianPolicy.lprob</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.make_act_lprob"><code class="docutils literal notranslate"><span class="pre">GaussianPolicy.make_act_lprob()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.GaussianPolicy.make_compute_action"><code class="docutils literal notranslate"><span class="pre">GaussianPolicy.make_compute_action()</span></code></a></li>
@@ -602,10 +700,14 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.MultitaskPolicy.set_policy_head"><code class="docutils literal notranslate"><span class="pre">MultitaskPolicy.set_policy_head()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.Policy"><code class="docutils literal notranslate"><span class="pre">Policy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.Policy.compute_action"><code class="docutils literal notranslate"><span class="pre">Policy.compute_action</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.Policy.deterministic_action"><code class="docutils literal notranslate"><span class="pre">Policy.deterministic_action</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.Policy.make_reset"><code class="docutils literal notranslate"><span class="pre">Policy.make_reset()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SoftmaxPolicy"><code class="docutils literal notranslate"><span class="pre">SoftmaxPolicy</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SoftmaxPolicy.act_lprob"><code class="docutils literal notranslate"><span class="pre">SoftmaxPolicy.act_lprob</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SoftmaxPolicy.compute_action"><code class="docutils literal notranslate"><span class="pre">SoftmaxPolicy.compute_action</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SoftmaxPolicy.deterministic_action"><code class="docutils literal notranslate"><span class="pre">SoftmaxPolicy.deterministic_action</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SoftmaxPolicy.lprob"><code class="docutils literal notranslate"><span class="pre">SoftmaxPolicy.lprob</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SoftmaxPolicy.make_act_lprob"><code class="docutils literal notranslate"><span class="pre">SoftmaxPolicy.make_act_lprob()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SoftmaxPolicy.make_compute_action"><code class="docutils literal notranslate"><span class="pre">SoftmaxPolicy.make_compute_action()</span></code></a></li>
@@ -615,6 +717,39 @@
 <li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SoftmaxPolicy.random_action"><code class="docutils literal notranslate"><span class="pre">SoftmaxPolicy.random_action</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SquashedGaussianPolicy"><code class="docutils literal notranslate"><span class="pre">SquashedGaussianPolicy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SquashedGaussianPolicy.act_lprob"><code class="docutils literal notranslate"><span class="pre">SquashedGaussianPolicy.act_lprob</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SquashedGaussianPolicy.lprob"><code class="docutils literal notranslate"><span class="pre">SquashedGaussianPolicy.lprob</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SquashedGaussianPolicy.make_act_lprob"><code class="docutils literal notranslate"><span class="pre">SquashedGaussianPolicy.make_act_lprob()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SquashedGaussianPolicy.make_compute_action"><code class="docutils literal notranslate"><span class="pre">SquashedGaussianPolicy.make_compute_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SquashedGaussianPolicy.make_deterministic_action"><code class="docutils literal notranslate"><span class="pre">SquashedGaussianPolicy.make_deterministic_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SquashedGaussianPolicy.make_lprob"><code class="docutils literal notranslate"><span class="pre">SquashedGaussianPolicy.make_lprob()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SquashedGaussianPolicy.make_random_action"><code class="docutils literal notranslate"><span class="pre">SquashedGaussianPolicy.make_random_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.SquashedGaussianPolicy.random_action"><code class="docutils literal notranslate"><span class="pre">SquashedGaussianPolicy.random_action</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.StochasticPolicy"><code class="docutils literal notranslate"><span class="pre">StochasticPolicy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.StochasticPolicy.act_lprob"><code class="docutils literal notranslate"><span class="pre">StochasticPolicy.act_lprob</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.StochasticPolicy.lprob"><code class="docutils literal notranslate"><span class="pre">StochasticPolicy.lprob</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.StochasticPolicy.random_action"><code class="docutils literal notranslate"><span class="pre">StochasticPolicy.random_action</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.get_policy"><code class="docutils literal notranslate"><span class="pre">get_policy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.policy_output_dim"><code class="docutils literal notranslate"><span class="pre">policy_output_dim()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.q_functions">jaxl.models.q_functions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.q_functions.QFunction"><code class="docutils literal notranslate"><span class="pre">QFunction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.q_functions.QFunction.q_values"><code class="docutils literal notranslate"><span class="pre">QFunction.q_values</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.q_functions.StateActionInputQ"><code class="docutils literal notranslate"><span class="pre">StateActionInputQ</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.q_functions.StateActionInputQ.make_q_values"><code class="docutils literal notranslate"><span class="pre">StateActionInputQ.make_q_values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.q_functions.StateActionInputQ.q_values"><code class="docutils literal notranslate"><span class="pre">StateActionInputQ.q_values</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.q_functions.get_q_function"><code class="docutils literal notranslate"><span class="pre">get_q_function()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.q_functions.q_function_dims"><code class="docutils literal notranslate"><span class="pre">q_function_dims()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.svm">jaxl.models.svm module</a><ul>
@@ -624,16 +759,33 @@
 <li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.svm.primal_svm"><code class="docutils literal notranslate"><span class="pre">primal_svm()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models">Module contents</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_model"><code class="docutils literal notranslate"><span class="pre">get_model()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_optimizer"><code class="docutils literal notranslate"><span class="pre">get_optimizer()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_param_mask_by_name"><code class="docutils literal notranslate"><span class="pre">get_param_mask_by_name()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_policy"><code class="docutils literal notranslate"><span class="pre">get_policy()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_scheduler"><code class="docutils literal notranslate"><span class="pre">get_scheduler()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.get_update_function"><code class="docutils literal notranslate"><span class="pre">get_update_function()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.policy_output_dim"><code class="docutils literal notranslate"><span class="pre">policy_output_dim()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.transformers">jaxl.models.transformers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.CustomTokenizerICSupervisedTransformer"><code class="docutils literal notranslate"><span class="pre">CustomTokenizerICSupervisedTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.CustomTokenizerICSupervisedTransformer.forward"><code class="docutils literal notranslate"><span class="pre">CustomTokenizerICSupervisedTransformer.forward</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.CustomTokenizerICSupervisedTransformer.make_tokenize"><code class="docutils literal notranslate"><span class="pre">CustomTokenizerICSupervisedTransformer.make_tokenize()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.InContextSupervisedTransformer"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.InContextSupervisedTransformer.forward"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.forward</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.InContextSupervisedTransformer.init"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.InContextSupervisedTransformer.make_forward"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.make_forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.InContextSupervisedTransformer.make_get_latent"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.make_get_latent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.InContextSupervisedTransformer.make_tokenize"><code class="docutils literal notranslate"><span class="pre">InContextSupervisedTransformer.make_tokenize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.transformers.get_tokenizer"><code class="docutils literal notranslate"><span class="pre">get_tokenizer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models.utils">jaxl.models.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.utils.get_model"><code class="docutils literal notranslate"><span class="pre">get_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.utils.get_optimizer"><code class="docutils literal notranslate"><span class="pre">get_optimizer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.utils.get_param_mask_by_name"><code class="docutils literal notranslate"><span class="pre">get_param_mask_by_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.utils.get_scheduler"><code class="docutils literal notranslate"><span class="pre">get_scheduler()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.utils.get_update_function"><code class="docutils literal notranslate"><span class="pre">get_update_function()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxl.models.html#jaxl.models.utils.load_model"><code class="docutils literal notranslate"><span class="pre">load_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxl.models.html#module-jaxl.models">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -678,7 +830,7 @@ XXX: Try not to modify this.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="jaxl.learning_utils.load_evaluation_components">
-<span class="sig-prename descclassname"><span class="pre">jaxl.learning_utils.</span></span><span class="sig-name descname"><span class="pre">load_evaluation_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy" title="jaxl.models.common.Policy"><span class="pre">Policy</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#jaxl.utils.RunningMeanStd" title="jaxl.utils.RunningMeanStd"><span class="pre">RunningMeanStd</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Env</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer" title="jaxl.buffers.buffers.ReplayBuffer"><span class="pre">ReplayBuffer</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learning_utils.load_evaluation_components" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">jaxl.learning_utils.</span></span><span class="sig-name descname"><span class="pre">load_evaluation_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="jaxl.models.html#jaxl.models.policies.Policy" title="jaxl.models.policies.Policy"><span class="pre">Policy</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#jaxl.utils.RunningMeanStd" title="jaxl.utils.RunningMeanStd"><span class="pre">RunningMeanStd</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Env</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer" title="jaxl.buffers.buffers.ReplayBuffer"><span class="pre">ReplayBuffer</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learning_utils.load_evaluation_components" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the latest checkpointed agent, the buffer, and the environment.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -691,7 +843,7 @@ XXX: Try not to modify this.</p>
 <dd class="field-even"><p>the latest checkpointed agent, the buffer, and the environment</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[<a class="reference internal" href="jaxl.models.html#jaxl.models.common.Policy" title="jaxl.models.common.Policy">Policy</a>, Dict[str, Any], Union[<a class="reference internal" href="#jaxl.utils.RunningMeanStd" title="jaxl.utils.RunningMeanStd">RunningMeanStd</a>, bool], <a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer" title="jaxl.buffers.buffers.ReplayBuffer">ReplayBuffer</a>, Env, int,]</p>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="jaxl.models.html#jaxl.models.policies.Policy" title="jaxl.models.policies.Policy">Policy</a>, Dict[str, Any], Union[<a class="reference internal" href="#jaxl.utils.RunningMeanStd" title="jaxl.utils.RunningMeanStd">RunningMeanStd</a>, bool], <a class="reference internal" href="jaxl.buffers.html#jaxl.buffers.buffers.ReplayBuffer" title="jaxl.buffers.buffers.ReplayBuffer">ReplayBuffer</a>, Env, int,]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -729,6 +881,17 @@ XXX: Try not to modify this.</p>
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="jaxl.plot_utils.icl_image_grid">
+<span class="sig-prename descclassname"><span class="pre">jaxl.plot_utils.</span></span><span class="sig-name descname"><span class="pre">icl_image_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_outputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_width_pt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.plot_utils.icl_image_grid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.plot_utils.plot_to_image">
+<span class="sig-prename descclassname"><span class="pre">jaxl.plot_utils.</span></span><span class="sig-name descname"><span class="pre">plot_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.plot_utils.plot_to_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a Matplotlib figure to a PIL Image and return it</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="jaxl.plot_utils.set_size">
 <span class="sig-prename descclassname"><span class="pre">jaxl.plot_utils.</span></span><span class="sig-name descname"><span class="pre">set_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width_pt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_golden_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.plot_utils.set_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reference: <a class="reference external" href="https://jwalton.info/Matplotlib-latex-PGF/">https://jwalton.info/Matplotlib-latex-PGF/</a>
@@ -759,6 +922,14 @@ Set figure dimensions to sit nicely in our document.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A transform that converts PIL to a tensor scaled between 0 to 1.
 Assumes that the PIL images are in range [0, 255].</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxl.transforms.StandardImageTransform">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.transforms.</span></span><span class="sig-name descname"><span class="pre">StandardImageTransform</span></span><a class="headerlink" href="#jaxl.transforms.StandardImageTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A transform that converts uint8 to float tensor.
+Assumes that the images are in range [0, 255].</p>
 </dd></dl>
 
 </section>
@@ -942,6 +1113,11 @@ Assumes shape to be (number of inputs, input_shape).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="jaxl.utils.get_device">
+<span class="sig-prename descclassname"><span class="pre">jaxl.utils.</span></span><span class="sig-name descname"><span class="pre">get_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.utils.get_device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="jaxl.utils.get_dict_value">
 <span class="sig-prename descclassname"><span class="pre">jaxl.utils.</span></span><span class="sig-name descname"><span class="pre">get_dict_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.utils.get_dict_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get first occurence dictionary value by key.</p>
@@ -1020,6 +1196,23 @@ Reference: <a class="reference external" href="https://stackoverflow.com/questio
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>PyTreeDef</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.utils.polyak_average_generator">
+<span class="sig-prename descclassname"><span class="pre">jaxl.utils.</span></span><span class="sig-name descname"><span class="pre">polyak_average_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.utils.polyak_average_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the Polyak average between two arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>float</em>) – the Polyak averaging step</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Polyak averaging function</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable[[chex.Array, chex.Array], chex.Array]</p>
 </dd>
 </dl>
 </dd></dl>

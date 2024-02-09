@@ -68,6 +68,14 @@ jaxl.learners.reinforcement module
    :undoc-members:
    :show-inheritance:
 
+jaxl.learners.sac module
+------------------------
+
+.. automodule:: jaxl.learners.sac
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jaxl.learners.supervised module
 -------------------------------
 

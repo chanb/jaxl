@@ -512,28 +512,19 @@ Online learner assumes the buffer to be changing and interacts with an environme
 <section id="module-jaxl.learners.reinforcement">
 <span id="jaxl-learners-reinforcement-module"></span><h2>jaxl.learners.reinforcement module<a class="headerlink" href="#module-jaxl.learners.reinforcement" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="jaxl.learners.reinforcement.OffPolicyLearner">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.learners.reinforcement.</span></span><span class="sig-name descname"><span class="pre">OffPolicyLearner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.reinforcement.OffPolicyLearner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#jaxl.learners.reinforcement.ReinforcementLearner" title="jaxl.learners.reinforcement.ReinforcementLearner"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReinforcementLearner</span></code></a></p>
+<p>Off-policy learner class that extends the <code class="docutils literal notranslate"><span class="pre">ReinforcementLearner</span></code> class.
+This is the general learner for off-policy reinforcement learning agents.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="jaxl.learners.reinforcement.OnPolicyLearner">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.learners.reinforcement.</span></span><span class="sig-name descname"><span class="pre">OnPolicyLearner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.reinforcement.OnPolicyLearner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#jaxl.learners.reinforcement.ReinforcementLearner" title="jaxl.learners.reinforcement.ReinforcementLearner"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReinforcementLearner</span></code></a></p>
 <p>On-policy learner class that extends the <code class="docutils literal notranslate"><span class="pre">ReinforcementLearner</span></code> class.
 This is the general learner for on-policy reinforcement learning agents.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="jaxl.learners.reinforcement.OnPolicyLearner.checkpoint">
-<span class="sig-name descname"><span class="pre">checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learners.reinforcement.OnPolicyLearner.checkpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the parameters to checkpoint</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>final</strong> (<em>bool</em><em> (</em><em>DefaultValue = False</em><em>)</em>) – whether or not this is the final checkpoint</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>the checkpoint parameters</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -657,6 +648,71 @@ and normalize the returns.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">val_rms</span></span><a class="headerlink" href="#jaxl.learners.reinforcement.ReinforcementLearner.val_rms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Running statistics for value estimates.</p>
 </dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-jaxl.learners.sac">
+<span id="jaxl-learners-sac-module"></span><h2>jaxl.learners.sac module<a class="headerlink" href="#module-jaxl.learners.sac" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxl.learners.sac.SAC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxl.learners.sac.</span></span><span class="sig-name descname"><span class="pre">SAC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.sac.SAC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#jaxl.learners.reinforcement.OffPolicyLearner" title="jaxl.learners.reinforcement.OffPolicyLearner"><code class="xref py py-class docutils literal notranslate"><span class="pre">OffPolicyLearner</span></code></a></p>
+<p>Soft Actor Critic (SAC) algorithm. This extends <cite>OffPolicyLearner</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.sac.SAC.make_pi_step">
+<span class="sig-name descname"><span class="pre">make_pi_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.sac.SAC.make_pi_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the training step for the actor update.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.sac.SAC.make_qf_step">
+<span class="sig-name descname"><span class="pre">make_qf_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.sac.SAC.make_qf_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the training step for the critic update.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.sac.SAC.make_temp_step">
+<span class="sig-name descname"><span class="pre">make_temp_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.sac.SAC.make_temp_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the training step for the temperature update.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.sac.SAC.policy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy</span></span><a class="headerlink" href="#jaxl.learners.sac.SAC.policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxl.learners.sac.SAC.policy_params">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">policy_params</span></span><a class="headerlink" href="#jaxl.learners.sac.SAC.policy_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Policy parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.sac.SAC.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#jaxl.learners.sac.SAC.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the actor and the critic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – </p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the update information</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxl.learners.sac.SAC.update_target_model">
+<span class="sig-name descname"><span class="pre">update_target_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#jaxl.learners.sac.SAC.update_target_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -794,6 +850,27 @@ This is the general learner for supervised learning agents.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the reinforcement learning learner</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#jaxl.learners.learner.Learner" title="jaxl.learners.learner.Learner">Learner</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxl.learners.get_supervised_learner">
+<span class="sig-prename descclassname"><span class="pre">jaxl.learners.</span></span><span class="sig-name descname"><span class="pre">get_supervised_learner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">learner_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SimpleNamespace</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#jaxl.learners.learner.Learner" title="jaxl.learners.learner.Learner"><span class="pre">Learner</span></a></span></span><a class="headerlink" href="#jaxl.learners.get_supervised_learner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets supervised learning learner.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>learner_config</strong> (<em>SimpleNamespace</em>) – the learner configuration</p></li>
+<li><p><strong>model_config</strong> (<em>SimpleNamespace</em>) – the model configuration</p></li>
+<li><p><strong>optimizer_config</strong> (<em>SimpleNamespace</em>) – the optimizer configuration</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the supervised learning learner</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#jaxl.learners.learner.Learner" title="jaxl.learners.learner.Learner">Learner</a></p>
