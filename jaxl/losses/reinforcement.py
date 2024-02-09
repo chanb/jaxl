@@ -540,6 +540,9 @@ def make_sac_qf_loss(
         loss = reduction(td_errors)
 
         return loss, {
+            "mean_var_q": jnp.mean(jnp.var(curr_q_preds, axis=0)),
+            "min_var_q": jnp.min(jnp.var(curr_q_preds, axis=0)),
+            "max_var_q": jnp.max(jnp.var(curr_q_preds, axis=0)),
             "max_next_q": jnp.max(next_q_preds_min),
             "min_next_q": jnp.min(next_q_preds_min),
             "mean_next_q": jnp.mean(next_q_preds_min),
@@ -551,6 +554,7 @@ def make_sac_qf_loss(
             "max_q_log_prob": jnp.max(next_lprobs),
             "min_q_log_prob": jnp.min(next_lprobs),
             "mean_q_log_prob": jnp.mean(next_lprobs),
+            "curr_q_targets": curr_q_targets,
         }
 
     return qf_loss

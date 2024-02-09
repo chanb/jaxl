@@ -35,6 +35,9 @@ Standard SAC.
 """
 
 QF_LOG_KEYS = [
+    "mean_var_q",
+    "min_var_q",
+    "max_var_q",
     "max_next_q",
     "min_next_q",
     "mean_next_q",
@@ -82,7 +85,7 @@ class SAC(OffPolicyLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
-
+        self._learning_key = jrandom.PRNGKey(config.seeds.learner_seed)
         self._actor_update_frequency = getattr(config, CONST_ACTOR_UPDATE_FREQUENCY, 1)
         self._target_update_frequency = getattr(
             config, CONST_TARGET_UPDATE_FREQUENCY, 1
@@ -233,7 +236,7 @@ class SAC(OffPolicyLearner):
             self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = temp_opt_state
 
     def update_target_model(self):
-        self._model_dict[CONST_TARGET_QF] = jax.tree_map(
+        self._model_dict[CONST_MODEL][CONST_TARGET_QF] = jax.tree_map(
             self.polyak_average,
             self._model_dict[CONST_MODEL][CONST_QF],
             self._model_dict[CONST_MODEL][CONST_TARGET_QF],
@@ -526,7 +529,7 @@ class SAC(OffPolicyLearner):
             total_sampling_time += timeit.default_timer() - tic
 
             tic = timeit.default_timer()
-            qf_keys, pi_keys, temp_keys = jrandom.split(jrandom.PRNGKey(self._global_step), num=3)
+            self._learning_key, qf_keys, pi_keys, temp_keys = jrandom.split(self._learning_key, num=4)
             qf_model_dict, qf_aux = self.qf_step(
                 self._model_dict,
                 obss,
@@ -605,12 +608,11 @@ class SAC(OffPolicyLearner):
 
         aux[CONST_LOG][
             f"interaction/{CONST_AVERAGE_RETURN}"
-        ] = self._rollout.latest_average_return()
+        ] = self._rollout.latest_average_return(num_episodes=10)
         aux[CONST_LOG][
             f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}"
-        ] = self._rollout.latest_average_episode_length()
+        ] = self._rollout.latest_average_episode_length(num_episodes=10)
 
-        # TODO: Fix logging for different training
         if qf_auxes:
             qf_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *qf_auxes)
             aux[CONST_LOG][f"{CONST_LOSS}/{CONST_QF}"] = qf_auxes[CONST_AGG_LOSS].item()
@@ -655,9 +657,6 @@ class SAC(OffPolicyLearner):
             aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_TEMPERATURE}"] = temp_auxes[CONST_GRAD_NORM][
                 CONST_TEMPERATURE
             ].item()
-            aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_TEMPERATURE}"] = l2_norm(
-                self.model_dict[CONST_MODEL][CONST_TEMPERATURE]
-            ).item()
 
             for key in TEMP_LOG_KEYS:
                 aux[CONST_LOG][f"{CONST_TEMPERATURE}_info/{key}"] = temp_auxes[key].item()

@@ -26,5 +26,7 @@ def get_transform(transform_name: str) -> Callable[chex.Array, chex.Array]:
         return jax.nn.softplus
     elif transform_name == c.CONST_SQUAREPLUS:
         return jax.nn.squareplus
+    elif transform_name == c.CONST_SIGMOID:
+        return jax.nn.sigmoid
     else:
         raise NotImplementedError
