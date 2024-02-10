@@ -40,7 +40,8 @@ def gather_learning_rate(
     opt_state_list: Sequence[Any],
 ):
     for opt_state in opt_state_list:
-        if CONST_LEARNING_RATE in getattr(opt_state, CONST_HYPERPARAMS, {}):
-            aux[CONST_LOG][f"{CONST_LEARNING_RATE}/{model_name}"] = opt_state[
+        hyperparams = getattr(opt_state, CONST_HYPERPARAMS, {})
+        if CONST_LEARNING_RATE in hyperparams:
+            aux[CONST_LOG][f"{CONST_LEARNING_RATE}/{model_name}"] = hyperparams[
                 CONST_LEARNING_RATE
             ].item()
