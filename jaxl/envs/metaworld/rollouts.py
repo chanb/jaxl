@@ -16,10 +16,11 @@ from jaxl.utils import RunningMeanStd
 
 
 class MetaWorldRollout(EvaluationRollout):
-    def __init__(self, env: DefaultGymWrapper, num_scrambling_steps: int=10, seed: int = 0):
+    def __init__(
+        self, env: DefaultGymWrapper, num_scrambling_steps: int = 10, seed: int = 0
+    ):
         super().__init__(env, seed)
         self.num_scrambling_steps = num_scrambling_steps
-
 
     def rollout(
         self,
@@ -33,7 +34,7 @@ class MetaWorldRollout(EvaluationRollout):
         width: int = 84,
         height: int = 84,
         use_tqdm: bool = True,
-        random = False,
+        random=False,
     ):
         """
         Executes the policy in the environment.
@@ -68,7 +69,9 @@ class MetaWorldRollout(EvaluationRollout):
         if random:
             get_action = policy.compute_action
         else:
-            get_action = lambda params, obs, h_state, key: policy.deterministic_action(params, obs, h_state)
+            get_action = lambda params, obs, h_state, key: policy.deterministic_action(
+                params, obs, h_state
+            )
         for _ in it:
             self._episodic_returns.append(0)
             self._episode_lengths.append(0)
@@ -78,16 +81,18 @@ class MetaWorldRollout(EvaluationRollout):
 
             self._env.action_space.seed(seed)
             for _ in range(self.num_scrambling_steps):
-                self._curr_obs, _, _, _, self._curr_info = self._env.step(self._env.action_space.sample())
+                self._curr_obs, _, _, _, self._curr_info = self._env.step(
+                    self._env.action_space.sample()
+                )
 
             self._curr_h_state = policy.reset()
 
             save_curr_obs = self._curr_obs
             if get_image:
-                save_curr_obs = np.transpose(resize(
-                    self._env.render()[:, 50:350, :300],
-                    (height, width)
-                ), axes=(2, 0, 1))
+                save_curr_obs = np.transpose(
+                    resize(self._env.render()[:, 50:350, :300], (height, width)),
+                    axes=(2, 0, 1),
+                )
 
             done = False
             while not done:
@@ -101,7 +106,7 @@ class MetaWorldRollout(EvaluationRollout):
                     params,
                     normalize_obs,
                     np.array([self._curr_h_state]),
-                    exploration_key
+                    exploration_key,
                 )
                 exploration_key = jrandom.split(exploration_key, 1)[0]
                 act = act[0]
@@ -119,10 +124,10 @@ class MetaWorldRollout(EvaluationRollout):
 
                 save_next_obs = next_obs
                 if get_image:
-                    save_next_obs = np.transpose(resize(
-                        self._env.render()[:, 50:350, :300],
-                        (height, width)
-                    ), axes=(2, 0, 1))
+                    save_next_obs = np.transpose(
+                        resize(self._env.render()[:, 50:350, :300], (height, width)),
+                        axes=(2, 0, 1),
+                    )
 
                 done = terminated or truncated
 
@@ -212,16 +217,18 @@ class MetaWorldRollout(EvaluationRollout):
 
             self._env.action_space.seed(seed)
             for _ in range(self.num_scrambling_steps):
-                self._curr_obs, _, _, _, self._curr_info = self._env.step(self._env.action_space.sample())
+                self._curr_obs, _, _, _, self._curr_info = self._env.step(
+                    self._env.action_space.sample()
+                )
 
             self._curr_h_state = policy.reset()
 
             save_curr_obs = self._curr_obs
             if get_image:
-                save_curr_obs = np.transpose(resize(
-                    self._env.render()[:, 50:350, :300],
-                    (height, width)
-                ), axes=(2, 0, 1))
+                save_curr_obs = np.transpose(
+                    resize(self._env.render()[:, 50:350, :300], (height, width)),
+                    axes=(2, 0, 1),
+                )
 
             curr_episode = []
             done = False
@@ -255,10 +262,10 @@ class MetaWorldRollout(EvaluationRollout):
 
                 save_next_obs = next_obs
                 if get_image:
-                    save_next_obs = np.transpose(resize(
-                        self._env.render()[:, 50:350, :300],
-                        (height, width)
-                    ), axes=(2, 0, 1))
+                    save_next_obs = np.transpose(
+                        resize(self._env.render()[:, 50:350, :300], (height, width)),
+                        axes=(2, 0, 1),
+                    )
 
                 curr_episode.append(
                     (

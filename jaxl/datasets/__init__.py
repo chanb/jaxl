@@ -160,6 +160,7 @@ def get_dataset(
             num_classes=dataset_kwargs.num_classes,
             num_holdout=dataset_kwargs.num_holdout,
             split=dataset_kwargs.split,
+            remap=getattr(dataset_kwargs, "remap", False),
             seed=seed,
             inputs_range=getattr(dataset_kwargs, "inputs_range", [0.0, 0.5]),
             save_dir=getattr(

@@ -70,6 +70,7 @@ TEMP_LOG_KEYS = [
     "temperature",
 ]
 
+
 class SAC(OffPolicyLearner):
     """
     Soft Actor Critic (SAC) algorithm. This extends `OffPolicyLearner`.
@@ -96,13 +97,16 @@ class SAC(OffPolicyLearner):
 
         self._qf_loss = make_sac_qf_loss(self._agent, self._config.qf_loss_setting)
         self._pi_loss = make_sac_pi_loss(self._agent, self._config.pi_loss_setting)
-        self._temp_loss = make_sac_temp_loss(self._agent, self._config.temp_loss_setting)
+        self._temp_loss = make_sac_temp_loss(
+            self._agent, self._config.temp_loss_setting
+        )
 
         self.qf_step = jax.jit(self.make_qf_step())
         self.pi_step = jax.jit(self.make_pi_step())
         self.temp_step = jax.jit(self.make_temp_step())
 
         self.polyak_average = polyak_average_generator(config.tau)
+        self.update_target_model = jax.jit(self.make_update_target_model())
 
     @property
     def policy(self):
@@ -117,7 +121,6 @@ class SAC(OffPolicyLearner):
         Policy parameters.
         """
         return self._model_dict[CONST_MODEL][CONST_POLICY]
-        
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
         """
@@ -138,7 +141,9 @@ class SAC(OffPolicyLearner):
             encoding_input_dim, encoding_output_dim, self._model_config.qf_encoding
         )
 
-        self._exploration_pi = get_fixed_policy(output_dim, self._config.exploration_policy)
+        self._exploration_pi = get_fixed_policy(
+            output_dim, self._config.exploration_policy
+        )
 
         # Initialize parameters for policy and critics
         self._model = {
@@ -220,9 +225,7 @@ class SAC(OffPolicyLearner):
         if self._target_entropy == CONST_AUTO:
             self._target_entropy = -int(np.product(output_dim))
 
-        self._model[CONST_TEMPERATURE] = Temperature(
-            self._config.initial_temperature
-        )
+        self._model[CONST_TEMPERATURE] = Temperature(self._config.initial_temperature)
         temp_params = self._model[CONST_TEMPERATURE].init(model_keys[3])
         self._agent[CONST_TEMPERATURE] = self._model[CONST_TEMPERATURE]
         self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = temp_params
@@ -235,12 +238,22 @@ class SAC(OffPolicyLearner):
             self._optimizer[CONST_TEMPERATURE] = temp_opt
             self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = temp_opt_state
 
-    def update_target_model(self):
-        self._model_dict[CONST_MODEL][CONST_TARGET_QF] = jax.tree_map(
-            self.polyak_average,
-            self._model_dict[CONST_MODEL][CONST_QF],
-            self._model_dict[CONST_MODEL][CONST_TARGET_QF],
-        )
+    def make_update_target_model(self):
+        "Makes the target model update"
+
+        def update_target_model(
+            model_dict: Dict[str, Any],
+        ):
+            """
+            Polyak averaging update to the target model.
+            """
+            return jax.tree_map(
+                self.polyak_average,
+                model_dict[CONST_MODEL][CONST_QF],
+                model_dict[CONST_MODEL][CONST_TARGET_QF],
+            )
+
+        return update_target_model
 
     def make_qf_step(self):
         """
@@ -385,7 +398,7 @@ class SAC(OffPolicyLearner):
             }, aux
 
         return _pi_step
-    
+
     def make_temp_step(self):
         """
         Makes the training step for the temperature update.
@@ -468,7 +481,9 @@ class SAC(OffPolicyLearner):
         total_temp_update_time = 0
         total_target_qf_update_time = 0
 
-        carried_steps = (self._global_step - self._buffer_warmup) % self._update_frequency
+        carried_steps = (
+            self._global_step - self._buffer_warmup
+        ) % self._update_frequency
         num_update_steps = (
             self._num_steps_per_epoch + carried_steps
         ) // self._update_frequency
@@ -529,7 +544,9 @@ class SAC(OffPolicyLearner):
             total_sampling_time += timeit.default_timer() - tic
 
             tic = timeit.default_timer()
-            self._learning_key, qf_keys, pi_keys, temp_keys = jrandom.split(self._learning_key, num=4)
+            self._learning_key, qf_keys, pi_keys, temp_keys = jrandom.split(
+                self._learning_key, num=4
+            )
             qf_model_dict, qf_aux = self.qf_step(
                 self._model_dict,
                 obss,
@@ -552,7 +569,9 @@ class SAC(OffPolicyLearner):
             qf_auxes[-1] = qf_aux
             if self._num_qf_updates % self._target_update_frequency == 0:
                 tic = timeit.default_timer()
-                self.update_target_model()
+                self._model_dict[CONST_MODEL][
+                    CONST_TARGET_QF
+                ] = self.update_target_model(self._model_dict)
                 total_target_qf_update_time += timeit.default_timer() - tic
 
             # Update Actor
@@ -569,7 +588,9 @@ class SAC(OffPolicyLearner):
                     pi_aux[CONST_AGG_LOSS]
                 ), f"Loss became NaN\npi_aux: {pi_aux}"
                 self._model_dict[CONST_MODEL][CONST_POLICY] = pi_model_dict[CONST_MODEL]
-                self._model_dict[CONST_OPT_STATE][CONST_POLICY] = pi_model_dict[CONST_OPT_STATE]
+                self._model_dict[CONST_OPT_STATE][CONST_POLICY] = pi_model_dict[
+                    CONST_OPT_STATE
+                ]
                 total_pi_update_time += timeit.default_timer() - tic
                 pi_auxes[-1] = pi_aux
 
@@ -586,8 +607,12 @@ class SAC(OffPolicyLearner):
                     assert np.isfinite(
                         temp_aux[CONST_AGG_LOSS]
                     ), f"Loss became NaN\ntemp_aux: {temp_aux}"
-                    self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = temp_model_dict[CONST_MODEL]
-                    self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = temp_model_dict[CONST_OPT_STATE]
+                    self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = temp_model_dict[
+                        CONST_MODEL
+                    ]
+                    self._model_dict[CONST_OPT_STATE][
+                        CONST_TEMPERATURE
+                    ] = temp_model_dict[CONST_OPT_STATE]
                     total_temp_update_time += timeit.default_timer() - tic
                     temp_auxes[-1] = temp_aux
 
@@ -630,17 +655,19 @@ class SAC(OffPolicyLearner):
                 aux[CONST_LOG][
                     f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
                 ] = qf_auxes[CONST_ACTION][act_i][CONST_MEAN]
-                
+
             for key in QF_LOG_KEYS:
                 aux[CONST_LOG][f"{CONST_QF}_info/{key}"] = qf_auxes[key].item()
 
         if pi_auxes:
             pi_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *pi_auxes)
 
-            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_POLICY}"] = pi_auxes[CONST_AGG_LOSS].item()
-            aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_POLICY}"] = pi_auxes[CONST_GRAD_NORM][
-                CONST_POLICY
+            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_POLICY}"] = pi_auxes[
+                CONST_AGG_LOSS
             ].item()
+            aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_POLICY}"] = pi_auxes[
+                CONST_GRAD_NORM
+            ][CONST_POLICY].item()
             aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_POLICY}"] = l2_norm(
                 self.model_dict[CONST_MODEL][CONST_POLICY]
             ).item()
@@ -653,13 +680,17 @@ class SAC(OffPolicyLearner):
                 lambda *args: np.mean(args), *temp_auxes
             )
 
-            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_TEMPERATURE}"] = temp_auxes[CONST_AGG_LOSS].item()
-            aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_TEMPERATURE}"] = temp_auxes[CONST_GRAD_NORM][
-                CONST_TEMPERATURE
+            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_TEMPERATURE}"] = temp_auxes[
+                CONST_AGG_LOSS
             ].item()
+            aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_TEMPERATURE}"] = temp_auxes[
+                CONST_GRAD_NORM
+            ][CONST_TEMPERATURE].item()
 
             for key in TEMP_LOG_KEYS:
-                aux[CONST_LOG][f"{CONST_TEMPERATURE}_info/{key}"] = temp_auxes[key].item()
+                aux[CONST_LOG][f"{CONST_TEMPERATURE}_info/{key}"] = temp_auxes[
+                    key
+                ].item()
 
         self.gather_rms(aux)
         return aux

@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "/Users/chanb/research/personal/cont_policy_parameterization/logs/mujoco-hopper",
-        "experiment_name": "sac-sigmoid_std",
+        "save_path": "./logs/mujoco-hopper",
+        "experiment_name": "sac",
         "log_interval": 1,
         "checkpoint_interval": false
     },
@@ -92,7 +92,7 @@
         "obs_rms": false,
         "value_rms": false,
         "policy_distribution": "squashed_gaussian",
-        "std_transform": "sigmoid",
+        "std_transform": "squareplus",
         "gamma": 0.99,
         "update_frequency": 1,
         "target_entropy": "auto",

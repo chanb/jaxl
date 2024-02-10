@@ -38,22 +38,21 @@ export XLA_FLAGS=--xla_gpu_graph_level=0
 ### Conda on Salient
 ```
 conda create --name jaxl python=3.9
+conda install -c conda-forge glew
+conda install -c conda-forge mesalib
 conda install jaxlib=*=*cuda* jax cuda-nvcc -c conda-forge -c nvidia
+conda install -c menpo glfw3
+pip install patchelf
+conda install pytorch-cpu torchvision-cpu -c pytorch
 pip install -r requirements/conda.txt
-pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install "cython<3"
+pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 pip install -e .
 ```
 
 ### Compute Canada
 You may install this code on Compute Canada by simply running `jaxl/installation/compute_canada/initial_setup.sh`.
-
-### Salient Conda
-```
-conda install -c conda-forge glew
-conda install -c conda-forge mesalib
-conda install -c menpo glfw3
-pip install patchelf
-```
 
 ## Experiments
 ### Locally

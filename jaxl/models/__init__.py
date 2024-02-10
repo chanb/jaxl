@@ -1,3 +1,4 @@
+from jaxl.models.common import *
 from jaxl.models.encodings import *
 from jaxl.models.fixed_policies import *
 from jaxl.models.modules import Temperature

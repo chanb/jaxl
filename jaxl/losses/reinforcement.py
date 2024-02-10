@@ -690,9 +690,7 @@ def make_sac_temp_loss(
 
         """
 
-        _, lprobs, _ = models[CONST_POLICY].act_lprob(
-            pi_params, obss, h_states, keys
-        )
+        _, lprobs, _ = models[CONST_POLICY].act_lprob(pi_params, obss, h_states, keys)
         lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
 
         temp = models[CONST_TEMPERATURE].apply(temp_params)

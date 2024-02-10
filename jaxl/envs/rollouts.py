@@ -134,7 +134,7 @@ class EvaluationRollout(Rollout):
         num_episodes: int,
         buffer: ReplayBuffer = None,
         use_tqdm: bool = True,
-        random = False,
+        random=False,
     ):
         """
         Executes the policy in the environment.
@@ -161,7 +161,9 @@ class EvaluationRollout(Rollout):
         if random:
             get_action = policy.compute_action
         else:
-            get_action = lambda params, obs, h_state, key: policy.deterministic_action(params, obs, h_state)
+            get_action = lambda params, obs, h_state, key: policy.deterministic_action(
+                params, obs, h_state
+            )
         for _ in it:
             self._episodic_returns.append(0)
             self._episode_lengths.append(0)
@@ -180,7 +182,7 @@ class EvaluationRollout(Rollout):
                     params,
                     normalize_obs,
                     np.array([self._curr_h_state]),
-                    exploration_key
+                    exploration_key,
                 )
                 exploration_key = jrandom.split(exploration_key, 1)[0]
                 act = act[0]
