@@ -22,6 +22,7 @@ from jaxl.models.transformers import (
 )
 from jaxl.models.policies import *
 from jaxl.models.q_functions import *
+from jaxl.optimizers import *
 from jaxl.utils import parse_dict
 
 
@@ -80,6 +81,11 @@ def get_scheduler(
             kwargs.transition_begin,
             kwargs.staircase,
             kwargs.end_value,
+        )
+    elif scheduler_config.scheduler == CONST_LINEAR_WARMUP_SQRT_DECAY:
+        return linear_warmup_sqrt_decay(
+            kwargs.max_lr,
+            kwargs.warmup_steps,
         )
     else:
         raise NotImplementedError
