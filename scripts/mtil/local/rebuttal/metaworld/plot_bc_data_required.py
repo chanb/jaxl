@@ -4,7 +4,9 @@ import numpy as np
 import os
 
 arch_name = "default_network"
-results_dir = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/eval_results/scrambling_10-dataset_seed_17/{}".format(arch_name)
+results_dir = "/home/bryanpu1/projects/jaxl/scripts/mtil/local/rebuttal/metaworld/eval_results/scrambling_10-dataset_seed_17/{}".format(
+    arch_name
+)
 
 out_dir = "plots"
 os.makedirs(out_dir, exist_ok=True)

@@ -57,6 +57,7 @@ MAX_SHAPE_DIM = (
     max(GRASS_DIM, TRACK_WIDTH, TRACK_DETAIL_STEP) * math.sqrt(2) * ZOOM * SCALE
 )
 
+
 def sample_data(
     min_val: float, max_val: float, np_random: np.random.Generator
 ) -> chex.Array:
@@ -64,6 +65,7 @@ def sample_data(
     sampled_val = np_random.uniform()
     sampled_val = (max_val - min_val) * sampled_val + min_val
     return sampled_val
+
 
 class FrictionDetector(contactListener):
     def __init__(self, env, lap_complete_percent):

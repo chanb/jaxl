@@ -8,7 +8,9 @@ scrambling_step = 10
 img_res = 84
 subsampling_length = 490
 num_samples = 50000
-save_path = "./expert_data/test_metaworld-img_res_{}-subsampling_{}-scrambling_{}-num_samples_{}".format(img_res, subsampling_length, scrambling_step, num_samples)
+save_path = "./expert_data/test_metaworld-img_res_{}-subsampling_{}-scrambling_{}-num_samples_{}".format(
+    img_res, subsampling_length, scrambling_step, num_samples
+)
 
 split = 15
 for seed in range(num_seeds):
@@ -23,7 +25,11 @@ for seed in range(num_seeds):
 
     if (seed + 1) % split == 0:
         with open(
-            os.path.join("./gather_expert_data-img_res_{}-scrambling_{}-subsampling_{}-{}.sh".format(img_res, scrambling_step, subsampling_length, int(seed // split))),
+            os.path.join(
+                "./gather_expert_data-img_res_{}-scrambling_{}-subsampling_{}-{}.sh".format(
+                    img_res, scrambling_step, subsampling_length, int(seed // split)
+                )
+            ),
             "w+",
         ) as f:
             f.writelines(sh_content)

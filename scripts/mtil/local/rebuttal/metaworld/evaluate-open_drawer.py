@@ -29,7 +29,9 @@ TASK_NAME = "drawer-open-v2"
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("run_path", default=None, help="The saved run", required=True)
-flags.DEFINE_boolean("expert", default=False, help="Whether or not to use expert policy", required=False)
+flags.DEFINE_boolean(
+    "expert", default=False, help="Whether or not to use expert policy", required=False
+)
 flags.DEFINE_integer("img_res", default=64, help="Image resolution", required=False)
 flags.DEFINE_integer(
     "env_seed", default=None, help="The environment seed", required=True
@@ -71,6 +73,7 @@ log.setLevel(logging.DEBUG)
 This function constructs the model and executes evaluation.
 """
 
+
 def get_env(env_seed):
     ml1 = metaworld.ML1(TASK_NAME)  # Construct the benchmark, sampling tasks
 
@@ -100,7 +103,6 @@ def main(
         os.environ["CUDA_VISIBLE_DEVICES"] = device_ids[0]
     else:
         raise ValueError(f"{device_name} is not a supported device.")
-
 
     assert (
         config.num_episodes > 0

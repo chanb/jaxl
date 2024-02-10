@@ -104,7 +104,7 @@ class OneHotClassification(Dataset):
             size=(num_sequences, sequence_length),
         )
         if not is_train and not remap:
-                targets += num_classes - num_holdout
+            targets += num_classes - num_holdout
 
         inputs = np.eye(num_classes)[targets]
         noise = inputs_range[1] - data_gen_rng.uniform(

@@ -310,16 +310,28 @@ def bhattacharyya(
     diversity = jnp.mean(source_loss) / (best_target_loss + eps)
     return diversity
 
+
 expert_path = "/Users/chanb/research/personal/mtil_results/final_results/data/experts"
+
+
 def repr_l2(
     task,
     control_mode,
     pretrain_run_dir,
     finetune_config,
 ):
-    finetune_task_buffer_path = finetune_config["learner_config"]["buffer_configs"][0]["load_buffer"]
-    env_seed = int(os.path.basename(finetune_task_buffer_path).split(".")[2].split("env_seed_")[-1])
-    expert_dir = os.path.join(expert_path, task, control_mode, "runs/hyperparam_0/env_seed_{}".format(env_seed))
+    finetune_task_buffer_path = finetune_config["learner_config"]["buffer_configs"][0][
+        "load_buffer"
+    ]
+    env_seed = int(
+        os.path.basename(finetune_task_buffer_path).split(".")[2].split("env_seed_")[-1]
+    )
+    expert_dir = os.path.join(
+        expert_path,
+        task,
+        control_mode,
+        "runs/hyperparam_0/env_seed_{}".format(env_seed),
+    )
 
     for run_dir, _, filenames in os.walk(expert_dir):
         for filename in filenames:
@@ -337,14 +349,22 @@ def repr_l2(
                 os.path.join(pretrain_run_dir, "models"),
                 PyTreeCheckpointer(),
             )
-            pretrain_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
-            pretrain_params = pretrain_params["model_dict"]["model"]["policy"]["encoder"]["params"]
+            pretrain_params = checkpoint_manager.restore(
+                checkpoint_manager.latest_step()
+            )
+            pretrain_params = pretrain_params["model_dict"]["model"]["policy"][
+                "encoder"
+            ]["params"]
 
             sums_of_squares = 0.0
-            for (expert_layer, pretrain_layer) in zip(jax.jax.tree_util.tree_leaves(expert_params)[:-2], jax.jax.tree_util.tree_leaves(pretrain_params)):
+            for expert_layer, pretrain_layer in zip(
+                jax.jax.tree_util.tree_leaves(expert_params)[:-2],
+                jax.jax.tree_util.tree_leaves(pretrain_params),
+            ):
                 sums_of_squares += np.sum((expert_layer - pretrain_layer) ** 2)
 
             return 1 / (np.sqrt(sums_of_squares) + eps)
+
 
 def expert_data_performance(
     pretrain_config, finetune_dataset_path, pretrain_dataset_paths

@@ -84,10 +84,7 @@ class FixedSquashedGaussianPolicy(Policy):
 
     def make_deterministic_action(
         self,
-    ) -> Callable[
-        [Any, chex.Array, chex.Array],
-        Tuple[chex.Array, chex.Array],
-    ]:
+    ) -> Callable[[Any, chex.Array, chex.Array], Tuple[chex.Array, chex.Array],]:
         """
         Makes the function for taking deterministic action.
 
@@ -224,10 +221,7 @@ class FixedSquashedGaussianPolicy(Policy):
 
     def make_lprob(
         self,
-    ) -> Callable[
-        [Any, chex.Array, chex.Array, chex.Array],
-        chex.Array,
-    ]:
+    ) -> Callable[[Any, chex.Array, chex.Array, chex.Array], chex.Array,]:
         """
         Makes the function for computing action log probability.
 
@@ -262,7 +256,9 @@ class FixedSquashedGaussianPolicy(Policy):
             """
             act_inv = TanhTransform.inv(act)
 
-            lprob = Normal.lprob(self._means, self._stds, act_inv).sum(-1, keepdims=True)
+            lprob = Normal.lprob(self._means, self._stds, act_inv).sum(
+                -1, keepdims=True
+            )
             lprob = lprob - TanhTransform.log_abs_det_jacobian(act_inv, act)
             return lprob, {
                 CONST_MEAN: self._means,
