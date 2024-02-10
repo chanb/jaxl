@@ -199,9 +199,11 @@ for row_i, control_mode in enumerate(control_modes):
             ax.plot(
                 np.arange(len(seeds_to_plot)),
                 means,
-                label="env-{}".format(np.arange(len(means))[variant_idx[0]])
-                if row_i + col_i == 0
-                else "",
+                label=(
+                    "env-{}".format(np.arange(len(means))[variant_idx[0]])
+                    if row_i + col_i == 0
+                    else ""
+                ),
                 markevery=variant_idx,
                 marker="*",
                 linewidth=1.0,

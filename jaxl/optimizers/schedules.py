@@ -20,8 +20,8 @@ def linear_warmup_sqrt_decay(
         """Linear warmup and then an inverse square root decay of learning rate."""
         linear_ratio = max_lr / warmup_steps
         decay_ratio = jnp.power(warmup_steps * 1.0, 0.5) * max_lr
-        return jnp.min(jnp.array([
-            linear_ratio * count, decay_ratio * jnp.power(count, -0.5)
-        ]))
-    
+        return jnp.min(
+            jnp.array([linear_ratio * count, decay_ratio * jnp.power(count, -0.5)])
+        )
+
     return schedule

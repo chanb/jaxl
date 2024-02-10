@@ -53,8 +53,8 @@
                 "save_path": "/home/bryanpu1/projects/icl/data",
                 "task_name": "multitask_omniglot_finegrain",
                 "task_config": {
-                    "num_sequences": 1000,
-                    "sequence_length": 30,
+                    "num_sequences": 100000,
+                    "sequence_length": 17,
                     "random_label": false,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl"
                 }

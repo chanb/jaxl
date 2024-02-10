@@ -84,7 +84,10 @@ class FixedSquashedGaussianPolicy(Policy):
 
     def make_deterministic_action(
         self,
-    ) -> Callable[[Any, chex.Array, chex.Array], Tuple[chex.Array, chex.Array],]:
+    ) -> Callable[
+        [Any, chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array],
+    ]:
         """
         Makes the function for taking deterministic action.
 
@@ -221,7 +224,10 @@ class FixedSquashedGaussianPolicy(Policy):
 
     def make_lprob(
         self,
-    ) -> Callable[[Any, chex.Array, chex.Array, chex.Array], chex.Array,]:
+    ) -> Callable[
+        [Any, chex.Array, chex.Array, chex.Array],
+        chex.Array,
+    ]:
         """
         Makes the function for computing action log probability.
 

@@ -266,9 +266,11 @@ for num_source_data in results:
                     means,
                     marker="^",
                     ms=3.0,
-                    label="{} {}".format(num_source_data, num_target_data)
-                    if ax_i == 0
-                    else "",
+                    label=(
+                        "{} {}".format(num_source_data, num_target_data)
+                        if ax_i == 0
+                        else ""
+                    ),
                 )
                 ax.fill_between(
                     unique_num_tasks,
