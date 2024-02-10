@@ -222,9 +222,11 @@ def main(config):
                 {
                     "load_buffer": dataset_paths[task_i + config.offset],
                     "buffer_type": "default",
-                    "set_size": config.num_samples
-                    if config.samples_per_task
-                    else config.num_samples // num_tasks,
+                    "set_size": (
+                        config.num_samples
+                        if config.samples_per_task
+                        else config.num_samples // num_tasks
+                    ),
                 }
             )
 

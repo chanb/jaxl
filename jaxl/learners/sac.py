@@ -631,12 +631,12 @@ class SAC(OffPolicyLearner):
         aux[CONST_LOG][f"time/update_{CONST_POLICY}"] = total_pi_update_time
         aux[CONST_LOG][f"time/update_{CONST_TEMPERATURE}"] = total_temp_update_time
 
-        aux[CONST_LOG][
-            f"interaction/{CONST_AVERAGE_RETURN}"
-        ] = self._rollout.latest_average_return(num_episodes=10)
-        aux[CONST_LOG][
-            f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}"
-        ] = self._rollout.latest_average_episode_length(num_episodes=10)
+        aux[CONST_LOG][f"interaction/{CONST_AVERAGE_RETURN}"] = (
+            self._rollout.latest_average_return(num_episodes=10)
+        )
+        aux[CONST_LOG][f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}"] = (
+            self._rollout.latest_average_episode_length(num_episodes=10)
+        )
 
         if qf_auxes:
             qf_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *qf_auxes)

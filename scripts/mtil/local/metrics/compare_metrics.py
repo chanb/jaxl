@@ -479,9 +479,11 @@ else:
 
                     pretrain_run_dir = os.path.join(
                         base_dir,
-                        f"{pretrain_dir}{suffix}"
-                        if "target" not in suffix
-                        else pretrain_dir,
+                        (
+                            f"{pretrain_dir}{suffix}"
+                            if "target" not in suffix
+                            else pretrain_dir
+                        ),
                         f"{task}{suffix}" if "target" not in suffix else task,
                         control_mode,
                         "runs",

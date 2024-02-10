@@ -22,6 +22,7 @@ from jaxl.models.transformers import (
 )
 from jaxl.models.policies import *
 from jaxl.models.q_functions import *
+from jaxl.optimizers import *
 from jaxl.utils import parse_dict
 
 
@@ -81,6 +82,11 @@ def get_scheduler(
             kwargs.staircase,
             kwargs.end_value,
         )
+    elif scheduler_config.scheduler == CONST_LINEAR_WARMUP_SQRT_DECAY:
+        return linear_warmup_sqrt_decay(
+            kwargs.max_lr,
+            kwargs.warmup_steps,
+        )
     else:
         raise NotImplementedError
 
@@ -137,15 +143,19 @@ def get_optimizer(
         if opt_config.optimizer == CONST_ADAM:
             if hasattr(opt_config, "weight_decay"):
                 opt_transforms.append(
-                    optax.adamw(
+                    optax.inject_hyperparams(optax.adamw)(
                         get_scheduler(opt_config.lr),
                         weight_decay=opt_config.weight_decay,
                     )
                 )
             else:
-                opt_transforms.append(optax.adam(get_scheduler(opt_config.lr)))
+                opt_transforms.append(
+                    optax.inject_hyperparams(optax.adam)(get_scheduler(opt_config.lr))
+                )
         elif opt_config.optimizer == CONST_SGD:
-            opt_transforms.append(optax.sgd(get_scheduler(opt_config.lr)))
+            opt_transforms.append(
+                optax.inject_hyperparams(optax.sgd)(get_scheduler(opt_config.lr))
+            )
         else:
             raise NotImplementedError
     mask_names = getattr(opt_config, CONST_MASK_NAMES, [])

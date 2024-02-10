@@ -37,9 +37,10 @@
     "optimizer_config": {
         "optimizer": "adam",
         "lr": {
-            "scheduler": "constant_schedule",
+            "scheduler": "linear_warmup_sqrt_decay",
             "scheduler_kwargs": {
-                "value": 0.0003
+                "max_lr": 3e-4,
+                "warmup_steps": 4000
             }
         },
         "max_grad_norm": false
@@ -52,8 +53,8 @@
                 "save_path": "/home/bryanpu1/projects/icl/data",
                 "task_name": "multitask_omniglot_finegrain",
                 "task_config": {
-                    "num_sequences": 100,
-                    "sequence_length": 30,
+                    "num_sequences": 100000,
+                    "sequence_length": 17,
                     "random_label": false,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl"
                 }
