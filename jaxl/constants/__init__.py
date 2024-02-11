@@ -41,6 +41,7 @@ VALID_SPLIT = (CONST_TRAIN, CONST_TEST)
 CONST_A_MIN = "a_min"
 CONST_A_MAX = "a_max"
 
+CONST_EPS = "eps"
 CONST_EPSILON = "epsilon"
 
 CONST_ICL = "in_context_learning"

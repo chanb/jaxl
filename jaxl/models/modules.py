@@ -1,8 +1,12 @@
 from flax import linen as nn
-from typing import Callable, Sequence
+from flax.linen.initializers import zeros
+from typing import Callable, Sequence, Any, Dict
 
 import chex
+import jax
 import jax.numpy as jnp
+
+from jaxl.constants import CONST_SAME_PADDING
 
 
 class MLPModule(nn.Module):
@@ -27,9 +31,13 @@ class MLPModule(nn.Module):
 class CNNModule(nn.Module):
     """Convolutional layer."""
 
-    # The number of hidden units in each hidden layer.
+    # The number of kernels/filters per layer
     features: Sequence[int]
+
+    # The kernel/filter size per layer
     kernel_sizes: Sequence[Sequence[int]]
+
+    # The activation to use after convolutional layer
     activation: Callable
 
     @nn.compact
@@ -40,6 +48,125 @@ class CNNModule(nn.Module):
             x = self.activation(nn.Conv(feature, kernel_size)(x))
             self.sow("cnn_latents", "cnn_{}".format(idx), x)
         return x
+
+
+class ResNetV1Block(nn.Module):
+    """
+    ResNet V1 Block.
+    Reference: https://github.com/google-deepmind/emergent_in_context_learning/blob/eba75a4208b8927cc1e981384a2cc7e014677095/modules/resnet.py
+    """
+
+    # The number of kernels/filters
+    features: int
+
+    # The strides of the convolution
+    stride: Sequence[int]
+
+    # Whether or not to bottleneck
+    use_projection: bool
+
+    # Whether or not to bottleneck
+    use_bottleneck: bool
+
+    def setup(self):
+        assert (
+            not self.use_bottleneck or self.features >= 4 and self.features % 4 == 0
+        ), "must have at least 4n kernels {} when using bottleneck".format(self.features)
+        if self.use_projection:
+            self.projection = nn.Conv(
+                self.features,
+                kernel_size=1,
+                strides=self.stride,
+                use_bias=False,
+                padding=CONST_SAME_PADDING,
+            )
+            self.projection_batchnorm = nn.BatchNorm(
+                momentum=0.9,
+                epsilon=1e-5,
+                use_bias=True,
+                use_scale=True,
+            )
+
+        conv_features = self.features
+        conv_0_kernel = 3
+        conv_0_stride = self.stride
+        conv_1_stride = 1
+        if self.use_bottleneck:
+            conv_features = self.features // 4
+            conv_0_kernel = 1
+            conv_0_stride = 1
+            conv_1_stride = self.stride
+
+        self.conv_0 = nn.Conv(
+            conv_features,
+            kernel_size=conv_0_kernel,
+            strides=conv_0_stride,
+            use_bias=False,
+            padding=CONST_SAME_PADDING,)
+        self.batch_norm_0 = nn.BatchNorm(
+            momentum=0.9,
+            epsilon=1e-5,
+            use_bias=True,
+            use_scale=True,
+        )
+
+        self.conv_1 = nn.Conv(
+            conv_features,
+            kernel_size=3,
+            strides=conv_1_stride,
+            use_bias=False,
+            padding=CONST_SAME_PADDING,)
+        self.batch_norm_1 = nn.BatchNorm(
+            momentum=0.9,
+            epsilon=1e-5,
+            use_bias=True,
+            use_scale=True,
+        )
+
+        layers = [
+            (self.conv_0, self.batch_norm_0),
+            (self.conv_1, self.batch_norm_1),
+        ]
+
+        if self.use_bottleneck:
+            self.conv_2 = nn.Conv(
+                self.features,
+                kernel_size=1,
+                strides=1,
+                use_bias=False,
+                padding=CONST_SAME_PADDING,)
+            self.batch_norm_2 = nn.BatchNorm(
+                momentum=0.9,
+                epsilon=1e-5,
+                use_bias=True,
+                use_scale=True,
+                scale_init=zeros
+            )
+
+            layers.append((self.conv_2, self.batch_norm_2))
+        self.layers = layers
+
+    def __call__(self, x: chex.Array, eval: bool) -> chex.Array:
+        out = shortcut = x
+
+        if self.use_projection:
+            shortcut = self.projection(shortcut)
+            shortcut = self.projection_batchnorm(shortcut, eval)
+            self.sow("resnet_v1", "resnet_v1_projection", shortcut)
+
+        idx = -1
+        for idx, (conv_i, batch_norm_i) in enumerate(self.layers[:-1]):
+            out = conv_i(out)
+            out = batch_norm_i(out, eval)
+            out = jax.nn.relu(out)
+            self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
+
+
+        out = self.layers[-1][0](out)
+        out = self.layers[-1][1](out, eval)
+        out = jax.nn.relu(out + shortcut)
+        self.sow("resnet_v1_latents", "resnet_v1_{}".format(idx + 1), out)
+        return out
 
 
 class GPTBlock(nn.Module):
