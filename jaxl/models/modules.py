@@ -71,7 +71,9 @@ class ResNetV1Block(nn.Module):
     def setup(self):
         assert (
             not self.use_bottleneck or self.features >= 4 and self.features % 4 == 0
-        ), "must have at least 4n kernels {} when using bottleneck".format(self.features)
+        ), "must have at least 4n kernels {} when using bottleneck".format(
+            self.features
+        )
         if self.use_projection:
             self.projection = nn.Conv(
                 self.features,
@@ -102,7 +104,8 @@ class ResNetV1Block(nn.Module):
             kernel_size=conv_0_kernel,
             strides=conv_0_stride,
             use_bias=False,
-            padding=CONST_SAME_PADDING,)
+            padding=CONST_SAME_PADDING,
+        )
         self.batch_norm_0 = nn.BatchNorm(
             momentum=0.9,
             epsilon=1e-5,
@@ -115,7 +118,8 @@ class ResNetV1Block(nn.Module):
             kernel_size=3,
             strides=conv_1_stride,
             use_bias=False,
-            padding=CONST_SAME_PADDING,)
+            padding=CONST_SAME_PADDING,
+        )
         self.batch_norm_1 = nn.BatchNorm(
             momentum=0.9,
             epsilon=1e-5,
@@ -134,13 +138,14 @@ class ResNetV1Block(nn.Module):
                 kernel_size=1,
                 strides=1,
                 use_bias=False,
-                padding=CONST_SAME_PADDING,)
+                padding=CONST_SAME_PADDING,
+            )
             self.batch_norm_2 = nn.BatchNorm(
                 momentum=0.9,
                 epsilon=1e-5,
                 use_bias=True,
                 use_scale=True,
-                scale_init=zeros
+                scale_init=zeros,
             )
 
             layers.append((self.conv_2, self.batch_norm_2))
@@ -161,12 +166,100 @@ class ResNetV1Block(nn.Module):
             out = jax.nn.relu(out)
             self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
 
-
         out = self.layers[-1][0](out)
         out = self.layers[-1][1](out, eval)
         out = jax.nn.relu(out + shortcut)
         self.sow("resnet_v1_latents", "resnet_v1_{}".format(idx + 1), out)
         return out
+
+
+class ResNetV1BlockGroup(nn.Module):
+    # THe number of residual blocks
+    num_blocks: int
+
+    # The number of kernels/filters
+    features: int
+
+    # The strides of the convolution
+    stride: Sequence[int]
+
+    # Whether or not to bottleneck
+    use_projection: bool
+
+    # Whether or not to bottleneck
+    use_bottleneck: bool
+
+    @nn.compact
+    def __call__(self, x: chex.Array, eval: bool) -> chex.Array:
+        for block_i in range(self.num_blocks):
+            x = ResNetV1Block(
+                self.features,
+                self.stride,
+                self.use_projection,
+                self.use_bottleneck,
+            )(x, eval)
+            self.sow(
+                "resnet_v1_block_group_latents", "resnet_v1_{}".format(block_i + 1), x
+            )
+        return x
+
+
+class ResNetV1Module(nn.Module):
+    # The number of residual blocks per block group
+    blocks_per_group: Sequence[int]
+
+    # The number of kernels/filters per layer
+    features: Sequence[int]
+
+    # The strides of the convolution per layer
+    stride: Sequence[Sequence[int]]
+
+    # Whether or not to bottleneck
+    use_projection: Sequence[bool]
+
+    # Whether or not to bottleneck
+    use_bottleneck: bool
+
+    @nn.compact
+    def __call__(self, x: chex.Array, eval: bool) -> chex.Array:
+        x = nn.Conv(
+            features=64,
+            kernel_size=7,
+            strides=2,
+            use_bias=False,
+            padding=CONST_SAME_PADDING,
+        )(x)
+        x = nn.BatchNorm(
+            momentum=0.9,
+            epsilon=1e-5,
+            use_bias=True,
+            use_scale=True,
+        )(x, eval)
+        x = jax.nn.relu(x)
+        x = nn.max_pool(
+            x,
+            window_shape=(3, 3),
+            strides=(2, 2),
+            padding=CONST_SAME_PADDING,
+        )
+        self.sow("resnet_v1_module", "resnet_v1_before_blocks", x)
+
+        for (
+            curr_blocks,
+            curr_features,
+            curr_stride,
+            curr_projection,
+        ) in zip(
+            self.blocks_per_group, self.features, self.stride, self.use_projection
+        ):
+            x = ResNetV1BlockGroup(
+                curr_blocks,
+                curr_features,
+                curr_stride,
+                curr_projection,
+                self.use_bottleneck,
+            )(x, eval)
+        return jnp.mean(x, axis=(-3, -2))
 
 
 class GPTBlock(nn.Module):

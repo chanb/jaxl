@@ -10,7 +10,7 @@ import numpy as np
 import optax
 
 from jaxl.constants import *
-from jaxl.models.modules import MLPModule, CNNModule
+from jaxl.models.modules import MLPModule, CNNModule, ResNetV1Module
 
 
 def get_activation(activation: str) -> Callable:
@@ -422,104 +422,6 @@ class MLP(Model):
 
 
 class CNN(Model):
-    """A convolutional net."""
-
-    def __init__(
-        self,
-        features: Sequence[int],
-        kernel_sizes: Sequence[int],
-        layers: Sequence[int],
-        activation: str = CONST_RELU,
-        output_activation: str = CONST_IDENTITY,
-    ) -> None:
-        self.conv = CNNModule(
-            features,
-            kernel_sizes,
-            get_activation(activation),
-        )
-        self.mlp = MLPModule(
-            layers,
-            get_activation(activation),
-            get_activation(output_activation),
-        )
-        self.forward = jax.jit(self.make_forward())
-
-    def init(
-        self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
-    ) -> Union[optax.Params, Dict[str, Any]]:
-        """
-        Initialize model parameters.
-
-        :param model_key: the random number generation key for initializing parameters
-        :param dummy_x: the input data
-        :type model_key: jrandom.PRNGKey
-        :type dummy_x: chex.Array
-        :return: the initialized parameters
-        :rtype: Union[optax.Params, Dict[str, Any]]
-
-        """
-        conv_params = self.conv.init(model_key, dummy_x)
-        dummy_latent = self.conv.apply(conv_params, dummy_x)
-        mlp_params = self.mlp.init(
-            model_key, dummy_latent.reshape((dummy_latent.shape[0], -1))
-        )
-        return {
-            CONST_CNN: conv_params,
-            CONST_MLP: mlp_params,
-        }
-
-    def make_forward(
-        self,
-    ) -> Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-        ],
-        Tuple[chex.Array, chex.Array],
-    ]:
-        """
-        Makes the forward call of the CNN model.
-
-        :return: the forward call.
-        :rtype: Callable[
-            [
-                Union[optax.Params, Dict[str, Any]],
-                chex.Array,
-                chex.Array,
-            ],
-            Tuple[chex.Array, chex.Array],
-        ]
-        """
-
-        def forward(
-            params: Union[optax.Params, Dict[str, Any]],
-            input: chex.Array,
-            carry: chex.Array,
-        ) -> Tuple[chex.Array, chex.Array]:
-            """
-            Forward call of the CNN.
-
-            :param params: the model parameters
-            :param input: the input
-            :param carry: the hidden state (not used)
-            :type params: Union[optax.Params
-            :type input: chex.Array
-            :type carry: chex.Array
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array]
-
-            """
-            # NOTE: Assume batch size is first dim
-            conv_latent = self.conv.apply(params[CONST_CNN], input)
-            conv_latent = conv_latent.reshape((conv_latent.shape[0], -1))
-            out = self.mlp.apply(params[CONST_MLP], conv_latent)
-            return out, carry
-
-        return forward
-
-
-class CNN(Model):
     """A convolutional network."""
 
     def __init__(
@@ -615,3 +517,7 @@ class CNN(Model):
             return out, carry
 
         return forward
+
+
+class ResNetV1(Model):
+    pass
