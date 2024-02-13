@@ -68,6 +68,8 @@ class ResNetV1Block(nn.Module):
     # Whether or not to bottleneck
     use_bottleneck: bool
 
+    use_batch_norm: bool
+
     def setup(self):
         assert (
             not self.use_bottleneck or self.features >= 4 and self.features % 4 == 0
@@ -82,12 +84,14 @@ class ResNetV1Block(nn.Module):
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
             )
-            self.projection_batchnorm = nn.BatchNorm(
-                momentum=0.9,
-                epsilon=1e-5,
-                use_bias=True,
-                use_scale=True,
-            )
+            
+            if self.use_batch_norm:
+                self.projection_batchnorm = nn.BatchNorm(
+                    momentum=0.9,
+                    epsilon=1e-5,
+                    use_bias=True,
+                    use_scale=True,
+                )
 
         conv_features = self.features
         conv_0_kernel = 3
@@ -106,12 +110,14 @@ class ResNetV1Block(nn.Module):
             use_bias=False,
             padding=CONST_SAME_PADDING,
         )
-        self.batch_norm_0 = nn.BatchNorm(
-            momentum=0.9,
-            epsilon=1e-5,
-            use_bias=True,
-            use_scale=True,
-        )
+
+        if self.use_batch_norm:
+            self.batch_norm_0 = nn.BatchNorm(
+                momentum=0.9,
+                epsilon=1e-5,
+                use_bias=True,
+                use_scale=True,
+            )
 
         self.conv_1 = nn.Conv(
             conv_features,
@@ -120,17 +126,22 @@ class ResNetV1Block(nn.Module):
             use_bias=False,
             padding=CONST_SAME_PADDING,
         )
-        self.batch_norm_1 = nn.BatchNorm(
-            momentum=0.9,
-            epsilon=1e-5,
-            use_bias=True,
-            use_scale=True,
-        )
 
-        layers = [
-            (self.conv_0, self.batch_norm_0),
-            (self.conv_1, self.batch_norm_1),
-        ]
+        if self.use_batch_norm:
+            self.batch_norm_1 = nn.BatchNorm(
+                momentum=0.9,
+                epsilon=1e-5,
+                use_bias=True,
+                use_scale=True,
+            )
+
+        if self.use_batch_norm:
+            layers = [
+                (self.conv_0, self.batch_norm_0),
+                (self.conv_1, self.batch_norm_1),
+            ]
+        else:
+            layers = [self.conv_0, self.conv_1]
 
         if self.use_bottleneck:
             self.conv_2 = nn.Conv(
@@ -140,15 +151,18 @@ class ResNetV1Block(nn.Module):
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
             )
-            self.batch_norm_2 = nn.BatchNorm(
-                momentum=0.9,
-                epsilon=1e-5,
-                use_bias=True,
-                use_scale=True,
-                scale_init=zeros,
-            )
-
-            layers.append((self.conv_2, self.batch_norm_2))
+            
+            if self.use_batch_norm:
+                self.batch_norm_2 = nn.BatchNorm(
+                    momentum=0.9,
+                    epsilon=1e-5,
+                    use_bias=True,
+                    use_scale=True,
+                    scale_init=zeros,
+                )
+                layers.append((self.conv_2, self.batch_norm_2))
+            else:
+                layers.append(self.conv_2)
         self.layers = layers
 
     def __call__(self, x: chex.Array, eval: bool) -> chex.Array:
@@ -156,18 +170,27 @@ class ResNetV1Block(nn.Module):
 
         if self.use_projection:
             shortcut = self.projection(shortcut)
-            shortcut = self.projection_batchnorm(shortcut, eval)
+            if self.use_batch_norm:
+                shortcut = self.projection_batchnorm(shortcut, eval)
             self.sow("resnet_v1", "resnet_v1_projection", shortcut)
 
         idx = -1
-        for idx, (conv_i, batch_norm_i) in enumerate(self.layers[:-1]):
-            out = conv_i(out)
-            out = batch_norm_i(out, eval)
-            out = jax.nn.relu(out)
-            self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
 
-        out = self.layers[-1][0](out)
-        out = self.layers[-1][1](out, eval)
+        if self.use_batch_norm:
+            for idx, (conv_i, batch_norm_i) in enumerate(self.layers[:-1]):
+                out = conv_i(out)
+                out = batch_norm_i(out, eval)
+                out = jax.nn.relu(out)
+                self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)        
+                out = self.layers[-1][0](out)
+                out = self.layers[-1][1](out, eval)
+        else:
+            for idx, conv_i in enumerate(self.layers[:-1]):
+                out = conv_i(out)
+                out = jax.nn.relu(out)
+                self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
+                out = self.layers[-1](out)
+
         out = jax.nn.relu(out + shortcut)
         self.sow("resnet_v1_latents", "resnet_v1_{}".format(idx + 1), out)
         return out
@@ -189,6 +212,8 @@ class ResNetV1BlockGroup(nn.Module):
     # Whether or not to bottleneck
     use_bottleneck: bool
 
+    use_batch_norm: bool
+
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool) -> chex.Array:
         for block_i in range(self.num_blocks):
@@ -197,6 +222,7 @@ class ResNetV1BlockGroup(nn.Module):
                 self.stride,
                 self.use_projection,
                 self.use_bottleneck,
+                self.use_batch_norm,
             )(x, eval)
             self.sow(
                 "resnet_v1_block_group_latents", "resnet_v1_{}".format(block_i + 1), x
@@ -220,6 +246,8 @@ class ResNetV1Module(nn.Module):
     # Whether or not to bottleneck
     use_bottleneck: bool
 
+    use_batch_norm: bool
+
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool) -> chex.Array:
         x = nn.Conv(
@@ -229,12 +257,14 @@ class ResNetV1Module(nn.Module):
             use_bias=False,
             padding=CONST_SAME_PADDING,
         )(x)
-        x = nn.BatchNorm(
-            momentum=0.9,
-            epsilon=1e-5,
-            use_bias=True,
-            use_scale=True,
-        )(x, eval)
+
+        if self.use_batch_norm:
+            x = nn.BatchNorm(
+                momentum=0.9,
+                epsilon=1e-5,
+                use_bias=True,
+                use_scale=True,
+            )(x, eval)
         x = jax.nn.relu(x)
         x = nn.max_pool(
             x,
@@ -258,6 +288,7 @@ class ResNetV1Module(nn.Module):
                 curr_stride,
                 curr_projection,
                 self.use_bottleneck,
+                self.use_batch_norm,
             )(x, eval)
         return jnp.mean(x, axis=(-3, -2))
 
@@ -312,3 +343,6 @@ class Temperature(nn.Module):
             init_fn=lambda _: jnp.full((), jnp.log(self.initial_temperature)),
         )
         return jnp.exp(log_temp)
+    
+    def update_batch_stats(self, params, batch_stats):
+        return params

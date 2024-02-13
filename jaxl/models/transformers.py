@@ -317,6 +317,7 @@ def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
             stride=tokenizer_kwargs.stride,
             use_projection=tokenizer_kwargs.use_projection,
             use_bottleneck=tokenizer_kwargs.use_bottleneck,
+            use_batch_norm=getattr(tokenizer_kwargs, "use_batch_norm", True),
         )
     else:
         raise ValueError(

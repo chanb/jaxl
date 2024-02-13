@@ -551,14 +551,16 @@ class ResNetV1(Model):
         stride: Sequence[Sequence[int]],
         use_projection: Sequence[bool],
         use_bottleneck: bool,
+        use_batch_norm: bool=True,
     ) -> None:
-        self.batch_stats = None
+        self.use_batch_norm = use_batch_norm
         self.resnet = ResNetV1Module(
             blocks_per_group=blocks_per_group,
             features=features,
             stride=stride,
             use_projection=use_projection,
             use_bottleneck=use_bottleneck,
+            use_batch_norm=use_batch_norm,
         )
         self.forward = jax.jit(self.make_forward())
 
@@ -644,5 +646,6 @@ class ResNetV1(Model):
     def update_batch_stats(
         self, params: Dict[str, Any], batch_stats: Any
     ) -> Dict[str, Any]:
-        params[CONST_RESNET][CONST_BATCH_STATS] = batch_stats[CONST_BATCH_STATS]
+        if self.use_batch_norm:
+            params[CONST_RESNET][CONST_BATCH_STATS] = batch_stats[CONST_BATCH_STATS]
         return params
