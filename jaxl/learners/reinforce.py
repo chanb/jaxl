@@ -134,6 +134,7 @@ class REINFORCE(OnPolicyLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
+                aux[CONST_UPDATES],
             )
 
             aux[CONST_GRAD_NORM] = {CONST_POLICY: l2_norm(grads)}
@@ -238,9 +239,9 @@ class REINFORCE(OnPolicyLearner):
             aux[CONST_LOG][
                 f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_SATURATION}"
             ] = auxes[CONST_ACTION][act_i][CONST_SATURATION]
-            aux[CONST_LOG][f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"] = (
-                auxes[CONST_ACTION][act_i][CONST_MEAN]
-            )
+            aux[CONST_LOG][
+                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
+            ] = auxes[CONST_ACTION][act_i][CONST_MEAN]
 
         self.gather_rms(aux)
         return aux

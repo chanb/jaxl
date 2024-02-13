@@ -17,9 +17,9 @@ def set_ppo(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=N
             template["optimizer_config"]["policy"]["lr"]["scheduler_kwargs"][
                 "value"
             ] = hyperparam_map("lr")
-            template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"]["value"] = (
-                hyperparam_map("lr")
-            )
+            template["optimizer_config"]["vf"]["lr"]["scheduler_kwargs"][
+                "value"
+            ] = hyperparam_map("lr")
 
         if "max_grad_norm" in hyperparam_keys:
             template["optimizer_config"]["policy"]["max_grad_norm"] = hyperparam_map(
@@ -44,9 +44,9 @@ def set_ppo(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=N
             template["learner_config"]["opt_epochs"] = hyperparam_map("opt_epochs")
 
         if "vf_clip_param" in hyperparam_keys:
-            template["learner_config"]["vf_loss_setting"]["clip_param"] = (
-                hyperparam_map("vf_clip_param")
-            )
+            template["learner_config"]["vf_loss_setting"][
+                "clip_param"
+            ] = hyperparam_map("vf_clip_param")
 
         if "ent_coef" in hyperparam_keys:
             template["learner_config"]["ent_loss_setting"] = hyperparam_map("ent_coef")
@@ -57,9 +57,9 @@ def set_ppo(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=N
             )
 
         if "clip_param" in hyperparam_keys:
-            template["learner_config"]["pi_loss_setting"]["clip_param"] = (
-                hyperparam_map("clip_param")
-            )
+            template["learner_config"]["pi_loss_setting"][
+                "clip_param"
+            ] = hyperparam_map("clip_param")
 
 
 def set_bc(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=None):
@@ -71,9 +71,9 @@ def set_bc(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=No
             template["learner_config"]["losses"] = [val, "l2"]
     elif hyperparam_keys is not None:
         if "lr" in hyperparam_keys:
-            template["optimizer_config"]["lr"]["scheduler_kwargs"]["value"] = (
-                hyperparam_map("lr")
-            )
+            template["optimizer_config"]["lr"]["scheduler_kwargs"][
+                "value"
+            ] = hyperparam_map("lr")
 
         if "max_grad_norm" in hyperparam_keys:
             template["optimizer_config"]["max_grad_norm"] = hyperparam_map(
@@ -87,9 +87,9 @@ def set_bc(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=No
             template["learner_config"]["batch_size"] = hyperparam_map("batch_size")
 
         if "l2" in hyperparam_keys:
-            template["learner_config"]["loss_settings"][1]["coefficient"] = (
-                hyperparam_map("l2")
-            )
+            template["learner_config"]["loss_settings"][1][
+                "coefficient"
+            ] = hyperparam_map("l2")
 
 
 def set_mtbc(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=None):
@@ -101,9 +101,9 @@ def set_mtbc(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=
             template["learner_config"]["losses"] = [val, "l2"]
     elif hyperparam_keys is not None:
         if "lr" in hyperparam_keys:
-            template["optimizer_config"]["lr"]["scheduler_kwargs"]["value"] = (
-                hyperparam_map("lr")
-            )
+            template["optimizer_config"]["lr"]["scheduler_kwargs"][
+                "value"
+            ] = hyperparam_map("lr")
 
         if "max_grad_norm" in hyperparam_keys:
             template["optimizer_config"]["encoder"]["max_grad_norm"] = hyperparam_map(
@@ -120,6 +120,6 @@ def set_mtbc(template, key=None, val=None, hyperparam_keys=None, hyperparam_map=
             template["learner_config"]["batch_size"] = hyperparam_map("batch_size")
 
         if "l2" in hyperparam_keys:
-            template["learner_config"]["loss_settings"][1]["coefficient"] = (
-                hyperparam_map("l2")
-            )
+            template["learner_config"]["loss_settings"][1][
+                "coefficient"
+            ] = hyperparam_map("l2")

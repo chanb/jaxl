@@ -522,7 +522,9 @@ def make_sac_qf_loss(
         next_lprobs = jnp.sum(next_lprobs, axis=-1, keepdims=True)
 
         # Q-value for current timestep
-        curr_q_preds, _, updates = models[CONST_QF].q_values(qf_params, obss, h_states, acts)
+        curr_q_preds, _, updates = models[CONST_QF].q_values(
+            qf_params, obss, h_states, acts
+        )
         curr_q_preds_min = jnp.min(curr_q_preds, axis=0)
 
         # Q-value for next timestep
@@ -693,7 +695,9 @@ def make_sac_temp_loss(
 
         """
 
-        _, lprobs, _, _ = models[CONST_POLICY].act_lprob(pi_params, obss, h_states, keys)
+        _, lprobs, _, _ = models[CONST_POLICY].act_lprob(
+            pi_params, obss, h_states, keys
+        )
         lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
 
         temp = models[CONST_TEMPERATURE].apply(temp_params)

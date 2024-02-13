@@ -329,6 +329,7 @@ class SAC(OffPolicyLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_QF],
                 model_dict[CONST_MODEL][CONST_QF],
+                aux[CONST_UPDATES],
             )
 
             return {
@@ -390,6 +391,7 @@ class SAC(OffPolicyLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
+                aux[CONST_UPDATES],
             )
 
             return {
@@ -451,6 +453,7 @@ class SAC(OffPolicyLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_TEMPERATURE],
                 model_dict[CONST_MODEL][CONST_TEMPERATURE],
+                None,
             )
 
             return {
@@ -569,9 +572,9 @@ class SAC(OffPolicyLearner):
             qf_auxes[-1] = qf_aux
             if self._num_qf_updates % self._target_update_frequency == 0:
                 tic = timeit.default_timer()
-                self._model_dict[CONST_MODEL][CONST_TARGET_QF] = (
-                    self.update_target_model(self._model_dict)
-                )
+                self._model_dict[CONST_MODEL][
+                    CONST_TARGET_QF
+                ] = self.update_target_model(self._model_dict)
                 total_target_qf_update_time += timeit.default_timer() - tic
 
             # Update Actor
@@ -610,9 +613,9 @@ class SAC(OffPolicyLearner):
                     self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = temp_model_dict[
                         CONST_MODEL
                     ]
-                    self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = (
-                        temp_model_dict[CONST_OPT_STATE]
-                    )
+                    self._model_dict[CONST_OPT_STATE][
+                        CONST_TEMPERATURE
+                    ] = temp_model_dict[CONST_OPT_STATE]
                     total_temp_update_time += timeit.default_timer() - tic
                     temp_auxes[-1] = temp_aux
 
@@ -631,12 +634,12 @@ class SAC(OffPolicyLearner):
         aux[CONST_LOG][f"time/update_{CONST_POLICY}"] = total_pi_update_time
         aux[CONST_LOG][f"time/update_{CONST_TEMPERATURE}"] = total_temp_update_time
 
-        aux[CONST_LOG][f"interaction/{CONST_AVERAGE_RETURN}"] = (
-            self._rollout.latest_average_return(num_episodes=10)
-        )
-        aux[CONST_LOG][f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}"] = (
-            self._rollout.latest_average_episode_length(num_episodes=10)
-        )
+        aux[CONST_LOG][
+            f"interaction/{CONST_AVERAGE_RETURN}"
+        ] = self._rollout.latest_average_return(num_episodes=10)
+        aux[CONST_LOG][
+            f"interaction/{CONST_AVERAGE_EPISODE_LENGTH}"
+        ] = self._rollout.latest_average_episode_length(num_episodes=10)
 
         if qf_auxes:
             qf_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *qf_auxes)

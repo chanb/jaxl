@@ -197,7 +197,9 @@ class DeterministicPolicy(Policy):
         self.compute_action = jax.jit(self.make_compute_action(model))
         self.deterministic_action = jax.jit(self.make_deterministic_action(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -245,7 +247,9 @@ class DeterministicPolicy(Policy):
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -304,7 +308,9 @@ class GaussianPolicy(StochasticPolicy):
         self.act_lprob = jax.jit(self.make_act_lprob(model))
         self.lprob = jax.jit(self.make_lprob(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -355,7 +361,9 @@ class GaussianPolicy(StochasticPolicy):
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -396,7 +404,9 @@ class GaussianPolicy(StochasticPolicy):
 
         return deterministic_action
 
-    def make_random_action(self, model: Model) -> Callable[
+    def make_random_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -447,7 +457,9 @@ class GaussianPolicy(StochasticPolicy):
 
         return random_action
 
-    def make_act_lprob(self, model: Model) -> Callable[
+    def make_act_lprob(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -499,7 +511,9 @@ class GaussianPolicy(StochasticPolicy):
 
         return act_lprob
 
-    def make_lprob(self, model: Model) -> Callable[
+    def make_lprob(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]:
@@ -569,7 +583,9 @@ class SquashedGaussianPolicy(StochasticPolicy):
         self.act_lprob = jax.jit(self.make_act_lprob(model))
         self.lprob = jax.jit(self.make_lprob(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -621,7 +637,9 @@ class SquashedGaussianPolicy(StochasticPolicy):
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -663,7 +681,9 @@ class SquashedGaussianPolicy(StochasticPolicy):
 
         return deterministic_action
 
-    def make_random_action(self, model: Model) -> Callable[
+    def make_random_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -715,7 +735,9 @@ class SquashedGaussianPolicy(StochasticPolicy):
 
         return random_action
 
-    def make_act_lprob(self, model: Model) -> Callable[
+    def make_act_lprob(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -769,7 +791,9 @@ class SquashedGaussianPolicy(StochasticPolicy):
 
         return act_lprob
 
-    def make_lprob(self, model: Model) -> Callable[
+    def make_lprob(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]:
@@ -844,7 +868,9 @@ class SoftmaxPolicy(StochasticPolicy):
         self.act_lprob = jax.jit(self.make_act_lprob(model))
         self.lprob = jax.jit(self.make_lprob(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -893,7 +919,9 @@ class SoftmaxPolicy(StochasticPolicy):
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -934,7 +962,9 @@ class SoftmaxPolicy(StochasticPolicy):
 
         return deterministic_action
 
-    def make_random_action(self, model: Model) -> Callable[
+    def make_random_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -983,7 +1013,9 @@ class SoftmaxPolicy(StochasticPolicy):
 
         return random_action
 
-    def make_act_lprob(self, model: Model) -> Callable[
+    def make_act_lprob(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -1034,7 +1066,9 @@ class SoftmaxPolicy(StochasticPolicy):
 
         return act_lprob
 
-    def make_lprob(self, model: Model) -> Callable[
+    def make_lprob(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]:
@@ -1103,7 +1137,9 @@ class BangBangPolicy(StochasticPolicy):
         self.act_lprob = jax.jit(self.make_act_lprob(model))
         self.lprob = jax.jit(self.make_lprob(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -1152,7 +1188,9 @@ class BangBangPolicy(StochasticPolicy):
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -1193,7 +1231,9 @@ class BangBangPolicy(StochasticPolicy):
 
         return deterministic_action
 
-    def make_random_action(self, model: Model) -> Callable[
+    def make_random_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -1242,7 +1282,9 @@ class BangBangPolicy(StochasticPolicy):
 
         return random_action
 
-    def make_act_lprob(self, model: Model) -> Callable[
+    def make_act_lprob(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -1293,7 +1335,9 @@ class BangBangPolicy(StochasticPolicy):
 
         return act_lprob
 
-    def make_lprob(self, model: Model) -> Callable[
+    def make_lprob(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]:
