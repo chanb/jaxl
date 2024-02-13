@@ -285,8 +285,8 @@ def get_update_function(
                 params[CONST_ENCODER],
             )
             encoder_params = optax.apply_updates(params[CONST_ENCODER], updates)
-            model.encoder.update_batch_stats(
-                params[CONST_ENCODER],
+            encoder_params = model.encoder.update_batch_stats(
+                encoder_params,
                 batch_stats[CONST_ENCODER],
             )
 
@@ -296,8 +296,8 @@ def get_update_function(
                 params[CONST_PREDICTOR],
             )
             predictor_params = optax.apply_updates(params[CONST_PREDICTOR], updates)
-            model.encoder.update_batch_stats(
-                params[CONST_PREDICTOR],
+            predictor_params = model.encoder.update_batch_stats(
+                predictor_params,
                 batch_stats[CONST_PREDICTOR],
             )
 
@@ -319,7 +319,7 @@ def get_update_function(
                 params,
             )
             params = optax.apply_updates(params, updates)
-            model.update_batch_stats(
+            params = model.update_batch_stats(
                 params,
                 batch_stats,
             )

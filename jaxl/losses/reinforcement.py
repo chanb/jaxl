@@ -516,17 +516,17 @@ def make_sac_qf_loss(
 
         """
         # Action for next timestep
-        next_acts, next_lprobs, _ = models[CONST_POLICY].act_lprob(
+        next_acts, next_lprobs, _, _ = models[CONST_POLICY].act_lprob(
             pi_params, next_obss, next_h_states, keys
         )
         next_lprobs = jnp.sum(next_lprobs, axis=-1, keepdims=True)
 
         # Q-value for current timestep
-        curr_q_preds, _ = models[CONST_QF].q_values(qf_params, obss, h_states, acts)
+        curr_q_preds, _, updates = models[CONST_QF].q_values(qf_params, obss, h_states, acts)
         curr_q_preds_min = jnp.min(curr_q_preds, axis=0)
 
         # Q-value for next timestep
-        next_q_preds, _ = models[CONST_TARGET_QF].q_values(
+        next_q_preds, _, _ = models[CONST_TARGET_QF].q_values(
             target_qf_params, next_obss, next_h_states, next_acts
         )
         next_q_preds_min = jnp.min(next_q_preds, axis=0)
@@ -556,6 +556,7 @@ def make_sac_qf_loss(
             "min_q_log_prob": jnp.min(next_lprobs),
             "mean_q_log_prob": jnp.mean(next_lprobs),
             "curr_q_targets": curr_q_targets,
+            CONST_UPDATES: updates,
         }
 
     return qf_loss
@@ -614,11 +615,11 @@ def make_sac_pi_loss(
 
         """
 
-        acts, lprobs, _ = models[CONST_POLICY].act_lprob(
+        acts, lprobs, _, updates = models[CONST_POLICY].act_lprob(
             pi_params, obss, h_states, keys
         )
         lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
-        curr_q_preds, _ = models[CONST_QF].q_values(qf_params, obss, h_states, acts)
+        curr_q_preds, _, _ = models[CONST_QF].q_values(qf_params, obss, h_states, acts)
         curr_q_preds_min = jnp.min(curr_q_preds, axis=0)
 
         temp = models[CONST_TEMPERATURE].apply(temp_params)
@@ -633,6 +634,7 @@ def make_sac_pi_loss(
             "max_estimated_value": jnp.max(vals),
             "min_estimated_value": jnp.min(vals),
             "mean_estimated_value": jnp.mean(vals),
+            CONST_UPDATES: updates,
         }
 
     return pi_loss
@@ -691,7 +693,7 @@ def make_sac_temp_loss(
 
         """
 
-        _, lprobs, _ = models[CONST_POLICY].act_lprob(pi_params, obss, h_states, keys)
+        _, lprobs, _, _ = models[CONST_POLICY].act_lprob(pi_params, obss, h_states, keys)
         lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
 
         temp = models[CONST_TEMPERATURE].apply(temp_params)
