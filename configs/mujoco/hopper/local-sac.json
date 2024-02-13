@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/mujoco-hopper",
-        "experiment_name": "sac",
+        "experiment_name": "sac-unbounded_std",
         "log_interval": 1,
         "checkpoint_interval": false
     },
@@ -83,7 +83,7 @@
             "policy_distribution": "squashed_gaussian",
             "kwargs": {
                 "means": 0.0,
-                "stds": 1.0
+                "stds": 0.5
             }
         },
         "num_steps_per_epoch": 5000,

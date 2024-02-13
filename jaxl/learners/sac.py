@@ -650,6 +650,9 @@ class SAC(OffPolicyLearner):
             aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_QF}"] = l2_norm(
                 self.model_dict[CONST_MODEL][CONST_QF]
             ).item()
+            aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_TARGET_QF}"] = l2_norm(
+                self.model_dict[CONST_MODEL][CONST_TARGET_QF]
+            ).item()
 
             for act_i in range(acts.shape[-1]):
                 aux[CONST_LOG][
