@@ -41,11 +41,8 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "ParameterizedHopper-v0",
-            "env_kwargs": {
-                "seed": 36,
-                "use_default": true
-            }
+            "env_name": "Hopper-v3",
+            "env_kwargs": {}
         },
         "seeds": {
             "model_seed": 42,
@@ -64,25 +61,29 @@
         "eps": 1e-5,
         "obs_rms": true,
         "value_rms": false,
-        "policy_distribution": "gaussian",
-        "min_std": 1e-6,
+        "policy_distribution": "softmax",
+        "temperature": 1.0,
         "opt_batch_size": 256,
-        "opt_epochs": 5,
+        "opt_epochs": 100,
+        "kl_threshold": 0.015,
+        "update_before_early_stopping": true,
         "ent_loss_setting": {
             "scheduler": "constant_schedule",
             "scheduler_kwargs": {
-                "value": 0.0
+                "value": 0
             }
         },
         "vf_loss_setting": {
-            "coefficient": 1,
+            "coefficient": 0.5,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": false
         },
         "pi_loss_setting": {
+            "objective": "clip",
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": 0.2,
+            "beta": 0.0
         }
     },
     "train_config": {
