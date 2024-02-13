@@ -55,8 +55,8 @@
                 "save_path": "/home/bryanpu1/projects/icl/data",
                 "task_name": "multitask_mnist_finegrain",
                 "task_config": {
-                    "num_sequences": 500000,
-                    "sequence_length": 30,
+                    "num_sequences": 100000,
+                    "sequence_length": 17,
                     "random_label": true,
                     "save_dir": "/home/bryanpu1/projects/icl/data/mnist_icl"
                 }
