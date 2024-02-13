@@ -561,12 +561,12 @@ class PPO(OnPolicyLearner):
             f"time/{CONST_UPDATE_TIME}": total_update_time,
         }
 
-        gather_per_leaf_l2_norm(
-            aux[CONST_LOG], "pi", self.model_dict[CONST_MODEL][CONST_POLICY]
-        )
-        gather_per_leaf_l2_norm(
-            aux[CONST_LOG], "vf", self.model_dict[CONST_MODEL][CONST_VF]
-        )
+        aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_QF}"] = l2_norm(
+            self.model_dict[CONST_MODEL][CONST_VF]
+        ).item()
+        aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_POLICY}"] = l2_norm(
+            self.model_dict[CONST_MODEL][CONST_POLICY]
+        ).item()
 
         for act_i in range(acts.shape[-1]):
             for k in auxes[CONST_ACTION][act_i]:
