@@ -40,9 +40,10 @@
     "optimizer_config": {
         "optimizer": "adam",
         "lr": {
-            "scheduler": "constant_schedule",
+            "scheduler": "linear_warmup_sqrt_decay",
             "scheduler_kwargs": {
-                "value": 0.0003
+                "max_lr": 3e-4,
+                "warmup_steps": 4000
             }
         },
         "max_grad_norm": false

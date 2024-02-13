@@ -78,7 +78,7 @@ def construct_mnist(
                 save_path,
                 train=train,
                 download=True,
-                transform=jaxl_transforms.StandardImageTransform(),
+                transform=jaxl_transforms.DefaultPILToImageTransform(),
                 target_transform=target_transform,
             ),
             num_sequences=task_config.num_sequences,
@@ -234,13 +234,13 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
         if not loaded:
             _, counts = np.unique(dataset.targets, return_counts=True)
             min_num_per_class = np.min(counts)
+            num_classes = 10
             label_to_idx = np.vstack(
                 [
                     np.where(dataset.targets == class_i)[0][:min_num_per_class]
-                    for class_i in range(self.output_dim[0])
+                    for class_i in range(num_classes)
                 ]
             )
-            num_classes = 10
             (
                 context_idxes,
                 query_idxes,
