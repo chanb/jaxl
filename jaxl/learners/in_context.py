@@ -142,6 +142,7 @@ class InContextLearner(OfflineLearner):
                 grads,
                 model_dict[CONST_OPT_STATE],
                 model_dict[CONST_MODEL],
+                aux[self._config.losses[0]][CONST_AUX][CONST_UPDATES],
             )
 
             return {CONST_MODEL: params, CONST_OPT_STATE: opt_state}, aux
@@ -181,6 +182,7 @@ class InContextLearner(OfflineLearner):
             self.model_dict, aux = self.train_step(
                 self._model_dict, context_inputs, context_outputs, queries, outputs
             )
+
             total_update_time += timeit.default_timer() - tic
             assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
 

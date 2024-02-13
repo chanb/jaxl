@@ -255,6 +255,7 @@ def get_update_function(
         Union[Dict[str, Any], chex.Array],
         optax.OptState,
         optax.Params,
+        Any,
     ],
     Tuple[Any, Any],
 ]:
@@ -268,7 +269,8 @@ def get_update_function(
         [optax.GradientTransformation,
         Union[Dict[str, Any], chex.Array],
         optax.OptState,
-        optax.Params],
+        optax.Params,
+        Any],
         Tuple[Any, Any]
     ]
 
@@ -276,13 +278,17 @@ def get_update_function(
 
     if isinstance(model, EncoderPredictorModel):
 
-        def update_encoder_predictor(optimizer, grads, opt_state, params):
+        def update_encoder_predictor(optimizer, grads, opt_state, params, batch_stats):
             updates, encoder_opt_state = optimizer[CONST_ENCODER].update(
                 grads[CONST_ENCODER],
                 opt_state[CONST_ENCODER],
                 params[CONST_ENCODER],
             )
             encoder_params = optax.apply_updates(params[CONST_ENCODER], updates)
+            model.encoder.update_batch_stats(
+                params[CONST_ENCODER],
+                batch_stats[CONST_ENCODER],
+            )
 
             updates, predictor_opt_state = optimizer[CONST_PREDICTOR].update(
                 grads[CONST_PREDICTOR],
@@ -290,6 +296,10 @@ def get_update_function(
                 params[CONST_PREDICTOR],
             )
             predictor_params = optax.apply_updates(params[CONST_PREDICTOR], updates)
+            model.encoder.update_batch_stats(
+                params[CONST_PREDICTOR],
+                batch_stats[CONST_PREDICTOR],
+            )
 
             return {
                 CONST_ENCODER: encoder_params,
@@ -302,13 +312,17 @@ def get_update_function(
         return update_encoder_predictor
     else:
 
-        def update_default(optimizer, grads, opt_state, params):
+        def update_default(optimizer, grads, opt_state, params, batch_stats):
             updates, opt_state = optimizer.update(
                 grads,
                 opt_state,
                 params,
             )
             params = optax.apply_updates(params, updates)
+            model.update_batch_stats(
+                params,
+                batch_stats,
+            )
             return params, opt_state
 
         return update_default

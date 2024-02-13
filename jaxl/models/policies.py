@@ -240,7 +240,7 @@ class DeterministicPolicy(Policy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act, h_state = model.forward(params, obs, h_state)
+            act, h_state, _ = model.forward(params, obs, h_state)
             return act, h_state
 
         return compute_action
@@ -280,7 +280,7 @@ class DeterministicPolicy(Policy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act, h_state = model.forward(params, obs, h_state)
+            act, h_state, _ = model.forward(params, obs, h_state)
             return act, h_state
 
         return deterministic_action
@@ -347,7 +347,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -390,7 +390,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, _ = jnp.split(act_params, 2, axis=-1)
             return act_mean, h_state
 
@@ -439,7 +439,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -490,7 +490,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -537,7 +537,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
-            act_params, _ = model.forward(params, obs, h_state)
+            act_params, _, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
@@ -611,7 +611,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -655,7 +655,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, _ = jnp.split(act_params, 2, axis=-1)
             act_mean = TanhTransform.transform(act_mean)
             return act_mean, h_state
@@ -705,7 +705,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -757,7 +757,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -806,7 +806,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
-            act_params, _ = model.forward(params, obs, h_state)
+            act_params, _, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
 
@@ -885,7 +885,7 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act = Softmax.sample(act_params / self._temperature, key)
             return act, h_state
 
@@ -926,7 +926,7 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_max = jnp.argmax(act_params, axis=-1)
             return act_max, h_state
 
@@ -975,7 +975,7 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act = Softmax.sample(act_params / self._temperature, key)
             return act, h_state
 
@@ -1024,7 +1024,7 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_params = act_params / self._temperature
             act = Softmax.sample(act_params, key)
             lprob = Softmax.lprob(act_params, act)
@@ -1070,7 +1070,7 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
-            act_params, _ = model.forward(params, obs, h_state)
+            act_params, _, _ = model.forward(params, obs, h_state)
             act_params = act_params / self._temperature
             lprob = Softmax.lprob(act_params, act)
             return lprob, {
@@ -1143,7 +1143,7 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act = Bernoulli.sample(act_params / self._temperature, key)
             return act, h_state
 
@@ -1184,7 +1184,7 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_max, _ = jnp.argmax(act_params / self._temperature, axis=-1)
             return act_max, h_state
 
@@ -1233,7 +1233,7 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act = Bernoulli.sample(act_params / self._temperature, key)
             return act, h_state
 
@@ -1282,7 +1282,7 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             logits = act_params / self._temperature
             act = Bernoulli.sample(logits, key)
             lprob = Bernoulli.lprob(logits, act).sum(-1, keepdims=True)
@@ -1328,7 +1328,7 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
-            act_params, _ = model.forward(params, obs, h_state)
+            act_params, _, _ = model.forward(params, obs, h_state)
             logits = act_params / self._temperature
             lprob = Bernoulli.lprob(logits, act).sum(-1, keepdims=True)
             return lprob, {

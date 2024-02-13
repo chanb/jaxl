@@ -106,7 +106,7 @@ class StateActionInputQ(QFunction):
                     CONST_ACTION: act,
                 },
             )
-            q_val, h_state = model.forward(params, state_action, h_state)
+            q_val, h_state, _ = model.forward(params, state_action, h_state)
             return q_val, h_state
 
         return compute_q_value

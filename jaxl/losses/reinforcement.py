@@ -422,7 +422,7 @@ def make_ppo_vf_loss(
         :rtype: Tuple[chex.Array, Dict]
 
         """
-        preds, _ = model.forward(params, obss, h_states)
+        preds, _, updates = model.forward(params, obss, h_states)
         # XXX: Deal with inf values
         preds = jnp.nan_to_num(preds, posinf=0.0, neginf=0.0)
 
@@ -435,7 +435,8 @@ def make_ppo_vf_loss(
         vf_surrogate = jnp.maximum(surrogate_1, surrogate_2)
 
         return reduction(vf_surrogate), {
-            CONST_NUM_CLIPPED: (preds != clipped_preds).sum()
+            CONST_NUM_CLIPPED: (preds != clipped_preds).sum(),
+            CONST_UPDATES: updates,
         }
 
     return vf_loss

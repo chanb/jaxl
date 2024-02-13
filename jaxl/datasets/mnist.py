@@ -236,7 +236,7 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
             min_num_per_class = np.min(counts)
             label_to_idx = np.vstack(
                 [
-                    np.where(dataset.targets == class_i)[0][: min_num_per_class]
+                    np.where(dataset.targets == class_i)[0][:min_num_per_class]
                     for class_i in range(self.output_dim[0])
                 ]
             )
@@ -334,8 +334,12 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
         context_idxes = np.take_along_axis(
             self._data["label_to_idx"], context_idxes[:, None], axis=1
         ).flatten()
-        context_inputs, context_outputs = zip(*list(map(lambda ii: self._dataset[ii], context_idxes)))
-        context_inputs = np.concatenate([context_input[None] for context_input in context_inputs])
+        context_inputs, context_outputs = zip(
+            *list(map(lambda ii: self._dataset[ii], context_idxes))
+        )
+        context_inputs = np.concatenate(
+            [context_input[None] for context_input in context_inputs]
+        )
         context_outputs = np.array(context_outputs)
         context_outputs = self._data["label_map"][idx][context_outputs]
 

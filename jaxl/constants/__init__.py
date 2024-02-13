@@ -35,6 +35,7 @@ CONST_STD = "std"
 CONST_VAR = "var"
 CONST_DATASET_WRAPPER = "dataset_wrapper"
 CONST_WRAPPER = "wrapper"
+CONST_UPDATES = "updates"
 
 VALID_SPLIT = (CONST_TRAIN, CONST_TEST)
 
