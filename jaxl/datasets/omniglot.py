@@ -11,11 +11,9 @@ from jaxl.datasets.utils import (
     maybe_load_dataset,
 )
 
-import _pickle as pickle
 import chex
 import jax.random as jrandom
 import numpy as np
-import os
 import torchvision.datasets as torch_datasets
 
 import jaxl.transforms as jaxl_transforms
@@ -172,7 +170,7 @@ class MultitaskOmniglotFineGrain(Dataset):
     def __getitem__(self, idx):
         sample_idxes = self._data["sample_idxes"][idx].tolist()
         inputs, labels = zip(*list(map(lambda ii: self._dataset[ii], sample_idxes)))
-        inputs = np.concatenate(list(inputs))
+        inputs = np.concatenate([input[None] for input in inputs])
         labels = np.array(labels)
         outputs = np.eye(self._data["num_classes"])[labels]
         return (inputs, outputs)

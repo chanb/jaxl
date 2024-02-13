@@ -4,6 +4,7 @@ CONST_ENSEMBLE = "ensemble"
 CONST_ICL_GPT = "icl_gpt"
 CONST_GPT = "gpt"
 CONST_MLP = "mlp"
+CONST_RESNET = "resnet"
 
 VALID_ARCHITECTURE = [
     CONST_CNN,
@@ -11,11 +12,13 @@ VALID_ARCHITECTURE = [
     CONST_ENSEMBLE,
     CONST_ICL_GPT,
     CONST_MLP,
+    CONST_RESNET,
 ]
 
 VALID_TOKENIZER_TYPE = [
     CONST_CNN,
     CONST_MLP,
+    CONST_RESNET,
 ]
 
 CONST_BANG_BANG = "bang_bang"

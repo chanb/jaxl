@@ -520,4 +520,99 @@ class CNN(Model):
 
 
 class ResNetV1(Model):
-    pass
+    """A residual network."""
+
+    def __init__(
+        self,
+        blocks_per_group: Sequence[int],
+        features: Sequence[int],
+        stride: Sequence[Sequence[int]],
+        use_projection: Sequence[bool],
+        use_bottleneck: bool,
+    ) -> None:
+        self.batch_stats = None
+        self.resnet = ResNetV1Module(
+            blocks_per_group=blocks_per_group,
+            features=features,
+            stride=stride,
+            use_projection=use_projection,
+            use_bottleneck=use_bottleneck,
+        )
+        self.forward = jax.jit(self.make_forward())
+
+    def init(
+        self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
+    ) -> Union[optax.Params, Dict[str, Any]]:
+        """
+        Initialize model parameters.
+
+        :param model_key: the random number generation key for initializing parameters
+        :param dummy_x: the input data
+        :type model_key: jrandom.PRNGKey
+        :type dummy_x: chex.Array
+        :return: the initialized parameters
+        :rtype: Union[optax.Params, Dict[str, Any]]
+
+        """
+        resnet_params = self.resnet.init(model_key, dummy_x, eval=True)
+        return {
+            CONST_RESNET: resnet_params,
+        }
+
+    def make_forward(
+        self,
+    ) -> Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+        ],
+        Tuple[chex.Array, chex.Array],
+    ]:
+        """
+        Makes the forward call of the ResNet model.
+
+        :return: the forward call.
+        :rtype: Callable[
+            [
+                Union[optax.Params, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+                bool,
+            ],
+            Tuple[chex.Array, chex.Array],
+        ]
+        """
+
+        def forward(
+            params: Union[optax.Params, Dict[str, Any]],
+            input: chex.Array,
+            carry: chex.Array,
+            eval: bool=False,
+        ) -> Tuple[chex.Array, chex.Array]:
+            """
+            Forward call of the ResNet.
+
+            :param params: the model parameters
+            :param input: the input
+            :param carry: the hidden state (not used)
+            :type params: Union[optax.Params
+            :type input: chex.Array
+            :type carry: chex.Array
+            :return: the output and a pass-through carry
+            :rtype: Tuple[chex.Array, chex.Array]
+
+            """
+            # NOTE: Assume batch size is first dim
+            out = self.resnet.apply(
+                params[CONST_RESNET],
+                input,
+                eval=eval,
+                mutable=[CONST_BATCH_STATS],
+            )
+            if not eval:
+                self.batch_stats = out[1][CONST_BATCH_STATS]
+                out = out[0]
+            return out, carry
+
+        return forward

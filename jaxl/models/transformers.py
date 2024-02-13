@@ -14,6 +14,7 @@ from jaxl.models.common import (
     Model,
     CNN,
     MLP,
+    ResNetV1,
 )
 from jaxl.models.encodings import get_positional_encoding
 from jaxl.models.modules import GPTModule
@@ -306,6 +307,14 @@ def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
             output_activation=getattr(
                 tokenizer_kwargs, "output_activation", CONST_IDENTITY
             ),
+        )
+    elif tokenizer_config.type == CONST_RESNET:
+        return ResNetV1(
+            blocks_per_group=tokenizer_kwargs.blocks_per_group,
+            features=tokenizer_kwargs.features,
+            stride=tokenizer_kwargs.stride,
+            use_projection=tokenizer_kwargs.use_projection,
+            use_bottleneck=tokenizer_kwargs.use_bottleneck,
         )
     else:
         raise ValueError(
