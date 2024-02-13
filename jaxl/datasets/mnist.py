@@ -202,7 +202,8 @@ class MultitaskMNISTFineGrain(Dataset):
         sample_idxes = self._data["sample_idxes"][idx].tolist()
         inputs, labels = zip(*list(map(lambda ii: self._dataset[ii], sample_idxes)))
         inputs = np.concatenate([input[None] for input in inputs])
-        labels = self._data["label_map"][labels]
+        labels = np.array(labels)
+        labels = self._data["label_map"][idx][labels]
         outputs = np.eye(self._data["num_classes"])[labels]
         return (inputs, outputs)
 
@@ -334,8 +335,9 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
             self._data["label_to_idx"], context_idxes[:, None], axis=1
         ).flatten()
         context_inputs, context_outputs = zip(*list(map(lambda ii: self._dataset[ii], context_idxes)))
-        context_inputs = np.concatenate([input[None] for context_input in context_inputs])
-        context_outputs = self._data["label_map"][context_outputs]
+        context_inputs = np.concatenate([context_input[None] for context_input in context_inputs])
+        context_outputs = np.array(context_outputs)
+        context_outputs = self._data["label_map"][idx][context_outputs]
 
         context_inputs = context_inputs[self._data["swap_idxes"][idx]]
         context_outputs = context_outputs[self._data["swap_idxes"][idx]]
@@ -343,8 +345,9 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
 
         query_idxes = self._data["query_idxes"][idx].tolist()
         queries, labels = zip(*list(map(lambda ii: self._dataset[ii], query_idxes)))
-        queries = np.concatenate([input[None] for query in queries])
-        labels = self._data["label_map"][labels]
+        queries = np.concatenate([query[None] for query in queries])
+        labels = np.array(labels)
+        labels = self._data["label_map"][idx][labels]
         outputs = np.eye(self._data["num_classes"])[labels]
 
         return (context_inputs, context_outputs, queries, outputs)

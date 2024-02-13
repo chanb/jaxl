@@ -401,9 +401,16 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
             input_dim = contexts[CONST_CONTEXT_INPUT].shape[2:]
             output_dim = contexts[CONST_CONTEXT_OUTPUT].shape[2:]
             batch_size = num_samples * context_len
-            context_input_embedding, _ = self.input_tokenizer.forward(
+
+            input_embedding, _ = self.input_tokenizer.forward(
                 params[CONST_INPUT_TOKENIZER],
-                contexts[CONST_CONTEXT_INPUT].reshape((batch_size, *input_dim)),
+                jnp.concatenate(
+                    (
+                        contexts[CONST_CONTEXT_INPUT],
+                        queries,
+                    ),
+                    axis=1,
+                ).reshape((batch_size + num_samples, *input_dim)),
                 None,
             )
             context_output_embedding, _ = self.output_tokenizer.forward(
@@ -411,23 +418,17 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
                 contexts[CONST_CONTEXT_OUTPUT].reshape((batch_size, *output_dim)),
                 None,
             )
-            query_embedding, _ = self.input_tokenizer.forward(
-                params[CONST_INPUT_TOKENIZER],
-                queries.reshape((num_samples, *input_dim)),
-                None,
-            )
 
-            context_input_embedding = context_input_embedding.reshape(
-                (num_samples, context_len, -1)
+            input_embedding = input_embedding.reshape(
+                (num_samples, context_len + 1, -1)
             )
-            query_embedding = query_embedding.reshape((num_samples, 1, -1))
             context_output_embedding = context_output_embedding.reshape(
                 (num_samples, context_len, -1)
             )
 
             input_embedding = self.positional_encoding.apply(
                 params[CONST_POSITIONAL_ENCODING],
-                jnp.concatenate((context_input_embedding, query_embedding), axis=1),
+                input_embedding,
             )
 
             context_input_embedding, query_embedding = (
