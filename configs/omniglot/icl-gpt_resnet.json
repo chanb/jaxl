@@ -3,7 +3,7 @@
         "save_path": "./logs/icl-omniglot",
         "experiment_name": "resnet-context_len_16-num_blocks_8",
         "log_interval": 50,
-        "checkpoint_interval": 10000
+        "checkpoint_interval": 50000
     },
     "model_config": {
         "architecture": "icl_gpt",
