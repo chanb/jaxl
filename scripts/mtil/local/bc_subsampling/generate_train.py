@@ -50,9 +50,9 @@ for env_name, env_config in envs.items():
     print(f"Processing {env_name}")
 
     for buffer_size in buffer_sizes:
-        template["logging_config"]["save_path"] = (
-            "./logs/bc_subsampling/{}-size_{}".format(env_name, buffer_size)
-        )
+        template["logging_config"][
+            "save_path"
+        ] = "./logs/bc_subsampling/{}-size_{}".format(env_name, buffer_size)
         if env_name.split("_")[1] == "discrete":
             template["learner_config"]["losses"][0] = "categorical"
         elif env_name.split("_")[1] == "continuous":
@@ -60,10 +60,10 @@ for env_name, env_config in envs.items():
 
         for subsampling, seed in product(env_config["subsamplings"], seeds):
             template["logging_config"]["experiment_name"] = f"subsampling_{subsampling}"
-            template["learner_config"]["buffer_config"]["load_buffer"] = (
-                "{}/expert_buffer-default-{}-num_samples_10000-subsampling_{}.gzip".format(
-                    data_dir, env_name, subsampling
-                )
+            template["learner_config"]["buffer_config"][
+                "load_buffer"
+            ] = "{}/expert_buffer-default-{}-num_samples_10000-subsampling_{}.gzip".format(
+                data_dir, env_name, subsampling
             )
             template["learner_config"]["buffer_config"]["set_size"] = buffer_size
             template["learner_config"]["seeds"] = {

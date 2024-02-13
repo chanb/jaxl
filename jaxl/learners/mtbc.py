@@ -278,6 +278,7 @@ class MTBC(OfflineLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
+                aux[self._config.losses[0]][CONST_AUX][CONST_UPDATES],
             )
 
             return {
@@ -344,9 +345,9 @@ class MTBC(OfflineLearner):
         )
 
         for task_i in range(self.num_tasks):
-            aux[CONST_LOG][f"{CONST_PARAM_NORM}/predictor_{task_i}"] = (
-                predictors_param_norm[task_i].item()
-            )
+            aux[CONST_LOG][
+                f"{CONST_PARAM_NORM}/predictor_{task_i}"
+            ] = predictors_param_norm[task_i].item()
             aux[CONST_LOG][f"{CONST_GRAD_NORM}/predictor_{task_i}"] = auxes[CONST_AUX][
                 CONST_GRAD_NORM
             ][CONST_PREDICTOR][task_i].item()

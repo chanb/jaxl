@@ -101,6 +101,10 @@ class A2C(OnPolicyLearner):
                 CONST_VF: vf_loss,
                 CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
                 CONST_ADVANTAGE: (rets - baselines).mean(),
+                CONST_UPDATES: {
+                    CONST_VF: vf_aux[CONST_UPDATES],
+                    CONST_POLICY: pi_aux[CONST_UPDATES],
+                },
             }
             return agg_loss, aux
 
@@ -220,6 +224,7 @@ class A2C(OnPolicyLearner):
                 grads[CONST_POLICY],
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
+                aux[CONST_UPDATES][CONST_POLICY],
             )
 
             vf_params, vf_opt_state = vf_update(
@@ -227,6 +232,7 @@ class A2C(OnPolicyLearner):
                 grads[CONST_VF],
                 model_dict[CONST_OPT_STATE][CONST_VF],
                 model_dict[CONST_MODEL][CONST_VF],
+                aux[CONST_UPDATES][CONST_VF],
             )
 
             return {
@@ -343,9 +349,9 @@ class A2C(OnPolicyLearner):
             aux[CONST_LOG][
                 f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_SATURATION}"
             ] = auxes[CONST_ACTION][act_i][CONST_SATURATION]
-            aux[CONST_LOG][f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"] = (
-                auxes[CONST_ACTION][act_i][CONST_MEAN]
-            )
+            aux[CONST_LOG][
+                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
+            ] = auxes[CONST_ACTION][act_i][CONST_MEAN]
 
         self.gather_rms(aux)
         return aux

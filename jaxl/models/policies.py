@@ -197,7 +197,9 @@ class DeterministicPolicy(Policy):
         self.compute_action = jax.jit(self.make_compute_action(model))
         self.deterministic_action = jax.jit(self.make_deterministic_action(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -240,12 +242,14 @@ class DeterministicPolicy(Policy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act, h_state = model.forward(params, obs, h_state)
+            act, h_state, _ = model.forward(params, obs, h_state)
             return act, h_state
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -280,7 +284,7 @@ class DeterministicPolicy(Policy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act, h_state = model.forward(params, obs, h_state)
+            act, h_state, _ = model.forward(params, obs, h_state)
             return act, h_state
 
         return deterministic_action
@@ -304,7 +308,9 @@ class GaussianPolicy(StochasticPolicy):
         self.act_lprob = jax.jit(self.make_act_lprob(model))
         self.lprob = jax.jit(self.make_lprob(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -347,7 +353,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -355,7 +361,9 @@ class GaussianPolicy(StochasticPolicy):
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -390,13 +398,15 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, _ = jnp.split(act_params, 2, axis=-1)
             return act_mean, h_state
 
         return deterministic_action
 
-    def make_random_action(self, model: Model) -> Callable[
+    def make_random_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -439,7 +449,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -447,7 +457,9 @@ class GaussianPolicy(StochasticPolicy):
 
         return random_action
 
-    def make_act_lprob(self, model: Model) -> Callable[
+    def make_act_lprob(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -490,16 +502,18 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, updates = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
-            return act, lprob, h_state
+            return act, lprob, h_state, updates
 
         return act_lprob
 
-    def make_lprob(self, model: Model) -> Callable[
+    def make_lprob(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]:
@@ -537,7 +551,7 @@ class GaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
-            act_params, _ = model.forward(params, obs, h_state)
+            act_params, _, updates = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
@@ -545,6 +559,7 @@ class GaussianPolicy(StochasticPolicy):
                 CONST_MEAN: act_mean,
                 CONST_STD: act_std,
                 CONST_ENTROPY: Normal.entropy(act_mean, act_std),
+                CONST_UPDATES: updates,
             }
 
         return lprob
@@ -568,7 +583,9 @@ class SquashedGaussianPolicy(StochasticPolicy):
         self.act_lprob = jax.jit(self.make_act_lprob(model))
         self.lprob = jax.jit(self.make_lprob(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -611,7 +628,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -620,7 +637,9 @@ class SquashedGaussianPolicy(StochasticPolicy):
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -655,14 +674,16 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, _ = jnp.split(act_params, 2, axis=-1)
             act_mean = TanhTransform.transform(act_mean)
             return act_mean, h_state
 
         return deterministic_action
 
-    def make_random_action(self, model: Model) -> Callable[
+    def make_random_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -705,7 +726,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
@@ -714,7 +735,9 @@ class SquashedGaussianPolicy(StochasticPolicy):
 
         return random_action
 
-    def make_act_lprob(self, model: Model) -> Callable[
+    def make_act_lprob(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -757,18 +780,20 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, updates = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
             act_t = TanhTransform.transform(act)
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
             lprob = lprob - TanhTransform.log_abs_det_jacobian(act, act_t)
-            return act_t, lprob, h_state
+            return act_t, lprob, h_state, updates
 
         return act_lprob
 
-    def make_lprob(self, model: Model) -> Callable[
+    def make_lprob(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]:
@@ -806,7 +831,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
-            act_params, _ = model.forward(params, obs, h_state)
+            act_params, _, updates = model.forward(params, obs, h_state)
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
 
@@ -818,6 +843,7 @@ class SquashedGaussianPolicy(StochasticPolicy):
                 CONST_MEAN: act_mean,
                 CONST_STD: act_std,
                 CONST_ENTROPY: Normal.entropy(act_inv, act_std),
+                CONST_UPDATES: updates,
             }
 
         return lprob
@@ -842,7 +868,9 @@ class SoftmaxPolicy(StochasticPolicy):
         self.act_lprob = jax.jit(self.make_act_lprob(model))
         self.lprob = jax.jit(self.make_lprob(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -885,13 +913,15 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act = Softmax.sample(act_params / self._temperature, key)
             return act, h_state
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -926,13 +956,15 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_max = jnp.argmax(act_params, axis=-1)
             return act_max, h_state
 
         return deterministic_action
 
-    def make_random_action(self, model: Model) -> Callable[
+    def make_random_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -975,13 +1007,15 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act = Softmax.sample(act_params / self._temperature, key)
             return act, h_state
 
         return random_action
 
-    def make_act_lprob(self, model: Model) -> Callable[
+    def make_act_lprob(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -1024,15 +1058,17 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, updates = model.forward(params, obs, h_state)
             act_params = act_params / self._temperature
             act = Softmax.sample(act_params, key)
             lprob = Softmax.lprob(act_params, act)
-            return act, lprob, h_state
+            return act, lprob, h_state, updates
 
         return act_lprob
 
-    def make_lprob(self, model: Model) -> Callable[
+    def make_lprob(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]:
@@ -1070,12 +1106,13 @@ class SoftmaxPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
-            act_params, _ = model.forward(params, obs, h_state)
+            act_params, _, updates = model.forward(params, obs, h_state)
             act_params = act_params / self._temperature
             lprob = Softmax.lprob(act_params, act)
             return lprob, {
                 CONST_LOGITS: act_params,
                 CONST_ENTROPY: Softmax.entropy(act_params),
+                CONST_UPDATES: updates,
             }
 
         return lprob
@@ -1100,7 +1137,9 @@ class BangBangPolicy(StochasticPolicy):
         self.act_lprob = jax.jit(self.make_act_lprob(model))
         self.lprob = jax.jit(self.make_lprob(model))
 
-    def make_compute_action(self, model: Model) -> Callable[
+    def make_compute_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -1143,13 +1182,15 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act = Bernoulli.sample(act_params / self._temperature, key)
             return act, h_state
 
         return compute_action
 
-    def make_deterministic_action(self, model: Model) -> Callable[
+    def make_deterministic_action(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -1184,13 +1225,15 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act_max, _ = jnp.argmax(act_params / self._temperature, axis=-1)
             return act_max, h_state
 
         return deterministic_action
 
-    def make_random_action(self, model: Model) -> Callable[
+    def make_random_action(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -1233,13 +1276,15 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, _ = model.forward(params, obs, h_state)
             act = Bernoulli.sample(act_params / self._temperature, key)
             return act, h_state
 
         return random_action
 
-    def make_act_lprob(self, model: Model) -> Callable[
+    def make_act_lprob(
+        self, model: Model
+    ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -1282,15 +1327,17 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, chex.Array, chex.Array]
 
             """
-            act_params, h_state = model.forward(params, obs, h_state)
+            act_params, h_state, updates = model.forward(params, obs, h_state)
             logits = act_params / self._temperature
             act = Bernoulli.sample(logits, key)
             lprob = Bernoulli.lprob(logits, act).sum(-1, keepdims=True)
-            return act, lprob, h_state
+            return act, lprob, h_state, updates
 
         return act_lprob
 
-    def make_lprob(self, model: Model) -> Callable[
+    def make_lprob(
+        self, model: Model
+    ) -> Callable[
         [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
         chex.Array,
     ]:
@@ -1328,11 +1375,12 @@ class BangBangPolicy(StochasticPolicy):
             :rtype: Tuple[chex.Array, Dict[str, Any]]
 
             """
-            act_params, _ = model.forward(params, obs, h_state)
+            act_params, _, updates = model.forward(params, obs, h_state)
             logits = act_params / self._temperature
             lprob = Bernoulli.lprob(logits, act).sum(-1, keepdims=True)
             return lprob, {
                 CONST_ENTROPY: Bernoulli.entropy(logits),
+                CONST_UPDATES: updates,
             }
 
         return lprob

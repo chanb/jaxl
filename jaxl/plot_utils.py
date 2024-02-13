@@ -81,9 +81,9 @@ def get_config(agent_path, env_seed=None, ref_agent_path=None):
             agent_config_dict["learner_config"]["env_config"] = ref_agent_config_dict[
                 "learner_config"
             ]["env_config"]
-            agent_config_dict["learner_config"]["policy_distribution"] = (
-                ref_agent_config_dict["learner_config"]["policy_distribution"]
-            )
+            agent_config_dict["learner_config"][
+                "policy_distribution"
+            ] = ref_agent_config_dict["learner_config"]["policy_distribution"]
             if (
                 agent_config_dict["learner_config"]["policy_distribution"]
                 == CONST_GAUSSIAN

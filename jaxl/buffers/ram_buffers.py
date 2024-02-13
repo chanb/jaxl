@@ -377,7 +377,9 @@ class AbstractNumPyBuffer(ReplayBuffer):
 
         return historic_observations, historic_hidden_states, lengths
 
-    def get_transitions(self, idxes: chex.Array) -> Tuple[
+    def get_transitions(
+        self, idxes: chex.Array
+    ) -> Tuple[
         chex.Array,
         chex.Array,
         chex.Array,

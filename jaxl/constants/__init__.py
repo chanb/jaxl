@@ -35,12 +35,14 @@ CONST_STD = "std"
 CONST_VAR = "var"
 CONST_DATASET_WRAPPER = "dataset_wrapper"
 CONST_WRAPPER = "wrapper"
+CONST_UPDATES = "updates"
 
 VALID_SPLIT = (CONST_TRAIN, CONST_TEST)
 
 CONST_A_MIN = "a_min"
 CONST_A_MAX = "a_max"
 
+CONST_EPS = "eps"
 CONST_EPSILON = "epsilon"
 
 CONST_ICL = "in_context_learning"

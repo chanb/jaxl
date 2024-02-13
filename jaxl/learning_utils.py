@@ -1,5 +1,6 @@
 import _pickle as pickle
 import json
+import orbax.checkpoint as ocp
 import os
 import tqdm
 
@@ -106,7 +107,6 @@ def train(
 
             checkpoint_manager = CheckpointManager(
                 os.path.join(os.path.abspath(save_path), "models"),
-                PyTreeCheckpointer(),
             )
 
         for epoch in tqdm.tqdm(range(train_config.num_epochs)):
@@ -148,11 +148,16 @@ def train(
                             save_path, "imgs/train_{}.png".format(true_epoch)
                         ),
                     )
-                checkpoint_manager.save(true_epoch, learner.checkpoint(final=False))
+                checkpoint_manager.save(
+                    true_epoch,
+                    args=ocp.args.StandardSave(learner.checkpoint(final=False)),
+                )
     except KeyboardInterrupt:
         pass
     if save_path:
-        checkpoint_manager.save(true_epoch, learner.checkpoint(final=True))
+        checkpoint_manager.save(
+            true_epoch, args=ocp.args.StandardSave(learner.checkpoint(final=True))
+        )
 
 
 def load_evaluation_components(
@@ -215,7 +220,6 @@ def load_evaluation_components(
 
     checkpoint_manager = CheckpointManager(
         os.path.join(run_path, "models"),
-        PyTreeCheckpointer(),
     )
 
     params = checkpoint_manager.restore(checkpoint_manager.latest_step())
