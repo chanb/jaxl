@@ -10,6 +10,7 @@ import timeit
 
 from jaxl.constants import *
 from jaxl.learners.learner import OfflineLearner
+from jaxl.learners.utils import gather_learning_rate
 from jaxl.losses import get_loss_function, make_aggregate_loss
 from jaxl.models import get_model, get_optimizer, get_update_function
 from jaxl.utils import parse_dict, l2_norm
@@ -141,6 +142,7 @@ class InContextLearner(OfflineLearner):
                 grads,
                 model_dict[CONST_OPT_STATE],
                 model_dict[CONST_MODEL],
+                aux[self._config.losses[0]][CONST_AUX][CONST_UPDATES],
             )
 
             return {CONST_MODEL: params, CONST_OPT_STATE: opt_state}, aux
@@ -180,6 +182,7 @@ class InContextLearner(OfflineLearner):
             self.model_dict, aux = self.train_step(
                 self._model_dict, context_inputs, context_outputs, queries, outputs
             )
+
             total_update_time += timeit.default_timer() - tic
             assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
 
@@ -198,6 +201,12 @@ class InContextLearner(OfflineLearner):
             aux[CONST_LOG][f"losses/{loss_key}"] = auxes[CONST_AUX][loss_key][
                 CONST_LOSS
             ].item()
+
+        if isinstance(self._model_dict[CONST_OPT_STATE], dict):
+            for model_name, opt_state_list in self._model_dict[CONST_OPT_STATE]:
+                gather_learning_rate(aux, model_name, opt_state_list)
+        else:
+            gather_learning_rate(aux, CONST_MODEL, self._model_dict[CONST_OPT_STATE])
 
         aux[CONST_DATA] = [
             context_inputs,

@@ -53,8 +53,11 @@ def make_squared_loss(
         :rtype: Tuple[chex.Array, Dict]
 
         """
-        y_pred, _ = model.forward(params, x, carry)
-        return reduction((y_pred - y) ** 2), {CONST_PREDICTIONS: y_pred}
+        y_pred, _, updates = model.forward(params, x, carry)
+        return reduction((y_pred - y) ** 2), {
+            CONST_PREDICTIONS: y_pred,
+            CONST_UPDATES: updates,
+        }
 
     return squared_loss
 
@@ -114,12 +117,13 @@ def make_cross_entropy_loss(
         :rtype: Tuple[chex.Array, Dict]
 
         """
-        logits, _ = model.forward(params, x, carry)
+        logits, _, updates = model.forward(params, x, carry)
         y_one_hot = convert_to_one_hot(y)
 
         return reduction(optax.softmax_cross_entropy(logits, y_one_hot)), {
             "logits": logits,
             "y_one_hot": y_one_hot,
+            CONST_UPDATES: updates,
         }
 
     return cross_entropy_loss
@@ -181,7 +185,7 @@ def make_hinge_loss(
         :rtype: Tuple[chex.Array, Dict]
 
         """
-        logits, _ = model.forward(params, x, carry)
+        logits, _, updates = model.forward(params, x, carry)
         y_one_hot = convert_to_one_hot(y)
 
         return (
@@ -194,7 +198,9 @@ def make_hinge_loss(
                     a_max=jnp.inf,
                 )
             ),
-            {},
+            {
+                CONST_UPDATES: updates,
+            },
         )
 
     return hinge_loss
@@ -252,9 +258,11 @@ def make_sigmoid_bce_loss(
         :rtype: Tuple[chex.Array, Dict]
 
         """
-        logits, _ = model.forward(params, x, carry)
+        logits, _, updates = model.forward(params, x, carry)
         y_label = convert_to_label(y)
 
-        return reduction(optax.sigmoid_binary_cross_entropy(logits, y_label)), {}
+        return reduction(optax.sigmoid_binary_cross_entropy(logits, y_label)), {
+            CONST_UPDATES: updates,
+        }
 
     return sigmoid_bce_loss

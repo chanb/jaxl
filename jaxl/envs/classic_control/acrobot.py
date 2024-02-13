@@ -1,4 +1,5 @@
 """classic Acrobot task"""
+
 from typing import Optional
 
 import chex

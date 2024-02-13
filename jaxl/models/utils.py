@@ -22,6 +22,7 @@ from jaxl.models.transformers import (
 )
 from jaxl.models.policies import *
 from jaxl.models.q_functions import *
+from jaxl.optimizers import *
 from jaxl.utils import parse_dict
 
 
@@ -81,6 +82,11 @@ def get_scheduler(
             kwargs.staircase,
             kwargs.end_value,
         )
+    elif scheduler_config.scheduler == CONST_LINEAR_WARMUP_SQRT_DECAY:
+        return linear_warmup_sqrt_decay(
+            kwargs.max_lr,
+            kwargs.warmup_steps,
+        )
     else:
         raise NotImplementedError
 
@@ -137,15 +143,19 @@ def get_optimizer(
         if opt_config.optimizer == CONST_ADAM:
             if hasattr(opt_config, "weight_decay"):
                 opt_transforms.append(
-                    optax.adamw(
+                    optax.inject_hyperparams(optax.adamw)(
                         get_scheduler(opt_config.lr),
                         weight_decay=opt_config.weight_decay,
                     )
                 )
             else:
-                opt_transforms.append(optax.adam(get_scheduler(opt_config.lr)))
+                opt_transforms.append(
+                    optax.inject_hyperparams(optax.adam)(get_scheduler(opt_config.lr))
+                )
         elif opt_config.optimizer == CONST_SGD:
-            opt_transforms.append(optax.sgd(get_scheduler(opt_config.lr)))
+            opt_transforms.append(
+                optax.inject_hyperparams(optax.sgd)(get_scheduler(opt_config.lr))
+            )
         else:
             raise NotImplementedError
     mask_names = getattr(opt_config, CONST_MASK_NAMES, [])
@@ -245,6 +255,7 @@ def get_update_function(
         Union[Dict[str, Any], chex.Array],
         optax.OptState,
         optax.Params,
+        Any,
     ],
     Tuple[Any, Any],
 ]:
@@ -258,7 +269,8 @@ def get_update_function(
         [optax.GradientTransformation,
         Union[Dict[str, Any], chex.Array],
         optax.OptState,
-        optax.Params],
+        optax.Params,
+        Any],
         Tuple[Any, Any]
     ]
 
@@ -266,13 +278,17 @@ def get_update_function(
 
     if isinstance(model, EncoderPredictorModel):
 
-        def update_encoder_predictor(optimizer, grads, opt_state, params):
+        def update_encoder_predictor(optimizer, grads, opt_state, params, batch_stats):
             updates, encoder_opt_state = optimizer[CONST_ENCODER].update(
                 grads[CONST_ENCODER],
                 opt_state[CONST_ENCODER],
                 params[CONST_ENCODER],
             )
             encoder_params = optax.apply_updates(params[CONST_ENCODER], updates)
+            encoder_params = model.encoder.update_batch_stats(
+                encoder_params,
+                batch_stats[CONST_ENCODER],
+            )
 
             updates, predictor_opt_state = optimizer[CONST_PREDICTOR].update(
                 grads[CONST_PREDICTOR],
@@ -280,6 +296,10 @@ def get_update_function(
                 params[CONST_PREDICTOR],
             )
             predictor_params = optax.apply_updates(params[CONST_PREDICTOR], updates)
+            predictor_params = model.encoder.update_batch_stats(
+                predictor_params,
+                batch_stats[CONST_PREDICTOR],
+            )
 
             return {
                 CONST_ENCODER: encoder_params,
@@ -292,13 +312,17 @@ def get_update_function(
         return update_encoder_predictor
     else:
 
-        def update_default(optimizer, grads, opt_state, params):
+        def update_default(optimizer, grads, opt_state, params, batch_stats):
             updates, opt_state = optimizer.update(
                 grads,
                 opt_state,
                 params,
             )
             params = optax.apply_updates(params, updates)
+            params = model.update_batch_stats(
+                params,
+                batch_stats,
+            )
             return params, opt_state
 
         return update_default

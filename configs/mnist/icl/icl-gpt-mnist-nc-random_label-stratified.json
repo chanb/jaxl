@@ -55,7 +55,7 @@
                     "num_sequences": 500000,
                     "num_queries": 30,
                     "random_label": true,
-                    "save_path": "/home/bryanpu1/projects/jaxl/data/icl-mnist-seq_len_30-500k_tasks-train-random_label-stratified.pkl"
+                    "save_dir": "/home/bryanpu1/projects/icl/data/mnist_icl"
                 }
             },
             "dataset_wrapper": {

@@ -191,10 +191,12 @@ class PPO(OnPolicyLearner):
                     CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
                     CONST_ENTROPY: pi_aux[CONST_AUX].get(CONST_ENTROPY, 0.0),
                     CONST_REGULARIZATION: reg_term,
+                    CONST_UPDATES: pi_aux[CONST_UPDATES],
                 },
                 CONST_VF: {
                     CONST_LOSS: vf_loss,
                     CONST_NUM_CLIPPED: vf_aux.get(CONST_NUM_CLIPPED, 0),
+                    CONST_UPDATES: vf_aux[CONST_UPDATES],
                 },
             }
             return agg_loss, aux
@@ -343,6 +345,7 @@ class PPO(OnPolicyLearner):
                 grads[CONST_POLICY],
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
+                aux[CONST_POLICY][CONST_UPDATES],
             )
 
             vf_params, vf_opt_state = vf_update(
@@ -350,6 +353,7 @@ class PPO(OnPolicyLearner):
                 grads[CONST_VF],
                 model_dict[CONST_OPT_STATE][CONST_VF],
                 model_dict[CONST_MODEL][CONST_VF],
+                aux[CONST_VF][CONST_UPDATES],
             )
 
             return {
@@ -557,12 +561,12 @@ class PPO(OnPolicyLearner):
             f"time/{CONST_UPDATE_TIME}": total_update_time,
         }
 
-        gather_per_leaf_l2_norm(
-            aux[CONST_LOG], "pi", self.model_dict[CONST_MODEL][CONST_POLICY]
-        )
-        gather_per_leaf_l2_norm(
-            aux[CONST_LOG], "vf", self.model_dict[CONST_MODEL][CONST_VF]
-        )
+        aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_QF}"] = l2_norm(
+            self.model_dict[CONST_MODEL][CONST_VF]
+        ).item()
+        aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_POLICY}"] = l2_norm(
+            self.model_dict[CONST_MODEL][CONST_POLICY]
+        ).item()
 
         for act_i in range(acts.shape[-1]):
             for k in auxes[CONST_ACTION][act_i]:

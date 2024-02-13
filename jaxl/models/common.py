@@ -10,7 +10,7 @@ import numpy as np
 import optax
 
 from jaxl.constants import *
-from jaxl.models.modules import MLPModule, CNNModule
+from jaxl.models.modules import MLPModule, CNNModule, ResNetV1Module
 
 
 def get_activation(activation: str) -> Callable:
@@ -51,7 +51,7 @@ class Model(ABC):
             chex.Array,
             chex.Array,
         ],
-        Tuple[chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array, Any],
     ]
 
     #: Initialize model parameters.
@@ -72,6 +72,11 @@ class Model(ABC):
         """
         return np.zeros((1,), dtype=np.float32)
 
+    def update_batch_stats(
+        self, params: Dict[str, Any], batch_stats: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        return params
+
 
 class EncoderPredictorModel(Model):
     """
@@ -87,7 +92,7 @@ class EncoderPredictorModel(Model):
             chex.Array,
             chex.Array,
         ],
-        Tuple[chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array, Any],
     ]
 
     def __init__(
@@ -139,7 +144,7 @@ class EncoderPredictorModel(Model):
             chex.Array,
             chex.Array,
         ],
-        Tuple[chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array, Any],
     ]:
         """
         Makes the forward call of the encoder-predictor model.
@@ -151,7 +156,7 @@ class EncoderPredictorModel(Model):
                 chex.Array,
                 chex.Array,
             ],
-            Tuple[chex.Array, chex.Array],
+            Tuple[chex.Array, chex.Array, Any],
         ]
         """
 
@@ -159,33 +164,42 @@ class EncoderPredictorModel(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
-        ) -> Tuple[chex.Array, chex.Array]:
+        ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the encoder-predictor.
 
             :param params: the model parameters
             :param input: the input
             :param carry: the hidden state (not used)
+            :param updates: potential batch stats
             :type params: Union[optax.Params
             :type input: chex.Array
             :type carry: chex.Array
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array]
+            :type updates: Any
+            :return: the output, a pass-through carry, and potential batch stats
+            :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
-            repr, _ = self.encoder.forward(
+            repr, _, enc_updates = self.encoder.forward(
                 params[CONST_ENCODER],
                 input,
                 carry,
             )
-            pred, pred_carry = self.predictor.forward(
+            pred, pred_carry, pred_updates = self.predictor.forward(
                 params[CONST_PREDICTOR],
                 repr,
                 carry,
             )
             carry = pred_carry
 
-            return pred, carry
+            return (
+                pred,
+                carry,
+                {
+                    CONST_ENCODER: enc_updates,
+                    CONST_PREDICTOR: pred_updates,
+                },
+            )
 
         return forward
 
@@ -197,7 +211,7 @@ class EncoderPredictorModel(Model):
             chex.Array,
             chex.Array,
         ],
-        Tuple[chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array, Any],
     ]:
         """
         Makes the forward call of the encoder model.
@@ -209,7 +223,7 @@ class EncoderPredictorModel(Model):
                 chex.Array,
                 chex.Array,
             ],
-            Tuple[chex.Array, chex.Array],
+            Tuple[chex.Array, chex.Array, Any],
         ]
         """
 
@@ -217,26 +231,28 @@ class EncoderPredictorModel(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
-        ) -> Tuple[chex.Array, chex.Array]:
+        ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the encoder.
 
             :param params: the model parameters
             :param input: the input
             :param carry: the hidden state (not used)
+            :param updates: potential batch stats
             :type params: Union[optax.Params
             :type input: chex.Array
             :type carry: chex.Array
+            :type updates: Any
             :return: the encoded input and next carry
-            :rtype: Tuple[chex.Array, chex.Array]
+            :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
-            repr, repr_carry = self.encoder.forward(
+            repr, repr_carry, repr_updates = self.encoder.forward(
                 params,
                 input,
                 carry,
             )
-            return repr, repr_carry
+            return repr, repr_carry, repr_updates
 
         return encode
 
@@ -287,7 +303,7 @@ class EnsembleModel(Model):
             chex.Array,
             chex.Array,
         ],
-        Tuple[chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array, Any],
     ]:
         """
         Makes the forward call of the ensemble model.
@@ -301,7 +317,7 @@ class EnsembleModel(Model):
                 chex.Array,
                 chex.Array,
             ],
-            Tuple[chex.Array, chex.Array],
+            Tuple[chex.Array, chex.Array, Any],
         ]
         """
 
@@ -311,24 +327,26 @@ class EnsembleModel(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
-        ) -> Tuple[chex.Array, chex.Array]:
+        ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the ensemble.
 
             :param params: the model parameters
             :param input: the input
             :param carry: the hidden state (not used)
+            :param updates: potential batch stats
             :type params: Union[optax.Params
             :type input: chex.Array
             :type carry: chex.Array
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array]
+            :type updates: Any
+            :return: the output, a pass-through carry, and potential batch stats
+            :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
-            pred, carry = jax.vmap(self.model.forward, in_axes=in_axes)(
+            pred, carry, updates = jax.vmap(self.model.forward, in_axes=in_axes)(
                 params, input, carry
             )
-            return pred, carry
+            return pred, carry, updates
 
         return forward
 
@@ -380,7 +398,7 @@ class MLP(Model):
             chex.Array,
             chex.Array,
         ],
-        Tuple[chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array, Any],
     ]:
         """
         Makes the forward call of the MLP model.
@@ -392,7 +410,7 @@ class MLP(Model):
                 chex.Array,
                 chex.Array,
             ],
-            Tuple[chex.Array, chex.Array],
+            Tuple[chex.Array, chex.Array, Any],
         ]
         """
 
@@ -400,121 +418,25 @@ class MLP(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
-        ) -> Tuple[chex.Array, chex.Array]:
+        ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the MLP.
 
             :param params: the model parameters
             :param input: the input
             :param carry: the hidden state (not used)
+            :param updates: potential batch stats
             :type params: Union[optax.Params
             :type input: chex.Array
             :type carry: chex.Array
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array]
+            :type updates: Any
+            :return: the output, a pass-through carry, and potential batch stats
+            :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
             # NOTE: Assume batch size is first dim
             input = input.reshape((input.shape[0], -1))
-            return self.model.apply(params, input), carry
-
-        return forward
-
-
-class CNN(Model):
-    """A convolutional net."""
-
-    def __init__(
-        self,
-        features: Sequence[int],
-        kernel_sizes: Sequence[int],
-        layers: Sequence[int],
-        activation: str = CONST_RELU,
-        output_activation: str = CONST_IDENTITY,
-    ) -> None:
-        self.conv = CNNModule(
-            features,
-            kernel_sizes,
-            get_activation(activation),
-        )
-        self.mlp = MLPModule(
-            layers,
-            get_activation(activation),
-            get_activation(output_activation),
-        )
-        self.forward = jax.jit(self.make_forward())
-
-    def init(
-        self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
-    ) -> Union[optax.Params, Dict[str, Any]]:
-        """
-        Initialize model parameters.
-
-        :param model_key: the random number generation key for initializing parameters
-        :param dummy_x: the input data
-        :type model_key: jrandom.PRNGKey
-        :type dummy_x: chex.Array
-        :return: the initialized parameters
-        :rtype: Union[optax.Params, Dict[str, Any]]
-
-        """
-        conv_params = self.conv.init(model_key, dummy_x)
-        dummy_latent = self.conv.apply(conv_params, dummy_x)
-        mlp_params = self.mlp.init(
-            model_key, dummy_latent.reshape((dummy_latent.shape[0], -1))
-        )
-        return {
-            CONST_CNN: conv_params,
-            CONST_MLP: mlp_params,
-        }
-
-    def make_forward(
-        self,
-    ) -> Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-        ],
-        Tuple[chex.Array, chex.Array],
-    ]:
-        """
-        Makes the forward call of the CNN model.
-
-        :return: the forward call.
-        :rtype: Callable[
-            [
-                Union[optax.Params, Dict[str, Any]],
-                chex.Array,
-                chex.Array,
-            ],
-            Tuple[chex.Array, chex.Array],
-        ]
-        """
-
-        def forward(
-            params: Union[optax.Params, Dict[str, Any]],
-            input: chex.Array,
-            carry: chex.Array,
-        ) -> Tuple[chex.Array, chex.Array]:
-            """
-            Forward call of the CNN.
-
-            :param params: the model parameters
-            :param input: the input
-            :param carry: the hidden state (not used)
-            :type params: Union[optax.Params
-            :type input: chex.Array
-            :type carry: chex.Array
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array]
-
-            """
-            # NOTE: Assume batch size is first dim
-            conv_latent = self.conv.apply(params[CONST_CNN], input)
-            conv_latent = conv_latent.reshape((conv_latent.shape[0], -1))
-            out = self.mlp.apply(params[CONST_MLP], conv_latent)
-            return out, carry
+            return self.model.apply(params, input), carry, None
 
         return forward
 
@@ -574,7 +496,7 @@ class CNN(Model):
             chex.Array,
             chex.Array,
         ],
-        Tuple[chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array, Any],
     ]:
         """
         Makes the forward call of the CNN model.
@@ -586,7 +508,7 @@ class CNN(Model):
                 chex.Array,
                 chex.Array,
             ],
-            Tuple[chex.Array, chex.Array],
+            Tuple[chex.Array, chex.Array, Any],
         ]
         """
 
@@ -594,24 +516,136 @@ class CNN(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
-        ) -> Tuple[chex.Array, chex.Array]:
+        ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the CNN.
 
             :param params: the model parameters
             :param input: the input
             :param carry: the hidden state (not used)
+            :param updates: potential batch stats
             :type params: Union[optax.Params
             :type input: chex.Array
             :type carry: chex.Array
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array]
+            :type updates: Any
+            :return: the output, a pass-through carry, and potential batch stats
+            :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
             # NOTE: Assume batch size is first dim
             conv_latent = self.conv.apply(params[CONST_CNN], input)
             conv_latent = conv_latent.reshape((*conv_latent.shape[:-2], -1))
             out = self.mlp.apply(params[CONST_MLP], conv_latent)
-            return out, carry
+            return out, carry, None
 
         return forward
+
+
+class ResNetV1(Model):
+    """A residual network."""
+
+    def __init__(
+        self,
+        blocks_per_group: Sequence[int],
+        features: Sequence[int],
+        stride: Sequence[Sequence[int]],
+        use_projection: Sequence[bool],
+        use_bottleneck: bool,
+        use_batch_norm: bool=True,
+    ) -> None:
+        self.use_batch_norm = use_batch_norm
+        self.resnet = ResNetV1Module(
+            blocks_per_group=blocks_per_group,
+            features=features,
+            stride=stride,
+            use_projection=use_projection,
+            use_bottleneck=use_bottleneck,
+            use_batch_norm=use_batch_norm,
+        )
+        self.forward = jax.jit(self.make_forward())
+
+    def init(
+        self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
+    ) -> Union[optax.Params, Dict[str, Any]]:
+        """
+        Initialize model parameters.
+
+        :param model_key: the random number generation key for initializing parameters
+        :param dummy_x: the input data
+        :type model_key: jrandom.PRNGKey
+        :type dummy_x: chex.Array
+        :return: the initialized parameters
+        :rtype: Union[optax.Params, Dict[str, Any]]
+
+        """
+        resnet_params = self.resnet.init(model_key, dummy_x, eval=True)
+        return {
+            CONST_RESNET: resnet_params,
+        }
+
+    def make_forward(
+        self,
+    ) -> Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+        ],
+        Tuple[chex.Array, chex.Array, Any],
+    ]:
+        """
+        Makes the forward call of the ResNet model.
+
+        :return: the forward call.
+        :rtype: Callable[
+            [
+                Union[optax.Params, Dict[str, Any]],
+                chex.Array,
+                chex.Array,
+                bool,
+            ],
+            Tuple[chex.Array, chex.Array, Any],
+        ]
+        """
+
+        def forward(
+            params: Union[optax.Params, Dict[str, Any]],
+            input: chex.Array,
+            carry: chex.Array,
+            eval: bool = False,
+        ) -> Tuple[chex.Array, chex.Array, Any]:
+            """
+            Forward call of the ResNet.
+
+            :param params: the model parameters
+            :param input: the input
+            :param carry: the hidden state (not used)
+            :param updates: potential batch stats
+            :type params: Union[optax.Params
+            :type input: chex.Array
+            :type carry: chex.Array
+            :type updates: Any
+            :return: the output, a pass-through carry, and potential batch stats
+            :rtype: Tuple[chex.Array, chex.Array, Any]
+
+            """
+            # NOTE: Assume batch size is first dim
+            out = self.resnet.apply(
+                params[CONST_RESNET],
+                input,
+                eval=eval,
+                mutable=[CONST_BATCH_STATS],
+            )
+            updates = None
+            if not eval:
+                (out, updates) = out
+            return out, carry, updates
+
+        return forward
+
+    def update_batch_stats(
+        self, params: Dict[str, Any], batch_stats: Any
+    ) -> Dict[str, Any]:
+        if self.use_batch_norm:
+            params[CONST_RESNET][CONST_BATCH_STATS] = batch_stats[CONST_BATCH_STATS]
+        return params

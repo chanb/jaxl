@@ -329,6 +329,7 @@ class SAC(OffPolicyLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_QF],
                 model_dict[CONST_MODEL][CONST_QF],
+                aux[CONST_UPDATES],
             )
 
             return {
@@ -390,6 +391,7 @@ class SAC(OffPolicyLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
+                aux[CONST_UPDATES],
             )
 
             return {
@@ -451,6 +453,7 @@ class SAC(OffPolicyLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_TEMPERATURE],
                 model_dict[CONST_MODEL][CONST_TEMPERATURE],
+                None,
             )
 
             return {
@@ -646,6 +649,9 @@ class SAC(OffPolicyLearner):
             ].item()
             aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_QF}"] = l2_norm(
                 self.model_dict[CONST_MODEL][CONST_QF]
+            ).item()
+            aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_TARGET_QF}"] = l2_norm(
+                self.model_dict[CONST_MODEL][CONST_TARGET_QF]
             ).item()
 
             for act_i in range(acts.shape[-1]):

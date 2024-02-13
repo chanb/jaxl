@@ -278,6 +278,7 @@ class MTBC(OfflineLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
+                aux[self._config.losses[0]][CONST_AUX][CONST_UPDATES],
             )
 
             return {
