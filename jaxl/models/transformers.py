@@ -133,23 +133,19 @@ class InContextSupervisedTransformer(Model):
             context_input_embedding = self.input_tokenizer.apply(
                 params[CONST_INPUT_TOKENIZER],
                 contexts[CONST_CONTEXT_INPUT],
-                **kwargs,
             )
             context_output_embedding = self.output_tokenizer.apply(
                 params[CONST_OUTPUT_TOKENIZER],
                 contexts[CONST_CONTEXT_OUTPUT],
-                **kwargs,
             )
             query_embedding = self.input_tokenizer.apply(
                 params[CONST_INPUT_TOKENIZER],
                 queries,
-                **kwargs,
             )
 
             input_embedding = self.positional_encoding.apply(
                 params[CONST_POSITIONAL_ENCODING],
                 jnp.concatenate((context_input_embedding, query_embedding), axis=1),
-                **kwargs,
             )
 
             context_input_embedding, query_embedding = (
@@ -283,7 +279,7 @@ class InContextSupervisedTransformer(Model):
             repr, carry, latent_updates = self.get_latent(
                 params, queries, contexts, **kwargs
             )
-            outputs = self.predictor.apply(params[CONST_PREDICTOR], repr, **kwargs)
+            outputs = self.predictor.apply(params[CONST_PREDICTOR], repr)
 
             return process_prediction(outputs), carry, latent_updates
 

@@ -642,15 +642,12 @@ class ResNetV1(Model):
 
             """
             # NOTE: Assume batch size is first dim
-            out = self.resnet.apply(
+            (out, updates) = self.resnet.apply(
                 params[CONST_RESNET],
                 input,
                 eval=eval,
                 mutable=[CONST_BATCH_STATS],
             )
-            updates = None
-            if not eval:
-                (out, updates) = out
             return out, carry, updates
 
         return forward

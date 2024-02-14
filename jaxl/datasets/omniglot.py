@@ -23,7 +23,9 @@ def construct_omniglot(
     save_path: str,
     task_name: str = None,
     task_config: SimpleNamespace = None,
+    seed: int = 0,
     train: bool = True,
+    remap: bool = False,
 ) -> Dataset:
     """
     Constructs a customized Omniglot dataset.
@@ -31,11 +33,15 @@ def construct_omniglot(
     :param save_path: the path to store the Omniglot dataset
     :param task_name: the task to construct
     :param task_config: the task configuration
+    :param seed: the seed to generate the dataset
     :param train: the train split of the dataset
+    :param remap: whether to do binary classification instead
     :type save_path: str
     :type task_name: str:  (Default value = None)
     :type task_config: SimpleNamespace:  (Default value = None)
+    :type seed: int:  (Default value = 0)
     :type train: bool:  (Default value = True)
+    :type remap: bool:  (Default value = False)
     :return: Customized Omniglot dataset
     :rtype: Dataset
 
@@ -55,16 +61,30 @@ def construct_omniglot(
             target_transform=target_transform,
         )
     elif task_name == CONST_MULTITASK_OMNIGLOT_FINEGRAIN:
+        if getattr(task_config, "augmentation", False):
+            import torchvision.transforms as torch_transforms
+            from jaxl.transforms import GaussianNoise
+            transforms = [
+                jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
+                GaussianNoise(0.0, 0.1),
+                torch_transforms.Normalize(0, 255.0),
+            ]
+            transforms = torch_transforms.Compose(transforms)
+        else:
+            transforms = jaxl_transforms.DefaultPILToImageTransform()
+
         return MultitaskOmniglotFineGrain(
             dataset=torch_datasets.Omniglot(
                 save_path,
                 background=train,
                 download=True,
-                transform=jaxl_transforms.DefaultPILToImageTransform(),
+                transform=transforms,
                 target_transform=target_transform,
             ),
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
+            seed=seed,
+            remap=remap,
             random_label=getattr(task_config, "random_label", False),
             save_dir=task_config.save_dir,
         )
@@ -83,6 +103,7 @@ class MultitaskOmniglotFineGrain(Dataset):
         num_sequences: int,
         sequence_length: int,
         seed: int = 0,
+        remap: bool = False,
         random_label: bool = False,
         save_dir: str = None,
     ):
@@ -125,6 +146,7 @@ class MultitaskOmniglotFineGrain(Dataset):
 
         self._dataset = dataset
         self._data = data
+        self._remap = remap
 
     def _generate_data(
         self,
@@ -172,5 +194,7 @@ class MultitaskOmniglotFineGrain(Dataset):
         inputs, labels = zip(*list(map(lambda ii: self._dataset[ii], sample_idxes)))
         inputs = np.concatenate([input[None] for input in inputs])
         labels = np.array(labels)
+        if self._remap:
+            labels = labels % 2
         outputs = np.eye(self._data["num_classes"])[labels]
         return (inputs, outputs)
