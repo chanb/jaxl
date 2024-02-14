@@ -117,7 +117,7 @@ class MultitaskOmniglotFineGrain(Dataset):
         loaded, data = maybe_load_dataset(save_dir, dataset_name)
 
         if not loaded:
-            num_classes = int(len(dataset) / 20)
+            num_classes = 964
             sample_idxes, label_map = self._generate_data(
                 dataset=dataset,
                 num_sequences=num_sequences,
