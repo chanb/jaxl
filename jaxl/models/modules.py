@@ -84,7 +84,7 @@ class ResNetV1Block(nn.Module):
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
             )
-            
+
             if self.use_batch_norm:
                 self.projection_batchnorm = nn.BatchNorm(
                     momentum=0.9,
@@ -151,7 +151,7 @@ class ResNetV1Block(nn.Module):
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
             )
-            
+
             if self.use_batch_norm:
                 self.batch_norm_2 = nn.BatchNorm(
                     momentum=0.9,
@@ -181,7 +181,7 @@ class ResNetV1Block(nn.Module):
                 out = conv_i(out)
                 out = batch_norm_i(out, eval)
                 out = jax.nn.relu(out)
-                self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)        
+                self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
                 out = self.layers[-1][0](out)
                 out = self.layers[-1][1](out, eval)
         else:
@@ -343,6 +343,6 @@ class Temperature(nn.Module):
             init_fn=lambda _: jnp.full((), jnp.log(self.initial_temperature)),
         )
         return jnp.exp(log_temp)
-    
+
     def update_batch_stats(self, params, batch_stats):
         return params

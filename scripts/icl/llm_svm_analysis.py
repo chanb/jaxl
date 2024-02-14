@@ -243,10 +243,10 @@ def main(baseline_path, bias, seed):
             ),
         }
 
-        agent_results[agent_path][
-            "pred_on_support_vectors"
-        ] = llm_pred_on_support_vectors(
-            context_data, gt["inputs"], agent_path, baseline_results
+        agent_results[agent_path]["pred_on_support_vectors"] = (
+            llm_pred_on_support_vectors(
+                context_data, gt["inputs"], agent_path, baseline_results
+            )
         )
 
     with open(os.path.join(baseline_path, "agent_reprs.pkl"), "wb") as f:

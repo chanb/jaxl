@@ -83,6 +83,7 @@ class StateActionInputQ(QFunction):
             obs: chex.Array,
             h_state: Union[chex.Array, Dict[str, Any]],
             act: chex.Array,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Compute action-value based on a state-aciton pair.
@@ -105,8 +106,11 @@ class StateActionInputQ(QFunction):
                     CONST_OBSERVATION: obs,
                     CONST_ACTION: act,
                 },
+                **kwargs,
             )
-            q_val, h_state, updates = model.forward(params, state_action, h_state)
+            q_val, h_state, updates = model.forward(
+                params, state_action, h_state, **kwargs
+            )
             return q_val, h_state, updates
 
         return compute_q_value

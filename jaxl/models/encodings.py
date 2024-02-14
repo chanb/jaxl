@@ -14,7 +14,7 @@ class NoEncoding(nn.Module):
     """No encoding."""
 
     @nn.compact
-    def __call__(self, x: Any):
+    def __call__(self, x: Any, **kwargs):
         return x
 
 
@@ -37,7 +37,7 @@ class PositionalEncoding(nn.Module):
         pe[:, 1::2] = np.cos(position * div_term)
         self.pe = pe[None]
 
-    def __call__(self, x: chex.Array):
+    def __call__(self, x: chex.Array, **kwargs):
         x = x + self.pe[:, : x.shape[1]]
         return x
 
@@ -74,7 +74,7 @@ class ConcatenateInputsEncoding(nn.Module):
     input_dims: Dict[str, Sequence[int]]
 
     @nn.compact
-    def __call__(self, x: Dict[str, chex.Array]):
+    def __call__(self, x: Dict[str, chex.Array], **kwargs):
         return jnp.concatenate(
             [
                 x[key].reshape((*x[key].shape[: -len(input_dim)], -1))
