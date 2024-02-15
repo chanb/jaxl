@@ -66,7 +66,7 @@ def construct_omniglot(
             from jaxl.transforms import GaussianNoise
             transforms = [
                 jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
-                GaussianNoise(0.0, 0.1),
+                GaussianNoise(0.0, task_config.noise_scale),
                 torch_transforms.Normalize(0, 255.0),
             ]
             transforms = torch_transforms.Compose(transforms)
