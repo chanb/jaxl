@@ -146,6 +146,7 @@ def get_dataset(
             dataset_kwargs.save_path,
             dataset_kwargs.task_name,
             dataset_kwargs.task_config,
+            train=getattr(dataset_kwargs, "train", True),
         )
     elif dataset_config.dataset_name == CONST_OMNIGLOT:
         dataset = construct_omniglot(

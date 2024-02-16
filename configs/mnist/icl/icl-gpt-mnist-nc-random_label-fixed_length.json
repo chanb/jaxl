@@ -46,7 +46,8 @@
                 "warmup_steps": 4000
             }
         },
-        "max_grad_norm": false
+        "max_grad_norm": false,
+        "mask_names": ["output_tokenizer"]
     },
     "learner_config": {
         "task": "in_context_learning",
@@ -59,7 +60,9 @@
                     "num_sequences": 100000,
                     "sequence_length": 17,
                     "random_label": true,
-                    "save_dir": "/home/bryanpu1/projects/icl/data/mnist_icl"
+                    "save_dir": "/home/bryanpu1/projects/icl/data/mnist_icl",
+                    "augmentation": true,
+                    "noise_scale": 0.1
                 }
             },
             "dataset_wrapper": {
@@ -91,6 +94,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 5000000
+        "num_epochs": 10000000
     }
 }
