@@ -117,7 +117,7 @@ def construct_mnist(
 
 class MultitaskMNISTFineGrain(Dataset):
     """
-    The dataset contains multiple ND (fixed) linear classification problems.
+    The dataset contains a sequence-input MNIST problem.
     """
 
     def __init__(
@@ -222,7 +222,8 @@ class MultitaskMNISTFineGrain(Dataset):
 
 class StratifiedMultitaskMNISTFineGrain(Dataset):
     """
-    The dataset contains multiple ND (fixed) linear classification problems.
+    The dataset contains a sequence-input MNIST problem with stratified sampling,
+    such that each class is included in the sequence
     """
 
     def __init__(
@@ -371,7 +372,7 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
 
 class MultitaskMNISTRandomBinary(Dataset):
     """
-    The dataset contains multiple ND (fixed) linear classification problems.
+    The dataset contains a sequence-input MNIST, with labels relabelled to {0, 1}.
     """
 
     def __init__(
