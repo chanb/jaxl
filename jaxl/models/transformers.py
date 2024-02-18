@@ -115,6 +115,7 @@ class InContextSupervisedTransformer(Model):
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Get latent call of the GPT.
@@ -130,13 +131,16 @@ class InContextSupervisedTransformer(Model):
 
             """
             context_input_embedding = self.input_tokenizer.apply(
-                params[CONST_INPUT_TOKENIZER], contexts[CONST_CONTEXT_INPUT]
+                params[CONST_INPUT_TOKENIZER],
+                contexts[CONST_CONTEXT_INPUT],
             )
             context_output_embedding = self.output_tokenizer.apply(
-                params[CONST_OUTPUT_TOKENIZER], contexts[CONST_CONTEXT_OUTPUT]
+                params[CONST_OUTPUT_TOKENIZER],
+                contexts[CONST_CONTEXT_OUTPUT],
             )
             query_embedding = self.input_tokenizer.apply(
-                params[CONST_INPUT_TOKENIZER], queries
+                params[CONST_INPUT_TOKENIZER],
+                queries,
             )
 
             input_embedding = self.positional_encoding.apply(
@@ -149,7 +153,9 @@ class InContextSupervisedTransformer(Model):
                 input_embedding[:, -1:],
             )
             context_output_embedding = self.positional_encoding.apply(
-                params[CONST_POSITIONAL_ENCODING], context_output_embedding
+                params[CONST_POSITIONAL_ENCODING],
+                context_output_embedding,
+                **kwargs,
             )
 
             stacked_inputs = jnp.concatenate(
@@ -191,6 +197,7 @@ class InContextSupervisedTransformer(Model):
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Get latent call of the GPT.
@@ -205,16 +212,16 @@ class InContextSupervisedTransformer(Model):
             :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
-            stacked_inputs, _, token_updates = self.tokenize(params, queries, contexts)
-            repr = self.gpt.apply(params[CONST_GPT], stacked_inputs)
+            stacked_inputs, _, token_updates = self.tokenize(
+                params, queries, contexts, **kwargs
+            )
+            repr = self.gpt.apply(params[CONST_GPT], stacked_inputs, **kwargs)
 
             return repr, None, token_updates
 
         return get_latent
 
-    def make_forward(
-        self, query_pred_only: bool
-    ) -> Callable[
+    def make_forward(self, query_pred_only: bool) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
@@ -254,6 +261,7 @@ class InContextSupervisedTransformer(Model):
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the GPT.
@@ -268,7 +276,9 @@ class InContextSupervisedTransformer(Model):
             :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
-            repr, carry, latent_updates = self.get_latent(params, queries, contexts)
+            repr, carry, latent_updates = self.get_latent(
+                params, queries, contexts, **kwargs
+            )
             outputs = self.predictor.apply(params[CONST_PREDICTOR], repr)
 
             return process_prediction(outputs), carry, latent_updates
@@ -386,6 +396,7 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Get latent call of the GPT.
@@ -415,11 +426,13 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
                     axis=1,
                 ).reshape((batch_size + num_samples, *input_dim)),
                 None,
+                **kwargs,
             )
             context_output_embedding, _, output_updates = self.output_tokenizer.forward(
                 params[CONST_OUTPUT_TOKENIZER],
                 contexts[CONST_CONTEXT_OUTPUT].reshape((batch_size, *output_dim)),
                 None,
+                **kwargs,
             )
 
             input_embedding = input_embedding.reshape(
@@ -432,6 +445,7 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
             input_embedding = self.positional_encoding.apply(
                 params[CONST_POSITIONAL_ENCODING],
                 input_embedding,
+                **kwargs,
             )
 
             context_input_embedding, query_embedding = (
@@ -439,7 +453,9 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
                 input_embedding[:, -1:],
             )
             context_output_embedding = self.positional_encoding.apply(
-                params[CONST_POSITIONAL_ENCODING], context_output_embedding
+                params[CONST_POSITIONAL_ENCODING],
+                context_output_embedding,
+                **kwargs,
             )
 
             stacked_inputs = jnp.concatenate(

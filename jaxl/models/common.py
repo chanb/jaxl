@@ -164,6 +164,7 @@ class EncoderPredictorModel(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the encoder-predictor.
@@ -184,11 +185,13 @@ class EncoderPredictorModel(Model):
                 params[CONST_ENCODER],
                 input,
                 carry,
+                **kwargs,
             )
             pred, pred_carry, pred_updates = self.predictor.forward(
                 params[CONST_PREDICTOR],
                 repr,
                 carry,
+                **kwargs,
             )
             carry = pred_carry
 
@@ -231,6 +234,7 @@ class EncoderPredictorModel(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the encoder.
@@ -251,6 +255,7 @@ class EncoderPredictorModel(Model):
                 params,
                 input,
                 carry,
+                **kwargs,
             )
             return repr, repr_carry, repr_updates
 
@@ -327,6 +332,7 @@ class EnsembleModel(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the ensemble.
@@ -344,7 +350,10 @@ class EnsembleModel(Model):
 
             """
             pred, carry, updates = jax.vmap(self.model.forward, in_axes=in_axes)(
-                params, input, carry
+                params,
+                input,
+                carry,
+                **kwargs,
             )
             return pred, carry, updates
 
@@ -418,6 +427,7 @@ class MLP(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the MLP.
@@ -516,6 +526,7 @@ class CNN(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the CNN.
@@ -551,7 +562,7 @@ class ResNetV1(Model):
         stride: Sequence[Sequence[int]],
         use_projection: Sequence[bool],
         use_bottleneck: bool,
-        use_batch_norm: bool=True,
+        use_batch_norm: bool = True,
     ) -> None:
         self.use_batch_norm = use_batch_norm
         self.resnet = ResNetV1Module(
@@ -613,6 +624,7 @@ class ResNetV1(Model):
             input: chex.Array,
             carry: chex.Array,
             eval: bool = False,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
             Forward call of the ResNet.
@@ -630,15 +642,12 @@ class ResNetV1(Model):
 
             """
             # NOTE: Assume batch size is first dim
-            out = self.resnet.apply(
+            (out, updates) = self.resnet.apply(
                 params[CONST_RESNET],
                 input,
                 eval=eval,
                 mutable=[CONST_BATCH_STATS],
             )
-            updates = None
-            if not eval:
-                (out, updates) = out
             return out, carry, updates
 
         return forward
