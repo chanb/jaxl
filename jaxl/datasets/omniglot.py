@@ -63,11 +63,10 @@ def construct_omniglot(
     elif task_name == CONST_MULTITASK_OMNIGLOT_FINEGRAIN:
         if getattr(task_config, "augmentation", False):
             import torchvision.transforms as torch_transforms
-            from jaxl.transforms import GaussianNoise
 
             transforms = [
                 jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
-                GaussianNoise(0.0, task_config.noise_scale),
+                jaxl_transforms.GaussianNoise(0.0, task_config.noise_scale),
                 torch_transforms.Normalize(0, 255.0),
             ]
             transforms = torch_transforms.Compose(transforms)
@@ -238,25 +237,19 @@ class MultitaskOmniglotBursty(Dataset):
             (
                 context_idxes,
                 query_idxes,
-                swap_idxes,
-                label_map,
                 is_bursty,
             ) = self._generate_data(
                 dataset=dataset,
                 num_sequences=num_sequences,
                 sequence_length=sequence_length,
-                random_label=random_label,
                 p_bursty=p_bursty,
                 min_num_per_class=min_num_per_class,
-                num_classes=num_classes,
                 seed=seed,
             )
 
             data = {
                 "context_idxes": context_idxes,
                 "query_idxes": query_idxes,
-                "swap_idxes": swap_idxes,
-                "label_map": label_map,
                 "num_sequences": num_sequences,
                 "sequence_length": sequence_length,
                 "random_label": random_label,
@@ -285,15 +278,12 @@ class MultitaskOmniglotBursty(Dataset):
         num_sequences: int,
         sequence_length: int,
         min_num_per_class: int,
-        num_classes: int,
         p_bursty: float,
-        random_label: bool,
         seed: int,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         print("Generating Data")
-        sample_key, label_key = jrandom.split(jrandom.PRNGKey(seed))
+        sample_key, _ = jrandom.split(jrandom.PRNGKey(seed))
         sample_rng = np.random.RandomState(sample_key)
-        label_rng = np.random.RandomState(label_key)
 
         is_bursty = sample_rng.rand(num_sequences) < p_bursty
 
@@ -303,16 +293,7 @@ class MultitaskOmniglotBursty(Dataset):
             np.arange(min_num_per_class), size=(num_sequences, sequence_length)
         )
 
-        label_map = np.tile(np.arange(num_classes), reps=(num_sequences, 1))
-
-        swap_idxes = np.apply_along_axis(sample_rng.permutation, axis=1, arr=label_map)
-
-        if random_label:
-            label_map = np.apply_along_axis(
-                label_rng.permutation, axis=1, arr=label_map
-            )
-
-        return context_idxes, query_idxes, swap_idxes, label_map, is_bursty
+        return context_idxes, query_idxes, is_bursty
 
     @property
     def input_dim(self) -> chex.Array:
@@ -333,10 +314,9 @@ class MultitaskOmniglotBursty(Dataset):
         is_bursty = self._data["is_bursty"][idx]
         sample_rng = np.random.RandomState(idx)
 
-        query_idx = query_idxes[idx]
+        query_idx = self._data["query_idxes"][idx]
         query, label = self._dataset[query_idx]
 
-        # TODO: Generate bursty vs non-bursty
         if is_bursty:
             label_idxes = []
             if self._data["sequence_length"] > 6:
@@ -347,13 +327,12 @@ class MultitaskOmniglotBursty(Dataset):
             label_idxes = sample_rng.permutation(
                 np.concatenate(
                     [
+                        [label] * 3,
                         [repeated_distractor_label] * 3,
                         label_idxes,
-                        [label] * 3,
                     ]
-                )
+                )[: self._data["sequence_length"]]
             )
-
         else:
             label_idxes = sample_rng.choice(
                 self._data["num_classes"], size=(self._data["sequence_length"])
@@ -363,24 +342,19 @@ class MultitaskOmniglotBursty(Dataset):
         context_idxes = np.take_along_axis(
             self._data["label_to_idx"][label_idxes], context_idxes[:, None], axis=1
         ).flatten()
-        context_inputs, context_outputs = zip(
-            *list(map(lambda ii: self._dataset[ii], context_idxes))
+        inputs, _ = zip(*list(map(lambda ii: self._dataset[ii], context_idxes)))
+        inputs = np.concatenate(
+            (*[context_input[None] for context_input in inputs], query[None])
         )
-        context_inputs = np.concatenate(
-            [context_input[None] for context_input in context_inputs]
-        )
-        context_outputs = np.array(context_outputs)
-        context_outputs = self._data["label_map"][idx][context_outputs]
+        outputs = np.concatenate([label_idxes, [label]])
 
-        context_inputs = context_inputs[self._data["swap_idxes"][idx]]
-        context_outputs = context_outputs[self._data["swap_idxes"][idx]]
-        context_outputs = np.eye(self._data["num_classes"])[context_outputs]
+        if self._data["random_label"]:
+            label_map = sample_rng.choice(
+                self._data["num_classes"],
+                size=(self._data["sequence_length"],),
+                replace=False,
+            )
+            outputs = label_map[outputs]
+        outputs = np.eye(self._data["num_classes"])[outputs]
 
-        query_idxes = self._data["query_idxes"][idx].tolist()
-        queries, labels = zip(*list(map(lambda ii: self._dataset[ii], query_idxes)))
-        queries = np.concatenate([query[None] for query in queries])
-        labels = np.array(labels)
-        labels = self._data["label_map"][idx][labels]
-        outputs = np.eye(self._data["num_classes"])[labels]
-
-        return (context_inputs, context_outputs, queries, outputs)
+        return (inputs, outputs)
