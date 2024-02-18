@@ -84,7 +84,6 @@ class ResNetV1Block(nn.Module):
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
             )
-
             if self.use_batch_norm:
                 self.projection_batchnorm = nn.BatchNorm(
                     momentum=0.9,
@@ -151,7 +150,6 @@ class ResNetV1Block(nn.Module):
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
             )
-
             if self.use_batch_norm:
                 self.batch_norm_2 = nn.BatchNorm(
                     momentum=0.9,
