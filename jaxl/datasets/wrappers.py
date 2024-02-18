@@ -140,10 +140,11 @@ class PermutationFixedLengthContextDataset(DatasetWrapper):
 class ContextDataset(DatasetWrapper):
     """Dataset for in-context learning."""
 
-    def __init__(self, dataset: Dataset, context_len: int):
+    def __init__(self, dataset: Dataset, context_len: int, stratified: bool = False):
         super().__init__(dataset)
         self._context_len = context_len
         self._last_context_idx = context_len - 1
+        self._stratified = stratified
 
         # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
         self._seq_mod = self._dataset.sequence_length - 1
@@ -174,6 +175,10 @@ class ContextDataset(DatasetWrapper):
 
         inputs = inputs[seq_copy_start_idx : timestep_i + 2]
         outputs = outputs[seq_copy_start_idx : timestep_i + 2]
+
+        # TODO: Fix this
+        if self._stratified:
+            pass
 
         context_inputs[out_seq_start_idx:] = inputs[:-1]
         context_outputs[out_seq_start_idx:] = outputs[:-1]
