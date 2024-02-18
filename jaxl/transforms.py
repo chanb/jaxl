@@ -12,7 +12,8 @@ class DefaultPILToImageTransform:
     A transform that converts PIL to a tensor scaled between 0 to 1.
     Assumes that the PIL images are in range [0, 255].
     """
-    def __init__(self, scale: float=255.0):
+
+    def __init__(self, scale: float = 255.0):
         self.scale = scale
 
     def __call__(self, img: Image) -> chex.Array:
@@ -37,9 +38,9 @@ class GaussianNoise(object):
     A transform that adds Gaussian noise to each feature
     """
 
-    def __init__(self, mean: float=0., std: float=1.):
+    def __init__(self, mean: float = 0.0, std: float = 1.0):
         self.std = std
         self.mean = mean
-        
+
     def __call__(self, x: chex.Array):
         return x + torch.randn(x.size()) * self.std + self.mean

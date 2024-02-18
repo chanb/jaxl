@@ -64,6 +64,7 @@ def construct_omniglot(
         if getattr(task_config, "augmentation", False):
             import torchvision.transforms as torch_transforms
             from jaxl.transforms import GaussianNoise
+
             transforms = [
                 jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
                 GaussianNoise(0.0, task_config.noise_scale),
@@ -203,6 +204,7 @@ class MultitaskOmniglotFineGrain(Dataset):
 class MultitaskOmniglotBursty(Dataset):
     """
     The dataset contains a sequence-input Omniglot problem, following Chan et al. 2022.
+    The query class is repeated 3 times, and one of the remaining classes is also repeated 3 times.
     """
 
     def __init__(
@@ -306,4 +308,3 @@ class MultitaskOmniglotBursty(Dataset):
             labels = labels % 2
         outputs = np.eye(self._data["num_classes"])[labels]
         return (inputs, outputs)
-

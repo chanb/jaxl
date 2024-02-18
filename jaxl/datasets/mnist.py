@@ -62,6 +62,7 @@ def construct_mnist(
         if getattr(task_config, "augmentation", False):
             import torchvision.transforms as torch_transforms
             from jaxl.transforms import GaussianNoise
+
             transforms = [
                 jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
                 GaussianNoise(0.0, task_config.noise_scale),
