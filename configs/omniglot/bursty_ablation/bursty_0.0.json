@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/icl-omniglot/bursty_ablation",
-        "experiment_name": "bursty",
+        "experiment_name": "bursty_0.0",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -60,7 +60,7 @@
                     "num_sequences": 500000,
                     "sequence_length": 17,
                     "random_label": false,
-                    "p_bursty": 1.0,
+                    "p_bursty": 0.0,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
                     "augmentation": true,
                     "noise_scale": 0.1

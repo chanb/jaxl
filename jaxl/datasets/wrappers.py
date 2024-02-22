@@ -176,21 +176,20 @@ class ContextDataset(DatasetWrapper):
         )
 
         if self._include_query_class and out_seq_start_idx != 0:
-            query = inputs[[timestep_i + 2]]
-            output = outputs[timestep_i + 2]
-
-            class_idxes = np.argmax(outputs, axis=-1)
-            output_class = class_idxes[timestep_i + 2]
-            match_idxes = class_idxes == output_class
-            match_idxes[timestep_i + 2] = False
+            classes = np.argmax(outputs, axis=-1)
+            output_class = classes[timestep_i + 1]
+            match_idxes = classes == output_class
+            match_idxes[timestep_i + 1] = False
             match_idxes = np.where(match_idxes)[0]
 
-            sample_rng = np.random.RandomState(idx)
-            idx_to_put = sample_rng.choice(match_idxes)
-            if not seq_copy_start_idx <= idx_to_put <= timestep_i:
-                swap_idx = sample_rng.randint(seq_copy_start_idx, timestep_i + 1)
-                inputs[swap_idx] = inputs[idx_to_put]
-                outputs[swap_idx] = outputs[idx_to_put]
+            if len(match_idxes):
+                sample_rng = np.random.RandomState(idx)
+                idx_to_put = sample_rng.choice(match_idxes)
+
+                if not seq_copy_start_idx <= idx_to_put <= timestep_i:
+                    swap_idx = sample_rng.randint(seq_copy_start_idx, timestep_i + 1)
+                    inputs[swap_idx] = inputs[idx_to_put]
+                    outputs[swap_idx] = outputs[idx_to_put]
 
         inputs = inputs[seq_copy_start_idx : timestep_i + 2]
         outputs = outputs[seq_copy_start_idx : timestep_i + 2]
