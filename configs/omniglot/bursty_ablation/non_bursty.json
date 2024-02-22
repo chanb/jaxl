@@ -55,11 +55,12 @@
             "dataset_name": "omniglot",
             "dataset_kwargs": {
                 "save_path": "/home/bryanpu1/projects/icl/data",
-                "task_name": "multitask_omniglot_finegrain",
+                "task_name": "multitask_omniglot_bursty",
                 "task_config": {
                     "num_sequences": 500000,
                     "sequence_length": 17,
                     "random_label": false,
+                    "p_bursty": 0.0,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
                     "augmentation": true,
                     "noise_scale": 0.1
@@ -68,7 +69,8 @@
             "dataset_wrapper": {
                 "type": "ContextDataset",
                 "kwargs": {
-                    "context_len": 16
+                    "context_len": 16,
+                    "include_query_class": true
                 }
             },
             "num_workers": 4

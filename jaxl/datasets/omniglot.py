@@ -5,6 +5,7 @@ from typing import Tuple
 from jaxl.constants import (
     VALID_OMNIGLOT_TASKS,
     CONST_MULTITASK_OMNIGLOT_FINEGRAIN,
+    CONST_MULTITASK_OMNIGLOT_BURSTY,
 )
 from jaxl.datasets.utils import (
     maybe_save_dataset,
@@ -51,38 +52,54 @@ def construct_omniglot(
     ), f"{task_name} is not supported (one of {VALID_OMNIGLOT_TASKS})"
     target_transform = None
 
+    input_transform = jaxl_transforms.DefaultPILToImageTransform()
+    if task_config and getattr(task_config, "augmentation", False):
+        import torchvision.transforms as torch_transforms
+
+        transforms = [
+            jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
+            jaxl_transforms.GaussianNoise(0.0, task_config.noise_scale),
+            torch_transforms.Normalize(0, 255.0),
+        ]
+        input_transform = torch_transforms.Compose(transforms)
+
     if task_name is None:
         # By default, the Omniglot task will be normalized to be between 0 to 1.
         return torch_datasets.Omniglot(
             save_path,
             background=train,
             download=True,
-            transform=jaxl_transforms.DefaultPILToImageTransform(),
+            transform=input_transform,
             target_transform=target_transform,
         )
     elif task_name == CONST_MULTITASK_OMNIGLOT_FINEGRAIN:
-        if getattr(task_config, "augmentation", False):
-            import torchvision.transforms as torch_transforms
-
-            transforms = [
-                jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
-                jaxl_transforms.GaussianNoise(0.0, task_config.noise_scale),
-                torch_transforms.Normalize(0, 255.0),
-            ]
-            transforms = torch_transforms.Compose(transforms)
-        else:
-            transforms = jaxl_transforms.DefaultPILToImageTransform()
-
         return MultitaskOmniglotFineGrain(
             dataset=torch_datasets.Omniglot(
                 save_path,
                 background=train,
                 download=True,
-                transform=transforms,
+                transform=input_transform,
                 target_transform=target_transform,
             ),
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
+            seed=seed,
+            remap=remap,
+            random_label=getattr(task_config, "random_label", False),
+            save_dir=task_config.save_dir,
+        )
+    elif task_name == CONST_MULTITASK_OMNIGLOT_BURSTY:
+        return MultitaskOmniglotBursty(
+            dataset=torch_datasets.Omniglot(
+                save_path,
+                background=train,
+                download=True,
+                transform=input_transform,
+                target_transform=target_transform,
+            ),
+            num_sequences=task_config.num_sequences,
+            sequence_length=task_config.sequence_length,
+            p_bursty=task_config.p_bursty,
             seed=seed,
             remap=remap,
             random_label=getattr(task_config, "random_label", False),
@@ -194,6 +211,7 @@ class MultitaskOmniglotFineGrain(Dataset):
         inputs, labels = zip(*list(map(lambda ii: self._dataset[ii], sample_idxes)))
         inputs = np.concatenate([input[None] for input in inputs])
         labels = np.array(labels)
+        labels = self._data["label_map"][idx][labels]
         if self._remap:
             labels = labels % 2
         outputs = np.eye(self._data["num_classes"])[labels]
