@@ -341,19 +341,26 @@ class MultitaskOmniglotBursty(Dataset):
 
         if is_bursty:
             label_idxes = []
-            if self._data["sequence_length"] > 6:
+            min_tokens = 7
+            if self._data["sequence_length"] > min_tokens:
                 label_idxes = sample_rng.choice(
-                    self._data["num_classes"], size=(self._data["sequence_length"] - 6)
+                    self._data["num_classes"],
+                    size=(self._data["sequence_length"] - min_tokens),
                 )
             repeated_distractor_label = sample_rng.choice(self._data["num_classes"])
-            label_idxes = sample_rng.permutation(
-                np.concatenate(
-                    [
-                        [label] * 3,
-                        [repeated_distractor_label] * 3,
-                        label_idxes,
-                    ]
-                )[: self._data["sequence_length"]]
+            label_idxes = np.concatenate(
+                (
+                    sample_rng.permutation(
+                        np.concatenate(
+                            [
+                                [label] * 3,
+                                [repeated_distractor_label] * 3,
+                                label_idxes,
+                            ]
+                        )[: self._data["sequence_length"]]
+                    ),
+                    [label],
+                )
             )
         else:
             label_idxes = sample_rng.choice(
