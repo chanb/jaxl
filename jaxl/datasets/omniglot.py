@@ -134,7 +134,8 @@ class MultitaskOmniglotFineGrain(Dataset):
         loaded, data = maybe_load_dataset(save_dir, dataset_name)
 
         if not loaded:
-            num_classes = 964
+            max_num_classes = 964
+            num_classes = 964 if dataset.background else 659
             sample_idxes, label_map = self._generate_data(
                 dataset=dataset,
                 num_sequences=num_sequences,
@@ -153,6 +154,7 @@ class MultitaskOmniglotFineGrain(Dataset):
                 "background": dataset.background,
                 "input_shape": [*dataset[0][0].shape],
                 "num_classes": num_classes,
+                "max_num_classes": max_num_classes,
                 "seed": seed,
             }
             maybe_save_dataset(
@@ -197,7 +199,7 @@ class MultitaskOmniglotFineGrain(Dataset):
 
     @property
     def output_dim(self) -> chex.Array:
-        return (self._data["num_classes"],)
+        return (self._data["max_num_classes"],)
 
     @property
     def sequence_length(self) -> int:
@@ -214,7 +216,7 @@ class MultitaskOmniglotFineGrain(Dataset):
         labels = self._data["label_map"][idx][labels]
         if self._remap:
             labels = labels % 2
-        outputs = np.eye(self._data["num_classes"])[labels]
+        outputs = np.eye(self._data["max_num_classes"])[labels]
         return (inputs, outputs)
 
 
@@ -246,7 +248,8 @@ class MultitaskOmniglotBursty(Dataset):
         loaded, data = maybe_load_dataset(save_dir, dataset_name)
 
         if not loaded:
-            num_classes = 964
+            max_num_classes = 964
+            num_classes = 964 if dataset.background else 659
             min_num_per_class = 20
             label_to_idx = np.arange(num_classes * min_num_per_class).reshape(
                 (num_classes, min_num_per_class)
@@ -274,6 +277,7 @@ class MultitaskOmniglotBursty(Dataset):
                 "background": dataset.background,
                 "input_shape": [*dataset[0][0].shape],
                 "num_classes": num_classes,
+                "max_num_classes": max_num_classes,
                 "min_num_per_class": min_num_per_class,
                 "label_to_idx": label_to_idx,
                 "seed": seed,
@@ -319,7 +323,7 @@ class MultitaskOmniglotBursty(Dataset):
 
     @property
     def output_dim(self) -> chex.Array:
-        return (self._data["num_classes"],)
+        return (self._data["max_num_classes"],)
 
     @property
     def sequence_length(self) -> int:
@@ -364,7 +368,7 @@ class MultitaskOmniglotBursty(Dataset):
         inputs = np.concatenate(
             (*[context_input[None] for context_input in inputs], query[None])
         )
-        outputs = np.concatenate([label_idxes, [label]])
+        labels = np.concatenate([label_idxes, [label]])
 
         if self._data["random_label"]:
             label_map = sample_rng.choice(
@@ -372,7 +376,10 @@ class MultitaskOmniglotBursty(Dataset):
                 size=(self._data["sequence_length"],),
                 replace=False,
             )
-            outputs = label_map[outputs]
-        outputs = np.eye(self._data["num_classes"])[outputs]
+            labels = label_map[labels]
+
+        if self._remap:
+            labels = labels % 2
+        outputs = np.eye(self._data["max_num_classes"])[labels]
 
         return (inputs, outputs)
