@@ -251,6 +251,7 @@ class MultitaskOmniglotBursty(Dataset):
             max_num_classes = 964
             num_classes = 964 if dataset.background else 659
             min_num_per_class = 20
+            context_len = sequence_length - 1
             label_to_idx = np.arange(num_classes * min_num_per_class).reshape(
                 (num_classes, min_num_per_class)
             )
@@ -262,7 +263,7 @@ class MultitaskOmniglotBursty(Dataset):
             ) = self._generate_data(
                 dataset=dataset,
                 num_sequences=num_sequences,
-                sequence_length=sequence_length,
+                context_len=context_len,
                 p_bursty=p_bursty,
                 min_num_per_class=min_num_per_class,
                 seed=seed,
@@ -273,6 +274,7 @@ class MultitaskOmniglotBursty(Dataset):
                 "query_idxes": query_idxes,
                 "num_sequences": num_sequences,
                 "sequence_length": sequence_length,
+                "context_len": context_len,
                 "random_label": random_label,
                 "background": dataset.background,
                 "input_shape": [*dataset[0][0].shape],
@@ -298,7 +300,7 @@ class MultitaskOmniglotBursty(Dataset):
         self,
         dataset: Dataset,
         num_sequences: int,
-        sequence_length: int,
+        context_len: int,
         min_num_per_class: int,
         p_bursty: float,
         seed: int,
@@ -312,7 +314,7 @@ class MultitaskOmniglotBursty(Dataset):
         query_idxes = sample_rng.choice(np.arange(len(dataset)), size=(num_sequences,))
 
         context_idxes = sample_rng.choice(
-            np.arange(min_num_per_class), size=(num_sequences, sequence_length)
+            np.arange(min_num_per_class), size=(num_sequences, context_len)
         )
 
         return context_idxes, query_idxes, is_bursty
@@ -341,30 +343,25 @@ class MultitaskOmniglotBursty(Dataset):
 
         if is_bursty:
             label_idxes = []
-            min_tokens = 7
+            min_tokens = 6
             if self._data["sequence_length"] > min_tokens:
                 label_idxes = sample_rng.choice(
                     self._data["num_classes"],
-                    size=(self._data["sequence_length"] - min_tokens),
+                    size=(self._data["context_len"] - min_tokens),
                 )
             repeated_distractor_label = sample_rng.choice(self._data["num_classes"])
-            label_idxes = np.concatenate(
-                (
-                    sample_rng.permutation(
-                        np.concatenate(
-                            [
-                                [label] * 3,
-                                [repeated_distractor_label] * 3,
-                                label_idxes,
-                            ]
-                        )[: self._data["sequence_length"]]
-                    ),
-                    [label],
-                )
+            label_idxes = sample_rng.permutation(
+                np.concatenate(
+                    [
+                        [label] * 3,
+                        [repeated_distractor_label] * 3,
+                        label_idxes,
+                    ]
+                )[: self._data["context_len"]]
             )
         else:
             label_idxes = sample_rng.choice(
-                self._data["num_classes"], size=(self._data["sequence_length"])
+                self._data["num_classes"], size=(self._data["context_len"])
             )
 
         context_idxes = self._data["context_idxes"][idx]
