@@ -54,11 +54,7 @@
                 "task_name": "multitask_omniglot_finegrain",
                 "task_config": {
                     "num_sequences": 100000,
-<<<<<<< HEAD:configs/omniglot/input_tokenizer_ablation/cnn.json
                     "sequence_length": 17,
-=======
-                    "sequence_length": 30,
->>>>>>> main:configs/omniglot/icl-gpt.json
                     "random_label": false,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl"
                 }
