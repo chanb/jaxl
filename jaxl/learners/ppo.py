@@ -191,7 +191,7 @@ class PPO(OnPolicyLearner):
                     CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
                     CONST_ENTROPY: pi_aux[CONST_AUX].get(CONST_ENTROPY, 0.0),
                     CONST_REGULARIZATION: reg_term,
-                    CONST_UPDATES: pi_aux[CONST_UPDATES],
+                    CONST_UPDATES: pi_aux[CONST_AUX][CONST_UPDATES],
                 },
                 CONST_VF: {
                     CONST_LOSS: vf_loss,
@@ -427,7 +427,7 @@ class PPO(OnPolicyLearner):
             obss = self.update_obs_rms_and_normalize(obss, lengths)
 
             # Get value predictions for computing GAE return
-            vals, _ = self._model[CONST_VF].forward(
+            vals, _, _ = self._model[CONST_VF].forward(
                 self._model_dict[CONST_MODEL][CONST_VF],
                 np.concatenate((obss, np.array([[next_obs]])), axis=0),
                 np.concatenate((h_states, np.array([[next_h_state]])), axis=0),
@@ -518,7 +518,11 @@ class PPO(OnPolicyLearner):
                 for i in range(acts.shape[-1])
             }
             auxes[-1][CONST_POLICY] = {
-                i: {k: np.abs(old_act_params[k][..., i]).mean() for k in old_act_params}
+                i: {
+                    k: np.abs(old_act_params[k][..., i]).mean()
+                    for k in old_act_params
+                    if k != CONST_UPDATES
+                }
                 for i in range(acts.shape[-1])
             }
             self._num_updates += 1
