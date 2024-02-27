@@ -71,6 +71,19 @@ def construct_mnist(
             target_transform=target_transform,
         )
     elif task_name == CONST_MULTITASK_MNIST_FINEGRAIN:
+        if getattr(task_config, "augmentation", False):
+            import torchvision.transforms as torch_transforms
+            from jaxl.transforms import GaussianNoise
+
+            transforms = [
+                jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
+                GaussianNoise(0.0, task_config.noise_scale),
+                torch_transforms.Normalize(0, 255.0),
+            ]
+            transforms = torch_transforms.Compose(transforms)
+        else:
+            transforms = jaxl_transforms.DefaultPILToImageTransform()
+
         return MultitaskMNISTFineGrain(
             dataset=torch_datasets.MNIST(
                 save_path,

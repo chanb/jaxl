@@ -73,6 +73,19 @@ def construct_omniglot(
             target_transform=target_transform,
         )
     elif task_name == CONST_MULTITASK_OMNIGLOT_FINEGRAIN:
+        if getattr(task_config, "augmentation", False):
+            import torchvision.transforms as torch_transforms
+            from jaxl.transforms import GaussianNoise
+
+            transforms = [
+                jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
+                GaussianNoise(0.0, task_config.noise_scale),
+                torch_transforms.Normalize(0, 255.0),
+            ]
+            transforms = torch_transforms.Compose(transforms)
+        else:
+            transforms = jaxl_transforms.DefaultPILToImageTransform()
+
         return MultitaskOmniglotFineGrain(
             dataset=torch_datasets.Omniglot(
                 save_path,
