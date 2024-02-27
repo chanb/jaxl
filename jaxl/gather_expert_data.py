@@ -27,7 +27,7 @@ from jaxl.utils import set_seed
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("run_path", default=None, help="The saved run", required=True)
-flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=False)
+flags.DEFINE_integer("run_seed", default=None, help="Seed for the run", required=True)
 flags.DEFINE_integer(
     "num_samples", default=None, help="Number of samples", required=True
 )
