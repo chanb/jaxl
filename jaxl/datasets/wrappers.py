@@ -140,10 +140,13 @@ class PermutationFixedLengthContextDataset(DatasetWrapper):
 class ContextDataset(DatasetWrapper):
     """Dataset for in-context learning."""
 
-    def __init__(self, dataset: Dataset, context_len: int):
+    def __init__(
+        self, dataset: Dataset, context_len: int, include_query_class: bool = False
+    ):
         super().__init__(dataset)
         self._context_len = context_len
         self._last_context_idx = context_len - 1
+        self._include_query_class = include_query_class
 
         # We subtract 1 from sequence length because we have context_len + 1, where 1 is the query
         self._seq_mod = self._dataset.sequence_length - 1
@@ -171,6 +174,22 @@ class ContextDataset(DatasetWrapper):
         seq_copy_start_idx = int(
             np.clip(timestep_i - self._last_context_idx, a_min=0, a_max=np.inf)
         )
+
+        if self._include_query_class and out_seq_start_idx != 0:
+            classes = np.argmax(outputs, axis=-1)
+            output_class = classes[timestep_i + 1]
+            match_idxes = classes == output_class
+            match_idxes[timestep_i + 1] = False
+            match_idxes = np.where(match_idxes)[0]
+
+            if len(match_idxes):
+                sample_rng = np.random.RandomState(idx)
+                idx_to_put = sample_rng.choice(match_idxes)
+
+                if not seq_copy_start_idx <= idx_to_put <= timestep_i:
+                    swap_idx = sample_rng.randint(seq_copy_start_idx, timestep_i + 1)
+                    inputs[swap_idx] = inputs[idx_to_put]
+                    outputs[swap_idx] = outputs[idx_to_put]
 
         inputs = inputs[seq_copy_start_idx : timestep_i + 2]
         outputs = outputs[seq_copy_start_idx : timestep_i + 2]
