@@ -7,6 +7,7 @@ from jaxl.constants import (
     CONST_MULTITASK_MNIST_FINEGRAIN,
     CONST_STRATIFIED_MULTITASK_MNIST_FINEGRAIN,
     CONST_MULTITASK_MNIST_RANDOM_BINARY,
+    CONST_MULTITASK_MNIST_BURSTY,
 )
 from jaxl.datasets.utils import (
     maybe_save_dataset,
@@ -49,35 +50,33 @@ def construct_mnist(
     ), f"{task_name} is not supported (one of {VALID_MNIST_TASKS})"
     target_transform = None
 
+    input_transform = jaxl_transforms.DefaultPILToImageTransform()
+    if task_config and getattr(task_config, "augmentation", False):
+        import torchvision.transforms as torch_transforms
+
+        transforms = [
+            jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
+            jaxl_transforms.GaussianNoise(0.0, task_config.noise_scale),
+            torch_transforms.Normalize(0, 255.0),
+        ]
+        input_transform = torch_transforms.Compose(transforms)
+
     if task_name is None:
         # By default, the MNIST task will be normalized to be between 0 to 1.
         return torch_datasets.MNIST(
             save_path,
             train=train,
             download=True,
-            transform=jaxl_transforms.DefaultPILToImageTransform(),
+            transform=input_transform,
             target_transform=target_transform,
         )
     elif task_name == CONST_MULTITASK_MNIST_FINEGRAIN:
-        if getattr(task_config, "augmentation", False):
-            import torchvision.transforms as torch_transforms
-            from jaxl.transforms import GaussianNoise
-
-            transforms = [
-                jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
-                GaussianNoise(0.0, task_config.noise_scale),
-                torch_transforms.Normalize(0, 255.0),
-            ]
-            transforms = torch_transforms.Compose(transforms)
-        else:
-            transforms = jaxl_transforms.DefaultPILToImageTransform()
-
         return MultitaskMNISTFineGrain(
             dataset=torch_datasets.MNIST(
                 save_path,
                 train=train,
                 download=True,
-                transform=transforms,
+                transform=input_transform,
                 target_transform=target_transform,
             ),
             num_sequences=task_config.num_sequences,
@@ -91,7 +90,7 @@ def construct_mnist(
                 save_path,
                 train=train,
                 download=True,
-                transform=jaxl_transforms.DefaultPILToImageTransform(),
+                transform=input_transform,
                 target_transform=target_transform,
             ),
             num_sequences=task_config.num_sequences,
@@ -105,7 +104,20 @@ def construct_mnist(
                 save_path,
                 train=train,
                 download=True,
-                transform=jaxl_transforms.StandardImageTransform(),
+                transform=input_transform,
+                target_transform=target_transform,
+            ),
+            num_sequences=task_config.num_sequences,
+            sequence_length=task_config.sequence_length,
+            save_dir=task_config.save_dir,
+        )
+    elif task_name == CONST_MULTITASK_MNIST_BURSTY:
+        return MultitaskMNISTBursty(
+            dataset=torch_datasets.MNIST(
+                save_path,
+                train=train,
+                download=True,
+                transform=input_transform,
                 target_transform=target_transform,
             ),
             num_sequences=task_config.num_sequences,
@@ -448,4 +460,175 @@ class MultitaskMNISTRandomBinary(Dataset):
         outputs = np.eye(self.output_dim[0])[
             self.label_map[self._dataset.targets[sample_idxes]]
         ]
+        return (inputs, outputs)
+
+
+class MultitaskMNISTBursty(Dataset):
+    """
+    The dataset contains a sequence-input MNIST problem, following Chan et al. 2022.
+    The query class is repeated 3 times, and one of the remaining classes is also repeated 3 times.
+    """
+
+    def __init__(
+        self,
+        dataset: Dataset,
+        num_sequences: int,
+        sequence_length: int,
+        seed: int = 0,
+        p_bursty: float = 1,
+        remap: bool = False,
+        random_label: bool = False,
+        save_dir: str = None,
+    ):
+        dataset_name = "omniglot_bursty-p_bursty_{}-train_{}-num_sequences_{}-sequence_length_{}-random_label_{}-seed_{}.pkl".format(
+            p_bursty,
+            dataset.train,
+            num_sequences,
+            sequence_length,
+            random_label,
+            seed,
+        )
+        loaded, data = maybe_load_dataset(save_dir, dataset_name)
+
+        if not loaded:
+            num_classes = 10
+            _, counts = np.unique(dataset.targets, return_counts=True)
+            min_num_per_class = np.min(counts)
+            context_len = sequence_length - 1
+            label_to_idx = np.vstack(
+                [
+                    np.where(dataset.targets == class_i)[0][:min_num_per_class]
+                    for class_i in range(num_classes)
+                ]
+            )
+
+            (
+                context_idxes,
+                query_idxes,
+                is_bursty,
+            ) = self._generate_data(
+                dataset=dataset,
+                num_sequences=num_sequences,
+                context_len=context_len,
+                p_bursty=p_bursty,
+                min_num_per_class=min_num_per_class,
+                seed=seed,
+            )
+
+            data = {
+                "context_idxes": context_idxes,
+                "query_idxes": query_idxes,
+                "num_sequences": num_sequences,
+                "sequence_length": sequence_length,
+                "context_len": context_len,
+                "random_label": random_label,
+                "train": dataset.train,
+                "input_shape": [*dataset[0][0].shape],
+                "num_classes": num_classes,
+                "min_num_per_class": min_num_per_class,
+                "label_to_idx": label_to_idx,
+                "seed": seed,
+                "p_bursty": p_bursty,
+                "is_bursty": is_bursty,
+            }
+            maybe_save_dataset(
+                data,
+                save_dir,
+                dataset_name,
+            )
+
+        self._dataset = dataset
+        self._data = data
+        self._remap = remap
+
+    def _generate_data(
+        self,
+        dataset: Dataset,
+        num_sequences: int,
+        context_len: int,
+        min_num_per_class: int,
+        p_bursty: float,
+        seed: int,
+    ) -> Tuple[chex.Array, chex.Array, chex.Array]:
+        print("Generating Data")
+        sample_key, _ = jrandom.split(jrandom.PRNGKey(seed))
+        sample_rng = np.random.RandomState(sample_key)
+
+        is_bursty = sample_rng.rand(num_sequences) < p_bursty
+
+        query_idxes = sample_rng.choice(np.arange(len(dataset)), size=(num_sequences,))
+
+        context_idxes = sample_rng.choice(
+            np.arange(min_num_per_class), size=(num_sequences, context_len)
+        )
+
+        return context_idxes, query_idxes, is_bursty
+
+    @property
+    def input_dim(self) -> chex.Array:
+        return self._data["input_shape"]
+
+    @property
+    def output_dim(self) -> chex.Array:
+        return (self._data["num_classes"],)
+
+    @property
+    def sequence_length(self) -> int:
+        return self._data["sequence_length"]
+
+    def __len__(self):
+        return self._data["num_sequences"]
+
+    def __getitem__(self, idx):
+        is_bursty = self._data["is_bursty"][idx]
+        sample_rng = np.random.RandomState(idx)
+
+        query_idx = self._data["query_idxes"][idx]
+        query, label = self._dataset[query_idx]
+
+        if is_bursty:
+            label_idxes = []
+            min_tokens = 6
+            if self._data["sequence_length"] > min_tokens:
+                label_idxes = sample_rng.choice(
+                    self._data["num_classes"],
+                    size=(self._data["context_len"] - min_tokens),
+                )
+            repeated_distractor_label = sample_rng.choice(self._data["num_classes"])
+            label_idxes = sample_rng.permutation(
+                np.concatenate(
+                    [
+                        [label] * 3,
+                        [repeated_distractor_label] * 3,
+                        label_idxes,
+                    ]
+                )[: self._data["context_len"]]
+            )
+        else:
+            label_idxes = sample_rng.choice(
+                self._data["num_classes"], size=(self._data["context_len"])
+            )
+
+        context_idxes = self._data["context_idxes"][idx]
+        context_idxes = np.take_along_axis(
+            self._data["label_to_idx"][label_idxes], context_idxes[:, None], axis=1
+        ).flatten()
+        inputs, _ = zip(*list(map(lambda ii: self._dataset[ii], context_idxes)))
+        inputs = np.concatenate(
+            (*[context_input[None] for context_input in inputs], query[None])
+        )
+        labels = np.concatenate([label_idxes, [label]])
+
+        if self._data["random_label"]:
+            label_map = sample_rng.choice(
+                self._data["num_classes"],
+                size=(self._data["sequence_length"],),
+                replace=False,
+            )
+            labels = label_map[labels]
+
+        if self._remap:
+            labels = labels % 2
+        outputs = np.eye(self._data["num_classes"])[labels]
+
         return (inputs, outputs)
