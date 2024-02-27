@@ -18,7 +18,7 @@ class MLPModule(nn.Module):
     output_activation: Callable
 
     @nn.compact
-    def __call__(self, x: chex.Array) -> chex.Array:
+    def __call__(self, x: chex.Array, **kwargs) -> chex.Array:
         idx = -1
         for idx, layer in enumerate(self.layers[:-1]):
             x = self.activation(nn.Dense(layer)(x))
@@ -41,7 +41,7 @@ class CNNModule(nn.Module):
     activation: Callable
 
     @nn.compact
-    def __call__(self, x: chex.Array) -> chex.Array:
+    def __call__(self, x: chex.Array, **kwargs) -> chex.Array:
         for idx, (feature, kernel_size) in enumerate(
             zip(self.features, self.kernel_sizes)
         ):
@@ -84,7 +84,6 @@ class ResNetV1Block(nn.Module):
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
             )
-            
             if self.use_batch_norm:
                 self.projection_batchnorm = nn.BatchNorm(
                     momentum=0.9,
@@ -151,7 +150,6 @@ class ResNetV1Block(nn.Module):
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
             )
-            
             if self.use_batch_norm:
                 self.batch_norm_2 = nn.BatchNorm(
                     momentum=0.9,
@@ -165,7 +163,7 @@ class ResNetV1Block(nn.Module):
                 layers.append(self.conv_2)
         self.layers = layers
 
-    def __call__(self, x: chex.Array, eval: bool) -> chex.Array:
+    def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         out = shortcut = x
 
         if self.use_projection:
@@ -181,7 +179,7 @@ class ResNetV1Block(nn.Module):
                 out = conv_i(out)
                 out = batch_norm_i(out, eval)
                 out = jax.nn.relu(out)
-                self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)        
+                self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
                 out = self.layers[-1][0](out)
                 out = self.layers[-1][1](out, eval)
         else:
@@ -215,7 +213,7 @@ class ResNetV1BlockGroup(nn.Module):
     use_batch_norm: bool
 
     @nn.compact
-    def __call__(self, x: chex.Array, eval: bool) -> chex.Array:
+    def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         for block_i in range(self.num_blocks):
             x = ResNetV1Block(
                 self.features,
@@ -249,7 +247,7 @@ class ResNetV1Module(nn.Module):
     use_batch_norm: bool
 
     @nn.compact
-    def __call__(self, x: chex.Array, eval: bool) -> chex.Array:
+    def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         x = nn.Conv(
             features=64,
             kernel_size=7,
@@ -303,7 +301,7 @@ class GPTBlock(nn.Module):
     embed_dim: int
 
     @nn.compact
-    def __call__(self, x: chex.Array) -> chex.Array:
+    def __call__(self, x: chex.Array, **kwargs) -> chex.Array:
         mask = nn.make_causal_mask(x[..., 0])
         x = x + nn.SelfAttention(self.num_heads)(nn.LayerNorm()(x), mask)
         normed_x = nn.gelu(nn.Dense(self.embed_dim)(nn.LayerNorm()(x)))
@@ -324,7 +322,7 @@ class GPTModule(nn.Module):
     embed_dim: int
 
     @nn.compact
-    def __call__(self, x: chex.Array) -> chex.Array:
+    def __call__(self, x: chex.Array, **kwargs) -> chex.Array:
         for idx, _ in enumerate(range(self.num_blocks)):
             x = GPTBlock(self.num_heads, self.embed_dim)(x)
             self.sow("gpt_latents", "gpt_{}".format(idx), x)
@@ -337,12 +335,12 @@ class Temperature(nn.Module):
     initial_temperature: float = 1.0
 
     @nn.compact
-    def __call__(self) -> jnp.ndarray:
+    def __call__(self, **kwargs) -> jnp.ndarray:
         log_temp = self.param(
             "log_temp",
             init_fn=lambda _: jnp.full((), jnp.log(self.initial_temperature)),
         )
         return jnp.exp(log_temp)
-    
+
     def update_batch_stats(self, params, batch_stats):
         return params

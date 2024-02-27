@@ -349,9 +349,9 @@ class A2C(OnPolicyLearner):
             aux[CONST_LOG][
                 f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_SATURATION}"
             ] = auxes[CONST_ACTION][act_i][CONST_SATURATION]
-            aux[CONST_LOG][
-                f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"
-            ] = auxes[CONST_ACTION][act_i][CONST_MEAN]
+            aux[CONST_LOG][f"{CONST_ACTION}/{CONST_ACTION}_{act_i}_{CONST_MEAN}"] = (
+                auxes[CONST_ACTION][act_i][CONST_MEAN]
+            )
 
         self.gather_rms(aux)
         return aux

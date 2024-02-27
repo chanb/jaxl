@@ -59,12 +59,25 @@ def construct_mnist(
             target_transform=target_transform,
         )
     elif task_name == CONST_MULTITASK_MNIST_FINEGRAIN:
+        if getattr(task_config, "augmentation", False):
+            import torchvision.transforms as torch_transforms
+            from jaxl.transforms import GaussianNoise
+
+            transforms = [
+                jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
+                GaussianNoise(0.0, task_config.noise_scale),
+                torch_transforms.Normalize(0, 255.0),
+            ]
+            transforms = torch_transforms.Compose(transforms)
+        else:
+            transforms = jaxl_transforms.DefaultPILToImageTransform()
+
         return MultitaskMNISTFineGrain(
             dataset=torch_datasets.MNIST(
                 save_path,
                 train=train,
                 download=True,
-                transform=jaxl_transforms.DefaultPILToImageTransform(),
+                transform=transforms,
                 target_transform=target_transform,
             ),
             num_sequences=task_config.num_sequences,
@@ -78,7 +91,7 @@ def construct_mnist(
                 save_path,
                 train=train,
                 download=True,
-                transform=jaxl_transforms.StandardImageTransform(),
+                transform=jaxl_transforms.DefaultPILToImageTransform(),
                 target_transform=target_transform,
             ),
             num_sequences=task_config.num_sequences,
@@ -105,7 +118,7 @@ def construct_mnist(
 
 class MultitaskMNISTFineGrain(Dataset):
     """
-    The dataset contains multiple ND (fixed) linear classification problems.
+    The dataset contains a sequence-input MNIST problem.
     """
 
     def __init__(
@@ -210,7 +223,8 @@ class MultitaskMNISTFineGrain(Dataset):
 
 class StratifiedMultitaskMNISTFineGrain(Dataset):
     """
-    The dataset contains multiple ND (fixed) linear classification problems.
+    The dataset contains a sequence-input MNIST problem with stratified sampling,
+    such that each class is included in the sequence
     """
 
     def __init__(
@@ -234,13 +248,13 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
         if not loaded:
             _, counts = np.unique(dataset.targets, return_counts=True)
             min_num_per_class = np.min(counts)
+            num_classes = 10
             label_to_idx = np.vstack(
                 [
                     np.where(dataset.targets == class_i)[0][:min_num_per_class]
-                    for class_i in range(self.output_dim[0])
+                    for class_i in range(num_classes)
                 ]
             )
-            num_classes = 10
             (
                 context_idxes,
                 query_idxes,
@@ -359,7 +373,7 @@ class StratifiedMultitaskMNISTFineGrain(Dataset):
 
 class MultitaskMNISTRandomBinary(Dataset):
     """
-    The dataset contains multiple ND (fixed) linear classification problems.
+    The dataset contains a sequence-input MNIST, with labels relabelled to {0, 1}.
     """
 
     def __init__(
