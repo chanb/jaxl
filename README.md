@@ -43,7 +43,6 @@ conda install -c conda-forge mesalib
 conda install jaxlib=*=*cuda* jax cuda-nvcc -c conda-forge -c nvidia
 conda install -c menpo glfw3
 pip install patchelf
-conda install pytorch-cpu torchvision-cpu -c pytorch
 pip install -r requirements/conda.txt
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 pip install "cython<3"
