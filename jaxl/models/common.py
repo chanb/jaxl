@@ -573,7 +573,7 @@ class ResNetV1(Model):
             use_bottleneck=use_bottleneck,
             use_batch_norm=use_batch_norm,
         )
-        self.forward = jax.jit(self.make_forward())
+        self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
