@@ -3,7 +3,8 @@
         "save_path": "./logs/icl-omniglot/bursty_ablation-fixed_length",
         "experiment_name": "bursty_0.5-batch_norm",
         "log_interval": 50,
-        "checkpoint_interval": 100000
+        "checkpoint_interval": 100000,
+        "image_data": true
     },
     "model_config": {
         "architecture": "icl_gpt",
