@@ -379,8 +379,10 @@ def load_model(
     )
 
     all_steps = checkpoint_manager.all_steps()
+    to_load = min(len(all_steps) - 1, checkpoint_i)
+    print("Loading checkpoint: {}".format(all_steps[to_load]))
     params = checkpoint_manager.restore(
-        all_steps[min(len(all_steps) - 1, checkpoint_i)]
+        all_steps[to_load]
     )
 
     return params, model
