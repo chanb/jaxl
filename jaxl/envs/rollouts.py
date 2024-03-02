@@ -134,7 +134,7 @@ class EvaluationRollout(Rollout):
         num_episodes: int,
         buffer: ReplayBuffer = None,
         use_tqdm: bool = True,
-        random=False,
+        random: bool = False,
     ):
         """
         Executes the policy in the environment.
@@ -145,12 +145,14 @@ class EvaluationRollout(Rollout):
         :param num_episodes: the number of interaction episodes with the environment
         :param buffer: the buffer to store the transitions with
         :param use_tqdm: whether or not to show progress bar
+        :param random: whether to use random actions
         :type params: Union[optax.Params, Dict[str, Any]]
         :type policy: Policy
         :type obs_rms: Union[bool, RunningMeanStd]
         :type num_episodes: int
         :type buffer: ReplayBuffer (DefaultValue = None)
-        :type use_tqdm: bool (DefaultValue = False)
+        :type use_tqdm: bool (DefaultValue = True)
+        :type random: bool (DefaultValue = False)
 
         """
         it = range(num_episodes)
