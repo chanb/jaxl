@@ -135,6 +135,7 @@ def construct_mnist(
             ),
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
+            random_label=getattr(task_config, "random_label", False),
             save_dir=task_config.save_dir,
         )
     else:
@@ -633,10 +634,8 @@ class MultitaskMNISTBursty(Dataset):
         labels = np.concatenate([label_idxes, [label]])
 
         if self._data["random_label"]:
-            label_map = sample_rng.choice(
+            label_map = sample_rng.permutation(
                 self._data["num_classes"],
-                size=(self._data["sequence_length"],),
-                replace=False,
             )
             labels = label_map[labels]
 
