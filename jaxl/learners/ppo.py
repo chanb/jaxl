@@ -12,7 +12,6 @@ import timeit
 
 from jaxl.constants import *
 from jaxl.learners.reinforcement import OnPolicyLearner
-from jaxl.learners.utils import gather_per_leaf_l2_norm
 from jaxl.losses.reinforcement import (
     scan_gae_lambda_returns,
     make_pi_is_loss,
