@@ -220,6 +220,7 @@ def load_evaluation_components(
 
     checkpoint_manager = CheckpointManager(
         os.path.join(run_path, "models"),
+        PyTreeCheckpointer(),
     )
 
     params = checkpoint_manager.restore(checkpoint_manager.latest_step())

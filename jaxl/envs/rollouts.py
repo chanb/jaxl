@@ -134,7 +134,7 @@ class EvaluationRollout(Rollout):
         num_episodes: int,
         buffer: ReplayBuffer = None,
         use_tqdm: bool = True,
-        random=False,
+        random: bool = False,
     ):
         """
         Executes the policy in the environment.
@@ -145,12 +145,14 @@ class EvaluationRollout(Rollout):
         :param num_episodes: the number of interaction episodes with the environment
         :param buffer: the buffer to store the transitions with
         :param use_tqdm: whether or not to show progress bar
+        :param random: whether to use random actions
         :type params: Union[optax.Params, Dict[str, Any]]
         :type policy: Policy
         :type obs_rms: Union[bool, RunningMeanStd]
         :type num_episodes: int
         :type buffer: ReplayBuffer (DefaultValue = None)
-        :type use_tqdm: bool (DefaultValue = False)
+        :type use_tqdm: bool (DefaultValue = True)
+        :type random: bool (DefaultValue = False)
 
         """
         it = range(num_episodes)
@@ -167,7 +169,7 @@ class EvaluationRollout(Rollout):
         for _ in it:
             self._episodic_returns.append(0)
             self._episode_lengths.append(0)
-            seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
+            seed = int(np.array(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1)))
             self._reset_key = jrandom.split(self._reset_key, 1)[0]
             self._curr_obs, self._curr_info = self._env.reset(seed=seed)
             self._curr_h_state = policy.reset()
@@ -193,6 +195,7 @@ class EvaluationRollout(Rollout):
                     env_act = np.clip(
                         act, self._env.action_space.low, self._env.action_space.high
                     )
+                env_act = np.array(env_act)
                 next_obs, rew, terminated, truncated, info = self._env.step(env_act)
                 self._episodic_returns[-1] += float(rew)
                 self._episode_lengths[-1] += 1
@@ -239,7 +242,7 @@ class EvaluationRollout(Rollout):
         for _ in it:
             self._episodic_returns.append(0)
             self._episode_lengths.append(0)
-            seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
+            seed = int(np.array(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1)))
             self._reset_key = jrandom.split(self._reset_key, 1)[0]
             self._curr_obs, self._curr_info = self._env.reset(seed=seed)
             self._curr_h_state = np.ones((1,))
@@ -249,6 +252,7 @@ class EvaluationRollout(Rollout):
                 act = self._env.action_space.sample()
                 next_h_state = self._curr_h_state
                 env_act = act
+                env_act = np.array(env_act)
                 next_obs, rew, terminated, truncated, info = self._env.step(env_act)
                 self._episodic_returns[-1] += float(rew)
                 self._episode_lengths[-1] += 1
@@ -324,7 +328,7 @@ class EvaluationRollout(Rollout):
                 termination_step = termination_steps[ep_i]
             self._episodic_returns.append(0)
             self._episode_lengths.append(0)
-            seed = int(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1))
+            seed = int(np.array(jrandom.randint(self._reset_key, (1,), 0, 2**16 - 1)))
             self._reset_key = jrandom.split(self._reset_key, 1)[0]
             self._curr_obs, self._curr_info = self._env.reset(seed=seed)
             self._curr_h_state = policy.reset()
@@ -349,6 +353,7 @@ class EvaluationRollout(Rollout):
                     env_act = np.clip(
                         act, self._env.action_space.low, self._env.action_space.high
                     )
+                env_act = np.array(env_act)
                 next_obs, rew, terminated, truncated, info = self._env.step(env_act)
                 self._episodic_returns[-1] += float(rew)
                 self._episode_lengths[-1] += 1
