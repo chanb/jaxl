@@ -7,7 +7,7 @@
     },
     "model_config": {
         "architecture": "icl_gpt",
-        "num_contexts": 16,
+        "num_contexts": 8,
         "num_blocks": 8,
         "num_heads": 8,
         "embed_dim": 64,

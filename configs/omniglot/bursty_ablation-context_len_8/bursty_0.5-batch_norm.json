@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/icl-omniglot/bursty_ablation-fixed_length",
-        "experiment_name": "bursty_0.5-context_len_8",
+        "experiment_name": "bursty_0.5-context_len_8-batch_norm",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -26,7 +26,7 @@
                 "stride": [1, 2, 2, 2],
                 "use_projection": [true, true, true, true],
                 "use_bottleneck": true,
-                "use_batch_norm": false
+                "use_batch_norm": true
             }
         },
         "output_tokenizer": {
