@@ -22,8 +22,10 @@ from jaxl.constants import (
 )
 from jaxl.envs.rollouts import EvaluationRollout
 from jaxl.learning_utils import load_evaluation_components
-from jaxl.utils import set_seed
+from jaxl.utils import set_seed, get_device
 
+CONST_CPU = "cpu"
+CONST_GPU = "gpu"
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("run_path", default=None, help="The saved run", required=True)
@@ -67,6 +69,12 @@ flags.DEFINE_integer(
     help="Maximum episode length",
     required=False,
 )
+flags.DEFINE_string(
+    "device",
+    default=CONST_CPU,
+    help="JAX device to use. To specify specific GPU device, do gpu:<device_ids>",
+    required=False,
+)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -82,6 +90,7 @@ def main(
 ):
     """Orchestrates the evaluation."""
     tic = timeit.default_timer()
+    get_device(config.device)
     set_seed(config.run_seed)
     assert os.path.isdir(config.run_path), f"{config.run_path} is not a directory"
     assert (
