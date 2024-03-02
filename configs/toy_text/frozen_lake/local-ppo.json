@@ -3,7 +3,7 @@
         "save_path": "./logs/frozen_lake",
         "experiment_name": "ppo",
         "log_interval": 10,
-        "checkpoint_interval": false
+        "checkpoint_interval": 100
     },
     "model_config": {
         "policy": {

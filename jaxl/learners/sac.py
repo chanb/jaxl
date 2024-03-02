@@ -643,7 +643,7 @@ class SAC(OffPolicyLearner):
 
         if qf_auxes:
             qf_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *qf_auxes)
-            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_QF}"] = qf_auxes[CONST_AGG_LOSS].item()
+            aux[CONST_LOG][f"losses/{CONST_QF}"] = qf_auxes[CONST_AGG_LOSS].item()
             aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_QF}"] = qf_auxes[CONST_GRAD_NORM][
                 CONST_QF
             ].item()
@@ -668,7 +668,7 @@ class SAC(OffPolicyLearner):
         if pi_auxes:
             pi_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *pi_auxes)
 
-            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_POLICY}"] = pi_auxes[
+            aux[CONST_LOG][f"losses/{CONST_POLICY}"] = pi_auxes[
                 CONST_AGG_LOSS
             ].item()
             aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_POLICY}"] = pi_auxes[
@@ -686,7 +686,7 @@ class SAC(OffPolicyLearner):
                 lambda *args: np.mean(args), *temp_auxes
             )
 
-            aux[CONST_LOG][f"{CONST_LOSS}/{CONST_TEMPERATURE}"] = temp_auxes[
+            aux[CONST_LOG][f"losses/{CONST_TEMPERATURE}"] = temp_auxes[
                 CONST_AGG_LOSS
             ].item()
             aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_TEMPERATURE}"] = temp_auxes[
