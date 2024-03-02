@@ -1,9 +1,9 @@
 {
     "logging_config": {
-        "save_path": "./logs/pendulum_continuous",
-        "experiment_name": "ppo-same_hyper",
-        "log_interval": 1,
-        "checkpoint_interval": false
+        "save_path": "./logs/mountain_car",
+        "experiment_name": "ppo",
+        "log_interval": 10,
+        "checkpoint_interval": 100
     },
     "model_config": {
         "policy": {
@@ -49,12 +49,8 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "ParameterizedPendulum-v0",
-            "env_kwargs": {
-                "use_default": true,
-                "seed": 42,
-                "control_mode": "continuous"
-            }
+            "env_name": "MountainCar-v0",
+            "env_kwargs": {}
         },
         "seeds": {
             "model_seed": 42,
@@ -73,7 +69,7 @@
         "eps": 1e-05,
         "obs_rms": true,
         "value_rms": false,
-        "policy_distribution": "gaussian",
+        "policy_distribution": "softmax",
         "temperature": 1.0,
         "min_std": 1e-06,
         "opt_batch_size": 256,
@@ -81,9 +77,12 @@
         "kl_threshold": false,
         "update_before_early_stopping": false,
         "ent_loss_setting": {
-            "scheduler": "constant_schedule",
+            "scheduler": "linear_schedule",
             "scheduler_kwargs": {
-                "value": 0.0
+                "init_value": 0.002,
+                "end_value": 0.0,
+                "transition_begin": 0,
+                "transition_steps": 100
             }
         },
         "vf_loss_setting": {
@@ -92,14 +91,14 @@
             "clip_param": false
         },
         "pi_loss_setting": {
-            "objective": "clip",
+            "objective": "reverse_kl",
             "coefficient": 1.0,
             "reduction": "mean",
             "clip_param": 0.2,
-            "beta": 0.02
+            "beta": 0.002
         }
     },
     "train_config": {
-        "num_epochs": 2500
+        "num_epochs": 5000
     }
 }

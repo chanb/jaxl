@@ -917,7 +917,7 @@ class SoftmaxPolicy(StochasticPolicy):
             """
             act_params, h_state, _ = model.forward(params, obs, h_state, **kwargs)
             act = Softmax.sample(act_params / self._temperature, key)
-            return act, h_state
+            return act.reshape(-1), h_state
 
         return compute_action
 
@@ -1009,7 +1009,7 @@ class SoftmaxPolicy(StochasticPolicy):
             """
             act_params, h_state, _ = model.forward(params, obs, h_state, **kwargs)
             act = Softmax.sample(act_params / self._temperature, key)
-            return act, h_state
+            return act.reshape(-1), h_state
 
         return random_action
 
