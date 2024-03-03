@@ -120,7 +120,7 @@ class EncoderPredictorModel(Model):
         encoder_key, predictor_key = jrandom.split(model_key)
         encoder_params = self.encoder.init(encoder_key, dummy_x)
         dummy_carry = self.encoder.reset_h_state()
-        dummy_repr, _ = self.encoder.forward(encoder_params, dummy_x, dummy_carry)
+        dummy_repr, _, _ = self.encoder.forward(encoder_params, dummy_x, dummy_carry)
         predictor_params = self.predictor.init(predictor_key, dummy_repr)
         return {
             CONST_ENCODER: encoder_params,
@@ -260,6 +260,20 @@ class EncoderPredictorModel(Model):
             return repr, repr_carry, repr_updates
 
         return encode
+
+    def update_batch_stats(
+        self, params: Dict[str, Any], batch_stats: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        enc_params = self.encoder.update_batch_stats(
+            params[CONST_ENCODER], batch_stats[CONST_ENCODER],
+        )
+        pred_params = self.predictor.update_batch_stats(
+            params[CONST_PREDICTOR], batch_stats[CONST_PREDICTOR],
+        )
+        return {
+            CONST_ENCODER: enc_params,
+            CONST_PREDICTOR: pred_params,
+        }
 
 
 class EnsembleModel(Model):

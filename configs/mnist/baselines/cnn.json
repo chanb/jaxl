@@ -1,0 +1,81 @@
+{
+    "logging_config": {
+        "save_path": "./logs/mnist/baselines",
+        "experiment_name": "cnn",
+        "log_interval": 10,
+        "checkpoint_interval": 100
+    },
+    "model_config": {
+        "architecture": "encoder_predictor",
+        "encoder": {
+            "architecture": "cnn",
+            "features": [32, 32, 32],
+            "kernel_sizes": [[3, 3], [3, 3], [3, 3]],
+            "layers": [32, 10]
+        },
+        "predictor": {
+            "architecture": "mlp",
+            "layers": [64]
+        },
+        "encoder_dim": [64]
+    },
+    "optimizer_config": {
+        "predictor": {
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 3e-4
+                }
+            },
+            "max_grad_norm": false
+        },
+        "encoder": {
+            "optimizer": "adam",
+            "lr": {
+                "scheduler": "constant_schedule",
+                "scheduler_kwargs": {
+                    "value": 3e-4
+                }
+            },
+            "max_grad_norm": false
+        }
+    },
+    "learner_config": {
+        "task": "supervised_learning",
+        "dataset_config": {
+            "dataset_name": "mnist",
+            "dataset_kwargs": {
+                "save_path": "/home/bryanpu1/projects/icl/data",
+                "task_name": null,
+                "task_config": {}
+            },
+            "dataset_wrapper": {
+                "type": "StandardSupervisedDataset",
+                "kwargs": {}
+            },
+            "num_workers": 4
+        },
+        "seeds": {
+            "model_seed": 42,
+            "data_seed": 42
+        },
+        "learner": "mle",
+        "losses": ["categorical", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean",
+                "is_one_hot": false
+            },
+            {
+                "coefficient": 0.0
+            }
+        ],
+        "num_updates_per_epoch": 600,
+        "batch_size": 100
+    },
+    "train_config": {
+        "num_epochs": 5000
+    }
+}
