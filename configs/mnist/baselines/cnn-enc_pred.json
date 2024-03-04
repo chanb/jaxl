@@ -11,13 +11,14 @@
             "architecture": "cnn",
             "features": [32, 32, 32],
             "kernel_sizes": [[3, 3], [3, 3], [3, 3]],
-            "layers": [32, 32, 2]
+            "layers": [32, 32],
+            "output_activation": "relu"
         },
         "predictor": {
             "architecture": "mlp",
             "layers": []
         },
-        "encoder_dim": [2]
+        "encoder_dim": [10]
     },
     "optimizer_config": {
         "predictor": {

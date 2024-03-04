@@ -9,7 +9,7 @@
         "architecture": "cnn",
         "features": [32, 32, 32],
         "kernel_sizes": [[3, 3], [3, 3], [3, 3]],
-        "layers": [32, 32, 2]
+        "layers": [32, 32, 10]
     },
     "optimizer_config": {
         "optimizer": "adam",
@@ -37,8 +37,8 @@
             "num_workers": 4
         },
         "seeds": {
-            "model_seed": 42,
-            "data_seed": 42
+            "model_seed": 43,
+            "data_seed": 43
         },
         "learner": "mle",
         "losses": ["categorical", "l2"],
