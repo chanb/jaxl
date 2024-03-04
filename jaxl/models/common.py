@@ -1,4 +1,5 @@
 from abc import ABC
+from collections.abc import Iterable
 from flax import linen as nn
 from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
@@ -476,6 +477,10 @@ class CNN(Model):
         activation: str = CONST_RELU,
         output_activation: str = CONST_IDENTITY,
     ) -> None:
+        if isinstance(features[0], Iterable):
+            self.spatial_dim = -(len(features[0]) + 1)
+        else:
+            self.spatial_dim = 1
         self.conv = CNNModule(
             features,
             kernel_sizes,
@@ -505,7 +510,7 @@ class CNN(Model):
         conv_params = self.conv.init(model_key, dummy_x)
         dummy_latent = self.conv.apply(conv_params, dummy_x)
         mlp_params = self.mlp.init(
-            model_key, dummy_latent.reshape((dummy_latent.shape[0], -1))
+            model_key, dummy_latent.reshape((*dummy_latent.shape[:self.spatial_dim], -1))
         )
         return {
             CONST_CNN: conv_params,
@@ -559,7 +564,7 @@ class CNN(Model):
             """
             # NOTE: Assume batch size is first dim
             conv_latent = self.conv.apply(params[CONST_CNN], input)
-            conv_latent = conv_latent.reshape((*conv_latent.shape[:-2], -1))
+            conv_latent = conv_latent.reshape((*conv_latent.shape[:self.spatial_dim], -1))
             out = self.mlp.apply(params[CONST_MLP], conv_latent)
             return out, carry, None
 
