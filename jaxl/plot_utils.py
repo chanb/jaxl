@@ -206,8 +206,8 @@ def icl_image_grid(
             axes[row_i, col_i].set_title(
                 "{}".format(np.argmax(context_outputs_i[context_i]))
             )
-            axes[row_i, col_i].imshow(np.transpose(context_inputs_i[context_i], (1, 2, 0)), cmap=plt.cm.binary)
-        axes[sample_i * 2, -1].imshow(np.transpose(query_i[0], (1, 2, 0)))
+            axes[row_i, col_i].imshow(context_inputs_i[context_i], cmap=plt.cm.binary)
+        axes[sample_i * 2, -1].imshow(query_i[0])
         axes[sample_i * 2, -1].set_title("Label: {}".format(np.argmax(label_i)))
         axes[sample_i * 2, -1].set_xticks([])
         axes[sample_i * 2, -1].set_yticks([])

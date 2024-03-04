@@ -19,7 +19,7 @@ class DefaultPILToImageTransform:
         img = torch_transforms.functional.pil_to_tensor(img)
         img = torch_transforms.functional.convert_image_dtype(img) / self.scale
         return img
-    
+
 
 class Transpose:
     """

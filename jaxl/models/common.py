@@ -266,10 +266,12 @@ class EncoderPredictorModel(Model):
         self, params: Dict[str, Any], batch_stats: Dict[str, Any]
     ) -> Dict[str, Any]:
         enc_params = self.encoder.update_batch_stats(
-            params[CONST_ENCODER], batch_stats[CONST_ENCODER],
+            params[CONST_ENCODER],
+            batch_stats[CONST_ENCODER],
         )
         pred_params = self.predictor.update_batch_stats(
-            params[CONST_PREDICTOR], batch_stats[CONST_PREDICTOR],
+            params[CONST_PREDICTOR],
+            batch_stats[CONST_PREDICTOR],
         )
         return {
             CONST_ENCODER: enc_params,
@@ -510,7 +512,8 @@ class CNN(Model):
         conv_params = self.conv.init(model_key, dummy_x)
         dummy_latent = self.conv.apply(conv_params, dummy_x)
         mlp_params = self.mlp.init(
-            model_key, dummy_latent.reshape((*dummy_latent.shape[:self.spatial_dim], -1))
+            model_key,
+            dummy_latent.reshape((*dummy_latent.shape[: self.spatial_dim], -1)),
         )
         return {
             CONST_CNN: conv_params,
@@ -564,7 +567,9 @@ class CNN(Model):
             """
             # NOTE: Assume batch size is first dim
             conv_latent = self.conv.apply(params[CONST_CNN], input)
-            conv_latent = conv_latent.reshape((*conv_latent.shape[:self.spatial_dim], -1))
+            conv_latent = conv_latent.reshape(
+                (*conv_latent.shape[: self.spatial_dim], -1)
+            )
             out = self.mlp.apply(params[CONST_MLP], conv_latent)
             return out, carry, None
 
