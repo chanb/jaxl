@@ -29,10 +29,10 @@
             "lr": {
                 "scheduler": "constant_schedule",
                 "scheduler_kwargs": {
-                    "value": 0.0003
+                    "value": 1e-2
                 }
             },
-            "max_grad_norm": 0.5
+            "max_grad_norm": false
         },
         "vf": {
             "optimizer": "adam",
@@ -42,7 +42,7 @@
                     "value": 0.0003
                 }
             },
-            "max_grad_norm": 0.5
+            "max_grad_norm": false
         }
     },
     "learner_config": {
