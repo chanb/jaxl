@@ -1,4 +1,5 @@
 from abc import ABC
+from collections.abc import Iterable
 from flax import linen as nn
 from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
@@ -120,7 +121,7 @@ class EncoderPredictorModel(Model):
         encoder_key, predictor_key = jrandom.split(model_key)
         encoder_params = self.encoder.init(encoder_key, dummy_x)
         dummy_carry = self.encoder.reset_h_state()
-        dummy_repr, _ = self.encoder.forward(encoder_params, dummy_x, dummy_carry)
+        dummy_repr, _, _ = self.encoder.forward(encoder_params, dummy_x, dummy_carry)
         predictor_params = self.predictor.init(predictor_key, dummy_repr)
         return {
             CONST_ENCODER: encoder_params,
@@ -260,6 +261,22 @@ class EncoderPredictorModel(Model):
             return repr, repr_carry, repr_updates
 
         return encode
+
+    def update_batch_stats(
+        self, params: Dict[str, Any], batch_stats: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        enc_params = self.encoder.update_batch_stats(
+            params[CONST_ENCODER],
+            batch_stats[CONST_ENCODER],
+        )
+        pred_params = self.predictor.update_batch_stats(
+            params[CONST_PREDICTOR],
+            batch_stats[CONST_PREDICTOR],
+        )
+        return {
+            CONST_ENCODER: enc_params,
+            CONST_PREDICTOR: pred_params,
+        }
 
 
 class EnsembleModel(Model):
@@ -462,6 +479,10 @@ class CNN(Model):
         activation: str = CONST_RELU,
         output_activation: str = CONST_IDENTITY,
     ) -> None:
+        if isinstance(features[0], Iterable):
+            self.spatial_dim = -(len(features[0]) + 1)
+        else:
+            self.spatial_dim = 1
         self.conv = CNNModule(
             features,
             kernel_sizes,
@@ -491,7 +512,8 @@ class CNN(Model):
         conv_params = self.conv.init(model_key, dummy_x)
         dummy_latent = self.conv.apply(conv_params, dummy_x)
         mlp_params = self.mlp.init(
-            model_key, dummy_latent.reshape((dummy_latent.shape[0], -1))
+            model_key,
+            dummy_latent.reshape((*dummy_latent.shape[: self.spatial_dim], -1)),
         )
         return {
             CONST_CNN: conv_params,
@@ -545,7 +567,9 @@ class CNN(Model):
             """
             # NOTE: Assume batch size is first dim
             conv_latent = self.conv.apply(params[CONST_CNN], input)
-            conv_latent = conv_latent.reshape((*conv_latent.shape[:-2], -1))
+            conv_latent = conv_latent.reshape(
+                (*conv_latent.shape[: self.spatial_dim], -1)
+            )
             out = self.mlp.apply(params[CONST_MLP], conv_latent)
             return out, carry, None
 

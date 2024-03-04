@@ -668,9 +668,7 @@ class SAC(OffPolicyLearner):
         if pi_auxes:
             pi_auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *pi_auxes)
 
-            aux[CONST_LOG][f"losses/{CONST_POLICY}"] = pi_auxes[
-                CONST_AGG_LOSS
-            ].item()
+            aux[CONST_LOG][f"losses/{CONST_POLICY}"] = pi_auxes[CONST_AGG_LOSS].item()
             aux[CONST_LOG][f"{CONST_GRAD_NORM}/{CONST_POLICY}"] = pi_auxes[
                 CONST_GRAD_NORM
             ][CONST_POLICY].item()

@@ -16,6 +16,7 @@ import chex
 import jax.random as jrandom
 import numpy as np
 import torchvision.datasets as torch_datasets
+import torchvision.transforms as torch_transforms
 
 import jaxl.transforms as jaxl_transforms
 
@@ -52,16 +53,18 @@ def construct_omniglot(
     ), f"{task_name} is not supported (one of {VALID_OMNIGLOT_TASKS})"
     target_transform = None
 
-    input_transform = jaxl_transforms.DefaultPILToImageTransform()
+    transforms = [
+        jaxl_transforms.DefaultPILToImageTransform(),
+        jaxl_transforms.Transpose(axes=(1, 2, 0)),
+    ]
     if task_config and getattr(task_config, "augmentation", False):
-        import torchvision.transforms as torch_transforms
-
         transforms = [
             jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
+            jaxl_transforms.Transpose(axes=(1, 2, 0)),
             jaxl_transforms.GaussianNoise(0.0, task_config.noise_scale),
             torch_transforms.Normalize(0, 255.0),
         ]
-        input_transform = torch_transforms.Compose(transforms)
+    input_transform = torch_transforms.Compose(transforms)
 
     if task_name is None:
         # By default, the Omniglot task will be normalized to be between 0 to 1.
@@ -73,19 +76,6 @@ def construct_omniglot(
             target_transform=target_transform,
         )
     elif task_name == CONST_MULTITASK_OMNIGLOT_FINEGRAIN:
-        if getattr(task_config, "augmentation", False):
-            import torchvision.transforms as torch_transforms
-            from jaxl.transforms import GaussianNoise
-
-            transforms = [
-                jaxl_transforms.DefaultPILToImageTransform(scale=1.0),
-                GaussianNoise(0.0, task_config.noise_scale),
-                torch_transforms.Normalize(0, 255.0),
-            ]
-            transforms = torch_transforms.Compose(transforms)
-        else:
-            transforms = jaxl_transforms.DefaultPILToImageTransform()
-
         return MultitaskOmniglotFineGrain(
             dataset=torch_datasets.Omniglot(
                 save_path,
