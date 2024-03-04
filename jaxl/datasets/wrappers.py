@@ -24,6 +24,9 @@ class StandardSupervisedDataset(DatasetWrapper):
 
     def __init__(self, dataset: Dataset):
         super().__init__(dataset)
+        input, _ = self._dataset[0]
+        self._input_dim = input.shape
+        self._output_dim = (self._dataset.targets.max() + 1,)
 
     def __getitem__(self, idx):
         input, output = self._dataset[idx]
@@ -31,11 +34,11 @@ class StandardSupervisedDataset(DatasetWrapper):
 
     @property
     def output_dim(self) -> chex.Array:
-        return (self._dataset.targets.max() + 1,)
+        return self._output_dim
 
     @property
     def input_dim(self) -> chex.Array:
-        return self._dataset.data.shape[1:]
+        return self._input_dim
 
 
 class FixedLengthTrajectoryDataset(DatasetWrapper):

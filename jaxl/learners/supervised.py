@@ -142,6 +142,7 @@ class SupervisedLearner(OfflineLearner):
                 grads,
                 model_dict[CONST_OPT_STATE],
                 model_dict[CONST_MODEL],
+                aux[self._config.losses[0]][CONST_AUX][CONST_UPDATES],
             )
 
             aux[CONST_GRAD_NORM] = {CONST_MODEL: l2_norm(grads)}
@@ -198,6 +199,7 @@ class SupervisedLearner(OfflineLearner):
             f"{CONST_GRAD_NORM}/model": auxes[CONST_AUX][CONST_GRAD_NORM][
                 CONST_MODEL
             ].item(),
+            f"{CONST_PARAM_NORM}/model": l2_norm(self.model_dict[CONST_MODEL]).item(),
         }
 
         for loss_key in self._config.losses:

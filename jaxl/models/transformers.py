@@ -364,7 +364,9 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
         self.embed_dim = embed_dim
         self.tokenize = jax.jit(self.make_tokenize(), static_argnames=[CONST_EVAL])
         self.get_latent = jax.jit(self.make_get_latent(), static_argnames=[CONST_EVAL])
-        self.forward = jax.jit(self.make_forward(query_pred_only), static_argnames=[CONST_EVAL])
+        self.forward = jax.jit(
+            self.make_forward(query_pred_only), static_argnames=[CONST_EVAL]
+        )
 
     def make_tokenize(
         self,

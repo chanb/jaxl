@@ -1,8 +1,7 @@
-from math import sqrt
 from PIL import Image
+from typing import Sequence
 
 import chex
-import numpy as np
 import torch
 import torchvision.transforms as torch_transforms
 
@@ -20,6 +19,18 @@ class DefaultPILToImageTransform:
         img = torch_transforms.functional.pil_to_tensor(img)
         img = torch_transforms.functional.convert_image_dtype(img) / self.scale
         return img
+
+
+class Transpose:
+    """
+    A transform that transposes a tensor
+    """
+
+    def __init__(self, axes: Sequence[int]):
+        self.axes = axes
+
+    def __call__(self, x: chex.Array) -> chex.Array:
+        return torch.permute(x, self.axes)
 
 
 class StandardImageTransform:
