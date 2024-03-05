@@ -1,5 +1,6 @@
 from abc import ABC
 from collections.abc import Iterable
+from functools import partial
 from flax import linen as nn
 from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
@@ -366,11 +367,13 @@ class EnsembleModel(Model):
             :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
-            pred, carry, updates = jax.vmap(self.model.forward, in_axes=in_axes)(
+            pred, carry, updates = jax.vmap(
+                partial(self.model.forward, **kwargs),
+                in_axes=in_axes,
+            )(
                 params,
                 input,
                 carry,
-                **kwargs,
             )
             return pred, carry, updates
 
@@ -394,9 +397,13 @@ class MLP(Model):
         layers: Sequence[int],
         activation: str = CONST_RELU,
         output_activation: str = CONST_IDENTITY,
+        use_batch_norm: bool = False,
     ) -> None:
         self.model = MLPModule(
-            layers, get_activation(activation), get_activation(output_activation)
+            layers,
+            get_activation(activation),
+            get_activation(output_activation),
+            use_batch_norm,
         )
         self.forward = jax.jit(self.make_forward())
 
@@ -414,7 +421,7 @@ class MLP(Model):
         :rtype: Union[optax.Params, Dict[str, Any]]
 
         """
-        return self.model.init(model_key, dummy_x)
+        return self.model.init(model_key, dummy_x, eval=True)
 
     def make_forward(
         self,
@@ -444,6 +451,7 @@ class MLP(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
@@ -463,7 +471,13 @@ class MLP(Model):
             """
             # NOTE: Assume batch size is first dim
             input = input.reshape((input.shape[0], -1))
-            return self.model.apply(params, input), carry, None
+            (out, updates) = self.model.apply(
+                params,
+                input,
+                eval=eval,
+                mutable=[CONST_BATCH_STATS],
+            )
+            return out, carry, updates
 
         return forward
 
