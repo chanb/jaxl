@@ -20,16 +20,16 @@ class MLPModule(nn.Module):
 
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
-        if self.use_batch_norm:
-            x = nn.BatchNorm(
-                momentum=0.9,
-                epsilon=1e-5,
-                use_bias=True,
-                use_scale=True,
-            )(x, eval)
         idx = -1
         for idx, layer in enumerate(self.layers[:-1]):
             x = self.activation(nn.Dense(layer)(x))
+            if self.use_batch_norm:
+                x = nn.BatchNorm(
+                    momentum=0.9,
+                    epsilon=1e-5,
+                    use_bias=True,
+                    use_scale=True,
+                )(x, eval)
             self.sow("mlp_latents", "mlp_{}".format(idx), x)
         x = self.output_activation(nn.Dense(self.layers[-1])(x))
         self.sow("mlp_latents", "mlp_{}".format(idx + 1), x)
