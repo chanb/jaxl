@@ -748,7 +748,13 @@ def make_sac_pi_loss(
             pi_params, obss, h_states, keys
         )
         lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
-        curr_q_preds, _, _ = models[CONST_QF].q_values(qf_params, obss, h_states, acts, eval=True,)
+        curr_q_preds, _, _ = models[CONST_QF].q_values(
+            qf_params,
+            obss,
+            h_states,
+            acts,
+            eval=True,
+        )
         curr_q_preds_min = jnp.min(curr_q_preds, axis=0)
 
         temp = models[CONST_TEMPERATURE].apply(temp_params)

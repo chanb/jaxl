@@ -192,6 +192,7 @@ def get_model(
             model_config.layers + list(np.prod(output_dim, keepdims=True)),
             getattr(model_config, "activation", CONST_RELU),
             getattr(model_config, "output_activation", CONST_IDENTITY),
+            getattr(model_config, "use_batch_norm", False),
         )
     elif model_config.architecture == CONST_CNN:
         return CNN(

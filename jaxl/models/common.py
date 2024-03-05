@@ -104,8 +104,8 @@ class EncoderPredictorModel(Model):
     ) -> None:
         self.encoder = encoder
         self.predictor = predictor
-        self.forward = jax.jit(self.make_forward())
-        self.encode = jax.jit(self.make_encode())
+        self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
+        self.encode = jax.jit(self.make_encode(), static_argnames=[CONST_EVAL])
 
     def init(self, model_key: jrandom.PRNGKey, dummy_x: chex.Array) -> Dict[str, Any]:
         """
@@ -292,7 +292,9 @@ class EnsembleModel(Model):
     def __init__(self, model: Model, num_models: int, vmap_all: bool = True) -> None:
         self.model = model
         self.num_models = num_models
-        self.forward = jax.jit(self.make_forward(vmap_all))
+        self.forward = jax.jit(
+            self.make_forward(vmap_all), static_argnames=[CONST_EVAL]
+        )
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
@@ -388,6 +390,15 @@ class EnsembleModel(Model):
         """
         return np.zeros((self.num_models, 1), dtype=np.float32)
 
+    def update_batch_stats(
+        self, params: Dict[str, Any], batch_stats: Any
+    ) -> Dict[str, Any]:
+        import ipdb
+
+        ipdb.set_trace()
+        params = self.model.update_batch_stats(params, batch_stats)
+        return params
+
 
 class MLP(Model):
     """A multilayer perceptron."""
@@ -405,7 +416,7 @@ class MLP(Model):
             get_activation(output_activation),
             use_batch_norm,
         )
-        self.forward = jax.jit(self.make_forward())
+        self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
@@ -507,7 +518,7 @@ class CNN(Model):
             get_activation(activation),
             get_activation(output_activation),
         )
-        self.forward = jax.jit(self.make_forward())
+        self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
