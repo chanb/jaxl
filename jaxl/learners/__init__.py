@@ -11,7 +11,7 @@ from jaxl.learners.in_context import (
 from jaxl.learners.mtbc import MTBC
 from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE
-from jaxl.learners.sac import SAC
+from jaxl.learners.sac import SAC, CrossQSAC
 from jaxl.learners.supervised import SupervisedLearner
 
 
@@ -43,7 +43,13 @@ def get_rl_learner(
     elif learner_config.learner == CONST_REINFORCE:
         learner_constructor = REINFORCE
     elif learner_config.learner == CONST_SAC:
-        learner_constructor = SAC
+        sac_variant = getattr(learner_config, "variant", CONST_DEFAULT)
+        if sac_variant == CONST_DEFAULT:
+            learner_constructor = SAC
+        elif sac_variant == CONST_CROSS_Q:
+            learner_constructor = CrossQSAC
+        else:
+            raise NotImplementedError
     else:
         raise NotImplementedError
 

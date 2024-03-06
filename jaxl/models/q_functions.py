@@ -40,7 +40,10 @@ class StateActionInputQ(QFunction):
         self.encoding = encoding
         self.encoding_params = encoding_params
         self.model = model
-        self.q_values = jax.jit(self.make_q_values(encoding, encoding_params, model))
+        self.q_values = jax.jit(
+            self.make_q_values(encoding, encoding_params, model),
+            static_argnames=[CONST_EVAL],
+        )
 
     def make_q_values(
         self,

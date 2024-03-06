@@ -1,5 +1,6 @@
 from abc import ABC
 from collections.abc import Iterable
+from functools import partial
 from flax import linen as nn
 from typing import Any, Callable, Dict, Sequence, Tuple, Union
 
@@ -51,6 +52,7 @@ class Model(ABC):
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]
@@ -92,6 +94,7 @@ class EncoderPredictorModel(Model):
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]
@@ -103,8 +106,8 @@ class EncoderPredictorModel(Model):
     ) -> None:
         self.encoder = encoder
         self.predictor = predictor
-        self.forward = jax.jit(self.make_forward())
-        self.encode = jax.jit(self.make_encode())
+        self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
+        self.encode = jax.jit(self.make_encode(), static_argnames=[CONST_EVAL])
 
     def init(self, model_key: jrandom.PRNGKey, dummy_x: chex.Array) -> Dict[str, Any]:
         """
@@ -144,6 +147,7 @@ class EncoderPredictorModel(Model):
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]:
@@ -156,6 +160,7 @@ class EncoderPredictorModel(Model):
                 Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
+                bool,
             ],
             Tuple[chex.Array, chex.Array, Any],
         ]
@@ -165,6 +170,7 @@ class EncoderPredictorModel(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
@@ -186,12 +192,14 @@ class EncoderPredictorModel(Model):
                 params[CONST_ENCODER],
                 input,
                 carry,
+                eval,
                 **kwargs,
             )
             pred, pred_carry, pred_updates = self.predictor.forward(
                 params[CONST_PREDICTOR],
                 repr,
                 carry,
+                eval,
                 **kwargs,
             )
             carry = pred_carry
@@ -214,6 +222,7 @@ class EncoderPredictorModel(Model):
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]:
@@ -226,6 +235,7 @@ class EncoderPredictorModel(Model):
                 Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
+                bool,
             ],
             Tuple[chex.Array, chex.Array, Any],
         ]
@@ -235,6 +245,7 @@ class EncoderPredictorModel(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
@@ -256,6 +267,7 @@ class EncoderPredictorModel(Model):
                 params,
                 input,
                 carry,
+                eval,
                 **kwargs,
             )
             return repr, repr_carry, repr_updates
@@ -291,7 +303,9 @@ class EnsembleModel(Model):
     def __init__(self, model: Model, num_models: int, vmap_all: bool = True) -> None:
         self.model = model
         self.num_models = num_models
-        self.forward = jax.jit(self.make_forward(vmap_all))
+        self.forward = jax.jit(
+            self.make_forward(vmap_all), static_argnames=[CONST_EVAL]
+        )
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
@@ -324,6 +338,7 @@ class EnsembleModel(Model):
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]:
@@ -338,17 +353,19 @@ class EnsembleModel(Model):
                 Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
+                bool,
             ],
             Tuple[chex.Array, chex.Array, Any],
         ]
         """
 
-        in_axes = [0, 0, 0] if vmap_all else [0, None, None]
+        in_axes = [0, 0, 0, None] if vmap_all else [0, None, None, None]
 
         def forward(
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
@@ -366,11 +383,14 @@ class EnsembleModel(Model):
             :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
-            pred, carry, updates = jax.vmap(self.model.forward, in_axes=in_axes)(
+            pred, carry, updates = jax.vmap(
+                partial(self.model.forward, **kwargs),
+                in_axes=in_axes,
+            )(
                 params,
                 input,
                 carry,
-                **kwargs,
+                eval,
             )
             return pred, carry, updates
 
@@ -385,6 +405,12 @@ class EnsembleModel(Model):
         """
         return np.zeros((self.num_models, 1), dtype=np.float32)
 
+    def update_batch_stats(
+        self, params: Dict[str, Any], batch_stats: Any
+    ) -> Dict[str, Any]:
+        params = self.model.update_batch_stats(params, batch_stats)
+        return params
+
 
 class MLP(Model):
     """A multilayer perceptron."""
@@ -394,11 +420,16 @@ class MLP(Model):
         layers: Sequence[int],
         activation: str = CONST_RELU,
         output_activation: str = CONST_IDENTITY,
+        use_batch_norm: bool = False,
     ) -> None:
+        self.use_batch_norm = use_batch_norm
         self.model = MLPModule(
-            layers, get_activation(activation), get_activation(output_activation)
+            layers,
+            get_activation(activation),
+            get_activation(output_activation),
+            use_batch_norm,
         )
-        self.forward = jax.jit(self.make_forward())
+        self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
@@ -414,7 +445,7 @@ class MLP(Model):
         :rtype: Union[optax.Params, Dict[str, Any]]
 
         """
-        return self.model.init(model_key, dummy_x)
+        return self.model.init(model_key, dummy_x, eval=True)
 
     def make_forward(
         self,
@@ -423,6 +454,7 @@ class MLP(Model):
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]:
@@ -435,6 +467,7 @@ class MLP(Model):
                 Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
+                bool,
             ],
             Tuple[chex.Array, chex.Array, Any],
         ]
@@ -444,6 +477,7 @@ class MLP(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
@@ -463,9 +497,22 @@ class MLP(Model):
             """
             # NOTE: Assume batch size is first dim
             input = input.reshape((input.shape[0], -1))
-            return self.model.apply(params, input), carry, None
+            (out, updates) = self.model.apply(
+                params,
+                input,
+                eval,
+                mutable=[CONST_BATCH_STATS],
+            )
+            return out, carry, updates
 
         return forward
+
+    def update_batch_stats(
+        self, params: Dict[str, Any], batch_stats: Any
+    ) -> Dict[str, Any]:
+        if self.use_batch_norm:
+            params[CONST_BATCH_STATS] = batch_stats[CONST_BATCH_STATS]
+        return params
 
 
 class CNN(Model):
@@ -478,22 +525,23 @@ class CNN(Model):
         layers: Sequence[int],
         activation: str = CONST_RELU,
         output_activation: str = CONST_IDENTITY,
+        use_batch_norm: bool = False,
     ) -> None:
+        self.use_batch_norm = use_batch_norm
         if isinstance(features[0], Iterable):
             self.spatial_dim = -(len(features[0]) + 1)
         else:
             self.spatial_dim = 1
         self.conv = CNNModule(
-            features,
-            kernel_sizes,
-            get_activation(activation),
+            features, kernel_sizes, get_activation(activation), use_batch_norm
         )
         self.mlp = MLPModule(
             layers,
             get_activation(activation),
             get_activation(output_activation),
+            False,
         )
-        self.forward = jax.jit(self.make_forward())
+        self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
 
     def init(
         self, model_key: jrandom.PRNGKey, dummy_x: chex.Array
@@ -509,11 +557,14 @@ class CNN(Model):
         :rtype: Union[optax.Params, Dict[str, Any]]
 
         """
-        conv_params = self.conv.init(model_key, dummy_x)
-        dummy_latent = self.conv.apply(conv_params, dummy_x)
+        conv_params = self.conv.init(model_key, dummy_x, eval=True)
+        dummy_latent = self.conv.apply(
+            conv_params, dummy_x, eval=True, mutable=[CONST_BATCH_STATS]
+        )
         mlp_params = self.mlp.init(
             model_key,
             dummy_latent.reshape((*dummy_latent.shape[: self.spatial_dim], -1)),
+            eval=True,
         )
         return {
             CONST_CNN: conv_params,
@@ -527,6 +578,7 @@ class CNN(Model):
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]:
@@ -539,6 +591,7 @@ class CNN(Model):
                 Union[optax.Params, Dict[str, Any]],
                 chex.Array,
                 chex.Array,
+                bool,
             ],
             Tuple[chex.Array, chex.Array, Any],
         ]
@@ -548,6 +601,7 @@ class CNN(Model):
             params: Union[optax.Params, Dict[str, Any]],
             input: chex.Array,
             carry: chex.Array,
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
@@ -566,14 +620,38 @@ class CNN(Model):
 
             """
             # NOTE: Assume batch size is first dim
-            conv_latent = self.conv.apply(params[CONST_CNN], input)
+            (conv_latent, conv_updates) = self.conv.apply(
+                params[CONST_CNN],
+                input,
+                eval,
+                mutable=[CONST_BATCH_STATS],
+            )
             conv_latent = conv_latent.reshape(
                 (*conv_latent.shape[: self.spatial_dim], -1)
             )
-            out = self.mlp.apply(params[CONST_MLP], conv_latent)
-            return out, carry, None
+            (out, mlp_updates) = self.mlp.apply(
+                params[CONST_MLP],
+                conv_latent,
+                eval,
+                mutable=[CONST_BATCH_STATS],
+            )
+            return (
+                out,
+                carry,
+                {
+                    CONST_CNN: conv_updates,
+                    CONST_MLP: mlp_updates,
+                },
+            )
 
         return forward
+
+    def update_batch_stats(
+        self, params: Dict[str, Any], batch_stats: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        params[CONST_CNN][CONST_BATCH_STATS] = batch_stats[CONST_CNN][CONST_BATCH_STATS]
+        params[CONST_MLP][CONST_BATCH_STATS] = batch_stats[CONST_MLP][CONST_BATCH_STATS]
+        return params
 
 
 class ResNetV1(Model):
@@ -625,6 +703,7 @@ class ResNetV1(Model):
             Union[optax.Params, Dict[str, Any]],
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]:
@@ -669,7 +748,7 @@ class ResNetV1(Model):
             (out, updates) = self.resnet.apply(
                 params[CONST_RESNET],
                 input,
-                eval=eval,
+                eval,
                 mutable=[CONST_BATCH_STATS],
             )
             return out, carry, updates
