@@ -393,9 +393,6 @@ class EnsembleModel(Model):
     def update_batch_stats(
         self, params: Dict[str, Any], batch_stats: Any
     ) -> Dict[str, Any]:
-        import ipdb
-
-        ipdb.set_trace()
         params = self.model.update_batch_stats(params, batch_stats)
         return params
 
