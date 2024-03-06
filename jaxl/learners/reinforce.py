@@ -134,7 +134,7 @@ class REINFORCE(OnPolicyLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
-                aux[CONST_UPDATES],
+                aux[CONST_AUX][CONST_UPDATES],
             )
 
             aux[CONST_GRAD_NORM] = {CONST_POLICY: l2_norm(grads)}
