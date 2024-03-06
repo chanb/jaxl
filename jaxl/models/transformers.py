@@ -115,6 +115,7 @@ class InContextSupervisedTransformer(Model):
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array]:
             """
@@ -130,14 +131,36 @@ class InContextSupervisedTransformer(Model):
             :rtype: Tuple[chex.Array, chex.Array]
 
             """
-            context_input_embedding = self.input_tokenizer.apply(
+            num_samples, context_len = contexts[CONST_CONTEXT_INPUT].shape[:2]
+            input_dim = contexts[CONST_CONTEXT_INPUT].shape[2:]
+            output_dim = contexts[CONST_CONTEXT_OUTPUT].shape[2:]
+            batch_size = num_samples * context_len
+
+            input_embedding, input_updates = self.input_tokenizer.apply(
                 params[CONST_INPUT_TOKENIZER],
-                contexts[CONST_CONTEXT_INPUT],
+                jnp.concatenate(
+                    (
+                        contexts[CONST_CONTEXT_INPUT],
+                        queries,
+                    ),
+                    axis=1,
+                ).reshape((batch_size + num_samples, *input_dim)),
+                None,
+                eval,
+                mutable=[CONST_BATCH_STATS],
             )
-            context_output_embedding = self.output_tokenizer.apply(
+
+            input_embedding = input_embedding.reshape(
+                (num_samples, context_len + 1, -1)
+            )
+
+            context_output_embedding, output_updates = self.output_tokenizer.apply(
                 params[CONST_OUTPUT_TOKENIZER],
                 contexts[CONST_CONTEXT_OUTPUT],
+                eval,
+                mutable=[CONST_BATCH_STATS],
             )
+
             query_embedding = self.input_tokenizer.apply(
                 params[CONST_INPUT_TOKENIZER],
                 queries,
@@ -145,7 +168,8 @@ class InContextSupervisedTransformer(Model):
 
             input_embedding = self.positional_encoding.apply(
                 params[CONST_POSITIONAL_ENCODING],
-                jnp.concatenate((context_input_embedding, query_embedding), axis=1),
+                input_embedding,
+                **kwargs,
             )
 
             context_input_embedding, query_embedding = (
@@ -163,7 +187,14 @@ class InContextSupervisedTransformer(Model):
             ).reshape((len(queries), -1, self.embed_dim))
             stacked_inputs = jnp.concatenate((stacked_inputs, query_embedding), axis=1)
 
-            return stacked_inputs, None
+            return (
+                stacked_inputs,
+                None,
+                {
+                    CONST_INPUT_TOKENIZER: input_updates,
+                    CONST_OUTPUT_TOKENIZER: output_updates,
+                },
+            )
 
         return tokenize
 
@@ -175,6 +206,7 @@ class InContextSupervisedTransformer(Model):
             chex.Array,
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]:
@@ -188,6 +220,7 @@ class InContextSupervisedTransformer(Model):
                 chex.Array,
                 chex.Array,
                 chex.Array,
+                bool,
             ],
             Tuple[chex.Array, chex.Array, Any],
         ]
@@ -197,6 +230,7 @@ class InContextSupervisedTransformer(Model):
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
@@ -215,7 +249,13 @@ class InContextSupervisedTransformer(Model):
             stacked_inputs, _, token_updates = self.tokenize(
                 params, queries, contexts, **kwargs
             )
-            repr = self.gpt.apply(params[CONST_GPT], stacked_inputs, **kwargs)
+            repr = self.gpt.apply(
+                params[CONST_GPT],
+                stacked_inputs,
+                eval,
+                mutable=[CONST_BATCH_STATS],
+                **kwargs,
+            )
 
             return repr, None, token_updates
 
@@ -227,6 +267,7 @@ class InContextSupervisedTransformer(Model):
             chex.Array,
             chex.Array,
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]:
@@ -242,6 +283,7 @@ class InContextSupervisedTransformer(Model):
                 chex.Array,
                 chex.Array,
                 chex.Array,
+                bool,
             ],
             Tuple[chex.Array, chex.Array, Any],
         ]
@@ -261,6 +303,7 @@ class InContextSupervisedTransformer(Model):
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
@@ -279,11 +322,29 @@ class InContextSupervisedTransformer(Model):
             repr, carry, latent_updates = self.get_latent(
                 params, queries, contexts, **kwargs
             )
-            outputs = self.predictor.apply(params[CONST_PREDICTOR], repr)
+            outputs = self.predictor.apply(
+                params[CONST_PREDICTOR],
+                repr,
+                eval,
+                mutable=[CONST_BATCH_STATS],
+            )
 
             return process_prediction(outputs), carry, latent_updates
 
         return forward
+
+    def update_batch_stats(
+        self, params: Dict[str, Any], batch_stats: Any
+    ) -> Dict[str, Any]:
+        params[CONST_INPUT_TOKENIZER] = self.input_tokenizer.update_batch_stats(
+            params[CONST_INPUT_TOKENIZER],
+            batch_stats[CONST_INPUT_TOKENIZER],
+        )
+        params[CONST_OUTPUT_TOKENIZER] = self.output_tokenizer.update_batch_stats(
+            params[CONST_OUTPUT_TOKENIZER],
+            batch_stats[CONST_OUTPUT_TOKENIZER],
+        )
+        return params
 
 
 def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
@@ -309,6 +370,7 @@ def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
             output_activation=getattr(
                 tokenizer_kwargs, "output_activation", CONST_IDENTITY
             ),
+            use_batch_norm=getattr(tokenizer_kwargs, "use_batch_norm", False),
         )
     elif tokenizer_config.type == CONST_CNN:
         return CNN(
@@ -319,6 +381,7 @@ def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
             output_activation=getattr(
                 tokenizer_kwargs, "output_activation", CONST_IDENTITY
             ),
+            use_batch_norm=getattr(tokenizer_kwargs, "use_batch_norm", False),
         )
     elif tokenizer_config.type == CONST_RESNET:
         return ResNetV1(
@@ -389,6 +452,7 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
                 chex.Array,
                 chex.Array,
                 chex.Array,
+                bool,
             ],
             Tuple[chex.Array, chex.Array, Any],
         ]
@@ -398,6 +462,7 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
             params: Union[optax.Params, Dict[str, Any]],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
             """
@@ -428,12 +493,14 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
                     axis=1,
                 ).reshape((batch_size + num_samples, *input_dim)),
                 None,
+                eval,
                 **kwargs,
             )
             context_output_embedding, _, output_updates = self.output_tokenizer.forward(
                 params[CONST_OUTPUT_TOKENIZER],
                 contexts[CONST_CONTEXT_OUTPUT].reshape((batch_size, *output_dim)),
                 None,
+                eval,
                 **kwargs,
             )
 
@@ -475,16 +542,3 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
             )
 
         return tokenize
-
-    def update_batch_stats(
-        self, params: Dict[str, Any], batch_stats: Any
-    ) -> Dict[str, Any]:
-        params[CONST_INPUT_TOKENIZER] = self.input_tokenizer.update_batch_stats(
-            params[CONST_INPUT_TOKENIZER],
-            batch_stats[CONST_INPUT_TOKENIZER],
-        )
-        params[CONST_OUTPUT_TOKENIZER] = self.output_tokenizer.update_batch_stats(
-            params[CONST_OUTPUT_TOKENIZER],
-            batch_stats[CONST_OUTPUT_TOKENIZER],
-        )
-        return params

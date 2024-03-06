@@ -151,8 +151,7 @@ def get_optimizer(
             else:
                 opt_transforms.append(
                     optax.inject_hyperparams(optax.adam)(
-                        get_scheduler(opt_config.lr),
-                        b1=getattr(opt_config, "b1", 0.9)
+                        get_scheduler(opt_config.lr), b1=getattr(opt_config, "b1", 0.9)
                     )
                 )
         elif opt_config.optimizer == CONST_SGD:
