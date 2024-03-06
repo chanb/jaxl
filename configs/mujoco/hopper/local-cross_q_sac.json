@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/mujoco-hopper",
-        "experiment_name": "cross_q_sac-unbounded_std",
+        "experiment_name": "cross_q-sac",
         "log_interval": 1,
         "checkpoint_interval": false
     },
@@ -18,7 +18,7 @@
             "architecture": "ensemble",
             "model": {
                 "architecture": "mlp",
-                "layers": [256, 256],
+                "layers": [2048, 2048],
                 "use_batch_norm": true
             },
             "num_models": 2,
@@ -36,7 +36,7 @@
             "lr": {
                 "scheduler": "constant_schedule",
                 "scheduler_kwargs": {
-                    "value": 0.0003
+                    "value": 3e-4
                 }
             },
             "max_grad_norm": false
@@ -46,9 +46,10 @@
             "lr": {
                 "scheduler": "constant_schedule",
                 "scheduler_kwargs": {
-                    "value": 0.0003
+                    "value": 0.001
                 }
             },
+            "b1": 0.5,
             "max_grad_norm": false
         },
         "temp": {
