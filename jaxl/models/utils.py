@@ -150,7 +150,9 @@ def get_optimizer(
                 )
             else:
                 opt_transforms.append(
-                    optax.inject_hyperparams(optax.adam)(get_scheduler(opt_config.lr))
+                    optax.inject_hyperparams(optax.adam)(
+                        get_scheduler(opt_config.lr), b1=getattr(opt_config, "b1", 0.9)
+                    )
                 )
         elif opt_config.optimizer == CONST_SGD:
             opt_transforms.append(
@@ -192,6 +194,7 @@ def get_model(
             model_config.layers + list(np.prod(output_dim, keepdims=True)),
             getattr(model_config, "activation", CONST_RELU),
             getattr(model_config, "output_activation", CONST_IDENTITY),
+            getattr(model_config, "use_batch_norm", False),
         )
     elif model_config.architecture == CONST_CNN:
         return CNN(

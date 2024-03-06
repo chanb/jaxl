@@ -10,6 +10,7 @@ CONST_PRE_PARAM_NORM = "pre_param_norm"
 CONST_POST_PARAM_NORM = "post_param_norm"
 
 CONST_A2C = "a2c"
+CONST_CROSS_Q = "cross_q"
 CONST_PPO = "ppo"
 CONST_REINFORCE = "reinforce"
 CONST_SAC = "sac"

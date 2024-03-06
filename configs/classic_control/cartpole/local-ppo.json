@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/mountain_car",
+        "save_path": "./logs/cartpole",
         "experiment_name": "ppo",
         "log_interval": 10,
         "checkpoint_interval": 100
@@ -9,6 +9,8 @@
         "policy": {
             "architecture": "mlp",
             "layers": [
+                64,
+                64,
                 64,
                 64
             ],
@@ -29,7 +31,7 @@
             "lr": {
                 "scheduler": "constant_schedule",
                 "scheduler_kwargs": {
-                    "value": 1e-2
+                    "value": 3e-4
                 }
             },
             "max_grad_norm": false
@@ -49,7 +51,7 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "MountainCar-v0",
+            "env_name": "CartPole-v1",
             "env_kwargs": {}
         },
         "seeds": {
@@ -59,7 +61,7 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 2048
+            "buffer_size": 256
         },
         "num_steps_per_epoch": 2048,
         "learner": "ppo",
@@ -72,7 +74,7 @@
         "policy_distribution": "softmax",
         "temperature": 1.0,
         "min_std": 1e-06,
-        "opt_batch_size": 256,
+        "opt_batch_size": 64,
         "opt_epochs": 200,
         "kl_threshold": false,
         "update_before_early_stopping": false,
@@ -99,6 +101,6 @@
         }
     },
     "train_config": {
-        "num_epochs": 5000
+        "num_epochs": 1000
     }
 }
