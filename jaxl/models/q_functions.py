@@ -22,6 +22,7 @@ class QFunction(ABC):
             chex.Array,
             Union[chex.Array, Dict[str, Any]],
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array],
     ]
@@ -56,6 +57,7 @@ class StateActionInputQ(QFunction):
             chex.Array,
             Union[chex.Array, Dict[str, Any]],
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -75,6 +77,7 @@ class StateActionInputQ(QFunction):
                 chex.Array,
                 chex.Array,
                 Union[chex.Array, Dict[str, Any]],
+                bool,
             ],
             Tuple[chex.Array, chex.Array],
         ]
@@ -86,6 +89,7 @@ class StateActionInputQ(QFunction):
             obs: chex.Array,
             h_state: Union[chex.Array, Dict[str, Any]],
             act: chex.Array,
+            eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array]:
             """
@@ -112,7 +116,7 @@ class StateActionInputQ(QFunction):
                 **kwargs,
             )
             q_val, h_state, updates = model.forward(
-                params, state_action, h_state, **kwargs
+                params, state_action, h_state, eval, **kwargs
             )
             return q_val, h_state, updates
 

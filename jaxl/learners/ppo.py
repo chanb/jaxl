@@ -430,6 +430,7 @@ class PPO(OnPolicyLearner):
                 self._model_dict[CONST_MODEL][CONST_VF],
                 np.concatenate((obss, np.array([[next_obs]])), axis=0),
                 np.concatenate((h_states, np.array([[next_h_state]])), axis=0),
+                eval=True,
             )
 
             unnormalized_vals = vals
