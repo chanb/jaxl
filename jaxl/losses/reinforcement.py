@@ -829,7 +829,7 @@ def make_sac_temp_loss(
         """
 
         _, lprobs, _, _ = models[CONST_POLICY].act_lprob(
-            pi_params, obss, h_states, keys
+            pi_params, obss, h_states, keys, eval=True
         )
         lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
 
