@@ -10,6 +10,8 @@
             "architecture": "mlp",
             "layers": [
                 64,
+                64,
+                64,
                 64
             ],
             "activation": "tanh"
@@ -29,7 +31,7 @@
             "lr": {
                 "scheduler": "constant_schedule",
                 "scheduler_kwargs": {
-                    "value": 1e-2
+                    "value": 3e-4
                 }
             },
             "max_grad_norm": false
@@ -59,7 +61,7 @@
         },
         "buffer_config": {
             "buffer_type": "default",
-            "buffer_size": 2048
+            "buffer_size": 256
         },
         "num_steps_per_epoch": 2048,
         "learner": "ppo",
@@ -72,7 +74,7 @@
         "policy_distribution": "softmax",
         "temperature": 1.0,
         "min_std": 1e-06,
-        "opt_batch_size": 256,
+        "opt_batch_size": 64,
         "opt_epochs": 200,
         "kl_threshold": false,
         "update_before_early_stopping": false,
