@@ -388,3 +388,152 @@ class MultitaskOmniglotBursty(Dataset):
         outputs = np.eye(self._data["max_num_classes"])[labels]
 
         return (inputs, outputs)
+
+
+class MultitaskOmniglotNWayKShot(Dataset):
+    """
+    The dataset contains a sequence-input Omniglot N-shot K-way problem, following Chan et al. 2022.
+    The query class is repeated N times, and K - 1 of the remaining classes are also repeated N times.
+    """
+
+    def __init__(
+        self,
+        dataset: Dataset,
+        num_sequences: int,
+        sequence_length: int,
+        k_way: int,
+        seed: int = 0,
+        save_dir: str = None,
+    ):
+        dataset_name = "omniglot_n_shot_k_way-k_way_{}-background_{}-num_sequences_{}-sequence_length_{}-seed_{}.pkl".format(
+            k_way,
+            dataset.background,
+            num_sequences,
+            sequence_length,
+            seed,
+        )
+        loaded, data = maybe_load_dataset(save_dir, dataset_name)
+
+        if not loaded:
+            max_num_classes = 964
+            num_classes = 964 if dataset.background else 659
+            min_num_per_class = 20
+            context_len = sequence_length - 1
+            assert (
+                context_len % k_way == 0
+            ), "context_len {} must be divisible by k_way {}".format(context_len, k_way)
+            label_to_idx = np.arange(num_classes * min_num_per_class).reshape(
+                (num_classes, min_num_per_class)
+            )
+
+            (
+                context_idxes,
+                query_idxes,
+            ) = self._generate_data(
+                dataset=dataset,
+                num_sequences=num_sequences,
+                context_len=context_len,
+                min_num_per_class=min_num_per_class,
+                seed=seed,
+            )
+
+            data = {
+                "context_idxes": context_idxes,
+                "query_idxes": query_idxes,
+                "num_sequences": num_sequences,
+                "sequence_length": sequence_length,
+                "context_len": context_len,
+                "background": dataset.background,
+                "input_shape": [*dataset[0][0].shape],
+                "num_classes": num_classes,
+                "max_num_classes": max_num_classes,
+                "min_num_per_class": min_num_per_class,
+                "label_to_idx": label_to_idx,
+                "seed": seed,
+                "k_way": k_way,
+                "n_shot": context_len // k_way,
+            }
+            maybe_save_dataset(
+                data,
+                save_dir,
+                dataset_name,
+            )
+
+        self._dataset = dataset
+        self._data = data
+
+    def _generate_data(
+        self,
+        dataset: Dataset,
+        num_sequences: int,
+        context_len: int,
+        min_num_per_class: int,
+        seed: int,
+    ) -> Tuple[chex.Array, chex.Array, chex.Array]:
+        print("Generating Data")
+        sample_key, _ = jrandom.split(jrandom.PRNGKey(seed))
+        sample_rng = np.random.RandomState(sample_key)
+
+        query_idxes = sample_rng.choice(np.arange(len(dataset)), size=(num_sequences,))
+
+        context_idxes = sample_rng.choice(
+            np.arange(min_num_per_class), size=(num_sequences, context_len)
+        )
+
+        return context_idxes, query_idxes
+
+    @property
+    def input_dim(self) -> chex.Array:
+        return self._data["input_shape"]
+
+    @property
+    def output_dim(self) -> chex.Array:
+        return (self._data["max_num_classes"],)
+
+    @property
+    def sequence_length(self) -> int:
+        return self._data["sequence_length"]
+
+    def __len__(self):
+        return self._data["num_sequences"]
+
+    def __getitem__(self, idx):
+        sample_rng = np.random.RandomState(idx)
+
+        query_idx = self._data["query_idxes"][idx]
+        query, label = self._dataset[query_idx]
+
+        while True:
+            repeated_distractor_labels = sample_rng.choice(
+                self._data["num_classes"], size=self._data["n_shot"] - 1, replace=True
+            )
+            if label not in repeated_distractor_labels:
+                break
+
+        label_idxes = sample_rng.permutation(
+            np.tile(
+                np.concatenate(
+                    [
+                        [label],
+                        [*repeated_distractor_labels],
+                    ]
+                ),
+                reps=(self._data["k_ways"]),
+            )
+        )
+
+        context_idxes = self._data["context_idxes"][idx]
+        context_idxes = np.take_along_axis(
+            self._data["label_to_idx"][label_idxes], context_idxes[:, None], axis=1
+        ).flatten()
+        inputs, _ = zip(*list(map(lambda ii: self._dataset[ii], context_idxes)))
+        inputs = np.concatenate(
+            (*[context_input[None] for context_input in inputs], query[None])
+        )
+        labels = np.concatenate([label_idxes, [label]])
+        label_to_k_way = sample_rng.permutation(np.unique(labels))
+        labels = np.array([np.argmax(label_to_k_way == label) for label in labels])
+
+        outputs = np.eye(self._data["max_num_classes"])[labels]
+
+        return (inputs, outputs)
