@@ -325,7 +325,6 @@ class InContextSupervisedTransformer(Model):
             repr, carry, latent_updates = self.get_latent(
                 params, queries, contexts, **kwargs
             )
-            print(repr.shape)
             outputs = self.predictor.apply(
                 params[CONST_PREDICTOR],
                 repr,
