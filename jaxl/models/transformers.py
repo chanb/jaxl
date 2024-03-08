@@ -78,7 +78,7 @@ class InContextSupervisedTransformer(Model):
             CONST_OUTPUT_TOKENIZER: self.output_tokenizer.init(
                 output_key, dummy_output
             ),
-            CONST_GPT: self.gpt.init(gpt_key, dummy_token),
+            CONST_GPT: self.gpt.init(gpt_key, dummy_token, eval=True),
             CONST_POSITIONAL_ENCODING: self.positional_encoding.init(
                 pe_key, dummy_token
             ),
@@ -249,7 +249,7 @@ class InContextSupervisedTransformer(Model):
             stacked_inputs, _, token_updates = self.tokenize(
                 params, queries, contexts, **kwargs
             )
-            repr = self.gpt.apply(
+            (repr, gpt_updates) = self.gpt.apply(
                 params[CONST_GPT],
                 stacked_inputs,
                 eval,
@@ -257,7 +257,10 @@ class InContextSupervisedTransformer(Model):
                 **kwargs,
             )
 
-            return repr, None, token_updates
+            return repr, None, {
+                **token_updates,
+                CONST_GPT: gpt_updates
+            }
 
         return get_latent
 
@@ -325,8 +328,6 @@ class InContextSupervisedTransformer(Model):
             outputs = self.predictor.apply(
                 params[CONST_PREDICTOR],
                 repr,
-                eval,
-                mutable=[CONST_BATCH_STATS],
             )
 
             return process_prediction(outputs), carry, latent_updates
@@ -343,6 +344,10 @@ class InContextSupervisedTransformer(Model):
         params[CONST_OUTPUT_TOKENIZER] = self.output_tokenizer.update_batch_stats(
             params[CONST_OUTPUT_TOKENIZER],
             batch_stats[CONST_OUTPUT_TOKENIZER],
+        )
+        params[CONST_GPT] = self.output_tokenizer.update_batch_stats(
+            params[CONST_GPT],
+            batch_stats[CONST_GPT],
         )
         return params
 
