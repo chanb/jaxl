@@ -6,6 +6,7 @@ from jaxl.constants import (
     VALID_OMNIGLOT_TASKS,
     CONST_MULTITASK_OMNIGLOT_FINEGRAIN,
     CONST_MULTITASK_OMNIGLOT_BURSTY,
+    CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY,
 )
 from jaxl.datasets.utils import (
     maybe_save_dataset,
@@ -106,6 +107,21 @@ def construct_omniglot(
             seed=seed,
             remap=remap,
             random_label=getattr(task_config, "random_label", False),
+            save_dir=task_config.save_dir,
+        )
+    elif task_name == CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY:
+        return MultitaskOmniglotNWayKShot(
+            dataset=torch_datasets.Omniglot(
+                save_path,
+                background=train,
+                download=True,
+                transform=input_transform,
+                target_transform=target_transform,
+            ),
+            num_sequences=task_config.num_sequences,
+            sequence_length=task_config.sequence_length,
+            k_way=task_config.k_way,
+            seed=seed,
             save_dir=task_config.save_dir,
         )
     else:
@@ -505,7 +521,7 @@ class MultitaskOmniglotNWayKShot(Dataset):
 
         while True:
             repeated_distractor_labels = sample_rng.choice(
-                self._data["num_classes"], size=self._data["n_shot"] - 1, replace=True
+                self._data["num_classes"], size=self._data["k_way"] - 1, replace=True
             )
             if label not in repeated_distractor_labels:
                 break
@@ -518,7 +534,7 @@ class MultitaskOmniglotNWayKShot(Dataset):
                         [*repeated_distractor_labels],
                     ]
                 ),
-                reps=(self._data["k_ways"]),
+                reps=(self._data["n_shot"]),
             )
         )
 
