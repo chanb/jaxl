@@ -55,6 +55,6 @@
         }
     },
     "train_config": {
-        "num_epochs": 1000
+        "num_epochs": 2000
     }
 }
