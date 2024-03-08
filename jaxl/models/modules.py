@@ -340,7 +340,7 @@ class GPTModule(nn.Module):
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         for idx, _ in enumerate(range(self.num_blocks)):
-            x = GPTBlock(self.num_heads, self.embed_dim)(x)
+            x = GPTBlock(self.num_heads, self.embed_dim)(x, eval)
             self.sow("gpt_latents", "gpt_{}".format(idx), x)
         x = nn.LayerNorm()(x)
         self.sow("gpt_latents", "gpt_{}".format(idx + 1), x)
