@@ -78,7 +78,7 @@ class InContextSupervisedTransformer(Model):
             CONST_OUTPUT_TOKENIZER: self.output_tokenizer.init(
                 output_key, dummy_output
             ),
-            CONST_GPT: self.gpt.init(gpt_key, dummy_token),
+            CONST_GPT: self.gpt.init(gpt_key, dummy_token, eval=True),
             CONST_POSITIONAL_ENCODING: self.positional_encoding.init(
                 pe_key, dummy_token
             ),
