@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/icl-omniglot/bursty_ablation-fixed_length",
-        "experiment_name": "bursty_0.0-context_len_8-batch_norm",
+        "experiment_name": "bursty_0.0-context_len_8-batch_norm-larger_dataset",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -57,7 +57,7 @@
                 "save_path": "/home/bryanpu1/projects/icl/data",
                 "task_name": "multitask_omniglot_bursty",
                 "task_config": {
-                    "num_sequences": 1000000,
+                    "num_sequences": 5000000,
                     "sequence_length": 9,
                     "random_label": false,
                     "p_bursty": 0.0,
