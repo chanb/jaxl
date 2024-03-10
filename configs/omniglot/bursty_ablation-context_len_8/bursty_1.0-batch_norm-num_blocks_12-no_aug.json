@@ -1,14 +1,14 @@
 {
     "logging_config": {
         "save_path": "./logs/icl-omniglot/bursty_ablation-fixed_length",
-        "experiment_name": "bursty_1.0-context_len_8-batch_norm-larger_dataset",
+        "experiment_name": "bursty_1.0-context_len_8-batch_norm-num_blocks_12-no_aug-larger_dataset",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
     "model_config": {
         "architecture": "icl_gpt",
         "num_contexts": 8,
-        "num_blocks": 8,
+        "num_blocks": 12,
         "num_heads": 8,
         "embed_dim": 64,
         "positional_encoding": {
@@ -62,8 +62,8 @@
                     "random_label": false,
                     "p_bursty": 1.0,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
-                    "augmentation": true,
-                    "noise_scale": 0.1
+                    "augmentation": false,
+                    "noise_scale": 0.0
                 }
             },
             "dataset_wrapper": {
