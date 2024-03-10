@@ -27,7 +27,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 
 If `torch` somehow conflicts, install the CPU-only version:
 ```
-pip install torch>=1.13.0+cpu
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 ```
 
 Potential memory issue:
