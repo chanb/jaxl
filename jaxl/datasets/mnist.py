@@ -29,7 +29,9 @@ def construct_mnist(
     save_path: str,
     task_name: str = None,
     task_config: SimpleNamespace = None,
+    seed: int = 0,
     train: bool = True,
+    remap: bool = False,
 ) -> Dataset:
     """
     Constructs a customized MNIST dataset.
@@ -37,11 +39,15 @@ def construct_mnist(
     :param save_path: the path to store the MNIST dataset
     :param task_name: the task to construct
     :param task_config: the task configuration
+    :param seed: the seed to generate the dataset
     :param train: the train split of the dataset
+    :param remap: whether to do binary classification instead
     :type save_path: str
     :type task_name: str:  (Default value = None)
     :type task_config: SimpleNamespace:  (Default value = None)
+    :type seed: int:  (Default value = 0)
     :type train: bool:  (Default value = True)
+    :type remap: bool:  (Default value = False)
     :return: Customized MNIST dataset
     :rtype: Dataset
 
@@ -125,6 +131,9 @@ def construct_mnist(
             ),
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
+            p_bursty=task_config.p_bursty,
+            seed=seed,
+            remap=remap,
             random_label=getattr(task_config, "random_label", False),
             save_dir=task_config.save_dir,
         )
@@ -480,6 +489,7 @@ class MultitaskMNISTBursty(Dataset):
         sequence_length: int,
         seed: int = 0,
         p_bursty: float = 1,
+        bursty_len: int = 3,
         remap: bool = False,
         random_label: bool = False,
         save_dir: str = None,
@@ -534,6 +544,7 @@ class MultitaskMNISTBursty(Dataset):
                 "seed": seed,
                 "p_bursty": p_bursty,
                 "is_bursty": is_bursty,
+                "bursty_len": bursty_len,
             }
             maybe_save_dataset(
                 data,
@@ -592,7 +603,7 @@ class MultitaskMNISTBursty(Dataset):
 
         if is_bursty:
             label_idxes = []
-            min_tokens = 6
+            min_tokens = 2 * self._data["bursty_len"]
             if self._data["sequence_length"] > min_tokens:
                 label_idxes = sample_rng.choice(
                     self._data["num_classes"],
@@ -602,8 +613,8 @@ class MultitaskMNISTBursty(Dataset):
             label_idxes = sample_rng.permutation(
                 np.concatenate(
                     [
-                        [label] * 3,
-                        [repeated_distractor_label] * 3,
+                        [label] * self._data["bursty_len"],
+                        [repeated_distractor_label] * self._data["bursty_len"],
                         label_idxes,
                     ]
                 )[: self._data["context_len"]]
