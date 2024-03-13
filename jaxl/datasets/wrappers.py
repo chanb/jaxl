@@ -180,9 +180,9 @@ class ContextDataset(DatasetWrapper):
 
         if self._include_query_class and out_seq_start_idx != 0:
             classes = np.argmax(outputs, axis=-1)
-            output_class = classes[timestep_i + 1]
+            output_class = classes[-1]
             match_idxes = classes == output_class
-            match_idxes[timestep_i + 1] = False
+            match_idxes[-1] = False
             match_idxes = np.where(match_idxes)[0]
 
             if len(match_idxes):
@@ -194,8 +194,19 @@ class ContextDataset(DatasetWrapper):
                     inputs[swap_idx] = inputs[idx_to_put]
                     outputs[swap_idx] = outputs[idx_to_put]
 
-        inputs = inputs[seq_copy_start_idx : timestep_i + 2]
-        outputs = outputs[seq_copy_start_idx : timestep_i + 2]
+        inputs = np.concatenate(
+            (
+                inputs[seq_copy_start_idx : timestep_i + 1],
+                inputs[[-1]],
+            )
+        )
+
+        outputs = np.concatenate(
+            (
+                outputs[seq_copy_start_idx : timestep_i + 1],
+                outputs[[-1]],
+            )
+        )
 
         context_inputs[out_seq_start_idx:] = inputs[:-1]
         context_outputs[out_seq_start_idx:] = outputs[:-1]

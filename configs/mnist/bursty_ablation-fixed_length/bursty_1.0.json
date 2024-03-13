@@ -3,7 +3,7 @@
         "save_path": "./logs/icl-mnist/bursty_ablation-fixed_length-random_label",
         "experiment_name": "bursty_1.0",
         "log_interval": 50,
-        "checkpoint_interval": 50000
+        "checkpoint_interval": 100000
     },
     "model_config": {
         "architecture": "icl_gpt",
@@ -95,6 +95,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 500000
+        "num_epochs": 1000000
     }
 }
