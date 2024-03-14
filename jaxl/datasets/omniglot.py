@@ -386,7 +386,7 @@ class MultitaskOmniglotBursty(Dataset):
                     label_idxes = sample_rng.choice(
                         self._data["num_classes"], size=(self._data["context_len"]), replace=False
                     )
-                    done = label in label_idxes
+                    done = label not in label_idxes
             else:
                 label_idxes = sample_rng.choice(
                     self._data["num_classes"], size=(self._data["context_len"])
