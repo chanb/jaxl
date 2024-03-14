@@ -108,6 +108,8 @@ def construct_omniglot(
             remap=remap,
             random_label=getattr(task_config, "random_label", False),
             save_dir=task_config.save_dir,
+            min_num_per_class=getattr(task_config, "min_num_per_class", 20),
+            unique_classes=getattr(task_config, "unique_classes", False),
         )
     elif task_name == CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY:
         return MultitaskOmniglotNWayKShot(
@@ -252,6 +254,8 @@ class MultitaskOmniglotBursty(Dataset):
         sequence_length: int,
         seed: int = 0,
         p_bursty: float = 1,
+        min_num_per_class: int = 20,
+        unique_classes: bool = False,
         remap: bool = False,
         random_label: bool = False,
         save_dir: str = None,
@@ -269,11 +273,7 @@ class MultitaskOmniglotBursty(Dataset):
         if not loaded:
             max_num_classes = 964
             num_classes = 964 if dataset.background else 659
-            min_num_per_class = 20
             context_len = sequence_length - 1
-            label_to_idx = np.arange(num_classes * min_num_per_class).reshape(
-                (num_classes, min_num_per_class)
-            )
 
             (
                 context_idxes,
@@ -299,8 +299,6 @@ class MultitaskOmniglotBursty(Dataset):
                 "input_shape": [*dataset[0][0].shape],
                 "num_classes": num_classes,
                 "max_num_classes": max_num_classes,
-                "min_num_per_class": min_num_per_class,
-                "label_to_idx": label_to_idx,
                 "seed": seed,
                 "p_bursty": p_bursty,
                 "is_bursty": is_bursty,
@@ -314,6 +312,11 @@ class MultitaskOmniglotBursty(Dataset):
         self._dataset = dataset
         self._data = data
         self._remap = remap
+        self._unique_classes = unique_classes
+        self._min_num_per_class = min_num_per_class
+        self._label_to_idx = np.arange(data["num_classes"] * min_num_per_class).reshape(
+            (data["num_classes"], min_num_per_class)
+        )
 
     def _generate_data(
         self,
@@ -379,13 +382,21 @@ class MultitaskOmniglotBursty(Dataset):
                 )[: self._data["context_len"]]
             )
         else:
-            label_idxes = sample_rng.choice(
-                self._data["num_classes"], size=(self._data["context_len"])
-            )
+            if self.unique_classes:
+                done = False
+                while not done:
+                    label_idxes = sample_rng.choice(
+                        self._data["num_classes"], size=(self._data["context_len"]), replace=False
+                    )
+                    done = label in label_idxes
+            else:
+                label_idxes = sample_rng.choice(
+                    self._data["num_classes"], size=(self._data["context_len"])
+                )
 
         context_idxes = self._data["context_idxes"][idx]
         context_idxes = np.take_along_axis(
-            self._data["label_to_idx"][label_idxes], context_idxes[:, None], axis=1
+            self._label_to_idx[label_idxes], context_idxes[:, None], axis=1
         ).flatten()
         inputs, _ = zip(*list(map(lambda ii: self._dataset[ii], context_idxes)))
         inputs = np.concatenate(
@@ -418,6 +429,7 @@ class MultitaskOmniglotNWayKShot(Dataset):
         num_sequences: int,
         sequence_length: int,
         k_way: int,
+        min_num_per_class: int = 20,
         seed: int = 0,
         save_dir: str = None,
     ):
@@ -433,14 +445,10 @@ class MultitaskOmniglotNWayKShot(Dataset):
         if not loaded:
             max_num_classes = 964
             num_classes = 964 if dataset.background else 659
-            min_num_per_class = 20
             context_len = sequence_length - 1
             assert (
                 context_len % k_way == 0
             ), "context_len {} must be divisible by k_way {}".format(context_len, k_way)
-            label_to_idx = np.arange(num_classes * min_num_per_class).reshape(
-                (num_classes, min_num_per_class)
-            )
 
             (
                 context_idxes,
@@ -463,8 +471,6 @@ class MultitaskOmniglotNWayKShot(Dataset):
                 "input_shape": [*dataset[0][0].shape],
                 "num_classes": num_classes,
                 "max_num_classes": max_num_classes,
-                "min_num_per_class": min_num_per_class,
-                "label_to_idx": label_to_idx,
                 "seed": seed,
                 "k_way": k_way,
                 "n_shot": context_len // k_way,
@@ -477,6 +483,10 @@ class MultitaskOmniglotNWayKShot(Dataset):
 
         self._dataset = dataset
         self._data = data
+        self._min_num_per_class = min_num_per_class
+        self._label_to_idx = np.arange(data["num_classes"] * min_num_per_class).reshape(
+            (data["num_classes"], min_num_per_class)
+        )
 
     def _generate_data(
         self,
@@ -540,7 +550,7 @@ class MultitaskOmniglotNWayKShot(Dataset):
 
         context_idxes = self._data["context_idxes"][idx]
         context_idxes = np.take_along_axis(
-            self._data["label_to_idx"][label_idxes], context_idxes[:, None], axis=1
+            self._label_to_idx[label_idxes], context_idxes[:, None], axis=1
         ).flatten()
         inputs, _ = zip(*list(map(lambda ii: self._dataset[ii], context_idxes)))
         inputs = np.concatenate(
