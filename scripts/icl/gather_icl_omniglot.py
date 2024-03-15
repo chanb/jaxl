@@ -95,6 +95,8 @@ def main(args: SimpleNamespace):
     get_device(device)
 
     save_path = args.save_path
+    os.makedirs(save_path, exist_ok=True)
+
     learner_path = args.learner_path
     num_train_tasks = args.num_train_tasks
     num_test_tasks = args.num_test_tasks
