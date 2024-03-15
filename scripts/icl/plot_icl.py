@@ -28,7 +28,7 @@ result_paths = os.listdir(load_path)
 for result_i, result_path in enumerate(result_paths):
     curr_path = os.path.join(load_path, result_path)
     data = pickle.load(open(curr_path, "rb"))
-    variant_name = result_path[:-len("{}-accuracies.pkl".format(exp_name))]
+    variant_name = result_path[:-len("-{}-accuracies.pkl".format(exp_name))]
 
     checkpoint_steps = data["checkpoint_steps"]
     accuracies = data["accuracies"]
