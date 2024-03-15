@@ -132,6 +132,7 @@ def construct_mnist(
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
             p_bursty=task_config.p_bursty,
+            bursty_len=task_config.bursty_len,
             seed=seed,
             remap=remap,
             random_label=getattr(task_config, "random_label", False),
