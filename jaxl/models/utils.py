@@ -1,6 +1,6 @@
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
-from typing import Any, Dict, Tuple, Union, Sequence
+from typing import Any, Dict, Tuple, Union, Sequence, Iterable
 
 import chex
 import json
@@ -366,7 +366,7 @@ def load_model(
     :type output_dim: Sequence[int]
     :type learner_path: str
     :type checkpoint_i: int
-    :return: the parameters, the model, and the experiment configuration
+    :return: the model and the parameters
     :rtype: Tuple[Dict, Model]
     """
     config_path = os.path.join(learner_path, "config.json")
@@ -387,3 +387,37 @@ def load_model(
     params = checkpoint_manager.restore(all_steps[to_load])
 
     return params, model
+
+
+def iterate_models(
+    input_dim: Sequence[int],
+    output_dim: Sequence[int],
+    learner_path: str,
+) -> Iterable[Tuple[Dict, Model, int]]:
+    """
+    An iterator that yields the model and the each checkpointed parameters
+
+    :param input_dim: the input dimensionality
+    :param output_dim: the output dimensionality
+    :param learner_path: the path that stores the experiment configuation
+    :type input_dim: Sequence[int]
+    :type output_dim: Sequence[int]
+    :type learner_path: str
+    :return: an iterable of the model, the parameters, and the i'th checkpoint
+    :rtype: Iterable[Tuple[Dict, Model, int]]
+    """
+    config_path = os.path.join(learner_path, "config.json")
+    with open(config_path, "r") as f:
+        config_dict = json.load(f)
+        config = parse_dict(config_dict)
+
+    model = get_model(input_dim, output_dim, config.model_config)
+
+    checkpoint_manager = CheckpointManager(
+        os.path.join(learner_path, "models"),
+        PyTreeCheckpointer(),
+    )
+
+    for step in checkpoint_manager.all_steps():
+        params = checkpoint_manager.restore(step)
+        yield params, model, step
