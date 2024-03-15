@@ -1,6 +1,6 @@
 # JAXL (JAX Learning)
 ## Prerequisite:
-- Python 3.9
+- Python 3.9+
 - MuJoCo (See [here](https://github.com/openai/mujoco-py#install-mujoco))
   - Remember to set `LD_LIBRARY_PATH` (e..g. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<PATH_TO_MUJOCO>/.mujoco/mujoco210/bin`)
   - For troubleshooting, see [here](https://github.com/openai/mujoco-py#ubuntu-installtion-troubleshooting)
@@ -37,7 +37,7 @@ export XLA_FLAGS=--xla_gpu_graph_level=0
 
 ### Conda on Salient
 ```
-conda create --name jaxl python=3.9
+conda create --name jaxl python=3.11
 conda install -c conda-forge glew
 conda install -c conda-forge mesalib
 conda install jaxlib=*=*cuda* jax cuda-nvcc -c conda-forge -c nvidia
