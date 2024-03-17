@@ -545,7 +545,6 @@ class MultitaskMNISTBursty(Dataset):
                 "seed": seed,
                 "p_bursty": p_bursty,
                 "is_bursty": is_bursty,
-                "bursty_len": bursty_len,
             }
             maybe_save_dataset(
                 data,
@@ -556,6 +555,7 @@ class MultitaskMNISTBursty(Dataset):
         self._dataset = dataset
         self._data = data
         self._remap = remap
+        self._bursty_len = bursty_len
 
     def _generate_data(
         self,
@@ -604,7 +604,7 @@ class MultitaskMNISTBursty(Dataset):
 
         if is_bursty:
             label_idxes = []
-            min_tokens = 2 * self._data["bursty_len"]
+            min_tokens = 2 * self._bursty_len
             if self._data["sequence_length"] > min_tokens:
                 label_idxes = sample_rng.choice(
                     self._data["num_classes"],
@@ -614,8 +614,8 @@ class MultitaskMNISTBursty(Dataset):
             label_idxes = sample_rng.permutation(
                 np.concatenate(
                     [
-                        [label] * self._data["bursty_len"],
-                        [repeated_distractor_label] * self._data["bursty_len"],
+                        [label] * self._bursty_len,
+                        [repeated_distractor_label] * self._bursty_len,
                         label_idxes,
                     ]
                 )[: self._data["context_len"]]
