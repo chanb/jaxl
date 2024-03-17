@@ -8,7 +8,6 @@ import seaborn as sns
 from jaxl.plot_utils import set_size, pgf_with_latex
 
 
-
 # Use the seborn style
 sns.set_style("darkgrid")
 sns.set_palette("colorblind")
@@ -28,7 +27,7 @@ result_paths = os.listdir(load_path)
 for result_i, result_path in enumerate(result_paths):
     curr_path = os.path.join(load_path, result_path)
     data = pickle.load(open(curr_path, "rb"))
-    variant_name = result_path[:-len("-{}-accuracies.pkl".format(exp_name))]
+    variant_name = result_path[: -len("-{}-accuracies.pkl".format(exp_name))]
 
     checkpoint_steps = data["checkpoint_steps"]
     accuracies = data["accuracies"]
@@ -62,6 +61,4 @@ fig.legend(
     fontsize="8",
 )
 
-fig.savefig(
-    save_path, format="pdf", bbox_inches="tight", dpi=600
-)
+fig.savefig(save_path, format="pdf", bbox_inches="tight", dpi=600)

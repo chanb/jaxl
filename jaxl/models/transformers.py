@@ -161,11 +161,7 @@ class InContextSupervisedTransformer(Model):
                 mutable=[CONST_BATCH_STATS],
             )
 
-            query_embedding = self.input_tokenizer.apply(
-                params[CONST_INPUT_TOKENIZER],
-                queries,
-            )
-
+            # Treat input-output pair with same position
             input_embedding = self.positional_encoding.apply(
                 params[CONST_POSITIONAL_ENCODING],
                 input_embedding,
@@ -186,6 +182,22 @@ class InContextSupervisedTransformer(Model):
                 (context_input_embedding, context_output_embedding), axis=-1
             ).reshape((len(queries), -1, self.embed_dim))
             stacked_inputs = jnp.concatenate((stacked_inputs, query_embedding), axis=1)
+
+
+            # Treat each token separately position
+            # context_input_embedding, query_embedding = (
+            #     input_embedding[:, :-1],
+            #     input_embedding[:, -1:],
+            # )
+            # stacked_inputs = jnp.concatenate(
+            #     (context_input_embedding, context_output_embedding, query_embedding), axis=-1
+            # )
+            # stacked_inputs = self.positional_encoding.apply(
+            #     params[CONST_POSITIONAL_ENCODING],
+            #     stacked_inputs,
+            #     **kwargs,
+            # )
+
 
             return (
                 stacked_inputs,

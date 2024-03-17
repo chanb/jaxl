@@ -1,5 +1,6 @@
 import warnings
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
 
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -84,9 +85,8 @@ def get_eval_datasets(
     }
 
     return {
-        eval_name: get_data_loader(
-            config, test_data_seed, batch_size, num_workers
-        ) for eval_name, config in configs.items()
+        eval_name: get_data_loader(config, test_data_seed, batch_size, num_workers)
+        for eval_name, config in configs.items()
     }, configs
 
 
@@ -95,13 +95,14 @@ def main(args: SimpleNamespace):
     get_device(device)
 
     save_path = args.save_path
-    os.makedirs(save_path, exist_ok=True)
+    os.makedirs(os.path.join(save_path, "agg_data"), exist_ok=True)
 
     learner_path = args.learner_path
     num_train_tasks = args.num_train_tasks
     num_test_tasks = args.num_test_tasks
     test_data_seed = args.test_data_seed
     num_workers = args.num_workers
+    num_visualize = args.num_visualize
 
     run_name = learner_path.split("/")[-1]
     exp_name = "-".join(run_name.split("-")[:-8])
@@ -120,11 +121,7 @@ def main(args: SimpleNamespace):
     print(num_samples_per_task, num_train_tasks, sequence_length, context_len)
 
     datasets, dataset_configs = get_eval_datasets(
-        config_dict,
-        num_test_tasks,
-        test_data_seed,
-        num_samples_per_task,
-        num_workers
+        config_dict, num_test_tasks, test_data_seed, num_samples_per_task, num_workers
     )
     datasets["pretraining"] = (
         train_dataset,
@@ -134,15 +131,23 @@ def main(args: SimpleNamespace):
             shuffle=False,
             drop_last=False,
             num_workers=num_workers,
-        )
+        ),
     )
     dataset_configs["pretraining"] = config.learner_config.dataset_config
 
+    if num_visualize > 0:
+        print("Plot examples")
+        os.makedirs(os.path.join(save_path, "plots", exp_name), exist_ok=True)
+        for eval_name in datasets:
+            plot_examples(
+                datasets[eval_name][0], num_visualize, save_path, exp_name, eval_name
+            )
+
     accuracies = {eval_name: [] for eval_name in datasets}
     checkpoint_steps = []
-    for params, model, checkpoint_step in tqdm(iterate_models(
-        train_dataset.input_dim, train_dataset.output_dim, learner_path
-    )):
+    for params, model, checkpoint_step in tqdm(
+        iterate_models(train_dataset.input_dim, train_dataset.output_dim, learner_path)
+    ):
         checkpoint_steps.append(checkpoint_step)
         for eval_name in datasets:
             dataset, data_loader = datasets[eval_name]
@@ -153,7 +158,7 @@ def main(args: SimpleNamespace):
                     dataset,
                     data_loader,
                     num_train_tasks if eval_name == "pretraining" else num_test_tasks,
-                    2 if eval_name.endswith("2_way") else None
+                    2 if eval_name.endswith("2_way") else None,
                 )
             )
     pickle.dump(
@@ -161,7 +166,10 @@ def main(args: SimpleNamespace):
             "checkpoint_steps": checkpoint_steps,
             "accuracies": accuracies,
         },
-        open(os.path.join(save_path, "{}-accuracies.pkl".format(exp_name)), "wb")
+        open(
+            os.path.join(save_path, "agg_data", "{}-accuracies.pkl".format(exp_name)),
+            "wb",
+        ),
     )
 
 
@@ -202,6 +210,12 @@ if __name__ == "__main__":
         type=int,
         default=4,
         help="The number of workers for fetching the batches of data",
+    )
+    parser.add_argument(
+        "--num_visualize",
+        type=int,
+        default=0,
+        help="Visualize the examples per dataset",
     )
     args = parser.parse_args()
 

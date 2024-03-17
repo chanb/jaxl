@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/icl-omniglot/pixel_noise_ablation",
-        "experiment_name": "bursty_1.0-pixel_noise_0.1",
+        "experiment_name": "bursty_1.0-diff_pos_enc-pixel_noise_0.1",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -15,7 +15,7 @@
             "type": "default",
             "kwargs": {
                 "embed_dim": 64,
-                "max_len": 9
+                "max_len": 17
             }
         },
         "input_tokenizer": {
