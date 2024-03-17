@@ -19,13 +19,16 @@ sns.set_palette("colorblind")
 doc_width_pt = 1000.0
 
 exp_name = "pixel_noise_0.1"
-save_path = "./{}.pdf".format(exp_name)
-load_path = "./plot_data"
+load_path = "./results-pixel_noise_0.1"
+
+agg_result_path = os.path.join(load_path, "agg_data")
+plot_path = os.path.join(load_path, "plots")
+save_path = os.path.join(plot_path, "{}.pdf".format(exp_name))
 
 
-result_paths = os.listdir(load_path)
+result_paths = os.listdir(agg_result_path)
 for result_i, result_path in enumerate(result_paths):
-    curr_path = os.path.join(load_path, result_path)
+    curr_path = os.path.join(agg_result_path, result_path)
     data = pickle.load(open(curr_path, "rb"))
     variant_name = result_path[: -len("-{}-accuracies.pkl".format(exp_name))]
 

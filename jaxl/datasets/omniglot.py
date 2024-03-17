@@ -331,7 +331,9 @@ class MultitaskOmniglotBursty(Dataset):
 
         is_bursty = sample_rng.rand(num_sequences) < p_bursty
 
-        query_idxes = sample_rng.choice(np.arange(min_num_per_class), size=(num_sequences,))
+        query_idxes = sample_rng.choice(
+            np.arange(min_num_per_class), size=(num_sequences,)
+        )
 
         context_idxes = sample_rng.choice(
             np.arange(min_num_per_class), size=(num_sequences, context_len)
@@ -359,7 +361,9 @@ class MultitaskOmniglotBursty(Dataset):
         sample_rng = np.random.RandomState(idx)
 
         label = sample_rng.choice(self._data["num_classes"])
-        query, _ = self._dataset[self._label_to_idx[label, self._data["query_idxes"][idx]]]
+        query, _ = self._dataset[
+            self._label_to_idx[label, self._data["query_idxes"][idx]]
+        ]
 
         if is_bursty:
             label_idxes = []
@@ -384,7 +388,9 @@ class MultitaskOmniglotBursty(Dataset):
                 done = False
                 while not done:
                     label_idxes = sample_rng.choice(
-                        self._data["num_classes"], size=(self._data["context_len"]), replace=False
+                        self._data["num_classes"],
+                        size=(self._data["context_len"]),
+                        replace=False,
                     )
                     done = label not in label_idxes
             else:
@@ -498,7 +504,9 @@ class MultitaskOmniglotNWayKShot(Dataset):
         sample_key, _ = jrandom.split(jrandom.PRNGKey(seed))
         sample_rng = np.random.RandomState(sample_key)
 
-        query_idxes = sample_rng.choice(np.arange(min_num_per_class), size=(num_sequences,))
+        query_idxes = sample_rng.choice(
+            np.arange(min_num_per_class), size=(num_sequences,)
+        )
 
         context_idxes = sample_rng.choice(
             np.arange(min_num_per_class), size=(num_sequences, context_len)
@@ -525,7 +533,9 @@ class MultitaskOmniglotNWayKShot(Dataset):
         sample_rng = np.random.RandomState(idx)
 
         label = sample_rng.choice(self._data["num_classes"])
-        query, _ = self._dataset[self._label_to_idx[label, self._data["query_idxes"][idx]]]
+        query, _ = self._dataset[
+            self._label_to_idx[label, self._data["query_idxes"][idx]]
+        ]
 
         while True:
             repeated_distractor_labels = sample_rng.choice(

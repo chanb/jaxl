@@ -32,6 +32,7 @@ class InContextSupervisedTransformer(Model):
         embed_dim: int,
         positional_encoding: SimpleNamespace,
         query_pred_only: bool = False,
+        input_output_same_encoding: bool = True,
     ) -> None:
         self.gpt = GPTModule(
             num_blocks=num_blocks,
@@ -45,9 +46,79 @@ class InContextSupervisedTransformer(Model):
         self.num_tokens = num_contexts * 2 + 1
         self.num_heads = num_heads
         self.embed_dim = embed_dim
+        self.apply_positional_encoding = self._make_get_positional_encoding(
+            input_output_same_encoding
+        )
         self.tokenize = jax.jit(self.make_tokenize())
         self.get_latent = jax.jit(self.make_get_latent())
         self.forward = jax.jit(self.make_forward(query_pred_only))
+
+    def _make_get_positional_encoding(
+        self, input_output_same_encoding: bool
+    ) -> Callable:
+        if input_output_same_encoding:
+
+            def apply_positional_encoding(
+                params, queries, input_embedding, context_output_embedding, **kwargs
+            ):
+                # Treat input-output pair with same position
+                input_embedding = self.positional_encoding.apply(
+                    params[CONST_POSITIONAL_ENCODING],
+                    input_embedding,
+                    **kwargs,
+                )
+
+                context_input_embedding, query_embedding = (
+                    input_embedding[:, :-1],
+                    input_embedding[:, -1:],
+                )
+                context_output_embedding = self.positional_encoding.apply(
+                    params[CONST_POSITIONAL_ENCODING],
+                    context_output_embedding,
+                    **kwargs,
+                )
+
+                stacked_inputs = jnp.concatenate(
+                    (context_input_embedding, context_output_embedding), axis=-1
+                ).reshape((len(queries), -1, self.embed_dim))
+
+                stacked_inputs = jnp.concatenate(
+                    (stacked_inputs, query_embedding), axis=1
+                )
+                return stacked_inputs
+
+        else:
+
+            def apply_positional_encoding(
+                params, queries, input_embedding, context_output_embedding, **kwargs
+            ):
+                # Treat each token separately position
+                context_input_embedding, query_embedding = (
+                    input_embedding[:, :-1],
+                    input_embedding[:, -1:],
+                )
+                stacked_inputs = jnp.concatenate(
+                    (
+                        context_input_embedding,
+                        context_output_embedding,
+                    ),
+                    axis=-1,
+                ).reshape((len(queries), -1, self.embed_dim))
+                stacked_inputs = jnp.concatenate(
+                    (
+                        stacked_inputs,
+                        query_embedding,
+                    ),
+                    axis=1,
+                )
+                stacked_inputs = self.positional_encoding.apply(
+                    params[CONST_POSITIONAL_ENCODING],
+                    stacked_inputs,
+                    **kwargs,
+                )
+                return stacked_inputs
+
+        return apply_positional_encoding
 
     def init(
         self,
@@ -161,43 +232,9 @@ class InContextSupervisedTransformer(Model):
                 mutable=[CONST_BATCH_STATS],
             )
 
-            # Treat input-output pair with same position
-            input_embedding = self.positional_encoding.apply(
-                params[CONST_POSITIONAL_ENCODING],
-                input_embedding,
-                **kwargs,
+            stacked_inputs = self.apply_positional_encoding(
+                params, queries, input_embedding, context_output_embedding, **kwargs
             )
-
-            context_input_embedding, query_embedding = (
-                input_embedding[:, :-1],
-                input_embedding[:, -1:],
-            )
-            context_output_embedding = self.positional_encoding.apply(
-                params[CONST_POSITIONAL_ENCODING],
-                context_output_embedding,
-                **kwargs,
-            )
-
-            stacked_inputs = jnp.concatenate(
-                (context_input_embedding, context_output_embedding), axis=-1
-            ).reshape((len(queries), -1, self.embed_dim))
-            stacked_inputs = jnp.concatenate((stacked_inputs, query_embedding), axis=1)
-
-
-            # Treat each token separately position
-            # context_input_embedding, query_embedding = (
-            #     input_embedding[:, :-1],
-            #     input_embedding[:, -1:],
-            # )
-            # stacked_inputs = jnp.concatenate(
-            #     (context_input_embedding, context_output_embedding, query_embedding), axis=-1
-            # )
-            # stacked_inputs = self.positional_encoding.apply(
-            #     params[CONST_POSITIONAL_ENCODING],
-            #     stacked_inputs,
-            #     **kwargs,
-            # )
-
 
             return (
                 stacked_inputs,
@@ -269,10 +306,7 @@ class InContextSupervisedTransformer(Model):
                 **kwargs,
             )
 
-            return repr, None, {
-                **token_updates,
-                CONST_GPT: gpt_updates
-            }
+            return repr, None, {**token_updates, CONST_GPT: gpt_updates}
 
         return get_latent
 
@@ -429,6 +463,7 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
         input_tokenizer_config: SimpleNamespace,
         output_tokenizer_config: SimpleNamespace,
         query_pred_only: bool = False,
+        input_output_same_encoding: bool = True,
     ) -> None:
         self.gpt = GPTModule(
             num_blocks=num_blocks,
@@ -442,6 +477,9 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
         self.num_tokens = num_contexts * 2 + 1
         self.num_heads = num_heads
         self.embed_dim = embed_dim
+        self.apply_positional_encoding = self._make_get_positional_encoding(
+            input_output_same_encoding
+        )
         self.tokenize = jax.jit(self.make_tokenize(), static_argnames=[CONST_EVAL])
         self.get_latent = jax.jit(self.make_get_latent(), static_argnames=[CONST_EVAL])
         self.forward = jax.jit(
@@ -528,26 +566,9 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
                 (num_samples, context_len, -1)
             )
 
-            input_embedding = self.positional_encoding.apply(
-                params[CONST_POSITIONAL_ENCODING],
-                input_embedding,
-                **kwargs,
+            stacked_inputs = self.apply_positional_encoding(
+                params, queries, input_embedding, context_output_embedding, **kwargs
             )
-
-            context_input_embedding, query_embedding = (
-                input_embedding[:, :-1],
-                input_embedding[:, -1:],
-            )
-            context_output_embedding = self.positional_encoding.apply(
-                params[CONST_POSITIONAL_ENCODING],
-                context_output_embedding,
-                **kwargs,
-            )
-
-            stacked_inputs = jnp.concatenate(
-                (context_input_embedding, context_output_embedding), axis=-1
-            ).reshape((len(queries), -1, self.embed_dim))
-            stacked_inputs = jnp.concatenate((stacked_inputs, query_embedding), axis=1)
 
             return (
                 stacked_inputs,
