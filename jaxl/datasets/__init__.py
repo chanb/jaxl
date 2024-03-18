@@ -189,7 +189,11 @@ def get_dataset(
             )
         elif dataset_config.dataset_wrapper.type == "ContextDataset":
             dataset = ContextDataset(
-                dataset, dataset_config.dataset_wrapper.kwargs.context_len
+                dataset,
+                dataset_config.dataset_wrapper.kwargs.context_len,
+                getattr(
+                    dataset_config.dataset_wrapper.kwargs, "include_query_class", False
+                ),
             )
         elif dataset_config.dataset_wrapper.type == "RepeatedContextDataset":
             dataset = RepeatedContextDataset(

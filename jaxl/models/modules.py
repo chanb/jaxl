@@ -339,6 +339,7 @@ class GPTModule(nn.Module):
 
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
+        # jax.debug.print("result={x}", x=x[0])
         for idx, _ in enumerate(range(self.num_blocks)):
             x = GPTBlock(self.num_heads, self.embed_dim)(x, eval)
             self.sow("gpt_latents", "gpt_{}".format(idx), x)

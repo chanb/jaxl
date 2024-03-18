@@ -203,9 +203,6 @@ class InContextSupervisedTransformer(Model):
 
             """
             num_samples, context_len = contexts[CONST_CONTEXT_INPUT].shape[:2]
-            input_dim = contexts[CONST_CONTEXT_INPUT].shape[2:]
-            output_dim = contexts[CONST_CONTEXT_OUTPUT].shape[2:]
-            batch_size = num_samples * context_len
 
             input_embedding, input_updates = self.input_tokenizer.apply(
                 params[CONST_INPUT_TOKENIZER],
@@ -215,14 +212,10 @@ class InContextSupervisedTransformer(Model):
                         queries,
                     ),
                     axis=1,
-                ).reshape((batch_size + num_samples, *input_dim)),
+                ),
                 None,
                 eval,
                 mutable=[CONST_BATCH_STATS],
-            )
-
-            input_embedding = input_embedding.reshape(
-                (num_samples, context_len + 1, -1)
             )
 
             context_output_embedding, output_updates = self.output_tokenizer.apply(
@@ -296,7 +289,7 @@ class InContextSupervisedTransformer(Model):
 
             """
             stacked_inputs, _, token_updates = self.tokenize(
-                params, queries, contexts, **kwargs
+                params, queries, contexts, eval, **kwargs
             )
             (repr, gpt_updates) = self.gpt.apply(
                 params[CONST_GPT],
@@ -369,7 +362,7 @@ class InContextSupervisedTransformer(Model):
 
             """
             repr, carry, latent_updates = self.get_latent(
-                params, queries, contexts, **kwargs
+                params, queries, contexts, eval, **kwargs
             )
             outputs = self.predictor.apply(
                 params[CONST_PREDICTOR],
@@ -533,11 +526,6 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
             :rtype: Tuple[chex.Array, chex.Array, Any]
 
             """
-            num_samples, context_len = contexts[CONST_CONTEXT_INPUT].shape[:2]
-            input_dim = contexts[CONST_CONTEXT_INPUT].shape[2:]
-            output_dim = contexts[CONST_CONTEXT_OUTPUT].shape[2:]
-            batch_size = num_samples * context_len
-
             input_embedding, _, input_updates = self.input_tokenizer.forward(
                 params[CONST_INPUT_TOKENIZER],
                 jnp.concatenate(
@@ -546,24 +534,17 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
                         queries,
                     ),
                     axis=1,
-                ).reshape((batch_size + num_samples, *input_dim)),
+                ),
                 None,
                 eval,
                 **kwargs,
             )
             context_output_embedding, _, output_updates = self.output_tokenizer.forward(
                 params[CONST_OUTPUT_TOKENIZER],
-                contexts[CONST_CONTEXT_OUTPUT].reshape((batch_size, *output_dim)),
+                contexts[CONST_CONTEXT_OUTPUT],
                 None,
                 eval,
                 **kwargs,
-            )
-
-            input_embedding = input_embedding.reshape(
-                (num_samples, context_len + 1, -1)
-            )
-            context_output_embedding = context_output_embedding.reshape(
-                (num_samples, context_len, -1)
             )
 
             stacked_inputs = self.apply_positional_encoding(
