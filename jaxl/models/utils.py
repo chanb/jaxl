@@ -236,7 +236,7 @@ def get_model(
                 model_config.input_tokenizer,
                 model_config.output_tokenizer,
                 getattr(model_config, "query_pred_only", False),
-                getattr(model_config, "input_output_same_encoding", False),
+                getattr(model_config, "input_output_same_encoding", True),
             )
         return InContextSupervisedTransformer(
             output_dim,
@@ -246,7 +246,7 @@ def get_model(
             model_config.embed_dim,
             model_config.positional_encoding,
             getattr(model_config, "query_pred_only", False),
-            getattr(model_config, "input_output_same_encoding", False),
+            getattr(model_config, "input_output_same_encoding", True),
         )
     else:
         raise NotImplementedError
