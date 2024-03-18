@@ -19,7 +19,8 @@ sns.set_palette("colorblind")
 doc_width_pt = 1000.0
 
 exp_name = "pixel_noise_0.1"
-load_path = "./results-pixel_noise_0.1"
+# load_path = "./results-pixel_noise_0.1"
+load_path = "./results"
 
 agg_result_path = os.path.join(load_path, "agg_data")
 plot_path = os.path.join(load_path, "plots")
