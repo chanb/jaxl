@@ -123,6 +123,7 @@ def construct_omniglot(
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
             k_way=task_config.k_way,
+            min_num_per_class=getattr(task_config, "min_num_per_class", 20),
             seed=seed,
             save_dir=task_config.save_dir,
         )
@@ -260,11 +261,12 @@ class MultitaskOmniglotBursty(Dataset):
         random_label: bool = False,
         save_dir: str = None,
     ):
-        dataset_name = "omniglot_bursty-p_bursty_{}-background_{}-num_sequences_{}-sequence_length_{}-random_label_{}-seed_{}.pkl".format(
+        dataset_name = "omniglot_bursty-p_bursty_{}-background_{}-num_sequences_{}-sequence_length_{}-min_num_per_class_{}-random_label_{}-seed_{}.pkl".format(
             p_bursty,
             dataset.background,
             num_sequences,
             sequence_length,
+            min_num_per_class,
             random_label,
             seed,
         )
@@ -437,11 +439,12 @@ class MultitaskOmniglotNWayKShot(Dataset):
         seed: int = 0,
         save_dir: str = None,
     ):
-        dataset_name = "omniglot_n_shot_k_way-k_way_{}-background_{}-num_sequences_{}-sequence_length_{}-seed_{}.pkl".format(
+        dataset_name = "omniglot_n_shot_k_way-k_way_{}-background_{}-num_sequences_{}-sequence_length_{}-min_num_per_class_{}-seed_{}.pkl".format(
             k_way,
             dataset.background,
             num_sequences,
             sequence_length,
+            min_num_per_class,
             seed,
         )
         loaded, data = maybe_load_dataset(save_dir, dataset_name)

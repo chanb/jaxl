@@ -18,9 +18,10 @@ sns.set_palette("colorblind")
 # Using the set_size function as defined earlier
 doc_width_pt = 1000.0
 
-exp_name = "pixel_noise_0.1"
+exp_name = "all_omniglot-pixel_noise_0.1"
 # load_path = "./results-pixel_noise_0.1"
-load_path = "./results"
+# load_path = "./results"
+load_path = "./results-all_omniglot-pixel_noise_0.1"
 
 agg_result_path = os.path.join(load_path, "agg_data")
 plot_path = os.path.join(load_path, "plots")
@@ -31,7 +32,7 @@ result_paths = os.listdir(agg_result_path)
 for result_i, result_path in enumerate(result_paths):
     curr_path = os.path.join(agg_result_path, result_path)
     data = pickle.load(open(curr_path, "rb"))
-    variant_name = result_path[: -len("-{}-accuracies.pkl".format(exp_name))]
+    variant_name = result_path[: -len("-accuracies.pkl")]
 
     checkpoint_steps = data["checkpoint_steps"]
     accuracies = data["accuracies"]
