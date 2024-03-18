@@ -136,6 +136,7 @@ def construct_mnist(
             seed=seed,
             remap=remap,
             random_label=getattr(task_config, "random_label", False),
+            unique_classes=getattr(task_config, "unique_classes", False),
             save_dir=task_config.save_dir,
         )
     else:
@@ -493,6 +494,7 @@ class MultitaskMNISTBursty(Dataset):
         bursty_len: int = 3,
         remap: bool = False,
         random_label: bool = False,
+        unique_classes: bool = False,
         save_dir: str = None,
     ):
         dataset_name = "omniglot_bursty-p_bursty_{}-train_{}-num_sequences_{}-sequence_length_{}-random_label_{}-seed_{}.pkl".format(
@@ -556,6 +558,7 @@ class MultitaskMNISTBursty(Dataset):
         self._data = data
         self._remap = remap
         self._bursty_len = bursty_len
+        self._unique_classes = unique_classes
 
     def _generate_data(
         self,
@@ -621,9 +624,19 @@ class MultitaskMNISTBursty(Dataset):
                 )[: self._data["context_len"]]
             )
         else:
-            label_idxes = sample_rng.choice(
-                self._data["num_classes"], size=(self._data["context_len"])
-            )
+            if self._unique_classes:
+                done = False
+                while not done:
+                    label_idxes = sample_rng.choice(
+                        self._data["num_classes"],
+                        size=(self._data["context_len"]),
+                        replace=False,
+                    )
+                    done = label not in label_idxes
+            else:
+                label_idxes = sample_rng.choice(
+                    self._data["num_classes"], size=(self._data["context_len"])
+                )
 
         context_idxes = self._data["context_idxes"][idx]
         context_idxes = np.take_along_axis(
