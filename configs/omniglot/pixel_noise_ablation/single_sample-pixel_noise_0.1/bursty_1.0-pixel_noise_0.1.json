@@ -78,8 +78,8 @@
             "num_workers": 4
         },
         "seeds": {
-            "model_seed": 42,
-            "data_seed": 42
+            "model_seed": 44,
+            "data_seed": 44
         },
         "learner": "mle",
         "losses": ["categorical", "l2"],

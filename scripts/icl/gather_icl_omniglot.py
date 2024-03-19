@@ -100,80 +100,84 @@ def main(args: SimpleNamespace):
     device = args.device
     get_device(device)
 
-    save_path = args.save_path
-    os.makedirs(os.path.join(save_path, "agg_data"), exist_ok=True)
-
-    learner_path = args.learner_path
+    runs_dir = args.runs_dir
     num_train_tasks = args.num_train_tasks
     num_test_tasks = args.num_test_tasks
     test_data_seed = args.test_data_seed
     num_workers = args.num_workers
     num_visualize = args.num_visualize
 
-    run_name = learner_path.split("/")[-1]
-    exp_name = "-".join(run_name.split("-")[:-8])
+    ablation_name = os.path.basename(runs_dir)
 
-    config_dict, config = load_config(learner_path)
 
-    train_dataset = get_dataset(
-        config.learner_config.dataset_config,
-        config.learner_config.seeds.data_seed,
-    )
+    all_results = {}
+    save_path = os.path.join(args.save_path, ablation_name)
+    os.makedirs(os.path.join(save_path, "agg_data"), exist_ok=True)
+    for curr_run_path in tqdm(os.listdir(runs_dir)):
+        learner_path = os.path.join(runs_dir, curr_run_path)
+        exp_name = "-".join(curr_run_path.split("-")[:-8])
+        all_results.setdefault(exp_name, {})
 
-    context_len = config.model_config.num_contexts
-    num_samples_per_task = train_dataset._dataset.sequence_length - context_len
-    sequence_length = train_dataset._dataset.sequence_length
+        config_dict, config = load_config(learner_path)
 
-    print(num_samples_per_task, num_train_tasks, sequence_length, context_len)
+        train_dataset = get_dataset(
+            config.learner_config.dataset_config,
+            config.learner_config.seeds.data_seed,
+        )
 
-    datasets, dataset_configs = get_eval_datasets(
-        config_dict, num_test_tasks, test_data_seed, num_samples_per_task, num_workers
-    )
-    datasets["pretraining"] = (
-        train_dataset,
-        DataLoader(
+        context_len = config.model_config.num_contexts
+        num_samples_per_task = train_dataset._dataset.sequence_length - context_len
+        sequence_length = train_dataset._dataset.sequence_length
+
+        print(num_samples_per_task, num_train_tasks, sequence_length, context_len)
+
+        datasets, dataset_configs = get_eval_datasets(
+            config_dict, num_test_tasks, test_data_seed, num_samples_per_task, num_workers
+        )
+        datasets["pretraining"] = (
             train_dataset,
-            batch_size=num_samples_per_task,
-            shuffle=False,
-            drop_last=False,
-            num_workers=num_workers,
-        ),
-    )
-    dataset_configs["pretraining"] = config.learner_config.dataset_config
+            DataLoader(
+                train_dataset,
+                batch_size=num_samples_per_task,
+                shuffle=False,
+                drop_last=False,
+                num_workers=num_workers,
+            ),
+        )
+        dataset_configs["pretraining"] = config.learner_config.dataset_config
 
-    if num_visualize > 0:
-        print("Plot examples")
-        os.makedirs(os.path.join(save_path, "plots", exp_name), exist_ok=True)
-        for eval_name in datasets:
-            plot_examples(
-                datasets[eval_name][0], num_visualize, save_path, exp_name, eval_name
-            )
-
-    accuracies = {eval_name: [] for eval_name in datasets}
-    checkpoint_steps = []
-    for params, model, checkpoint_step in tqdm(
-        iterate_models(train_dataset.input_dim, train_dataset.output_dim, learner_path)
-    ):
-        checkpoint_steps.append(checkpoint_step)
-        for eval_name in datasets:
-            dataset, data_loader = datasets[eval_name]
-            accuracies[eval_name].append(
-                evaluate(
-                    model,
-                    params,
-                    dataset,
-                    data_loader,
-                    num_train_tasks if eval_name == "pretraining" else num_test_tasks,
-                    2 if eval_name.endswith("2_way") else None,
+        if num_visualize > 0:
+            print("Plot examples")
+            os.makedirs(os.path.join(save_path, "plots", exp_name), exist_ok=True)
+            for eval_name in datasets:
+                plot_examples(
+                    datasets[eval_name][0], num_visualize, save_path, exp_name, eval_name
                 )
-            )
-    pickle.dump(
-        {
+
+        accuracies = {eval_name: [] for eval_name in datasets}
+        checkpoint_steps = []
+        for params, model, checkpoint_step in iterate_models(train_dataset.input_dim, train_dataset.output_dim, learner_path):
+            checkpoint_steps.append(checkpoint_step)
+            for eval_name in datasets:
+                dataset, data_loader = datasets[eval_name]
+                accuracies[eval_name].append(
+                    evaluate(
+                        model,
+                        params,
+                        dataset,
+                        data_loader,
+                        num_train_tasks if eval_name == "pretraining" else num_test_tasks,
+                        2 if eval_name.endswith("2_way") else None,
+                    )
+                )
+        all_results[exp_name][curr_run_path] = {
             "checkpoint_steps": checkpoint_steps,
             "accuracies": accuracies,
-        },
+        }
+    pickle.dump(
+        all_results,
         open(
-            os.path.join(save_path, "agg_data", "{}-accuracies.pkl".format(exp_name)),
+            os.path.join(save_path, "agg_data", "accuracies.pkl"),
             "wb",
         ),
     )
@@ -191,10 +195,10 @@ if __name__ == "__main__":
         help="The location to save the results",
     )
     parser.add_argument(
-        "--learner_path",
+        "--runs_dir",
         type=str,
         required=True,
-        help="The experiment run to load from",
+        help="The experiment runs to load from",
     )
     parser.add_argument(
         "--num_test_tasks", type=int, default=30, help="The number of evaluation tasks"
