@@ -119,7 +119,7 @@ def get_eval_datasets(
         "ood": ood_config,
         "variable_length_context": variable_length_context_config,
         "hierarchy": hierarchy_config,
-        "unique_classes_hierarch": unique_classes_hierarchy_config,
+        "unique_classes_hierarchy": unique_classes_hierarchy_config,
         "variable_length_hierarchy": variable_length_hierarchy_config,
     }
 
