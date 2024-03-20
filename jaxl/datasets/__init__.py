@@ -146,7 +146,9 @@ def get_dataset(
             dataset_kwargs.save_path,
             dataset_kwargs.task_name,
             dataset_kwargs.task_config,
+            seed=seed,
             train=getattr(dataset_kwargs, "train", True),
+            remap=getattr(dataset_kwargs, "remap", False),
         )
     elif dataset_config.dataset_name == CONST_OMNIGLOT:
         dataset = construct_omniglot(
@@ -187,7 +189,11 @@ def get_dataset(
             )
         elif dataset_config.dataset_wrapper.type == "ContextDataset":
             dataset = ContextDataset(
-                dataset, dataset_config.dataset_wrapper.kwargs.context_len
+                dataset,
+                dataset_config.dataset_wrapper.kwargs.context_len,
+                getattr(
+                    dataset_config.dataset_wrapper.kwargs, "include_query_class", False
+                ),
             )
         elif dataset_config.dataset_wrapper.type == "RepeatedContextDataset":
             dataset = RepeatedContextDataset(

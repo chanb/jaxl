@@ -1,13 +1,13 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/bursty_ablation-fixed_length",
-        "experiment_name": "bursty_0.0",
+        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/all_omniglot-pixel_noise_0.1",
+        "experiment_name": "bursty_1.0",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
     "model_config": {
         "architecture": "icl_gpt",
-        "num_contexts": 16,
+        "num_contexts": 8,
         "num_blocks": 8,
         "num_heads": 8,
         "embed_dim": 64,
@@ -15,7 +15,7 @@
             "type": "default",
             "kwargs": {
                 "embed_dim": 64,
-                "max_len": 17
+                "max_len": 9
             }
         },
         "input_tokenizer": {
@@ -26,7 +26,7 @@
                 "stride": [1, 2, 2, 2],
                 "use_projection": [true, true, true, true],
                 "use_bottleneck": true,
-                "use_batch_norm": false
+                "use_batch_norm": true
             }
         },
         "output_tokenizer": {
@@ -35,7 +35,8 @@
                 "layers": []
             }
         },
-        "query_pred_only": true
+        "query_pred_only": true,
+        "input_output_same_encoding": true
     },
     "optimizer_config": {
         "optimizer": "adam",
@@ -57,19 +58,21 @@
                 "save_path": "/home/bryanpu1/projects/icl/data",
                 "task_name": "multitask_omniglot_bursty",
                 "task_config": {
-                    "num_sequences": 500000,
-                    "sequence_length": 17,
+                    "num_sequences": 5000000,
+                    "sequence_length": 9,
                     "random_label": false,
-                    "p_bursty": 0.0,
+                    "p_bursty": 1.0,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
                     "augmentation": true,
-                    "noise_scale": 0.1
+                    "noise_scale": 0.1,
+                    "min_num_per_class": 20,
+                    "unique_classes": false
                 }
             },
             "dataset_wrapper": {
                 "type": "FixedLengthContextDataset",
                 "kwargs": {
-                    "context_len": 16
+                    "context_len": 8
                 }
             },
             "num_workers": 4

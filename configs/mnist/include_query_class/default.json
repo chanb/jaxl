@@ -1,9 +1,9 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/bursty_ablation-fixed_length",
-        "experiment_name": "bursty_0.0-context_len_8-batch_norm-larger_dataset",
+        "save_path": "./logs/icl-mnist/include_query_class-random_label",
+        "experiment_name": "default",
         "log_interval": 50,
-        "checkpoint_interval": 50000
+        "checkpoint_interval": 100000
     },
     "model_config": {
         "architecture": "icl_gpt",
@@ -52,16 +52,17 @@
     "learner_config": {
         "task": "in_context_learning",
         "dataset_config": {
-            "dataset_name": "omniglot",
+            "dataset_name": "mnist",
             "dataset_kwargs": {
-                "save_path": "/home/bryanpu1/projects/icl/data",
-                "task_name": "multitask_omniglot_bursty",
+                "save_path": "/home/bryanpu1/projects/icl_nc/data",
+                "task_name": "multitask_mnist_bursty",
                 "task_config": {
                     "num_sequences": 5000000,
                     "sequence_length": 9,
-                    "random_label": false,
-                    "p_bursty": 0.0,
-                    "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
+                    "random_label": true,
+                    "p_bursty": 1.0,
+                    "bursty_len": 1,
+                    "save_dir": "/home/bryanpu1/projects/icl_nc/data/mnist_icl",
                     "augmentation": true,
                     "noise_scale": 0.1
                 }
@@ -95,6 +96,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 500000
+        "num_epochs": 1000000
     }
 }

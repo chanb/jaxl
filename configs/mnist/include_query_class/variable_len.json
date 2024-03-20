@@ -1,13 +1,13 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/bursty_ablation",
-        "experiment_name": "bursty_0.0",
+        "save_path": "./logs/icl-mnist/include_query_class-random_label",
+        "experiment_name": "variable_len",
         "log_interval": 50,
-        "checkpoint_interval": 50000
+        "checkpoint_interval": 100000
     },
     "model_config": {
         "architecture": "icl_gpt",
-        "num_contexts": 16,
+        "num_contexts": 8,
         "num_blocks": 8,
         "num_heads": 8,
         "embed_dim": 64,
@@ -15,7 +15,7 @@
             "type": "default",
             "kwargs": {
                 "embed_dim": 64,
-                "max_len": 17
+                "max_len": 9
             }
         },
         "input_tokenizer": {
@@ -26,7 +26,7 @@
                 "stride": [1, 2, 2, 2],
                 "use_projection": [true, true, true, true],
                 "use_bottleneck": true,
-                "use_batch_norm": false
+                "use_batch_norm": true
             }
         },
         "output_tokenizer": {
@@ -52,16 +52,17 @@
     "learner_config": {
         "task": "in_context_learning",
         "dataset_config": {
-            "dataset_name": "omniglot",
+            "dataset_name": "mnist",
             "dataset_kwargs": {
-                "save_path": "/home/bryanpu1/projects/icl/data",
-                "task_name": "multitask_omniglot_bursty",
+                "save_path": "/home/bryanpu1/projects/icl_nc/data",
+                "task_name": "multitask_mnist_bursty",
                 "task_config": {
-                    "num_sequences": 500000,
-                    "sequence_length": 17,
-                    "random_label": false,
-                    "p_bursty": 0.0,
-                    "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
+                    "num_sequences": 5000000,
+                    "sequence_length": 9,
+                    "random_label": true,
+                    "p_bursty": 1.0,
+                    "bursty_len": 1,
+                    "save_dir": "/home/bryanpu1/projects/icl_nc/data/mnist_icl",
                     "augmentation": true,
                     "noise_scale": 0.1
                 }
@@ -69,8 +70,8 @@
             "dataset_wrapper": {
                 "type": "ContextDataset",
                 "kwargs": {
-                    "context_len": 16,
-                    "include_query_class": true
+                    "context_len": 8,
+                    "include_query_class": false
                 }
             },
             "num_workers": 4
@@ -96,6 +97,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 500000
+        "num_epochs": 1000000
     }
 }

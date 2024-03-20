@@ -496,7 +496,6 @@ class MLP(Model):
 
             """
             # NOTE: Assume batch size is first dim
-            input = input.reshape((input.shape[0], -1))
             (out, updates) = self.model.apply(
                 params,
                 input,
