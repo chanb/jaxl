@@ -26,7 +26,7 @@ class StandardSupervisedDataset(DatasetWrapper):
         super().__init__(dataset)
         input, _ = self._dataset[0]
         self._input_dim = input.shape
-        self._output_dim = (self._dataset.targets.max() + 1,)
+        self._output_dim = self._dataset.output_dim
 
     def __getitem__(self, idx):
         input, output = self._dataset[idx]

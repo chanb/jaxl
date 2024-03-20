@@ -69,13 +69,13 @@ def construct_omniglot(
 
     if task_name is None:
         # By default, the Omniglot task will be normalized to be between 0 to 1.
-        return torch_datasets.Omniglot(
+        return Omniglot(torch_datasets.Omniglot(
             save_path,
             background=train,
             download=True,
             transform=input_transform,
             target_transform=target_transform,
-        )
+        ))
     elif task_name == CONST_MULTITASK_OMNIGLOT_FINEGRAIN:
         return MultitaskOmniglotFineGrain(
             dataset=torch_datasets.Omniglot(
@@ -129,6 +129,25 @@ def construct_omniglot(
         )
     else:
         raise ValueError(f"{task_name} is invalid (one of {VALID_OMNIGLOT_TASKS})")
+
+
+class Omniglot(Dataset):
+    def __init__(self, dataset):
+        self._dataset = dataset
+
+    @property
+    def input_dim(self) -> chex.Array:
+        return [*self._dataset[0][0].shape]
+
+    @property
+    def output_dim(self) -> chex.Array:
+        return (964 if self._dataset.background else 659,)
+
+    def __len__(self):
+        return len(self._dataset)
+
+    def __getitem__(self, idx):
+        return self._dataset[idx]
 
 
 class MultitaskOmniglotFineGrain(Dataset):

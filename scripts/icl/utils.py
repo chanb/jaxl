@@ -15,8 +15,6 @@ from torch.utils.data import DataLoader
 def plot_examples(
     dataset, num_examples, save_path, exp_name, eval_name, doc_width_pt=500
 ):
-    num_samples_per_task = dataset._dataset.sequence_length - 1
-
     nrows = num_examples
     ncols = dataset._dataset.sequence_length
 
@@ -27,16 +25,16 @@ def plot_examples(
         layout="constrained",
     )
 
-    for task_i in range(num_examples):
-        ci, co, q, l = dataset[task_i * num_samples_per_task + num_samples_per_task - 1]
+    for example_i in range(num_examples):
+        ci, co, q, l = dataset[example_i]
 
         for idx, (img, label) in enumerate(zip(ci, co)):
-            axes[task_i, idx].imshow(img)
-            axes[task_i, idx].set_title(np.argmax(label))
-            axes[task_i, idx].axis("off")
-        axes[task_i, -1].axis("off")
-        axes[task_i, -1].imshow(q[0])
-        axes[task_i, -1].set_title(np.argmax(l, axis=-1))
+            axes[example_i, idx].imshow(img)
+            axes[example_i, idx].set_title(np.argmax(label))
+            axes[example_i, idx].axis("off")
+        axes[example_i, -1].axis("off")
+        axes[example_i, -1].imshow(q[0])
+        axes[example_i, -1].set_title(np.argmax(l, axis=-1))
 
     fig.savefig(
         os.path.join(save_path, "plots", exp_name, "examples-{}.pdf".format(eval_name)),
