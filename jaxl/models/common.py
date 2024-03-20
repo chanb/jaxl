@@ -557,7 +557,7 @@ class CNN(Model):
 
         """
         conv_params = self.conv.init(model_key, dummy_x, eval=True)
-        dummy_latent = self.conv.apply(
+        dummy_latent, _ = self.conv.apply(
             conv_params, dummy_x, eval=True, mutable=[CONST_BATCH_STATS]
         )
         mlp_params = self.mlp.init(
@@ -648,8 +648,8 @@ class CNN(Model):
     def update_batch_stats(
         self, params: Dict[str, Any], batch_stats: Dict[str, Any]
     ) -> Dict[str, Any]:
-        params[CONST_CNN][CONST_BATCH_STATS] = batch_stats[CONST_CNN][CONST_BATCH_STATS]
-        params[CONST_MLP][CONST_BATCH_STATS] = batch_stats[CONST_MLP][CONST_BATCH_STATS]
+        if self.use_batch_norm:
+            params[CONST_CNN][CONST_BATCH_STATS] = batch_stats[CONST_CNN][CONST_BATCH_STATS]
         return params
 
 
