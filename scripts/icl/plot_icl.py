@@ -106,6 +106,13 @@ for exp_name, exp_runs in tqdm(agg_result.items()):
             ax.set_title(eval_name)
             ax.set_ylim(-1.0, 101.0)
 
+remaining_idx = num_cols * num_rows - (max_count + 1)
+if remaining_idx > 0:
+    for ii in range(remaining_idx):
+        ax_i = ii + max_count + 1
+        ax = axes[ax_i // num_cols, ax_i % num_cols]
+        ax.axis("off")
+
 fig.supxlabel("Number of updates")
 fig.supylabel("Accuracy")
 fig.legend(
