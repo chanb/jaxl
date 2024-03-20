@@ -72,13 +72,15 @@ def construct_mnist(
 
     if task_name is None:
         # By default, the MNIST task will be normalized to be between 0 to 1.
-        return MNIST(torch_datasets.MNIST(
-            save_path,
-            train=train,
-            download=True,
-            transform=input_transform,
-            target_transform=target_transform,
-        ))
+        return MNIST(
+            torch_datasets.MNIST(
+                save_path,
+                train=train,
+                download=True,
+                transform=input_transform,
+                target_transform=target_transform,
+            )
+        )
     elif task_name == CONST_MULTITASK_MNIST_FINEGRAIN:
         return MultitaskMNISTFineGrain(
             dataset=torch_datasets.MNIST(

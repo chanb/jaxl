@@ -649,7 +649,9 @@ class CNN(Model):
         self, params: Dict[str, Any], batch_stats: Dict[str, Any]
     ) -> Dict[str, Any]:
         if self.use_batch_norm:
-            params[CONST_CNN][CONST_BATCH_STATS] = batch_stats[CONST_CNN][CONST_BATCH_STATS]
+            params[CONST_CNN][CONST_BATCH_STATS] = batch_stats[CONST_CNN][
+                CONST_BATCH_STATS
+            ]
         return params
 
 
