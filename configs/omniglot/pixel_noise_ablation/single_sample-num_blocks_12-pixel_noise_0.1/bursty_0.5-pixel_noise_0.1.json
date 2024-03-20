@@ -1,14 +1,14 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-all_splits-pixel_noise_0.1",
-        "experiment_name": "bursty_1.0",
+        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-pixel_noise_0.1",
+        "experiment_name": "bursty_0.5-num_blocks_12",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
     "model_config": {
         "architecture": "icl_gpt",
         "num_contexts": 8,
-        "num_blocks": 8,
+        "num_blocks": 12,
         "num_heads": 8,
         "embed_dim": 64,
         "positional_encoding": {
@@ -35,8 +35,7 @@
                 "layers": []
             }
         },
-        "query_pred_only": true,
-        "input_output_same_encoding": true
+        "query_pred_only": true
     },
     "optimizer_config": {
         "optimizer": "adam",
@@ -56,13 +55,12 @@
             "dataset_name": "omniglot",
             "dataset_kwargs": {
                 "save_path": "/home/bryanpu1/projects/icl/data",
-                "task_name": "multitask_omniglot_bursty_all_split",
+                "task_name": "multitask_omniglot_bursty",
                 "task_config": {
                     "num_sequences": 5000000,
                     "sequence_length": 9,
-                    "num_holdout": 10,
                     "random_label": false,
-                    "p_bursty": 1.0,
+                    "p_bursty": 0.5,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
                     "augmentation": true,
                     "noise_scale": 0.1,
@@ -79,8 +77,8 @@
             "num_workers": 4
         },
         "seeds": {
-            "model_seed": 44,
-            "data_seed": 44
+            "model_seed": 42,
+            "data_seed": 42
         },
         "learner": "mle",
         "losses": ["categorical", "l2"],
