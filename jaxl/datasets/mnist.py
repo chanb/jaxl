@@ -497,7 +497,7 @@ class MultitaskMNISTBursty(Dataset):
         unique_classes: bool = False,
         save_dir: str = None,
     ):
-        dataset_name = "omniglot_bursty-p_bursty_{}-train_{}-num_sequences_{}-sequence_length_{}-random_label_{}-seed_{}.pkl".format(
+        dataset_name = "mnist_bursty-p_bursty_{}-train_{}-num_sequences_{}-sequence_length_{}-random_label_{}-seed_{}.pkl".format(
             p_bursty,
             dataset.train,
             num_sequences,

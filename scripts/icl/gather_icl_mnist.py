@@ -13,7 +13,7 @@ import copy
 import os
 
 from jaxl.constants import *
-from jaxl.datasets import get_dataset
+from jaxl.datasets import get_dataset, FixedLengthContextDataset
 from jaxl.models import load_config, iterate_models
 from jaxl.utils import parse_dict, get_device
 
@@ -24,7 +24,8 @@ def get_eval_datasets(
     config_dict: Dict[str, Any],
     num_test_tasks: int,
     test_data_seed: int,
-    batch_size: int,
+    num_samples_per_task: int,
+    context_len: int,
     num_workers: int,
 ):
     # Same Pretraining
@@ -47,51 +48,92 @@ def get_eval_datasets(
     in_weight_config_dict["dataset_kwargs"]["task_config"]["unique_classes"] = True
     in_weight_config = parse_dict(in_weight_config_dict)
 
-    # Pretrain N-shot 2-way
-    pretrain_n_shot_2_way_config_dict = copy.deepcopy(
-        config_dict["learner_config"]["dataset_config"]
-    )
-    pretrain_n_shot_2_way_config_dict["dataset_kwargs"][
-        "task_name"
-    ] = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY
-    pretrain_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["p_bursty"] = 1.0
-    pretrain_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["k_way"] = 2
-    pretrain_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"][
-        "num_sequences"
-    ] = num_test_tasks
-    pretrain_n_shot_2_way_config = parse_dict(pretrain_n_shot_2_way_config_dict)
-
     # Complete OOD
     ood_config_dict = copy.deepcopy(config_dict["learner_config"]["dataset_config"])
     ood_config_dict["dataset_kwargs"]["train"] = False
     ood_config_dict["dataset_kwargs"]["task_config"]["num_sequences"] = num_test_tasks
     ood_config = parse_dict(ood_config_dict)
 
-    # OOD N-shot 2-way
-    test_n_shot_2_way_config_dict = copy.deepcopy(
+    # Variable-length context example
+    variable_length_context_config_dict = copy.deepcopy(
         config_dict["learner_config"]["dataset_config"]
     )
-    test_n_shot_2_way_config_dict["dataset_kwargs"]["train"] = False
-    test_n_shot_2_way_config_dict["dataset_kwargs"][
-        "task_name"
-    ] = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY
-    test_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["p_bursty"] = 1.0
-    test_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["k_way"] = 2
-    test_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"][
+    variable_length_context_config_dict["dataset_kwargs"]["train"] = False
+    variable_length_context_config_dict["dataset_kwargs"]["task_config"][
         "num_sequences"
     ] = num_test_tasks
-    test_n_shot_2_way_config = parse_dict(test_n_shot_2_way_config_dict)
+
+    variable_length_context_config_dict["dataset_wrapper"]["type"] = "ContextDataset"
+    variable_length_context_config_dict["dataset_wrapper"]["kwargs"][
+        "include_query_class"
+    ] = True
+    variable_length_context_config = parse_dict(variable_length_context_config_dict)
+
+    # Hierarchy
+    hierarchy_config_dict = copy.deepcopy(
+        config_dict["learner_config"]["dataset_config"]
+    )
+    hierarchy_config_dict["dataset_kwargs"]["train"] = False
+    hierarchy_config_dict["dataset_kwargs"]["remap"] = True
+    hierarchy_config_dict["dataset_kwargs"]["task_config"][
+        "num_sequences"
+    ] = num_test_tasks
+    hierarchy_config = parse_dict(hierarchy_config_dict)
+
+    # Enforce no same base class image in context
+    unique_classes_hierarchy_config_dict = copy.deepcopy(
+        config_dict["learner_config"]["dataset_config"]
+    )
+    unique_classes_hierarchy_config_dict["dataset_kwargs"]["train"] = False
+    unique_classes_hierarchy_config_dict["dataset_kwargs"]["remap"] = True
+    unique_classes_hierarchy_config_dict["dataset_kwargs"]["task_config"][
+        "num_sequences"
+    ] = num_test_tasks
+    unique_classes_hierarchy_config_dict["dataset_kwargs"]["task_config"][
+        "p_bursty"
+    ] = 0.0
+    unique_classes_hierarchy_config_dict["dataset_kwargs"]["task_config"][
+        "unique_classes"
+    ] = True
+    unique_classes_hierarchy_config = parse_dict(unique_classes_hierarchy_config_dict)
+
+    # Hierarchy variable length
+    variable_length_hierarchy_config_dict = copy.deepcopy(
+        config_dict["learner_config"]["dataset_config"]
+    )
+    variable_length_hierarchy_config_dict["dataset_kwargs"]["train"] = False
+    variable_length_hierarchy_config_dict["dataset_kwargs"]["remap"] = True
+    variable_length_hierarchy_config_dict["dataset_kwargs"]["task_config"][
+        "num_sequences"
+    ] = num_test_tasks
+
+    variable_length_hierarchy_config_dict["dataset_wrapper"]["type"] = "ContextDataset"
+    variable_length_hierarchy_config_dict["dataset_wrapper"]["kwargs"][
+        "include_query_class"
+    ] = False
+    variable_length_hierarchy_config = parse_dict(variable_length_hierarchy_config_dict)
 
     configs = {
         "same_pretraining": same_pretraining_config,
         "in_weight": in_weight_config,
-        "pretrain_n_shot_2_way": pretrain_n_shot_2_way_config,
         "ood": ood_config,
-        "test_n_shot_2_way": test_n_shot_2_way_config,
+        "variable_length_context": variable_length_context_config,
+        "hierarchy": hierarchy_config,
+        "unique_classes_hierarch": unique_classes_hierarchy_config,
+        "variable_length_hierarchy": variable_length_hierarchy_config,
     }
 
     return {
-        eval_name: get_data_loader(config, test_data_seed, batch_size, num_workers)
+        eval_name: get_data_loader(
+            config,
+            test_data_seed,
+            (
+                num_samples_per_task
+                if config.dataset_wrapper.type in ["FixedLengthContextDataset"]
+                else context_len
+            ),
+            num_workers,
+        )
         for eval_name, config in configs.items()
     }, configs
 
@@ -101,11 +143,11 @@ def main(args: SimpleNamespace):
     get_device(device)
 
     runs_dir = args.runs_dir
-    num_train_tasks = args.num_train_tasks
-    num_test_tasks = args.num_test_tasks
     test_data_seed = args.test_data_seed
     num_workers = args.num_workers
     num_visualize = args.num_visualize
+    num_train_tasks = args.num_train_tasks
+    num_test_tasks = args.num_test_tasks
 
     ablation_name = os.path.basename(runs_dir)
 
@@ -126,25 +168,24 @@ def main(args: SimpleNamespace):
 
         context_len = config.model_config.num_contexts
         num_samples_per_task = train_dataset._dataset.sequence_length - context_len
-        sequence_length = train_dataset._dataset.sequence_length
-        fixed_length = config.learner_config.dataset_config.dataset_wrapper.type in [
-            "FixedLengthContextDataset"
-        ]
-
-        print(num_samples_per_task, num_train_tasks, sequence_length, context_len)
 
         datasets, dataset_configs = get_eval_datasets(
             config_dict,
             num_test_tasks,
             test_data_seed,
             num_samples_per_task,
+            context_len,
             num_workers,
         )
         datasets["pretraining"] = (
             train_dataset,
             DataLoader(
                 train_dataset,
-                batch_size=num_samples_per_task,
+                batch_size=(
+                    num_samples_per_task
+                    if isinstance(train_dataset, FixedLengthContextDataset)
+                    else context_len
+                ),
                 shuffle=False,
                 drop_last=False,
                 num_workers=num_workers,
@@ -173,16 +214,19 @@ def main(args: SimpleNamespace):
             checkpoint_steps.append(checkpoint_step)
             for eval_name in datasets:
                 dataset, data_loader = datasets[eval_name]
+                fixed_length = isinstance(dataset, FixedLengthContextDataset)
+                factor = 1
+                if not fixed_length:
+                    factor = context_len
+                num_tasks = (
+                    num_train_tasks if eval_name == "pretraining" else num_test_tasks
+                ) * factor
                 acc, aux = evaluate(
                     model=model,
                     params=params,
                     dataset=dataset,
                     data_loader=data_loader,
-                    num_tasks=(
-                        num_train_tasks
-                        if eval_name == "pretraining"
-                        else num_test_tasks
-                    ),
+                    num_tasks=num_tasks,
                     max_label=2 if eval_name.endswith("2_way") else None,
                     context_len=context_len,
                     fixed_length=fixed_length,
@@ -221,7 +265,7 @@ if __name__ == "__main__":
         help="The experiment runs to load from",
     )
     parser.add_argument(
-        "--num_test_tasks", type=int, default=30, help="The number of evaluation tasks"
+        "--num_test_tasks", type=int, default=50, help="The number of evaluation tasks"
     )
     parser.add_argument(
         "--test_data_seed",
@@ -232,7 +276,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_train_tasks",
         type=int,
-        default=100,
+        default=50,
         help="The number of training tasks to evaluate on",
     )
     parser.add_argument(

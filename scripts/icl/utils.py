@@ -51,6 +51,7 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
     all_preds = []
     all_labels = []
     all_outputs = []
+    num_query_class_in_context = []
 
     for batch_i, samples in enumerate(data_loader):
         if batch_i >= num_tasks:
@@ -76,15 +77,21 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
             )
         else:
             preds = np.argmax(outputs[..., :max_label], axis=-1)
-        labels = np.argmax(one_hot_labels, axis=-1)
+        labels = np.argmax(one_hot_labels.numpy(), axis=-1)
         all_preds.append(preds)
         all_labels.append(labels)
         all_outputs.append(outputs)
+        num_query_class_in_context.append(
+            np.max(
+                np.argmax(context_outputs.numpy(), axis=-1) == labels[:, None], axis=-1
+            )
+        )
 
     all_outputs = np.concatenate(all_outputs)
     all_preds = np.concatenate(all_preds)
     all_labels = np.concatenate(all_labels)
-    return all_preds, all_labels, all_outputs
+    num_query_class_in_context = np.concatenate(num_query_class_in_context)
+    return all_preds, all_labels, all_outputs, num_query_class_in_context
 
 
 # Check model accuracy
@@ -99,6 +106,54 @@ def print_performance(
     result_str += "Accuracy: {}%\n".format(acc)
 
     return acc, result_str
+
+
+# Check model accuracy
+def print_performance_with_aux(
+    all_preds,
+    all_labels,
+    num_query_class_in_context,
+    output_dim,
+    context_len,
+    fixed_length=True,
+):
+    result_str = ""
+    conf_mat = confusion_matrix(all_labels, all_preds, labels=np.arange(output_dim))
+    auxes = {}
+    acc = np.trace(conf_mat) / np.sum(conf_mat) * 100
+    result_str += "Accuracy: {}% - ".format(acc)
+    result_str += "Query class in context ratio: {}\n".format(
+        np.mean(num_query_class_in_context)
+    )
+    auxes["all"] = {
+        "accuracy": acc,
+        "query_class_in_context_ratio": np.mean(num_query_class_in_context),
+    }
+
+    if not fixed_length:
+        all_labels = all_labels.reshape((-1, context_len))
+        all_preds = all_preds.reshape((-1, context_len))
+        num_query_class_in_context = num_query_class_in_context.reshape(
+            (-1, context_len)
+        )
+
+        for len_i in range(context_len):
+            conf_mat = confusion_matrix(
+                all_labels[:, len_i], all_preds[:, len_i], labels=np.arange(output_dim)
+            )
+            acc = np.trace(conf_mat) / np.sum(conf_mat) * 100
+            result_str += "Context Length: {} - Accuracy: {}% - ".format(len_i + 1, acc)
+            result_str += "Query class in context ratio: {}\n".format(
+                np.mean(num_query_class_in_context[:, len_i])
+            )
+            auxes[len_i + 1] = {
+                "accuracy": acc,
+                "query_class_in_context_ratio": np.mean(
+                    num_query_class_in_context[:, len_i]
+                ),
+            }
+
+    return auxes, result_str
 
 
 # Get dataloader
@@ -135,13 +190,18 @@ def evaluate(
     data_loader,
     num_tasks,
     max_label,
+    context_len,
+    fixed_length=True,
 ):
-    preds, labels, outputs = get_preds_labels(
+    preds, labels, outputs, num_query_class_in_context = get_preds_labels(
         model, params, data_loader, num_tasks, max_label
     )
-    acc, _ = print_performance(
+    auxes, _ = print_performance_with_aux(
         preds,
         labels,
+        num_query_class_in_context,
         dataset.output_dim[0],
+        context_len,
+        fixed_length,
     )
-    return acc
+    return auxes["all"]["accuracy"], auxes

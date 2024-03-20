@@ -22,7 +22,13 @@ sns.set_palette("colorblind")
 doc_width_pt = 1000.0
 
 results_dir = "./results"
-ablation_name = "single_sample-pixel_noise_0.1"
+# Omniglot
+# ablation_name = "single_sample-pixel_noise_0.1"
+
+# MNIST
+ablation_name = "include_query_class-random_label"
+
+interp_gap_size = 1000
 
 agg_result_path = os.path.join(results_dir, ablation_name, "agg_data/accuracies.pkl")
 plot_path = os.path.join(results_dir, ablation_name, "plots")
@@ -41,9 +47,10 @@ for exp_name, exp_runs in agg_result.items():
 
         if curr_checkpoint_steps > max_checkpoint_steps:
             max_checkpoint_steps = curr_checkpoint_steps
-        
+
         if curr_num_evals > max_num_evals:
             max_num_evals = curr_num_evals
+
 
 def process_exp_runs(exp_runs: dict, x_range: chex.Array):
     interpolated_results = dict()
@@ -53,15 +60,13 @@ def process_exp_runs(exp_runs: dict, x_range: chex.Array):
 
         for eval_name, accuracies in curr_accuracies.items():
             interpolated_results.setdefault(
-                eval_name,
-                np.zeros((len(exp_runs), len(x_range)))
+                eval_name, np.zeros((len(exp_runs), len(x_range)))
             )
             interpolated_results[eval_name][run_i] = np.interp(
-                x_range,
-                curr_checkpoint_steps,
-                accuracies
+                x_range, curr_checkpoint_steps, accuracies
             )
     return interpolated_results
+
 
 num_cols = 3
 num_rows = math.ceil(max_num_evals / num_cols)
@@ -74,7 +79,7 @@ fig, axes = plt.subplots(
 
 map_eval_to_ax = {}
 max_count = -1
-x_range = np.arange(0, max_checkpoint_steps + 1, 1000)
+x_range = np.arange(0, max_checkpoint_steps + 1, interp_gap_size)
 for exp_name, exp_runs in tqdm(agg_result.items()):
     processed_results = process_exp_runs(exp_runs, x_range)
 
@@ -82,7 +87,10 @@ for exp_name, exp_runs in tqdm(agg_result.items()):
         update_ax = False
         if eval_name not in map_eval_to_ax:
             max_count += 1
-            map_eval_to_ax[eval_name] = (axes[max_count // num_cols, max_count % num_cols], max_count)
+            map_eval_to_ax[eval_name] = (
+                axes[max_count // num_cols, max_count % num_cols],
+                max_count,
+            )
             update_ax = True
 
         y_means = np.nanmean(processed_result, axis=0)
@@ -91,10 +99,7 @@ for exp_name, exp_runs in tqdm(agg_result.items()):
         (ax, ax_i) = map_eval_to_ax[eval_name]
         ax.plot(x_range, y_means, label=exp_name if ax_i == 0 else "")
         ax.fill_between(
-            x_range,
-            (y_means - y_stderrs),
-            (y_means + y_stderrs),
-            alpha=0.1
+            x_range, (y_means - y_stderrs), (y_means + y_stderrs), alpha=0.1
         )
 
         if update_ax:
