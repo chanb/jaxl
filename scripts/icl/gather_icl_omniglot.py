@@ -27,6 +27,12 @@ def get_eval_datasets(
     batch_size: int,
     num_workers: int,
 ):
+    pretrain_dataset_config = config_dict["learner_config"]["dataset_config"]
+    if pretrain_dataset_config["dataset_kwargs"]["task_name"].endswith("all_split"):
+        n_shot_k_way_dataset_name = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY_ALL_SPLIT
+    else:
+        n_shot_k_way_dataset_name = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY
+    
     # Same Pretraining
     same_pretraining_config_dict = copy.deepcopy(
         config_dict["learner_config"]["dataset_config"]
@@ -53,7 +59,7 @@ def get_eval_datasets(
     )
     pretrain_n_shot_2_way_config_dict["dataset_kwargs"][
         "task_name"
-    ] = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY
+    ] = n_shot_k_way_dataset_name
     pretrain_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["p_bursty"] = 1.0
     pretrain_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["k_way"] = 2
     pretrain_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"][
@@ -74,7 +80,7 @@ def get_eval_datasets(
     test_n_shot_2_way_config_dict["dataset_kwargs"]["train"] = False
     test_n_shot_2_way_config_dict["dataset_kwargs"][
         "task_name"
-    ] = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY
+    ] = n_shot_k_way_dataset_name
     test_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["p_bursty"] = 1.0
     test_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["k_way"] = 2
     test_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"][
