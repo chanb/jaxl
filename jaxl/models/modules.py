@@ -316,11 +316,14 @@ class GPTBlock(nn.Module):
     # : The embedding dimensionality
     embed_dim: int
 
+    # : Widening dimension
+    widening_factor: int
+
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         mask = nn.make_causal_mask(x[..., 0])
         x = x + nn.SelfAttention(self.num_heads)(nn.LayerNorm()(x), mask)
-        normed_x = nn.gelu(nn.Dense(self.embed_dim)(nn.LayerNorm()(x)))
+        normed_x = nn.gelu(nn.Dense(self.embed_dim * self.widening_factor)(nn.LayerNorm()(x)))
         x = x + nn.Dense(self.embed_dim)(normed_x)
         return x
 
@@ -337,11 +340,14 @@ class GPTModule(nn.Module):
     # : The embedding dimensionality
     embed_dim: int
 
+    # : Widening dimension
+    widening_factor: int
+
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         # jax.debug.print("result={x}", x=x[0])
         for idx, _ in enumerate(range(self.num_blocks)):
-            x = GPTBlock(self.num_heads, self.embed_dim)(x, eval)
+            x = GPTBlock(self.num_heads, self.embed_dim, self.widening_factor)(x, eval)
             self.sow("gpt_latents", "gpt_{}".format(idx), x)
         x = nn.LayerNorm()(x)
         self.sow("gpt_latents", "gpt_{}".format(idx + 1), x)

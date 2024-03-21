@@ -30,6 +30,7 @@ class InContextSupervisedTransformer(Model):
         num_blocks: int,
         num_heads: int,
         embed_dim: int,
+        widening_factor: int,
         positional_encoding: SimpleNamespace,
         query_pred_only: bool = False,
         input_output_same_encoding: bool = True,
@@ -38,6 +39,7 @@ class InContextSupervisedTransformer(Model):
             num_blocks=num_blocks,
             num_heads=num_heads,
             embed_dim=embed_dim,
+            widening_factor=widening_factor,
         )
         self.input_tokenizer = nn.Dense(embed_dim)
         self.output_tokenizer = nn.Dense(embed_dim)
@@ -452,6 +454,7 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
         num_blocks: int,
         num_heads: int,
         embed_dim: int,
+        widening_factor: int,
         positional_encoding: SimpleNamespace,
         input_tokenizer_config: SimpleNamespace,
         output_tokenizer_config: SimpleNamespace,
@@ -462,6 +465,7 @@ class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
             num_blocks=num_blocks,
             num_heads=num_heads,
             embed_dim=embed_dim,
+            widening_factor=widening_factor,
         )
         self.input_tokenizer = get_tokenizer(input_tokenizer_config, embed_dim)
         self.output_tokenizer = get_tokenizer(output_tokenizer_config, embed_dim)

@@ -883,7 +883,7 @@ class MultitaskOmniglotNWayKShotAllSplit(Dataset):
         seed: int = 0,
         save_dir: str = None,
     ):
-        dataset_name = "omniglot_n_shot_k_way-k_way_{}-num_sequences_{}-sequence_length_{}-min_num_per_class_{}-seed_{}.pkl".format(
+        dataset_name = "omniglot_n_shot_k_way-all_split-k_way_{}-num_sequences_{}-sequence_length_{}-min_num_per_class_{}-seed_{}.pkl".format(
             k_way,
             num_sequences,
             sequence_length,
