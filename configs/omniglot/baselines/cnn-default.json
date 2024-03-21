@@ -7,9 +7,9 @@
     },
     "model_config": {
         "architecture": "cnn",
-        "features": [32, 32, 64, 64],
-        "kernel_sizes": [[3, 3], [3, 3], [3, 3], [3, 3]],
-        "layers": [512, 512],
+        "features": [32, 32, 32],
+        "kernel_sizes": [[3, 3], [3, 3], [3, 3]],
+        "layers": [512],
         "use_batch_norm": true
     },
     "optimizer_config": {
