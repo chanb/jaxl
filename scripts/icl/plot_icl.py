@@ -24,11 +24,11 @@ doc_width_pt = 1000.0
 results_dir = "./results"
 # Omniglot
 # ablation_name = "single_sample-pixel_noise_0.1"
-ablation_name = "single_sample-all_splits-pixel_noise_0.1"
+# ablation_name = "single_sample-all_splits-pixel_noise_0.1"
 # ablation_name = "all_omniglot-pixel_noise_0.1"
 
 # MNIST
-# ablation_name = "include_query_class-random_label"
+ablation_name = "include_query_class-random_label"
 
 interp_gap_size = 1000
 

@@ -70,6 +70,7 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
         if max_label is None:
             preds = np.argmax(outputs, axis=-1)
         elif max_label == CONST_AUTO:
+            print(data_loader.dataset._data["num_classes"])
             preds = np.argmax(
                 outputs[..., : data_loader.dataset._data["num_classes"]], axis=-1
             )
@@ -90,20 +91,6 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
     all_labels = np.concatenate(all_labels)
     num_query_class_in_context = np.concatenate(num_query_class_in_context)
     return all_preds, all_labels, all_outputs, num_query_class_in_context
-
-
-# Check model accuracy
-def print_performance(
-    all_preds,
-    all_labels,
-    output_dim,
-):
-    result_str = ""
-    conf_mat = confusion_matrix(all_labels, all_preds, labels=np.arange(output_dim))
-    acc = np.trace(conf_mat) / np.sum(conf_mat) * 100
-    result_str += "Accuracy: {}%\n".format(acc)
-
-    return acc, result_str
 
 
 # Check model accuracy

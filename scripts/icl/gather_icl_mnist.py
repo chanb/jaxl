@@ -95,6 +95,9 @@ def get_eval_datasets(
     unique_classes_hierarchy_config_dict["dataset_kwargs"]["task_config"][
         "unique_classes"
     ] = True
+    unique_classes_hierarchy_config_dict["dataset_wrapper"]["kwargs"][
+        "include_query_class"
+    ] = False
     unique_classes_hierarchy_config = parse_dict(unique_classes_hierarchy_config_dict)
 
     # Hierarchy variable length
