@@ -56,8 +56,10 @@
         "dataset_config": {
             "dataset_name": "omniglot",
             "dataset_kwargs": {
+                "save_path": "/home/bryanpu1/projects/icl/data",
                 "task_name": "multitask_omniglot_bursty_tf",
                 "task_config": {
+                    "load_path": "/home/bryanpu1/projects/icl/data/tf_omniglot-train.pkl",
                     "num_sequences": 5000000,
                     "sequence_length": 9,
                     "random_label": false,

@@ -189,7 +189,7 @@ def construct_omniglot(
         )
     elif task_name == CONST_MULTITASK_OMNIGLOT_BURSTY_TF:
         return MultitaskOmniglotBurstyTF(
-            load_path=task_config.load_path
+            load_path=task_config.load_path,
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
             p_bursty=task_config.p_bursty,
@@ -197,7 +197,6 @@ def construct_omniglot(
             remap=remap,
             random_label=getattr(task_config, "random_label", False),
             save_dir=task_config.save_dir,
-            min_num_per_class=getattr(task_config, "min_num_per_class", 20),
             unique_classes=getattr(task_config, "unique_classes", False),
         )
     else:
