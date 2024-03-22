@@ -9,15 +9,18 @@ from jaxl.constants import (
     CONST_MULTITASK_OMNIGLOT_BURSTY_ALL_SPLIT,
     CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY,
     CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY_ALL_SPLIT,
+    CONST_MULTITASK_OMNIGLOT_BURSTY_TF,
 )
 from jaxl.datasets.utils import (
     maybe_save_dataset,
     maybe_load_dataset,
 )
 
+import _pickle as pickle
 import chex
 import jax.random as jrandom
 import numpy as np
+import torch
 import torchvision.datasets as torch_datasets
 import torchvision.transforms as torch_transforms
 
@@ -183,6 +186,19 @@ def construct_omniglot(
             min_num_per_class=getattr(task_config, "min_num_per_class", 20),
             seed=seed,
             save_dir=task_config.save_dir,
+        )
+    elif task_name == CONST_MULTITASK_OMNIGLOT_BURSTY_TF:
+        return MultitaskOmniglotBurstyTF(
+            load_path=task_config.load_path
+            num_sequences=task_config.num_sequences,
+            sequence_length=task_config.sequence_length,
+            p_bursty=task_config.p_bursty,
+            seed=seed,
+            remap=remap,
+            random_label=getattr(task_config, "random_label", False),
+            save_dir=task_config.save_dir,
+            min_num_per_class=getattr(task_config, "min_num_per_class", 20),
+            unique_classes=getattr(task_config, "unique_classes", False),
         )
     else:
         raise ValueError(f"{task_name} is invalid (one of {VALID_OMNIGLOT_TASKS})")
@@ -1044,3 +1060,152 @@ class MultitaskOmniglotNWayKShotAllSplit(Dataset):
         outputs = np.eye(self._data["max_num_classes"])[labels]
 
         return (inputs, outputs)
+
+
+class MultitaskOmniglotBurstyTF(Dataset):
+    def __init__(
+        self,
+        load_path: str,
+        num_sequences: int,
+        sequence_length: int,
+        seed: int = 0,
+        p_bursty: float = 1,
+        unique_classes: bool = False,
+        remap: bool = False,
+        random_label: bool = False,
+        save_dir: str = None,
+    ):
+        dataset_name = "tf_omniglot_bursty-p_bursty_{}-background_{}-num_sequences_{}-sequence_length_{}-random_label_{}-seed_{}.pkl".format(
+            p_bursty,
+            True,
+            num_sequences,
+            sequence_length,
+            random_label,
+            seed,
+        )
+        loaded, data = maybe_load_dataset(save_dir, dataset_name)
+
+        self._dataset = pickle.load(open(load_path, "rb"))["data"] # key: class, value: single image
+        if not loaded:
+            max_num_classes = 964
+            num_classes = 964
+            context_len = sequence_length - 1
+
+            is_bursty = self._generate_data(
+                num_sequences=num_sequences,
+                p_bursty=p_bursty,
+                seed=seed,
+            )
+
+            data = {
+                "num_sequences": num_sequences,
+                "sequence_length": sequence_length,
+                "context_len": context_len,
+                "random_label": random_label,
+                "background": True,
+                "input_shape": [*self._dataset[0].shape],
+                "num_classes": num_classes,
+                "max_num_classes": max_num_classes,
+                "seed": seed,
+                "p_bursty": p_bursty,
+                "is_bursty": is_bursty,
+            }
+            maybe_save_dataset(
+                data,
+                save_dir,
+                dataset_name,
+            )
+        self._data = data
+        self._remap = remap
+        self._unique_classes = unique_classes
+        self._min_num_per_class = 1
+        self._label_to_idx = np.arange(data["num_classes"] * 1).reshape(
+            (data["num_classes"], 1)
+        )
+
+    def _generate_data(
+        self,
+        num_sequences: int,
+        p_bursty: float,
+        seed: int,
+    ) -> Tuple[chex.Array, chex.Array, chex.Array]:
+        print("Generating Data")
+        sample_key, _ = jrandom.split(jrandom.PRNGKey(seed))
+        sample_rng = np.random.RandomState(sample_key)
+
+        is_bursty = sample_rng.rand(num_sequences) < p_bursty
+
+        return is_bursty
+
+    @property
+    def input_dim(self) -> chex.Array:
+        return self._data["input_shape"]
+
+    @property
+    def output_dim(self) -> chex.Array:
+        return (self._data["max_num_classes"],)
+
+    @property
+    def sequence_length(self) -> int:
+        return self._data["sequence_length"]
+
+    def __len__(self):
+        return self._data["num_sequences"]
+
+    def __getitem__(self, idx):
+        is_bursty = self._data["is_bursty"][idx]
+        sample_rng = np.random.RandomState(idx)
+
+        label = sample_rng.choice(self._data["num_classes"])
+        query = self._dataset[label]
+
+        if is_bursty:
+            label_idxes = []
+            min_tokens = 6
+            if self._data["sequence_length"] > min_tokens:
+                label_idxes = sample_rng.choice(
+                    self._data["num_classes"],
+                    size=(self._data["context_len"] - min_tokens),
+                )
+            repeated_distractor_label = sample_rng.choice(self._data["num_classes"])
+            label_idxes = sample_rng.permutation(
+                np.concatenate(
+                    [
+                        [label] * 3,
+                        [repeated_distractor_label] * 3,
+                        label_idxes,
+                    ]
+                )[: self._data["context_len"]]
+            )
+        else:
+            if self._unique_classes:
+                done = False
+                while not done:
+                    label_idxes = sample_rng.choice(
+                        self._data["num_classes"],
+                        size=(self._data["context_len"]),
+                        replace=False,
+                    )
+                    done = label not in label_idxes
+            else:
+                label_idxes = sample_rng.choice(
+                    self._data["num_classes"], size=(self._data["context_len"])
+                )
+
+        inputs = list(map(lambda ii: self._dataset[ii], label_idxes))
+        inputs = np.concatenate(
+            (*[context_input[None] for context_input in inputs], query[None])
+        )
+        labels = np.concatenate([label_idxes, [label]])
+
+        if self._data["random_label"]:
+            label_map = sample_rng.permutation(
+                self._data["num_classes"],
+            )
+            labels = label_map[labels]
+
+        if self._remap:
+            labels = labels % 2
+        outputs = np.eye(self._data["max_num_classes"])[labels]
+
+        return (torch.tensor(inputs), torch.tensor(outputs))
