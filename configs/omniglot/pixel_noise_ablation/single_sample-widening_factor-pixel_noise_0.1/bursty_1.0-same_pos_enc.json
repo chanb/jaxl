@@ -1,14 +1,14 @@
 {
     "logging_config": {
         "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-widening_factor-pixel_noise_0.1",
-        "experiment_name": "bursty_0.0",
+        "experiment_name": "bursty_1.0-same_pos_enc",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
     "model_config": {
         "architecture": "icl_gpt",
         "num_contexts": 8,
-        "num_blocks": 8,
+        "num_blocks": 12,
         "num_heads": 8,
         "embed_dim": 64,
         "widening_factor": 4,
@@ -36,7 +36,8 @@
                 "layers": []
             }
         },
-        "query_pred_only": true
+        "query_pred_only": true,
+        "input_output_same_encoding": true
     },
     "optimizer_config": {
         "optimizer": "adam",
@@ -61,7 +62,7 @@
                     "num_sequences": 5000000,
                     "sequence_length": 9,
                     "random_label": false,
-                    "p_bursty": 0.0,
+                    "p_bursty": 1.0,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
                     "augmentation": true,
                     "noise_scale": 0.1,
