@@ -198,6 +198,7 @@ def construct_omniglot(
             random_label=getattr(task_config, "random_label", False),
             save_dir=task_config.save_dir,
             unique_classes=getattr(task_config, "unique_classes", False),
+            noise_scale=getattr(task_config, "noise_scale", None),
         )
     else:
         raise ValueError(f"{task_name} is invalid (one of {VALID_OMNIGLOT_TASKS})")
@@ -1069,6 +1070,7 @@ class MultitaskOmniglotBurstyTF(Dataset):
         sequence_length: int,
         seed: int = 0,
         p_bursty: float = 1,
+        noise_scale: float = None,
         unique_classes: bool = False,
         remap: bool = False,
         random_label: bool = False,
@@ -1084,7 +1086,9 @@ class MultitaskOmniglotBurstyTF(Dataset):
         )
         loaded, data = maybe_load_dataset(save_dir, dataset_name)
 
-        self._dataset = pickle.load(open(load_path, "rb"))["data"] # key: class, value: single image
+        self._dataset = pickle.load(open(load_path, "rb"))[
+            "data"
+        ]  # key: class, value: single image
         if not loaded:
             max_num_classes = 964
             num_classes = 964
@@ -1121,6 +1125,7 @@ class MultitaskOmniglotBurstyTF(Dataset):
         self._label_to_idx = np.arange(data["num_classes"] * 1).reshape(
             (data["num_classes"], 1)
         )
+        self._noise_scale = noise_scale
 
     def _generate_data(
         self,
@@ -1195,6 +1200,10 @@ class MultitaskOmniglotBurstyTF(Dataset):
         inputs = np.concatenate(
             (*[context_input[None] for context_input in inputs], query[None])
         )
+
+        if self._noise_scale is not None:
+            inputs += np.random.normal(0, self._noise_scale, inputs.shape)
+
         labels = np.concatenate([label_idxes, [label]])
 
         if self._data["random_label"]:

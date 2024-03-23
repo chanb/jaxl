@@ -32,7 +32,7 @@ def get_eval_datasets(
         n_shot_k_way_dataset_name = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY_ALL_SPLIT
     else:
         n_shot_k_way_dataset_name = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY
-    
+
     # Same Pretraining
     same_pretraining_config_dict = copy.deepcopy(
         config_dict["learner_config"]["dataset_config"]

@@ -323,7 +323,9 @@ class GPTBlock(nn.Module):
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         mask = nn.make_causal_mask(x[..., 0])
         x = x + nn.SelfAttention(self.num_heads)(nn.LayerNorm()(x), mask)
-        normed_x = nn.gelu(nn.Dense(self.embed_dim * self.widening_factor)(nn.LayerNorm()(x)))
+        normed_x = nn.gelu(
+            nn.Dense(self.embed_dim * self.widening_factor)(nn.LayerNorm()(x))
+        )
         x = x + nn.Dense(self.embed_dim)(normed_x)
         return x
 
