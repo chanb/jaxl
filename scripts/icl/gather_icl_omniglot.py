@@ -121,6 +121,8 @@ def main(args: SimpleNamespace):
     for curr_run_path in tqdm(os.listdir(runs_dir)):
         learner_path = os.path.join(runs_dir, curr_run_path)
         exp_name = "-".join(curr_run_path.split("-")[:-8])
+        # if not exp_name.endswith("-tf"):
+        #     continue
         all_results.setdefault(exp_name, {})
 
         config_dict, config = load_config(learner_path)

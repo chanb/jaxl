@@ -20,7 +20,7 @@ import _pickle as pickle
 import chex
 import jax.random as jrandom
 import numpy as np
-import torch
+import os
 import torchvision.datasets as torch_datasets
 import torchvision.transforms as torch_transforms
 
@@ -190,6 +190,8 @@ def construct_omniglot(
     elif task_name == CONST_MULTITASK_OMNIGLOT_BURSTY_TF:
         return MultitaskOmniglotBurstyTF(
             load_path=task_config.load_path,
+            train=train,
+            num_holdout=task_config.num_holdout,
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
             p_bursty=task_config.p_bursty,
@@ -1066,16 +1068,20 @@ class MultitaskOmniglotBurstyTF(Dataset):
     def __init__(
         self,
         load_path: str,
+        train: bool,
+        num_holdout: int,
         num_sequences: int,
         sequence_length: int,
         seed: int = 0,
         p_bursty: float = 1,
+        min_num_per_class: int = 1,
         noise_scale: float = None,
         unique_classes: bool = False,
         remap: bool = False,
         random_label: bool = False,
         save_dir: str = None,
     ):
+        assert os.path.isfile(load_path), "{} does not exist".format(load_path)
         dataset_name = "tf_omniglot_bursty-p_bursty_{}-background_{}-num_sequences_{}-sequence_length_{}-random_label_{}-seed_{}.pkl".format(
             p_bursty,
             True,
@@ -1090,8 +1096,7 @@ class MultitaskOmniglotBurstyTF(Dataset):
             "data"
         ]  # key: class, value: single image
         if not loaded:
-            max_num_classes = 964
-            num_classes = 964
+            max_num_classes = 1623
             context_len = sequence_length - 1
 
             is_bursty = self._generate_data(
@@ -1107,7 +1112,6 @@ class MultitaskOmniglotBurstyTF(Dataset):
                 "random_label": random_label,
                 "background": True,
                 "input_shape": [*self._dataset[0].shape],
-                "num_classes": num_classes,
                 "max_num_classes": max_num_classes,
                 "seed": seed,
                 "p_bursty": p_bursty,
@@ -1121,11 +1125,23 @@ class MultitaskOmniglotBurstyTF(Dataset):
         self._data = data
         self._remap = remap
         self._unique_classes = unique_classes
-        self._min_num_per_class = 1
-        self._label_to_idx = np.arange(data["num_classes"] * 1).reshape(
-            (data["num_classes"], 1)
-        )
+        self._min_num_per_class = min_num_per_class
+        self._train_size = 964
+        self._test_size = 659
         self._noise_scale = noise_scale
+        self._train = train
+        if train:
+            self._num_classes = self._data["max_num_classes"] - num_holdout
+            self._classes = np.arange(self._num_classes)
+        else:
+            self._num_classes = num_holdout
+            self._classes = np.arange(
+                self._data["max_num_classes"] - num_holdout,
+                self._data["max_num_classes"],
+            )
+        self._label_to_idx = np.arange(
+            self._data["max_num_classes"] * min_num_per_class
+        ).reshape((self._data["max_num_classes"], min_num_per_class))
 
     def _generate_data(
         self,
@@ -1160,7 +1176,7 @@ class MultitaskOmniglotBurstyTF(Dataset):
         is_bursty = self._data["is_bursty"][idx]
         sample_rng = np.random.RandomState(idx)
 
-        label = sample_rng.choice(self._data["num_classes"])
+        label = sample_rng.choice(self._classes)
         query = self._dataset[label]
 
         if is_bursty:
@@ -1168,10 +1184,10 @@ class MultitaskOmniglotBurstyTF(Dataset):
             min_tokens = 6
             if self._data["sequence_length"] > min_tokens:
                 label_idxes = sample_rng.choice(
-                    self._data["num_classes"],
+                    self._classes,
                     size=(self._data["context_len"] - min_tokens),
                 )
-            repeated_distractor_label = sample_rng.choice(self._data["num_classes"])
+            repeated_distractor_label = sample_rng.choice(self._classes)
             label_idxes = sample_rng.permutation(
                 np.concatenate(
                     [
@@ -1186,14 +1202,14 @@ class MultitaskOmniglotBurstyTF(Dataset):
                 done = False
                 while not done:
                     label_idxes = sample_rng.choice(
-                        self._data["num_classes"],
+                        self._classes,
                         size=(self._data["context_len"]),
                         replace=False,
                     )
                     done = label not in label_idxes
             else:
                 label_idxes = sample_rng.choice(
-                    self._data["num_classes"], size=(self._data["context_len"])
+                    self._classes, size=(self._data["context_len"])
                 )
 
         inputs = list(map(lambda ii: self._dataset[ii], label_idxes))
@@ -1208,7 +1224,7 @@ class MultitaskOmniglotBurstyTF(Dataset):
 
         if self._data["random_label"]:
             label_map = sample_rng.permutation(
-                self._data["num_classes"],
+                self._num_classes,
             )
             labels = label_map[labels]
 
@@ -1216,4 +1232,4 @@ class MultitaskOmniglotBurstyTF(Dataset):
             labels = labels % 2
         outputs = np.eye(self._data["max_num_classes"])[labels]
 
-        return (torch.tensor(inputs), torch.tensor(outputs))
+        return (inputs, outputs)

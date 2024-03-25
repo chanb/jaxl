@@ -27,9 +27,16 @@ results_dir = "./results"
 # ablation_name = "single_sample-all_splits-pixel_noise_0.1"
 # ablation_name = "all_omniglot-pixel_noise_0.1"
 ablation_name = "single_sample-widening_factor-pixel_noise_0.1"
+# ablation_name = "single_sample-widening_factor-pixel_noise_0.0"
 
 # MNIST
 # ablation_name = "include_query_class-random_label"
+
+# FILTERS
+include_prefix = None
+include_suffix = None
+exclude_suffix = "-tf"
+exclude_prefix = None
 
 interp_gap_size = 1000
 
@@ -44,6 +51,14 @@ max_num_evals = 0
 max_checkpoint_steps = 0
 max_context_len = 0
 for exp_name, exp_runs in agg_result.items():
+    if include_prefix and not exp_name.startswith(include_prefix):
+        continue
+    if include_suffix and not exp_name.endswith(include_suffix):
+        continue
+    if exclude_prefix and exp_name.startswith(exclude_prefix):
+        continue
+    if exclude_suffix and exp_name.endswith(exclude_suffix):
+        continue
     for run_name, exp_run in exp_runs.items():
         curr_checkpoint_steps = np.max(exp_run["checkpoint_steps"])
         curr_num_evals = len(exp_run["accuracies"])
@@ -124,6 +139,15 @@ def plot_context_length_plot():
     max_count = -1
     x_range = np.arange(1, max_context_len + 1, 1)
     for exp_name, exp_runs in tqdm(agg_result.items()):
+        if include_prefix and not exp_name.startswith(include_prefix):
+            continue
+        if include_suffix and not exp_name.endswith(include_suffix):
+            continue
+        if exclude_prefix and exp_name.startswith(exclude_prefix):
+            continue
+        if exclude_suffix and exp_name.endswith(exclude_suffix):
+            continue
+
         processed_results, ratio_results = context_len_exp_runs(exp_runs, x_range)
 
         for eval_name, processed_result in processed_results.items():
@@ -187,6 +211,14 @@ def plot_main_plot():
     max_count = -1
     x_range = np.arange(0, max_checkpoint_steps + 1, interp_gap_size)
     for exp_name, exp_runs in tqdm(agg_result.items()):
+        if include_prefix and not exp_name.startswith(include_prefix):
+            continue
+        if include_suffix and not exp_name.endswith(include_suffix):
+            continue
+        if exclude_prefix and exp_name.startswith(exclude_prefix):
+            continue
+        if exclude_suffix and exp_name.endswith(exclude_suffix):
+            continue
         processed_results = process_exp_runs(exp_runs, x_range)
 
         for eval_name, processed_result in processed_results.items():
