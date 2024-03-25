@@ -40,6 +40,31 @@ class PositionalEncoding(nn.Module):
     def __call__(self, x: chex.Array, **kwargs):
         x = x + self.pe[:, : x.shape[1]]
         return x
+    
+
+# class PositionalEncoding(nn.Module):
+#     """
+#     Default positional encoding used in Transformers.
+#     Reference: https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/JAX/tutorial6/Transformers_and_MHAttention.html
+#     More correct implementation?
+#     """
+
+#     embed_dim: int
+#     max_len: int
+#     period: float = 10000
+
+#     def setup(self):
+#         pe = np.zeros((self.max_len, self.embed_dim))
+#         position = np.arange(0, self.max_len, dtype=np.float32)[:, None]
+#         div_term = np.exp(np.log(period) * (-np.arange(0, self.embed_dim, 2) / self.embed_dim))
+#         half_dim = self.embed_dim // 2
+#         pe[:, 0::2] = np.sin(position * div_term)
+#         pe[:, 1::2] = np.cos(position * div_term)
+#         self.pe = pe[None]
+
+#     def __call__(self, x: chex.Array, **kwargs):
+#         x = x + self.pe[:, : x.shape[1]]
+#         return x, self.pe[:, : x.shape[1]]
 
 
 def get_positional_encoding(encoding: SimpleNamespace) -> nn.Module:
