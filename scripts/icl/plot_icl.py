@@ -26,8 +26,8 @@ results_dir = "./results"
 # ablation_name = "single_sample-pixel_noise_0.1"
 # ablation_name = "single_sample-all_splits-pixel_noise_0.1"
 # ablation_name = "all_omniglot-pixel_noise_0.1"
-ablation_name = "single_sample-widening_factor-pixel_noise_0.1"
-# ablation_name = "single_sample-widening_factor-pixel_noise_0.0"
+# ablation_name = "single_sample-widening_factor-pixel_noise_0.1"
+ablation_name = "single_sample-widening_factor-pixel_noise_0.0"
 
 # MNIST
 # ablation_name = "include_query_class-random_label"
@@ -35,8 +35,17 @@ ablation_name = "single_sample-widening_factor-pixel_noise_0.1"
 # FILTERS
 include_prefix = None
 include_suffix = None
-exclude_suffix = "-tf"
 exclude_prefix = None
+exclude_suffix = None
+include_evals = ["in_weight", "test_n_shot_2_way", "pretraining", "same_pretraining"]
+map_eval_to_title = {
+    "in_weight": "In-weight",
+    "test_n_shot_2_way": "In-context",
+    "pretraining": "Pretraining",
+    "same_pretraining": "Pretraining with Different Seed",
+}
+
+num_cols = 2
 
 interp_gap_size = 1000
 
@@ -61,7 +70,9 @@ for exp_name, exp_runs in agg_result.items():
         continue
     for run_name, exp_run in exp_runs.items():
         curr_checkpoint_steps = np.max(exp_run["checkpoint_steps"])
-        curr_num_evals = len(exp_run["accuracies"])
+        curr_num_evals = len(
+            [eval_name for eval_name in exp_run["accuracies"] if include_evals and eval_name in include_evals]
+        )
         curr_context_len = max(
             len(context_lens[-1]) - 1 for context_lens in exp_run["auxes"].values()
         )
@@ -126,7 +137,6 @@ def context_len_exp_runs(exp_runs: dict, x_range: chex.Array):
 
 def plot_context_length_plot():
     save_path = os.path.join(plot_path, "{}-context_len.pdf".format(ablation_name))
-    num_cols = 3
     num_rows = math.ceil(max_num_evals / num_cols)
     fig, axes = plt.subplots(
         num_rows,
@@ -137,6 +147,17 @@ def plot_context_length_plot():
 
     map_eval_to_ax = {}
     max_count = -1
+
+    if include_evals:
+        for eval_name in include_evals:
+            max_count += 1
+            map_eval_to_ax[eval_name] = (
+                axes[max_count // num_cols, max_count % num_cols],
+                max_count,
+            )
+            map_eval_to_ax[eval_name][0].set_title(map_eval_to_title.get(eval_name, eval_name))
+            map_eval_to_ax[eval_name][0].set_ylim(-1.0, 101.0)
+
     x_range = np.arange(1, max_context_len + 1, 1)
     for exp_name, exp_runs in tqdm(agg_result.items()):
         if include_prefix and not exp_name.startswith(include_prefix):
@@ -151,6 +172,8 @@ def plot_context_length_plot():
         processed_results, ratio_results = context_len_exp_runs(exp_runs, x_range)
 
         for eval_name, processed_result in processed_results.items():
+            if include_evals and eval_name not in include_evals:
+                continue
             update_ax = False
             if eval_name not in map_eval_to_ax:
                 max_count += 1
@@ -172,7 +195,7 @@ def plot_context_length_plot():
             )
 
             if update_ax:
-                ax.set_title(eval_name)
+                ax.set_title(map_eval_to_title.get(eval_name, eval_name))
                 ax.set_ylim(-1.0, 101.0)
 
     remaining_idx = num_cols * num_rows - (max_count + 1)
@@ -198,7 +221,6 @@ def plot_context_length_plot():
 
 def plot_main_plot():
     save_path = os.path.join(plot_path, "{}.pdf".format(ablation_name))
-    num_cols = 3
     num_rows = math.ceil(max_num_evals / num_cols)
     fig, axes = plt.subplots(
         num_rows,
@@ -209,6 +231,17 @@ def plot_main_plot():
 
     map_eval_to_ax = {}
     max_count = -1
+
+    if include_evals:
+        for eval_name in include_evals:
+            max_count += 1
+            map_eval_to_ax[eval_name] = (
+                axes[max_count // num_cols, max_count % num_cols],
+                max_count,
+            )
+            map_eval_to_ax[eval_name][0].set_title(map_eval_to_title.get(eval_name, eval_name))
+            map_eval_to_ax[eval_name][0].set_ylim(-1.0, 101.0)
+
     x_range = np.arange(0, max_checkpoint_steps + 1, interp_gap_size)
     for exp_name, exp_runs in tqdm(agg_result.items()):
         if include_prefix and not exp_name.startswith(include_prefix):
@@ -222,6 +255,8 @@ def plot_main_plot():
         processed_results = process_exp_runs(exp_runs, x_range)
 
         for eval_name, processed_result in processed_results.items():
+            if include_evals and eval_name not in include_evals:
+                continue
             update_ax = False
             if eval_name not in map_eval_to_ax:
                 max_count += 1
@@ -243,7 +278,7 @@ def plot_main_plot():
             )
 
             if update_ax:
-                ax.set_title(eval_name)
+                ax.set_title(map_eval_to_title.get(eval_name, eval_name))
                 ax.set_ylim(-1.0, 101.0)
 
     remaining_idx = num_cols * num_rows - (max_count + 1)
