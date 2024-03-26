@@ -17,6 +17,7 @@ class MLPModule(nn.Module):
     activation: Callable
     output_activation: Callable
     use_batch_norm: bool
+    use_bias: bool
 
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
@@ -27,12 +28,12 @@ class MLPModule(nn.Module):
                 x = nn.BatchNorm(
                     momentum=0.9,
                     epsilon=1e-5,
-                    use_bias=True,
+                    use_bias=self.use_bias,
                     use_scale=True,
                 )(x, eval)
-            self.sow("mlp_latents", "mlp_{}".format(idx), x)
-        x = self.output_activation(nn.Dense(self.layers[-1])(x))
-        self.sow("mlp_latents", "mlp_{}".format(idx + 1), x)
+            # self.sow("mlp_latents", "mlp_{}".format(idx), x)
+        x = self.output_activation(nn.Dense(self.layers[-1], use_bias=self.use_bias)(x))
+        # self.sow("mlp_latents", "mlp_{}".format(idx + 1), x)
         return x
 
 
@@ -62,7 +63,7 @@ class CNNModule(nn.Module):
                     use_bias=True,
                     use_scale=True,
                 )(x, eval)
-            self.sow("cnn_latents", "cnn_{}".format(idx), x)
+            # self.sow("cnn_latents", "cnn_{}".format(idx), x)
         return x
 
 
@@ -95,7 +96,7 @@ class ResNetV1Block(nn.Module):
         if self.use_projection:
             self.projection = nn.Conv(
                 self.features,
-                kernel_size=1,
+                kernel_size=(1, 1),
                 strides=self.stride,
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
@@ -109,12 +110,12 @@ class ResNetV1Block(nn.Module):
                 )
 
         conv_features = self.features
-        conv_0_kernel = 3
+        conv_0_kernel = (3, 3)
         conv_0_stride = self.stride
         conv_1_stride = 1
         if self.use_bottleneck:
             conv_features = self.features // 4
-            conv_0_kernel = 1
+            conv_0_kernel = (1, 1)
             conv_0_stride = 1
             conv_1_stride = self.stride
 
@@ -136,7 +137,7 @@ class ResNetV1Block(nn.Module):
 
         self.conv_1 = nn.Conv(
             conv_features,
-            kernel_size=3,
+            kernel_size=(3, 3),
             strides=conv_1_stride,
             use_bias=False,
             padding=CONST_SAME_PADDING,
@@ -161,7 +162,7 @@ class ResNetV1Block(nn.Module):
         if self.use_bottleneck:
             self.conv_2 = nn.Conv(
                 self.features,
-                kernel_size=1,
+                kernel_size=(1, 1),
                 strides=1,
                 use_bias=False,
                 padding=CONST_SAME_PADDING,
@@ -186,7 +187,7 @@ class ResNetV1Block(nn.Module):
             shortcut = self.projection(shortcut)
             if self.use_batch_norm:
                 shortcut = self.projection_batchnorm(shortcut, eval)
-            self.sow("resnet_v1", "resnet_v1_projection", shortcut)
+            # self.sow("resnet_v1", "resnet_v1_projection", shortcut)
 
         idx = -1
 
@@ -195,18 +196,18 @@ class ResNetV1Block(nn.Module):
                 out = conv_i(out)
                 out = batch_norm_i(out, eval)
                 out = jax.nn.relu(out)
-                self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
-                out = self.layers[-1][0](out)
-                out = self.layers[-1][1](out, eval)
+                # self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
+            out = self.layers[-1][0](out)
+            out = self.layers[-1][1](out, eval)
         else:
             for idx, conv_i in enumerate(self.layers[:-1]):
                 out = conv_i(out)
                 out = jax.nn.relu(out)
-                self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
-                out = self.layers[-1](out)
+                # self.sow("resnet_v1", "resnet_v1_{}".format(idx), out)
+            out = self.layers[-1](out)
 
         out = jax.nn.relu(out + shortcut)
-        self.sow("resnet_v1_latents", "resnet_v1_{}".format(idx + 1), out)
+        # self.sow("resnet_v1_latents", "resnet_v1_{}".format(idx + 1), out)
         return out
 
 
@@ -233,14 +234,14 @@ class ResNetV1BlockGroup(nn.Module):
         for block_i in range(self.num_blocks):
             x = ResNetV1Block(
                 self.features,
-                self.stride,
-                self.use_projection,
+                1 if block_i else self.stride,
+                block_i == 0 and self.use_projection,
                 self.use_bottleneck,
                 self.use_batch_norm,
             )(x, eval)
-            self.sow(
-                "resnet_v1_block_group_latents", "resnet_v1_{}".format(block_i + 1), x
-            )
+            # self.sow(
+            #     "resnet_v1_block_group_latents", "resnet_v1_{}".format(block_i + 1), x
+            # )
         return x
 
 
@@ -266,7 +267,7 @@ class ResNetV1Module(nn.Module):
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         x = nn.Conv(
             features=64,
-            kernel_size=7,
+            kernel_size=(7, 7),
             strides=2,
             use_bias=False,
             padding=CONST_SAME_PADDING,
@@ -286,7 +287,7 @@ class ResNetV1Module(nn.Module):
             strides=(2, 2),
             padding=CONST_SAME_PADDING,
         )
-        self.sow("resnet_v1_module", "resnet_v1_before_blocks", x)
+        # self.sow("resnet_v1_module", "resnet_v1_before_blocks", x)
 
         for (
             curr_blocks,
@@ -322,7 +323,9 @@ class GPTBlock(nn.Module):
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         mask = nn.make_causal_mask(x[..., 0])
-        x = x + nn.SelfAttention(self.num_heads)(nn.LayerNorm()(x), mask)
+        x = x + nn.MultiHeadDotProductAttention(
+            self.num_heads, qkv_features=self.embed_dim
+        )(nn.LayerNorm()(x), mask=mask)
         normed_x = nn.gelu(
             nn.Dense(self.embed_dim * self.widening_factor)(nn.LayerNorm()(x))
         )
@@ -350,9 +353,9 @@ class GPTModule(nn.Module):
         # jax.debug.print("result={x}", x=x[0])
         for idx, _ in enumerate(range(self.num_blocks)):
             x = GPTBlock(self.num_heads, self.embed_dim, self.widening_factor)(x, eval)
-            self.sow("gpt_latents", "gpt_{}".format(idx), x)
+            # self.sow("gpt_latents", "gpt_{}".format(idx), x)
         x = nn.LayerNorm()(x)
-        self.sow("gpt_latents", "gpt_{}".format(idx + 1), x)
+        # self.sow("gpt_latents", "gpt_{}".format(idx + 1), x)
         return x
 
 

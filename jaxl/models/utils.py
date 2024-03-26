@@ -195,6 +195,7 @@ def get_model(
             getattr(model_config, "activation", CONST_RELU),
             getattr(model_config, "output_activation", CONST_IDENTITY),
             getattr(model_config, "use_batch_norm", False),
+            getattr(model_config, "use_bias", True),
         )
     elif model_config.architecture == CONST_CNN:
         return CNN(

@@ -417,6 +417,7 @@ def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
                 tokenizer_kwargs, "output_activation", CONST_IDENTITY
             ),
             use_batch_norm=getattr(tokenizer_kwargs, "use_batch_norm", False),
+            use_bias=getattr(tokenizer_kwargs, "use_bias", False),
         )
     elif tokenizer_config.type == CONST_CNN:
         return CNN(
