@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-widening_factor-pixel_noise_0.0",
-        "experiment_name": "bursty_0.9-tf",
+        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-widening_factor-pixel_noise_0.0-tf",
+        "experiment_name": "bursty_0.9-learn_all-match_pos_env",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -48,8 +48,7 @@
                 "warmup_steps": 4000
             }
         },
-        "max_grad_norm": false,
-        "mask_names": ["output_tokenizer"]
+        "max_grad_norm": false
     },
     "learner_config": {
         "task": "in_context_learning",

@@ -27,7 +27,8 @@ results_dir = "./results"
 # ablation_name = "single_sample-all_splits-pixel_noise_0.1"
 # ablation_name = "all_omniglot-pixel_noise_0.1"
 # ablation_name = "single_sample-widening_factor-pixel_noise_0.1"
-ablation_name = "single_sample-widening_factor-pixel_noise_0.0"
+# ablation_name = "single_sample-widening_factor-pixel_noise_0.0"
+ablation_name = "single_sample-widening_factor-pixel_noise_0.0-tf"
 
 # MNIST
 # ablation_name = "include_query_class-random_label"
@@ -71,7 +72,11 @@ for exp_name, exp_runs in agg_result.items():
     for run_name, exp_run in exp_runs.items():
         curr_checkpoint_steps = np.max(exp_run["checkpoint_steps"])
         curr_num_evals = len(
-            [eval_name for eval_name in exp_run["accuracies"] if include_evals and eval_name in include_evals]
+            [
+                eval_name
+                for eval_name in exp_run["accuracies"]
+                if include_evals and eval_name in include_evals
+            ]
         )
         curr_context_len = max(
             len(context_lens[-1]) - 1 for context_lens in exp_run["auxes"].values()
@@ -155,7 +160,9 @@ def plot_context_length_plot():
                 axes[max_count // num_cols, max_count % num_cols],
                 max_count,
             )
-            map_eval_to_ax[eval_name][0].set_title(map_eval_to_title.get(eval_name, eval_name))
+            map_eval_to_ax[eval_name][0].set_title(
+                map_eval_to_title.get(eval_name, eval_name)
+            )
             map_eval_to_ax[eval_name][0].set_ylim(-1.0, 101.0)
 
     x_range = np.arange(1, max_context_len + 1, 1)
@@ -239,7 +246,9 @@ def plot_main_plot():
                 axes[max_count // num_cols, max_count % num_cols],
                 max_count,
             )
-            map_eval_to_ax[eval_name][0].set_title(map_eval_to_title.get(eval_name, eval_name))
+            map_eval_to_ax[eval_name][0].set_title(
+                map_eval_to_title.get(eval_name, eval_name)
+            )
             map_eval_to_ax[eval_name][0].set_ylim(-1.0, 101.0)
 
     x_range = np.arange(0, max_checkpoint_steps + 1, interp_gap_size)
