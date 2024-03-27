@@ -28,7 +28,9 @@ def get_eval_datasets(
     num_workers: int,
 ):
     pretrain_dataset_config = config_dict["learner_config"]["dataset_config"]
-    if pretrain_dataset_config["dataset_kwargs"]["task_name"].endswith("all_split"):
+    if pretrain_dataset_config["dataset_kwargs"]["task_name"].endswith(
+        "all_split"
+    ) or pretrain_dataset_config["dataset_kwargs"]["task_name"].endswith("tf"):
         n_shot_k_way_dataset_name = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY_ALL_SPLIT
     else:
         n_shot_k_way_dataset_name = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY
