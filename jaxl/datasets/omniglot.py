@@ -452,7 +452,7 @@ class MultitaskOmniglotBursty(Dataset):
             query, _ = self._train_dataset[base_idx]
         else:
             query, _ = self._test_dataset[
-                self._label_to_idx[base_idx - self._train_size * 20]
+                base_idx - self._train_size * self._max_num_per_class
             ]
 
         if is_bursty:
@@ -652,7 +652,7 @@ class MultitaskOmniglotNShotKWay(Dataset):
             query, _ = self._train_dataset[base_idx]
         else:
             query, _ = self._test_dataset[
-                self._label_to_idx[base_idx - self._train_size * 20]
+                base_idx - self._train_size * self._max_num_per_class
             ]
 
         while True:
