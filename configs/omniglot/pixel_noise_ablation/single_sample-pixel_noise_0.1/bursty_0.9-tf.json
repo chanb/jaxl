@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-widening_factor-pixel_noise_0.1-tf",
-        "experiment_name": "bursty_0.9-match_code",
+        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-pixel_noise_0.1-tf",
+        "experiment_name": "bursty_0.9",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
