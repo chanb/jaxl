@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-widening_factor-pixel_noise_0.1",
-        "experiment_name": "bursty_0.5-tf",
+        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-widening_factor-pixel_noise_0.1-tf",
+        "experiment_name": "bursty_0.5-learn_all-match_pos_env",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -48,8 +48,7 @@
                 "warmup_steps": 4000
             }
         },
-        "max_grad_norm": false,
-        "mask_names": ["output_tokenizer"]
+        "max_grad_norm": false
     },
     "learner_config": {
         "task": "in_context_learning",
@@ -59,7 +58,8 @@
                 "save_path": "/home/bryanpu1/projects/icl/data",
                 "task_name": "multitask_omniglot_bursty_tf",
                 "task_config": {
-                    "load_path": "/home/bryanpu1/projects/icl/data/tf_omniglot-train.pkl",
+                    "load_path": "/home/bryanpu1/projects/icl/data/tf_omniglot-single_example-all.pkl",
+                    "num_holdout": 10,
                     "num_sequences": 5000000,
                     "sequence_length": 9,
                     "random_label": false,

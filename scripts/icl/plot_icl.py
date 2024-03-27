@@ -28,7 +28,8 @@ results_dir = "./results"
 # ablation_name = "all_omniglot-pixel_noise_0.1"
 # ablation_name = "single_sample-widening_factor-pixel_noise_0.1"
 # ablation_name = "single_sample-widening_factor-pixel_noise_0.0"
-ablation_name = "single_sample-widening_factor-pixel_noise_0.0-tf"
+# ablation_name = "single_sample-widening_factor-pixel_noise_0.0-tf"
+ablation_name = "single_sample-widening_factor-pixel_noise_0.1-tf"
 
 # MNIST
 # ablation_name = "include_query_class-random_label"
