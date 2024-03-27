@@ -1,11 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-pixel_noise_0.1",
-<<<<<<<< HEAD:configs/omniglot/pixel_noise_ablation/single_sample-num_blocks_12-pixel_noise_0.1/bursty_0.0-pixel_noise_0.1.json
         "experiment_name": "bursty_0.0-num_blocks_12",
-========
-        "experiment_name": "bursty_0.5",
->>>>>>>> main:configs/omniglot/pixel_noise_ablation/single_sample-pixel_noise_0.1/bursty_0.5-pixel_noise_0.1.json
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -64,11 +60,7 @@
                     "num_sequences": 5000000,
                     "sequence_length": 9,
                     "random_label": false,
-<<<<<<<< HEAD:configs/omniglot/pixel_noise_ablation/single_sample-num_blocks_12-pixel_noise_0.1/bursty_0.0-pixel_noise_0.1.json
                     "p_bursty": 0.0,
-========
-                    "p_bursty": 0.5,
->>>>>>>> main:configs/omniglot/pixel_noise_ablation/single_sample-pixel_noise_0.1/bursty_0.5-pixel_noise_0.1.json
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
                     "augmentation": true,
                     "noise_scale": 0.1,
