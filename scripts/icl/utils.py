@@ -15,8 +15,6 @@ from torch.utils.data import DataLoader
 def plot_examples(
     dataset, num_examples, save_path, exp_name, eval_name, doc_width_pt=500
 ):
-    num_samples_per_task = dataset._dataset.sequence_length - 1
-
     nrows = num_examples
     ncols = dataset._dataset.sequence_length
 
@@ -27,16 +25,16 @@ def plot_examples(
         layout="constrained",
     )
 
-    for task_i in range(num_examples):
-        ci, co, q, l = dataset[task_i * num_samples_per_task + num_samples_per_task - 1]
+    for example_i in range(num_examples):
+        ci, co, q, l = dataset[example_i]
 
         for idx, (img, label) in enumerate(zip(ci, co)):
-            axes[task_i, idx].imshow(img)
-            axes[task_i, idx].set_title(np.argmax(label))
-            axes[task_i, idx].axis("off")
-        axes[task_i, -1].axis("off")
-        axes[task_i, -1].imshow(q[0])
-        axes[task_i, -1].set_title(np.argmax(l, axis=-1))
+            axes[example_i, idx].imshow(img)
+            axes[example_i, idx].set_title(np.argmax(label))
+            axes[example_i, idx].axis("off")
+        axes[example_i, -1].axis("off")
+        axes[example_i, -1].imshow(q[0])
+        axes[example_i, -1].set_title(np.argmax(l, axis=-1))
 
     fig.savefig(
         os.path.join(save_path, "plots", exp_name, "examples-{}.pdf".format(eval_name)),
@@ -72,6 +70,7 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
         if max_label is None:
             preds = np.argmax(outputs, axis=-1)
         elif max_label == CONST_AUTO:
+            print(data_loader.dataset._data["num_classes"])
             preds = np.argmax(
                 outputs[..., : data_loader.dataset._data["num_classes"]], axis=-1
             )
@@ -92,20 +91,6 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
     all_labels = np.concatenate(all_labels)
     num_query_class_in_context = np.concatenate(num_query_class_in_context)
     return all_preds, all_labels, all_outputs, num_query_class_in_context
-
-
-# Check model accuracy
-def print_performance(
-    all_preds,
-    all_labels,
-    output_dim,
-):
-    result_str = ""
-    conf_mat = confusion_matrix(all_labels, all_preds, labels=np.arange(output_dim))
-    acc = np.trace(conf_mat) / np.sum(conf_mat) * 100
-    result_str += "Accuracy: {}%\n".format(acc)
-
-    return acc, result_str
 
 
 # Check model accuracy

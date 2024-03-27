@@ -195,6 +195,7 @@ def get_model(
             getattr(model_config, "activation", CONST_RELU),
             getattr(model_config, "output_activation", CONST_IDENTITY),
             getattr(model_config, "use_batch_norm", False),
+            getattr(model_config, "use_bias", True),
         )
     elif model_config.architecture == CONST_CNN:
         return CNN(
@@ -203,6 +204,7 @@ def get_model(
             model_config.layers + list(np.prod(output_dim, keepdims=True)),
             getattr(model_config, "activation", CONST_RELU),
             getattr(model_config, "output_activation", CONST_IDENTITY),
+            getattr(model_config, "use_batch_norm", False),
         )
     elif model_config.architecture == CONST_ENCODER_PREDICTOR:
         encoder = get_model(input_dim, model_config.encoder_dim, model_config.encoder)
@@ -232,6 +234,7 @@ def get_model(
                 model_config.num_blocks,
                 model_config.num_heads,
                 model_config.embed_dim,
+                getattr(model_config, "widening_factor", 1),
                 model_config.positional_encoding,
                 model_config.input_tokenizer,
                 model_config.output_tokenizer,
@@ -244,6 +247,7 @@ def get_model(
             model_config.num_blocks,
             model_config.num_heads,
             model_config.embed_dim,
+            getattr(model_config, "widening_factor", 1),
             model_config.positional_encoding,
             getattr(model_config, "query_pred_only", False),
             getattr(model_config, "input_output_same_encoding", True),

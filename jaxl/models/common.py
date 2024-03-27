@@ -421,6 +421,7 @@ class MLP(Model):
         activation: str = CONST_RELU,
         output_activation: str = CONST_IDENTITY,
         use_batch_norm: bool = False,
+        use_bias: bool = True,
     ) -> None:
         self.use_batch_norm = use_batch_norm
         self.model = MLPModule(
@@ -428,6 +429,7 @@ class MLP(Model):
             get_activation(activation),
             get_activation(output_activation),
             use_batch_norm,
+            use_bias,
         )
         self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
 
@@ -557,7 +559,7 @@ class CNN(Model):
 
         """
         conv_params = self.conv.init(model_key, dummy_x, eval=True)
-        dummy_latent = self.conv.apply(
+        dummy_latent, _ = self.conv.apply(
             conv_params, dummy_x, eval=True, mutable=[CONST_BATCH_STATS]
         )
         mlp_params = self.mlp.init(
@@ -648,8 +650,10 @@ class CNN(Model):
     def update_batch_stats(
         self, params: Dict[str, Any], batch_stats: Dict[str, Any]
     ) -> Dict[str, Any]:
-        params[CONST_CNN][CONST_BATCH_STATS] = batch_stats[CONST_CNN][CONST_BATCH_STATS]
-        params[CONST_MLP][CONST_BATCH_STATS] = batch_stats[CONST_MLP][CONST_BATCH_STATS]
+        if self.use_batch_norm:
+            params[CONST_CNN][CONST_BATCH_STATS] = batch_stats[CONST_CNN][
+                CONST_BATCH_STATS
+            ]
         return params
 
 
