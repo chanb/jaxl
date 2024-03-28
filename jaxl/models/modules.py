@@ -5,6 +5,7 @@ from typing import Callable, Sequence, Any, Dict
 import chex
 import jax
 import jax.numpy as jnp
+import math
 
 from jaxl.constants import CONST_SAME_PADDING
 
@@ -65,6 +66,46 @@ class CNNModule(nn.Module):
                 )(x, eval)
             # self.sow("cnn_latents", "cnn_{}".format(idx), x)
         return x
+
+
+class SelfAttentionModule(nn.Module):
+    """Self-Attention layer."""
+    num_heads: int
+    qkv_features: int = None
+    
+    @nn.compact
+    def __call__(self, x: chex.Array, eval: bool, mask=None, **kwargs) -> chex.Array:
+        in_dim = x.shape[-1]
+
+        if self.qkv_features is not None:
+            qkv_hiddens = self.qkv_features
+        else:
+            qkv_hiddens = in_dim
+
+        q = nn.Dense(qkv_hiddens)(x)
+        k = nn.Dense(qkv_hiddens)(x)
+        v = nn.Dense(qkv_hiddens)(x)
+
+        batch, q_time, _ = q.shape
+        _, kv_time, _ = k.shape
+        head_dim = qkv_hiddens // self.num_heads
+        q = jnp.reshape(q, [batch, q_time, self.num_heads, head_dim])
+        k = jnp.reshape(k, [batch, kv_time, self.num_heads, head_dim])
+        v = jnp.reshape(v, [batch, kv_time, self.num_heads, head_dim])
+
+        # attend
+        hiddens = self.num_heads * head_dim
+        scale = 1. / math.sqrt(head_dim)
+        attention = jnp.einsum('bthd,bThd->bhtT', q, k)
+        attention *= scale
+        if mask is not None:
+            attention = attention * mask - 1e10 * (1 - mask)
+        normalized = jax.nn.softmax(attention)
+        summed = jnp.einsum('bhtT,bThd->bthd', normalized, v)
+        out = jnp.reshape(summed, [batch, q_time, hiddens])
+
+        return nn.Dense(qkv_hiddens)(out)
+
 
 
 class ResNetV1Block(nn.Module):
@@ -323,8 +364,11 @@ class GPTBlock(nn.Module):
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         mask = nn.make_causal_mask(x[..., 0])
-        x = x + nn.MultiHeadDotProductAttention(
-            self.num_heads, qkv_features=self.embed_dim
+        # x = x + nn.MultiHeadDotProductAttention(
+        #     self.num_heads, qkv_features=self.embed_dim
+        # )(nn.LayerNorm()(x), mask=mask)
+        x = x + SelfAttentionModule(
+            self.num_heads, self.embed_dim
         )(nn.LayerNorm()(x), mask=mask)
         normed_x = nn.gelu(
             nn.Dense(self.embed_dim * self.widening_factor)(nn.LayerNorm()(x))
