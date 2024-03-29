@@ -498,7 +498,9 @@ class MultitaskOmniglotBursty(Dataset):
                     lambda ii: (
                         self._train_dataset[ii]
                         if ii < self._train_size * self._max_num_per_class
-                        else self._test_dataset[ii - self._train_size * self._max_num_per_class]
+                        else self._test_dataset[
+                            ii - self._train_size * self._max_num_per_class
+                        ]
                     ),
                     context_idxes,
                 )
@@ -684,7 +686,9 @@ class MultitaskOmniglotNShotKWay(Dataset):
                     lambda ii: (
                         self._train_dataset[ii]
                         if ii < self._train_size * self._max_num_per_class
-                        else self._test_dataset[ii - self._train_size * self._max_num_per_class]
+                        else self._test_dataset[
+                            ii - self._train_size * self._max_num_per_class
+                        ]
                     ),
                     context_idxes,
                 )

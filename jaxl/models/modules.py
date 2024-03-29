@@ -70,9 +70,10 @@ class CNNModule(nn.Module):
 
 class SelfAttentionModule(nn.Module):
     """Self-Attention layer."""
+
     num_heads: int
     qkv_features: int = None
-    
+
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, mask=None, **kwargs) -> chex.Array:
         in_dim = x.shape[-1]
@@ -95,17 +96,16 @@ class SelfAttentionModule(nn.Module):
 
         # attend
         hiddens = self.num_heads * head_dim
-        scale = 1. / math.sqrt(head_dim)
-        attention = jnp.einsum('bthd,bThd->bhtT', q, k)
+        scale = 1.0 / math.sqrt(head_dim)
+        attention = jnp.einsum("bthd,bThd->bhtT", q, k)
         attention *= scale
         if mask is not None:
             attention = attention * mask - 1e10 * (1 - mask)
         normalized = jax.nn.softmax(attention)
-        summed = jnp.einsum('bhtT,bThd->bthd', normalized, v)
+        summed = jnp.einsum("bhtT,bThd->bthd", normalized, v)
         out = jnp.reshape(summed, [batch, q_time, hiddens])
 
         return nn.Dense(qkv_hiddens)(out)
-
 
 
 class ResNetV1Block(nn.Module):
@@ -364,14 +364,13 @@ class GPTBlock(nn.Module):
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         mask = nn.make_causal_mask(x[..., 0])
-        # x = x + nn.MultiHeadDotProductAttention(
-        #     self.num_heads, qkv_features=self.embed_dim
-        # )(nn.LayerNorm()(x), mask=mask)
-        x = x + SelfAttentionModule(
-            self.num_heads, self.embed_dim
-        )(nn.LayerNorm()(x), eval, mask=mask)
+        x = x + SelfAttentionModule(self.num_heads, self.embed_dim)(
+            nn.LayerNorm(epsilon=1e-5, use_fast_variance=False)(x), eval, mask=mask
+        )
         normed_x = nn.gelu(
-            nn.Dense(self.embed_dim * self.widening_factor)(nn.LayerNorm()(x))
+            nn.Dense(self.embed_dim * self.widening_factor)(
+                nn.LayerNorm(epsilon=1e-5, use_fast_variance=False)(x)
+            )
         )
         x = x + nn.Dense(self.embed_dim)(normed_x)
         return x
@@ -394,11 +393,10 @@ class GPTModule(nn.Module):
 
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
-        # jax.debug.print("result={x}", x=x[0])
         for idx, _ in enumerate(range(self.num_blocks)):
             x = GPTBlock(self.num_heads, self.embed_dim, self.widening_factor)(x, eval)
             # self.sow("gpt_latents", "gpt_{}".format(idx), x)
-        x = nn.LayerNorm()(x)
+        x = nn.LayerNorm(epsilon=1e-5, use_fast_variance=False)(x)
         # self.sow("gpt_latents", "gpt_{}".format(idx + 1), x)
         return x
 
