@@ -369,7 +369,7 @@ class GPTBlock(nn.Module):
         # )(nn.LayerNorm()(x), mask=mask)
         x = x + SelfAttentionModule(
             self.num_heads, self.embed_dim
-        )(nn.LayerNorm()(x), mask=mask)
+        )(nn.LayerNorm()(x), eval, mask=mask)
         normed_x = nn.gelu(
             nn.Dense(self.embed_dim * self.widening_factor)(nn.LayerNorm()(x))
         )
