@@ -31,6 +31,7 @@ class MLPModule(nn.Module):
                     epsilon=1e-5,
                     use_bias=self.use_bias,
                     use_scale=True,
+                    use_fast_variance=False,
                 )(x, eval)
             # self.sow("mlp_latents", "mlp_{}".format(idx), x)
         x = self.output_activation(nn.Dense(self.layers[-1], use_bias=self.use_bias)(x))
@@ -63,6 +64,7 @@ class CNNModule(nn.Module):
                     epsilon=1e-5,
                     use_bias=True,
                     use_scale=True,
+                    use_fast_variance=False,
                 )(x, eval)
             # self.sow("cnn_latents", "cnn_{}".format(idx), x)
         return x
@@ -148,6 +150,7 @@ class ResNetV1Block(nn.Module):
                     epsilon=1e-5,
                     use_bias=True,
                     use_scale=True,
+                    use_fast_variance=False,
                 )
 
         conv_features = self.features
@@ -174,6 +177,7 @@ class ResNetV1Block(nn.Module):
                 epsilon=1e-5,
                 use_bias=True,
                 use_scale=True,
+                use_fast_variance=False,
             )
 
         self.conv_1 = nn.Conv(
@@ -190,6 +194,7 @@ class ResNetV1Block(nn.Module):
                 epsilon=1e-5,
                 use_bias=True,
                 use_scale=True,
+                use_fast_variance=False,
             )
 
         if self.use_batch_norm:
@@ -215,6 +220,7 @@ class ResNetV1Block(nn.Module):
                     use_bias=True,
                     use_scale=True,
                     scale_init=zeros,
+                    use_fast_variance=False,
                 )
                 layers.append((self.conv_2, self.batch_norm_2))
             else:
@@ -320,6 +326,7 @@ class ResNetV1Module(nn.Module):
                 epsilon=1e-5,
                 use_bias=True,
                 use_scale=True,
+                use_fast_variance=False,
             )(x, eval)
         x = jax.nn.relu(x)
         x = nn.max_pool(
