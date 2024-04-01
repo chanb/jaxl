@@ -21,7 +21,7 @@ def linear_warmup_sqrt_decay(
         linear_ratio = max_lr / warmup_steps
         decay_ratio = jnp.power(warmup_steps * 1.0, 0.5) * max_lr
         return jnp.min(
-            jnp.array([linear_ratio * count, decay_ratio * jnp.power(count, -0.5)])
+            jnp.array([linear_ratio * (count + 1), decay_ratio * jnp.power((count + 1), -0.5)])
         )
 
     return schedule
