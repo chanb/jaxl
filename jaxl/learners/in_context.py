@@ -165,18 +165,25 @@ class InContextLearner(OfflineLearner):
             tic = timeit.default_timer()
             auxes.append({})
             try:
-                context_inputs, context_outputs, queries, outputs = next(
+                data = next(
                     self._train_loader
                 )
             except StopIteration:
                 self._train_loader = iter(self._train_dataloader)
-                context_inputs, context_outputs, queries, outputs = next(
+                data = next(
                     self._train_loader
                 )
-            context_inputs = context_inputs.numpy()
-            context_outputs = context_outputs.numpy()
-            queries = queries.numpy()
-            outputs = outputs.numpy()
+
+            context_inputs = data["context_inputs"]
+            context_outputs = data["context_outputs"]
+            queries = data["queries"]
+            outputs = data["outputs"]
+
+            if hasattr(context_inputs, "numpy"):
+                context_inputs = context_inputs.numpy()
+                context_outputs = context_outputs.numpy()
+                queries = queries.numpy()
+                outputs = outputs.numpy()
             outputs = self.construct_outputs(context_outputs, outputs)
 
             self.model_dict, aux = self.train_step(

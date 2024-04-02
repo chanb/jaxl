@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-pixel_noise_0.1-proper_variance_bn-tf",
-        "experiment_name": "bursty_1.0",
+        "save_path": "./logs/icl-omniglot/pixel_noise_ablation-tf/single_sample-pixel_noise_0.1",
+        "experiment_name": "bursty_0.9",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -53,35 +53,24 @@
     "learner_config": {
         "task": "in_context_learning",
         "dataset_config": {
-            "dataset_name": "omniglot",
+            "dataset_name": "omniglot_tf",
             "dataset_kwargs": {
-                "save_path": "/home/bryanpu1/projects/icl/data",
-                "task_name": "multitask_omniglot_bursty_tf",
+                "task_name": "bursty",
                 "task_config": {
-                    "load_path": "/home/bryanpu1/projects/icl/data/tf_omniglot-single_example-all.pkl",
-                    "num_holdout": 10,
-                    "num_sequences": 5000000,
-                    "sequence_length": 9,
-                    "random_label": false,
-                    "p_bursty": 1.0,
-                    "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl-tf",
-                    "augmentation": false,
-                    "noise_scale": 0.1,
-                    "min_num_per_class": 1,
-                    "unique_classes": false
-                }
-            },
-            "dataset_wrapper": {
-                "type": "FixedLengthContextDataset",
-                "kwargs": {
-                    "context_len": 8
-                }
-            },
-            "num_workers": 4
+                    "exemplars": "single",
+                    "noise_scale": 0.1
+                },
+                "sequence_length": 9,
+                "p_bursty": 0.9,
+                "bursty_shots": 3,
+                "ways": 2,
+                "tf_type": "prepare_seqs_for_transformer",
+                "num_workers": -1
+            }
         },
         "seeds": {
             "model_seed": 44,
-            "data_seed": 44
+            "data_seed": 1337
         },
         "learner": "mle",
         "losses": ["categorical", "l2"],

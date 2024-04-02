@@ -1,15 +1,18 @@
-from scipy.special import comb
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
+from typing import Any
+from types import SimpleNamespace
 
 import chex
 import jax.random as jrandom
 import numpy as np
+import tensorflow as tf
+import tensorflow_datasets as tfds
 
 
 class DatasetWrapper(Dataset):
     """Default dataset wrapper."""
 
-    def __init__(self, dataset: Dataset):
+    def __init__(self, dataset: Any):
         self._dataset = dataset
 
     def __getattr__(self, attr):
@@ -17,6 +20,43 @@ class DatasetWrapper(Dataset):
 
     def __len__(self):
         return len(self._dataset)
+
+    def get_dataloader(
+        self,
+        config: SimpleNamespace,
+    ) -> DataLoader:
+        if isinstance(self._dataset, Dataset):
+            batch_size = config.batch_size
+            shuffle = getattr(config.dataset_config, "shuffle", True)
+            drop_last = True
+            num_workers = getattr(config.dataset_config, "num_workers", 0)
+
+            return DataLoader(
+                self,
+                batch_size=batch_size,
+                shuffle=shuffle,
+                drop_last=drop_last,
+                num_workers=num_workers,
+            )
+        else:
+            tf_type = config.dataset_config.dataset_kwargs.tf_type
+            if tf_type == "prepare_seqs_for_transformer":
+                from jaxl.datasets.tf_omniglot.utils import (
+                    prepare_seqs_for_transformer_jaxl,
+                )
+
+                shuffle_buffer_size = 100
+                ds_seqs = self._dataset.dataset
+                ds = ds_seqs.batch(config.batch_size)
+                ds = prepare_seqs_for_transformer_jaxl(ds, self._dataset.output_dim[0])
+                ds = (
+                    ds.repeat()
+                    .shuffle(buffer_size=shuffle_buffer_size)
+                    .prefetch(config.dataset_config.dataset_kwargs.num_workers)
+                )
+                return tfds.as_numpy(ds)
+            else:
+                raise NotImplementedError
 
 
 class StandardSupervisedDataset(DatasetWrapper):
@@ -99,7 +139,15 @@ class FixedLengthContextDataset(DatasetWrapper):
         query = inputs[[timestep_i + self._context_len]]
         output = outputs[timestep_i + self._context_len]
 
-        return context_inputs, context_outputs, query, output
+        ret_dict = {
+            "context_inputs": context_inputs,
+            "context_outputs": context_outputs,
+            "queries": query,
+            "outputs": output,
+        }
+
+        # return context_inputs, context_outputs, query, output
+        return ret_dict
 
 
 class PermutationFixedLengthContextDataset(DatasetWrapper):
