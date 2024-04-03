@@ -47,12 +47,11 @@ class DatasetWrapper(Dataset):
 
                 shuffle_buffer_size = 100
                 ds_seqs = self._dataset.dataset
-                ds = ds_seqs.batch(config.batch_size)
+                ds = ds_seqs.batch(config.batch_size).prefetch(config.dataset_config.dataset_kwargs.num_workers)
                 ds = prepare_seqs_for_transformer_jaxl(ds, self._dataset.output_dim[0])
                 ds = (
                     ds.repeat()
                     .shuffle(buffer_size=shuffle_buffer_size)
-                    .prefetch(config.dataset_config.dataset_kwargs.num_workers)
                 )
                 return tfds.as_numpy(ds)
             else:

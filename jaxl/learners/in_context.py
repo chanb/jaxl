@@ -165,14 +165,10 @@ class InContextLearner(OfflineLearner):
             tic = timeit.default_timer()
             auxes.append({})
             try:
-                data = next(
-                    self._train_loader
-                )
+                data = next(self._train_loader)
             except StopIteration:
                 self._train_loader = iter(self._train_dataloader)
-                data = next(
-                    self._train_loader
-                )
+                data = next(self._train_loader)
 
             context_inputs = data["context_inputs"]
             context_outputs = data["context_outputs"]

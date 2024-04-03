@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 # Plot dataset example
 def plot_examples(
-    dataset, num_examples, save_path, exp_name, eval_name, doc_width_pt=500
+    dataset, dataset_loader, num_examples, save_path, exp_name, eval_name, doc_width_pt=500
 ):
     nrows = num_examples
     ncols = dataset._dataset.sequence_length
@@ -25,8 +25,14 @@ def plot_examples(
         layout="constrained",
     )
 
+    samples = next(iter(dataset_loader))
+    cis = samples["context_inputs"]
+    cos = samples["context_outputs"]
+    qs = samples["queries"]
+    ls = samples["outputs"]
+
     for example_i in range(num_examples):
-        ci, co, q, l = dataset[example_i]
+        ci, co, q, l = cis[example_i], cos[example_i], qs[example_i], ls[example_i]
 
         for idx, (img, label) in enumerate(zip(ci, co)):
             axes[example_i, idx].imshow(img)
@@ -152,26 +158,20 @@ def print_performance_with_aux(
 
 # Get dataloader
 def get_data_loader(
-    dataset_config,
+    config,
     seed,
-    batch_size,
-    num_workers,
     visualize=False,
 ):
     dataset = get_dataset(
-        dataset_config,
+        config.learner_config.dataset_config,
         seed,
     )
 
     if visualize:
         plot_examples(dataset)
 
-    data_loader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        drop_last=False,
-        num_workers=num_workers,
+    data_loader = dataset.get_dataloader(
+        config.learner_config
     )
     return dataset, data_loader
 

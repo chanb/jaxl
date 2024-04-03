@@ -11,6 +11,7 @@ import _pickle as pickle
 import argparse
 import copy
 import os
+import timeit
 
 from jaxl.constants import *
 from jaxl.datasets import get_dataset
@@ -20,12 +21,10 @@ from jaxl.utils import parse_dict, get_device
 from utils import *
 
 
-def get_eval_datasets(
+def get_torch_datasets(
     config_dict: Dict[str, Any],
     num_test_tasks: int,
     test_data_seed: int,
-    batch_size: int,
-    num_workers: int,
 ):
     pretrain_dataset_config = config_dict["learner_config"]["dataset_config"]
     if pretrain_dataset_config["dataset_kwargs"]["task_name"].endswith("tf"):
@@ -35,55 +34,55 @@ def get_eval_datasets(
 
     # Same Pretraining
     same_pretraining_config_dict = copy.deepcopy(
-        config_dict["learner_config"]["dataset_config"]
+        config_dict
     )
-    same_pretraining_config_dict["dataset_kwargs"]["task_config"][
+    same_pretraining_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"][
         "num_sequences"
     ] = num_test_tasks
     same_pretraining_config = parse_dict(same_pretraining_config_dict)
 
     # In-weight
     in_weight_config_dict = copy.deepcopy(
-        config_dict["learner_config"]["dataset_config"]
+        config_dict
     )
-    in_weight_config_dict["dataset_kwargs"]["task_config"]["p_bursty"] = 0.0
-    in_weight_config_dict["dataset_kwargs"]["task_config"][
+    in_weight_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"]["p_bursty"] = 0.0
+    in_weight_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"][
         "num_sequences"
     ] = num_test_tasks
-    in_weight_config_dict["dataset_kwargs"]["task_config"]["unique_classes"] = True
+    in_weight_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"]["unique_classes"] = True
     in_weight_config = parse_dict(in_weight_config_dict)
 
     # Pretrain N-shot 2-way
     pretrain_n_shot_2_way_config_dict = copy.deepcopy(
-        config_dict["learner_config"]["dataset_config"]
+        config_dict
     )
-    pretrain_n_shot_2_way_config_dict["dataset_kwargs"][
+    pretrain_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"][
         "task_name"
     ] = n_shot_k_way_dataset_name
-    pretrain_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["p_bursty"] = 1.0
-    pretrain_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["k_way"] = 2
-    pretrain_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"][
+    pretrain_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"]["p_bursty"] = 1.0
+    pretrain_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"]["k_way"] = 2
+    pretrain_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"][
         "num_sequences"
     ] = num_test_tasks
     pretrain_n_shot_2_way_config = parse_dict(pretrain_n_shot_2_way_config_dict)
 
     # Complete OOD
-    ood_config_dict = copy.deepcopy(config_dict["learner_config"]["dataset_config"])
-    ood_config_dict["dataset_kwargs"]["train"] = False
-    ood_config_dict["dataset_kwargs"]["task_config"]["num_sequences"] = num_test_tasks
+    ood_config_dict = copy.deepcopy(config_dict)
+    ood_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["train"] = False
+    ood_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"]["num_sequences"] = num_test_tasks
     ood_config = parse_dict(ood_config_dict)
 
     # OOD N-shot 2-way
     test_n_shot_2_way_config_dict = copy.deepcopy(
-        config_dict["learner_config"]["dataset_config"]
+        config_dict
     )
-    test_n_shot_2_way_config_dict["dataset_kwargs"]["train"] = False
-    test_n_shot_2_way_config_dict["dataset_kwargs"][
+    test_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["train"] = False
+    test_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"][
         "task_name"
     ] = n_shot_k_way_dataset_name
-    test_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["p_bursty"] = 1.0
-    test_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"]["k_way"] = 2
-    test_n_shot_2_way_config_dict["dataset_kwargs"]["task_config"][
+    test_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"]["p_bursty"] = 1.0
+    test_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"]["k_way"] = 2
+    test_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_config"][
         "num_sequences"
     ] = num_test_tasks
     test_n_shot_2_way_config = parse_dict(test_n_shot_2_way_config_dict)
@@ -97,9 +96,58 @@ def get_eval_datasets(
     }
 
     return {
-        eval_name: get_data_loader(config, test_data_seed, batch_size, num_workers)
+        eval_name: get_data_loader(config, test_data_seed)
         for eval_name, config in configs.items()
     }, configs
+
+
+def get_tf_datasets(
+    config_dict: Dict[str, Any],
+    test_data_seed: int,
+):
+    # In-weight
+    in_weight_config_dict = copy.deepcopy(
+        config_dict
+    )
+    in_weight_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_name"] = "no_support"
+    in_weight_config = parse_dict(in_weight_config_dict)
+
+    # OOD N-shot 2-way
+    test_n_shot_2_way_config_dict = copy.deepcopy(
+        config_dict
+    )
+    test_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["task_name"] = "fewshot_holdout"
+    test_n_shot_2_way_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"]["fs_shots"] = 4
+    test_n_shot_2_way_config = parse_dict(test_n_shot_2_way_config_dict)
+
+    configs = {
+        "in_weight": in_weight_config,
+        "test_n_shot_2_way": test_n_shot_2_way_config,
+    }
+
+    return {
+        eval_name: get_data_loader(config, test_data_seed)
+        for eval_name, config in configs.items()
+    }, configs
+
+
+def get_eval_datasets(
+    config_dict: Dict[str, Any],
+    num_test_tasks: int,
+    test_data_seed: int,
+):
+
+    if config_dict["learner_config"]["dataset_config"]["dataset_name"] == "omniglot_tf":
+        return get_tf_datasets(
+            config_dict,
+            test_data_seed,
+        )
+    else:
+        return get_torch_datasets(
+            config_dict,
+            num_test_tasks,
+            test_data_seed,
+        )
 
 
 def main(args: SimpleNamespace):
@@ -135,9 +183,12 @@ def main(args: SimpleNamespace):
         context_len = config.model_config.num_contexts
         num_samples_per_task = train_dataset._dataset.sequence_length - context_len
         sequence_length = train_dataset._dataset.sequence_length
-        fixed_length = config.learner_config.dataset_config.dataset_wrapper.type in [
-            "FixedLengthContextDataset"
-        ]
+
+        fixed_length = True
+        if hasattr(config.learner_config.dataset_config, "dataset_wrapper"):
+            fixed_length = config.learner_config.dataset_config.dataset_wrapper.type in [
+                "FixedLengthContextDataset"
+            ]
 
         print(num_samples_per_task, num_train_tasks, sequence_length, context_len)
 
@@ -145,18 +196,10 @@ def main(args: SimpleNamespace):
             config_dict,
             num_test_tasks,
             test_data_seed,
-            num_samples_per_task,
-            num_workers,
         )
         datasets["pretraining"] = (
             train_dataset,
-            DataLoader(
-                train_dataset,
-                batch_size=num_samples_per_task,
-                shuffle=False,
-                drop_last=False,
-                num_workers=num_workers,
-            ),
+            train_dataset.get_dataloader(config.learner_config)
         )
         dataset_configs["pretraining"] = config.learner_config.dataset_config
 
@@ -166,6 +209,7 @@ def main(args: SimpleNamespace):
             for eval_name in datasets:
                 plot_examples(
                     datasets[eval_name][0],
+                    datasets[eval_name][1],
                     num_visualize,
                     save_path,
                     exp_name,
@@ -180,6 +224,8 @@ def main(args: SimpleNamespace):
         ):
             checkpoint_steps.append(checkpoint_step)
             for eval_name in datasets:
+                tic = timeit.default_timer()
+                print(curr_run_path, checkpoint_step, eval_name)
                 dataset, data_loader = datasets[eval_name]
                 acc, aux = evaluate(
                     model=model,
@@ -197,6 +243,9 @@ def main(args: SimpleNamespace):
                 )
                 accuracies[eval_name].append(acc)
                 auxes[eval_name].append(aux)
+                toc = timeit.default_timer()
+                print("Takes {}s".format(toc - tic))
+                
         all_results[exp_name][curr_run_path] = {
             "checkpoint_steps": checkpoint_steps,
             "accuracies": accuracies,

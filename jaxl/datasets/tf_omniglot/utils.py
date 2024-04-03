@@ -27,10 +27,11 @@ from jaxl.datasets.tf_omniglot.data_generators import (
 
 
 class TFDataset:
-    def __init__(self, dataset, num_classes, input_shape):
+    def __init__(self, dataset, num_classes, input_shape, sequence_length):
         self._dataset = dataset
         self._num_classes = num_classes
         self._input_shape = input_shape
+        self._sequence_length = sequence_length
 
     @property
     def dataset(self):
@@ -43,6 +44,10 @@ class TFDataset:
     @property
     def input_dim(self) -> chex.Array:
         return self._input_shape
+    
+    @property
+    def sequence_length(self) -> int:
+        return self._sequence_length
 
 
 def get_omniglot_seq_generator(
@@ -76,7 +81,33 @@ def get_omniglot_seq_generator(
             dataset_kwargs.bursty_shots,
             dataset_kwargs.ways,
             dataset_kwargs.p_bursty,
+            0.0,
+            0.0,
+            "zipfian",
+            "ordered",
+            "ordered",
+            False,
+            False
         )
+    elif task_name == "fewshot_holdout":
+        seq_generator = data_generator_factory.get_fewshot_seq
+        seq_config = (
+            "holdout",
+            dataset_kwargs.fs_shots,
+            dataset_kwargs.ways,
+            "unfixed",
+            False,
+            False,
+        )
+    elif task_name == "no_support":
+        seq_generator = data_generator_factory.get_no_support_seq
+        all_unique = False
+        seq_config = (
+            "zipfian",
+            dataset_kwargs.sequence_length,
+            all_unique,
+            "ordered",
+            False)
     else:
         raise NotImplementedError
 
@@ -100,6 +131,7 @@ def get_omniglot_seq_generator(
         dataset,
         1623,
         (105, 105, 1),
+        dataset_kwargs.sequence_length,
     )
 
 
