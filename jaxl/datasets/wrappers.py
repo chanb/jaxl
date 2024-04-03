@@ -261,7 +261,15 @@ class ContextDataset(DatasetWrapper):
         query = inputs[[-1]]
         output = outputs[-1]
 
-        return context_inputs, context_outputs, query, output
+        ret_dict = {
+            "context_inputs": context_inputs,
+            "context_outputs": context_outputs,
+            "queries": query,
+            "outputs": output,
+        }
+
+        # return context_inputs, context_outputs, query, output
+        return ret_dict
 
     # TODO: Generate test query for visualization on context length, then use that for ICL plots
 
