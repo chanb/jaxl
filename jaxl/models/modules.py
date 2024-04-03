@@ -1,6 +1,6 @@
 from flax import linen as nn
 from flax.linen.initializers import zeros
-from typing import Callable, Sequence, Any, Dict
+from typing import Callable, Sequence
 
 import chex
 import jax
