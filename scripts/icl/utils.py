@@ -51,18 +51,27 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
     all_outputs = []
     num_query_class_in_context = []
 
-    for batch_i, samples in enumerate(data_loader):
+    for batch_i, data in enumerate(data_loader):
         if batch_i >= num_tasks:
             break
 
-        (context_inputs, context_outputs, queries, one_hot_labels) = samples
+        context_inputs = data["context_inputs"]
+        context_outputs = data["context_outputs"]
+        queries = data["queries"]
+        one_hot_labels = data["outputs"]
+
+        if hasattr(context_inputs, "numpy"):
+            context_inputs = context_inputs.numpy()
+            context_outputs = context_outputs.numpy()
+            queries = queries.numpy()
+            one_hot_labels = one_hot_labels.numpy()
 
         outputs, _, _ = model.forward(
             params[CONST_MODEL_DICT][CONST_MODEL],
-            queries.numpy(),
+            queries,
             {
-                CONST_CONTEXT_INPUT: context_inputs.numpy(),
-                CONST_CONTEXT_OUTPUT: context_outputs.numpy(),
+                CONST_CONTEXT_INPUT: context_inputs,
+                CONST_CONTEXT_OUTPUT: context_outputs,
             },
             eval=True,
         )
@@ -76,13 +85,13 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
             )
         else:
             preds = np.argmax(outputs[..., :max_label], axis=-1)
-        labels = np.argmax(one_hot_labels.numpy(), axis=-1)
+        labels = np.argmax(one_hot_labels, axis=-1)
         all_preds.append(preds)
         all_labels.append(labels)
         all_outputs.append(outputs)
         num_query_class_in_context.append(
             np.max(
-                np.argmax(context_outputs.numpy(), axis=-1) == labels[:, None], axis=-1
+                np.argmax(context_outputs, axis=-1) == labels[:, None], axis=-1
             )
         )
 
