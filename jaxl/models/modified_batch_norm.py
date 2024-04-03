@@ -244,7 +244,7 @@ class DebiasedBatchNorm(nn.Module):
       'batch_stats', 'var', lambda s: jnp.ones(s, jnp.float32), feature_shape
     )
     ra_counter = self.variable(
-       'batch_stats', 'counter', lambda: jnp.ones([], jnp.int32)
+       'batch_stats', 'counter', lambda: jnp.ones([], jnp.float32)
     )
 
     if use_running_average:
