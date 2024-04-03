@@ -82,7 +82,7 @@ def get_omniglot_seq_generator(
             dataset_kwargs.ways,
             dataset_kwargs.p_bursty,
             0.0,
-            0.0,
+            1.0,
             "zipfian",
             "ordered",
             "ordered",
