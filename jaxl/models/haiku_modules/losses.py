@@ -20,29 +20,29 @@ import optax
 
 
 def reduce_fn(x, mode):
-  if mode == "none" or mode is None:
-    return jnp.asarray(x)
-  elif mode == "sum":
-    return jnp.asarray(x).sum()
-  elif mode == "mean":
-    return jnp.mean(jnp.asarray(x))
-  else:
-    raise ValueError("Unsupported reduction option.")
+    if mode == "none" or mode is None:
+        return jnp.asarray(x)
+    elif mode == "sum":
+        return jnp.asarray(x).sum()
+    elif mode == "mean":
+        return jnp.mean(jnp.asarray(x))
+    else:
+        raise ValueError("Unsupported reduction option.")
 
 
 def softmax_cross_entropy(logits, labels, reduction="sum"):
-  """Computes softmax cross entropy given logits and one-hot class labels.
+    """Computes softmax cross entropy given logits and one-hot class labels.
 
-  Args:
-    logits: Logit output values.
-    labels: Ground truth one-hot-encoded labels.
-    reduction: Type of reduction to apply to loss.
+    Args:
+      logits: Logit output values.
+      labels: Ground truth one-hot-encoded labels.
+      reduction: Type of reduction to apply to loss.
 
-  Returns:
-    Loss value. If `reduction` is `none`, this has the same shape as `labels`;
-    otherwise, it is scalar.
+    Returns:
+      Loss value. If `reduction` is `none`, this has the same shape as `labels`;
+      otherwise, it is scalar.
 
-  Raises:
-    ValueError: If the type of `reduction` is unsupported.
-  """
-  return reduce_fn(optax.softmax_cross_entropy(logits, labels), reduction)
+    Raises:
+      ValueError: If the type of `reduction` is unsupported.
+    """
+    return reduce_fn(optax.softmax_cross_entropy(logits, labels), reduction)

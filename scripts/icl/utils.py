@@ -1,8 +1,10 @@
 from jaxl.constants import *
 from jaxl.datasets import get_dataset
+from jaxl.models import Model
 from jaxl.plot_utils import set_size
 
 import _pickle as pickle
+import jax.random as jrandom
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -13,7 +15,13 @@ from torch.utils.data import DataLoader
 
 # Plot dataset example
 def plot_examples(
-    dataset, dataset_loader, num_examples, save_path, exp_name, eval_name, doc_width_pt=500
+    dataset,
+    dataset_loader,
+    num_examples,
+    save_path,
+    exp_name,
+    eval_name,
+    doc_width_pt=500,
 ):
     nrows = num_examples
     ncols = dataset._dataset.sequence_length
@@ -72,15 +80,32 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
             queries = queries.numpy()
             one_hot_labels = one_hot_labels.numpy()
 
-        outputs, _, _ = model.forward(
-            params[CONST_MODEL_DICT][CONST_MODEL],
-            queries,
-            {
-                CONST_CONTEXT_INPUT: context_inputs,
-                CONST_CONTEXT_OUTPUT: context_outputs,
-            },
-            eval=True,
-        )
+        if isinstance(model, Model):
+            outputs, _, _ = model.forward(
+                params[CONST_MODEL_DICT][CONST_MODEL],
+                queries,
+                {
+                    CONST_CONTEXT_INPUT: context_inputs,
+                    CONST_CONTEXT_OUTPUT: context_outputs,
+                },
+                eval=True,
+            )
+        else:
+            rng = jrandom.PRNGKey(1)
+            examples = np.concatenate((context_inputs, queries), axis=1)
+            labels = np.concatenate((context_outputs, outputs[:, None]), axis=1)
+            labels = np.argmax(labels, axis=-1)
+            logits, state = model.apply(
+                params,
+                state,
+                rng=rng,
+                examples=examples,
+                labels=labels,
+                mask=None,
+                is_training=False,
+            )
+            outputs = logits[:, -1]
+
         # return train_outputs, train_updates, outputs, updates
         if max_label is None:
             preds = np.argmax(outputs, axis=-1)
@@ -96,9 +121,7 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
         all_labels.append(labels)
         all_outputs.append(outputs)
         num_query_class_in_context.append(
-            np.max(
-                np.argmax(context_outputs, axis=-1) == labels[:, None], axis=-1
-            )
+            np.max(np.argmax(context_outputs, axis=-1) == labels[:, None], axis=-1)
         )
 
     all_outputs = np.concatenate(all_outputs)
@@ -170,9 +193,7 @@ def get_data_loader(
     if visualize:
         plot_examples(dataset)
 
-    data_loader = dataset.get_dataloader(
-        config.learner_config
-    )
+    data_loader = dataset.get_dataloader(config.learner_config)
     return dataset, data_loader
 
 

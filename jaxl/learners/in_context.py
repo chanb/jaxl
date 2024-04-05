@@ -309,9 +309,9 @@ class HaikuInContextLearner(InContextLearner):
         """
         embed_dim = 64
         num_classes = output_dim[0]
-        embedding_config=dict(
+        embedding_config = dict(
             emb_dim=embed_dim,
-            example_encoding='resnet',  # 'resnet'/'linear'/'embedding'
+            example_encoding="resnet",  # 'resnet'/'linear'/'embedding'
             flatten_superpixels=False,  # to flatten resnet outputs
             example_dropout_prob=0.0,
             concatenate_labels=False,
@@ -320,7 +320,7 @@ class HaikuInContextLearner(InContextLearner):
             num_classes=num_classes,
         )
 
-        transformer_config=dict(
+        transformer_config = dict(
             num_layers=12,
             num_heads=8,
             dropout_prob=0.0,
@@ -329,6 +329,7 @@ class HaikuInContextLearner(InContextLearner):
 
         from jaxl.models.haiku_modules.embedding import InputEmbedder
         from jaxl.models.haiku_modules.transformer import Transformer
+
         def forward_fn(examples, labels, mask, is_training):
             embedder = InputEmbedder(**embedding_config)
             model = Transformer(embedder, **transformer_config)
@@ -340,10 +341,10 @@ class HaikuInContextLearner(InContextLearner):
         dummy_input = self._generate_dummy_x(input_dim)
         dummy_output = self._generate_dummy_x((1,)).astype(np.int32)
 
-        params, state = self.forward.init(model_key, dummy_input, dummy_output, None, is_training=True)
-        self._optimizer, opt_state = get_optimizer(
-            self._optimizer_config, None, params
+        params, state = self.forward.init(
+            model_key, dummy_input, dummy_output, None, is_training=True
         )
+        self._optimizer, opt_state = get_optimizer(self._optimizer_config, None, params)
         self._model_dict = {
             CONST_MODEL: params,
             "state": state,
@@ -355,6 +356,7 @@ class HaikuInContextLearner(InContextLearner):
         Construct the losses.
         """
         rng = jrandom.PRNGKey(1)
+
         def make_loss(params, state, examples, labels, outputs):
             logits, state = self.forward.apply(
                 params,
@@ -363,14 +365,15 @@ class HaikuInContextLearner(InContextLearner):
                 examples=examples,
                 labels=labels,
                 mask=None,
-                is_training=False,)
+                is_training=False,
+            )
             logits = logits[:, -1]
-            
+
             return jnp.mean(optax.softmax_cross_entropy(logits, outputs)), {
                 "logits": logits,
                 "outputs": outputs,
                 "state": state,
-                CONST_UPDATES: {}
+                CONST_UPDATES: {},
             }
 
         self._loss = jax.jit(make_loss)
@@ -408,7 +411,7 @@ class HaikuInContextLearner(InContextLearner):
             return {
                 CONST_MODEL: params,
                 "state": aux["state"],
-                CONST_OPT_STATE: opt_state
+                CONST_OPT_STATE: opt_state,
             }, aux
 
         return _train_step

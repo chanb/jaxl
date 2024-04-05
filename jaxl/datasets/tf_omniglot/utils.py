@@ -44,7 +44,7 @@ class TFDataset:
     @property
     def input_dim(self) -> chex.Array:
         return self._input_shape
-    
+
     @property
     def sequence_length(self) -> int:
         return self._sequence_length
@@ -87,7 +87,7 @@ def get_omniglot_seq_generator(
             "ordered",
             "ordered",
             False,
-            False
+            False,
         )
     elif task_name == "fewshot_holdout":
         seq_generator = data_generator_factory.get_fewshot_seq
@@ -107,7 +107,8 @@ def get_omniglot_seq_generator(
             dataset_kwargs.sequence_length,
             all_unique,
             "ordered",
-            False)
+            False,
+        )
     else:
         raise NotImplementedError
 
