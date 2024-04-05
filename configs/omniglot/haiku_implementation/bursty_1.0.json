@@ -1,0 +1,63 @@
+{
+    "logging_config": {
+        "save_path": "./logs/icl-omniglot/haiku_implementation",
+        "experiment_name": "bursty_1.0",
+        "log_interval": 50,
+        "checkpoint_interval": 50000
+    },
+    "model_config": {
+        "architecture": "haiku_transformer"
+    },
+    "optimizer_config": {
+        "optimizer": "adam",
+        "lr": {
+            "scheduler": "linear_warmup_sqrt_decay",
+            "scheduler_kwargs": {
+                "max_lr": 3e-4,
+                "warmup_steps": 4000
+            }
+        },
+        "max_grad_norm": false
+    },
+    "learner_config": {
+        "task": "in_context_learning",
+        "dataset_config": {
+            "dataset_name": "omniglot_tf",
+            "dataset_kwargs": {
+                "task_name": "bursty",
+                "task_config": {
+                    "exemplars": "single",
+                    "noise_scale": 0.1
+                },
+                "sequence_length": 9,
+                "p_bursty": 1.0,
+                "bursty_shots": 3,
+                "ways": 2,
+                "tf_type": "prepare_seqs_for_transformer",
+                "num_workers": 4
+            }
+        },
+        "seeds": {
+            "model_seed": 44,
+            "data_seed": 1337
+        },
+        "learner": "mle",
+        "losses": ["categorical", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean",
+                "is_one_hot": true
+            },
+            {
+                "coefficient": 0.0
+            }
+        ],
+        "num_updates_per_epoch": 1,
+        "batch_size": 32,
+        "predictor_type": "default"
+    },
+    "train_config": {
+        "num_epochs": 500000
+    }
+}

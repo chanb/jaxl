@@ -7,6 +7,7 @@ from jaxl.learners.bc import BC
 from jaxl.learners.in_context import (
     InContextLearner,
     BinaryClassificationInContextLearner,
+    HaikuInContextLearner,
 )
 from jaxl.learners.mtbc import MTBC
 from jaxl.learners.ppo import PPO
@@ -111,6 +112,8 @@ def get_icl_learner(
     if learner_config.learner == CONST_MLE:
         if learner_config.losses[0] == CONST_SIGMOID_BCE:
             learner_constructor = BinaryClassificationInContextLearner
+        elif model_config.architecture == "haiku_transformer":
+            learner_constructor = HaikuInContextLearner
         else:
             learner_constructor = InContextLearner
     else:

@@ -3,10 +3,13 @@ from typing import Any, Dict, Tuple
 
 import chex
 import flax
+import haiku as hk
 import jax
 import jax.random as jrandom
 import numpy as np
 import timeit
+import jax.numpy as jnp
+import optax
 
 from jaxl.constants import *
 from jaxl.learners.learner import OfflineLearner
@@ -278,3 +281,196 @@ class BinaryClassificationInContextLearner(InContextLearner):
         )
 
         self._model_dict = {CONST_MODEL: params, CONST_OPT_STATE: opt_state}
+
+
+class HaikuInContextLearner(InContextLearner):
+    """
+    In-context learner class that extends the ``OfflineLearner`` class.
+    This is the general learner for in-context learning agents.
+    """
+
+    def __init__(
+        self,
+        config: SimpleNamespace,
+        model_config: SimpleNamespace,
+        optimizer_config: SimpleNamespace,
+    ):
+        super().__init__(config, model_config, optimizer_config)
+
+    def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
+        """
+        Construct the model and the optimizer.
+
+        :param input_dim: input dimension of the data point
+        :param output_dim: output dimension of the data point
+        :type input_dim: chex.Array
+        :type output_dim: chex.Array
+
+        """
+        embed_dim = 64
+        num_classes = output_dim[0]
+        embedding_config=dict(
+            emb_dim=embed_dim,
+            example_encoding='resnet',  # 'resnet'/'linear'/'embedding'
+            flatten_superpixels=False,  # to flatten resnet outputs
+            example_dropout_prob=0.0,
+            concatenate_labels=False,
+            use_positional_encodings=True,
+            positional_dropout_prob=0.0,
+            num_classes=num_classes,
+        )
+
+        transformer_config=dict(
+            num_layers=12,
+            num_heads=8,
+            dropout_prob=0.0,
+            num_classes=num_classes,
+        )
+
+        from jaxl.models.haiku_modules.embedding import InputEmbedder
+        from jaxl.models.haiku_modules.transformer import Transformer
+        def forward_fn(examples, labels, mask, is_training):
+            embedder = InputEmbedder(**embedding_config)
+            model = Transformer(embedder, **transformer_config)
+            return model(examples, labels, mask, is_training=is_training)
+
+        self.forward = hk.transform_with_state(forward_fn)
+
+        model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
+        dummy_input = self._generate_dummy_x(input_dim)
+        dummy_output = self._generate_dummy_x((1,)).astype(np.int32)
+
+        params, state = self.forward.init(model_key, dummy_input, dummy_output, None, is_training=True)
+        self._optimizer, opt_state = get_optimizer(
+            self._optimizer_config, None, params
+        )
+        self._model_dict = {
+            CONST_MODEL: params,
+            "state": state,
+            CONST_OPT_STATE: opt_state,
+        }
+
+    def _initialize_losses(self):
+        """
+        Construct the losses.
+        """
+        rng = jrandom.PRNGKey(1)
+        def make_loss(params, state, examples, labels, outputs):
+            logits, state = self.forward.apply(
+                params,
+                state,
+                rng=rng,
+                examples=examples,
+                labels=labels,
+                mask=None,
+                is_training=False,)
+            logits = logits[:, -1]
+            
+            return jnp.mean(optax.softmax_cross_entropy(logits, outputs)), {
+                "logits": logits,
+                "outputs": outputs,
+                "state": state,
+                CONST_UPDATES: {}
+            }
+
+        self._loss = jax.jit(make_loss)
+
+    def make_train_step(self):
+        """
+        Makes the training step for model update.
+        """
+
+        def _train_step(
+            model_dict: Dict[str, Any],
+            examples,
+            labels,
+            outputs,
+            *args,
+            **kwargs,
+        ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            (agg_loss, aux), grads = jax.value_and_grad(self._loss, has_aux=True)(
+                model_dict[CONST_MODEL],
+                model_dict["state"],
+                examples,
+                labels,
+                outputs,
+            )
+            aux[CONST_AGG_LOSS] = agg_loss
+            aux[CONST_GRAD_NORM] = {CONST_MODEL: l2_norm(grads)}
+
+            updates, opt_state = self._optimizer.update(
+                grads,
+                model_dict[CONST_OPT_STATE],
+                model_dict[CONST_MODEL],
+            )
+            params = optax.apply_updates(model_dict[CONST_MODEL], updates)
+
+            return {
+                CONST_MODEL: params,
+                "state": aux["state"],
+                CONST_OPT_STATE: opt_state
+            }, aux
+
+        return _train_step
+
+    def update(self, *args, **kwargs) -> Dict[str, Any]:
+        """
+        Updates the model.
+
+        :param *args:
+        :param **kwargs:
+        :return: the update information
+        :rtype: Dict[str, Any]
+
+        """
+        auxes = []
+        total_update_time = 0
+        for _ in range(self._num_updates_per_epoch):
+            tic = timeit.default_timer()
+            auxes.append({})
+            try:
+                data = next(self._train_loader)
+            except StopIteration:
+                self._train_loader = iter(self._train_dataloader)
+                data = next(self._train_loader)
+
+            context_inputs = data["context_inputs"]
+            context_outputs = data["context_outputs"]
+            queries = data["queries"]
+            outputs = data["outputs"]
+
+            if hasattr(context_inputs, "numpy"):
+                context_inputs = context_inputs.numpy()
+                context_outputs = context_outputs.numpy()
+                queries = queries.numpy()
+                outputs = outputs.numpy()
+
+            examples = np.concatenate((context_inputs, queries), axis=1)
+            labels = np.concatenate((context_outputs, outputs[:, None]), axis=1)
+            labels = np.argmax(labels, axis=-1)
+
+            self.model_dict, aux = self.train_step(
+                self._model_dict, examples, labels, outputs
+            )
+
+            total_update_time += timeit.default_timer() - tic
+            assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+
+            auxes[-1][CONST_AUX] = aux
+
+        auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
+        aux[CONST_LOG] = {
+            f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
+            f"time/{CONST_UPDATE_TIME}": total_update_time,
+            f"{CONST_GRAD_NORM}/model": auxes[CONST_AUX][CONST_GRAD_NORM][
+                CONST_MODEL
+            ].item(),
+        }
+
+        if isinstance(self._model_dict[CONST_OPT_STATE], dict):
+            for model_name, opt_state_list in self._model_dict[CONST_OPT_STATE]:
+                gather_learning_rate(aux, model_name, opt_state_list)
+        else:
+            gather_learning_rate(aux, CONST_MODEL, self._model_dict[CONST_OPT_STATE])
+
+        return aux
