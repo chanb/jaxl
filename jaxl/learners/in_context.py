@@ -365,7 +365,7 @@ class HaikuInContextLearner(InContextLearner):
                 examples=examples,
                 labels=labels,
                 mask=None,
-                is_training=False,
+                is_training=True,
             )
             logits = logits[:, -1]
 
@@ -468,6 +468,7 @@ class HaikuInContextLearner(InContextLearner):
             f"{CONST_GRAD_NORM}/model": auxes[CONST_AUX][CONST_GRAD_NORM][
                 CONST_MODEL
             ].item(),
+            f"{CONST_PARAM_NORM}/model": l2_norm(self._model_dict[CONST_MODEL]).item(),
         }
 
         if isinstance(self._model_dict[CONST_OPT_STATE], dict):
