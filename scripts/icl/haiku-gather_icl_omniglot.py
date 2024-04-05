@@ -2,6 +2,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from types import SimpleNamespace
@@ -11,14 +12,16 @@ import _pickle as pickle
 import argparse
 import copy
 import os
+import json
 import timeit
 
 from jaxl.constants import *
 from jaxl.datasets import get_dataset
-from jaxl.models import load_config, iterate_models
+from jaxl.models import load_config
 from jaxl.utils import parse_dict, get_device
 
 from utils import *
+import haiku as hk
 
 
 def get_torch_datasets(
@@ -160,6 +163,68 @@ def get_eval_datasets(
             num_test_tasks,
             test_data_seed,
         )
+
+
+def iterate_models(
+    input_dim: Sequence[int],
+    output_dim: Sequence[int],
+    learner_path: str,
+) -> Iterable[Tuple[Dict, Model, int]]:
+    """
+    An iterator that yields the model and the each checkpointed parameters
+
+    :param input_dim: the input dimensionality
+    :param output_dim: the output dimensionality
+    :param learner_path: the path that stores the experiment configuation
+    :type input_dim: Sequence[int]
+    :type output_dim: Sequence[int]
+    :type learner_path: str
+    :return: an iterable of the model, the parameters, and the i'th checkpoint
+    :rtype: Iterable[Tuple[Dict, Model, int]]
+    """
+    config_path = os.path.join(learner_path, "config.json")
+    with open(config_path, "r") as f:
+        config_dict = json.load(f)
+        config = parse_dict(config_dict)
+
+        embed_dim = 64
+        num_classes = output_dim[0]
+        embedding_config = dict(
+            emb_dim=embed_dim,
+            example_encoding="resnet",  # 'resnet'/'linear'/'embedding'
+            flatten_superpixels=False,  # to flatten resnet outputs
+            example_dropout_prob=0.0,
+            concatenate_labels=False,
+            use_positional_encodings=True,
+            positional_dropout_prob=0.0,
+            num_classes=num_classes,
+        )
+
+        transformer_config = dict(
+            num_layers=12,
+            num_heads=8,
+            dropout_prob=0.0,
+            num_classes=num_classes,
+        )
+
+        from jaxl.models.haiku_modules.embedding import InputEmbedder
+        from jaxl.models.haiku_modules.transformer import Transformer
+
+        def forward_fn(examples, labels, mask, is_training):
+            embedder = InputEmbedder(**embedding_config)
+            model = Transformer(embedder, **transformer_config)
+            return model(examples, labels, mask, is_training=is_training)
+
+        forward = hk.transform_with_state(forward_fn)
+
+    checkpoint_manager = CheckpointManager(
+        os.path.join(learner_path, "models"),
+        PyTreeCheckpointer(),
+    )
+
+    for step in checkpoint_manager.all_steps():
+        params = checkpoint_manager.restore(step)
+        yield params, forward, step
 
 
 def main(args: SimpleNamespace):
