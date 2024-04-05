@@ -103,7 +103,6 @@ def get_torch_datasets(
 
 def get_tf_datasets(
     config_dict: Dict[str, Any],
-    test_data_seed: int,
 ):
     # In-weight
     in_weight_config_dict = copy.deepcopy(
@@ -126,7 +125,7 @@ def get_tf_datasets(
     }
 
     return {
-        eval_name: get_data_loader(config, test_data_seed)
+        eval_name: get_data_loader(config, config_dict["learner_config"]["seeds"]["data_seed"])
         for eval_name, config in configs.items()
     }, configs
 
@@ -140,7 +139,6 @@ def get_eval_datasets(
     if config_dict["learner_config"]["dataset_config"]["dataset_name"] == "omniglot_tf":
         return get_tf_datasets(
             config_dict,
-            test_data_seed,
         )
     else:
         return get_torch_datasets(
