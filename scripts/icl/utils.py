@@ -93,11 +93,11 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
         else:
             rng = jrandom.PRNGKey(1)
             examples = np.concatenate((context_inputs, queries), axis=1)
-            labels = np.concatenate((context_outputs, outputs[:, None]), axis=1)
+            labels = np.concatenate((context_outputs, one_hot_labels[:, None]), axis=1)
             labels = np.argmax(labels, axis=-1)
             logits, state = model.apply(
-                params,
-                state,
+                params[CONST_MODEL_DICT][CONST_MODEL],
+                params[CONST_MODEL_DICT]["state"],
                 rng=rng,
                 examples=examples,
                 labels=labels,

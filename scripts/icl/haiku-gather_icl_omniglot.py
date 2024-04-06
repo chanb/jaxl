@@ -6,7 +6,7 @@ from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from types import SimpleNamespace
-from typing import Dict, Any
+from typing import Dict, Any, Iterable, Sequence, Tuple
 
 import _pickle as pickle
 import argparse
@@ -17,7 +17,7 @@ import timeit
 
 from jaxl.constants import *
 from jaxl.datasets import get_dataset
-from jaxl.models import load_config
+from jaxl.models import load_config, Model
 from jaxl.utils import parse_dict, get_device
 
 from utils import *
@@ -34,6 +34,8 @@ def get_torch_datasets(
         n_shot_k_way_dataset_name = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY_TF
     else:
         n_shot_k_way_dataset_name = CONST_MULTITASK_OMNIGLOT_N_SHOT_K_WAY
+
+    config_dict["learner_config"]["batch_size"] = 1
 
     # Same Pretraining
     same_pretraining_config_dict = copy.deepcopy(config_dict)
@@ -257,7 +259,7 @@ def main(args: SimpleNamespace):
             config.learner_config.seeds.data_seed,
         )
 
-        context_len = config.model_config.num_contexts
+        context_len = config.learner_config.dataset_config.dataset_wrapper.kwargs.context_len
         num_samples_per_task = train_dataset._dataset.sequence_length - context_len
         sequence_length = train_dataset._dataset.sequence_length
 
