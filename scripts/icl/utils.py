@@ -51,6 +51,12 @@ def plot_examples(
         else:
             ci, co, q, l = cis[example_i], cos[example_i], qs[example_i], ls[example_i]
 
+        if hasattr(ci, "numpy"):
+            ci = ci.numpy()
+            co = co.numpy()
+            q = q.numpy()
+            l = l.numpy()
+
         for idx, (img, label) in enumerate(zip(ci, co)):
             axes[example_i, idx].imshow(img)
             axes[example_i, idx].set_title(np.argmax(label))
