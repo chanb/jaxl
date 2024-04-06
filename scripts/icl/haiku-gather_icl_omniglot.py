@@ -259,7 +259,10 @@ def main(args: SimpleNamespace):
             config.learner_config.seeds.data_seed,
         )
 
-        context_len = config.learner_config.dataset_config.dataset_wrapper.kwargs.context_len
+        if hasattr(config.learner_config.dataset_config, "dataset_wrapper"):
+            context_len = config.learner_config.dataset_config.dataset_wrapper.kwargs.context_len
+        else:
+            context_len = config.learner_config.dataset_config.dataset_kwargs.sequence_length - 1
         num_samples_per_task = train_dataset._dataset.sequence_length - context_len
         sequence_length = train_dataset._dataset.sequence_length
 
