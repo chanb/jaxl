@@ -260,8 +260,8 @@ def main(args: SimpleNamespace):
         )
 
         context_len = config.learner_config.dataset_config.dataset_wrapper.kwargs.context_len
-        num_samples_per_task = train_dataset._dataset.sequence_length - context_len
-        sequence_length = train_dataset._dataset.sequence_length
+        # num_samples_per_task = train_dataset._dataset.sequence_length - context_len
+        # sequence_length = train_dataset._dataset.sequence_length
 
         fixed_length = True
         if hasattr(config.learner_config.dataset_config, "dataset_wrapper"):
@@ -270,7 +270,7 @@ def main(args: SimpleNamespace):
                 in ["FixedLengthContextDataset"]
             )
 
-        print(num_samples_per_task, num_train_tasks, sequence_length, context_len)
+        # print(num_samples_per_task, num_train_tasks, sequence_length, context_len)
 
         datasets, dataset_configs = get_eval_datasets(
             config_dict,
@@ -305,7 +305,7 @@ def main(args: SimpleNamespace):
             checkpoint_steps.append(checkpoint_step)
             for eval_name in datasets:
                 tic = timeit.default_timer()
-                print(curr_run_path, checkpoint_step, eval_name)
+                # print(curr_run_path, checkpoint_step, eval_name)
                 dataset, data_loader = datasets[eval_name]
                 acc, aux = evaluate(
                     model=model,

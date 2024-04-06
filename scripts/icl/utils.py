@@ -39,8 +39,17 @@ def plot_examples(
     qs = samples["queries"]
     ls = samples["outputs"]
 
+    single_sample = len(cis) == 1
+
     for example_i in range(num_examples):
-        ci, co, q, l = cis[example_i], cos[example_i], qs[example_i], ls[example_i]
+        if single_sample:
+            samples = next(iter(dataset_loader))
+            ci = samples["context_inputs"][0]
+            co = samples["context_outputs"][0]
+            q = samples["queries"][0]
+            l = samples["outputs"][0]
+        else:
+            ci, co, q, l = cis[example_i], cos[example_i], qs[example_i], ls[example_i]
 
         for idx, (img, label) in enumerate(zip(ci, co)):
             axes[example_i, idx].imshow(img)
