@@ -296,6 +296,7 @@ class HaikuInContextLearner(InContextLearner):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
+        self._num_updates = 0
 
     def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
         """
@@ -416,6 +417,16 @@ class HaikuInContextLearner(InContextLearner):
 
         return _train_step
 
+    def _linear_warmup_and_sqrt_decay(self, global_step):
+        """Linear warmup and then an inverse square root decay of learning rate."""
+        max_lr = self.config.optimizer['max_lr']
+        warmup_steps = int(self.config.optimizer['warmup_steps'])
+        linear_ratio = max_lr / warmup_steps
+        decay_ratio = jnp.power(warmup_steps * 1.0, 0.5) * max_lr
+        return jnp.min(jnp.array([
+            linear_ratio * global_step, decay_ratio * jnp.power(global_step, -0.5)
+        ]))
+
     def update(self, *args, **kwargs) -> Dict[str, Any]:
         """
         Updates the model.
@@ -452,6 +463,7 @@ class HaikuInContextLearner(InContextLearner):
             labels = np.concatenate((context_outputs, outputs[:, None]), axis=1)
             labels = np.argmax(labels, axis=-1)
 
+            self._optimizer = optax.adam(self._linear_warmup_and_sqrt_decay(self._num_updates))
             self.model_dict, aux = self.train_step(
                 self._model_dict, examples, labels, outputs
             )
@@ -460,6 +472,7 @@ class HaikuInContextLearner(InContextLearner):
             assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
 
             auxes[-1][CONST_AUX] = aux
+            self._num_updates += 1
 
         auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
         aux[CONST_LOG] = {
