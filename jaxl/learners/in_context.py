@@ -417,15 +417,227 @@ class HaikuInContextLearner(InContextLearner):
 
         return _train_step
 
-    def _linear_warmup_and_sqrt_decay(self, global_step):
-        """Linear warmup and then an inverse square root decay of learning rate."""
-        max_lr = self.config.optimizer['max_lr']
-        warmup_steps = int(self.config.optimizer['warmup_steps'])
-        linear_ratio = max_lr / warmup_steps
-        decay_ratio = jnp.power(warmup_steps * 1.0, 0.5) * max_lr
-        return jnp.min(jnp.array([
-            linear_ratio * global_step, decay_ratio * jnp.power(global_step, -0.5)
-        ]))
+    def update(self, *args, **kwargs) -> Dict[str, Any]:
+        """
+        Updates the model.
+
+        :param *args:
+        :param **kwargs:
+        :return: the update information
+        :rtype: Dict[str, Any]
+
+        """
+        auxes = []
+        total_update_time = 0
+        for _ in range(self._num_updates_per_epoch):
+            tic = timeit.default_timer()
+            auxes.append({})
+            try:
+                data = next(self._train_loader)
+            except StopIteration:
+                self._train_loader = iter(self._train_dataloader)
+                data = next(self._train_loader)
+
+            context_inputs = data["context_inputs"]
+            context_outputs = data["context_outputs"]
+            queries = data["queries"]
+            outputs = data["outputs"]
+
+            if hasattr(context_inputs, "numpy"):
+                context_inputs = context_inputs.numpy()
+                context_outputs = context_outputs.numpy()
+                queries = queries.numpy()
+                outputs = outputs.numpy()
+
+            # import matplotlib.pyplot as plt
+            # nrows = len(context_inputs)
+            # ncols = 9
+
+            # fig, axes = plt.subplots(
+            #     nrows,
+            #     ncols,
+            #     figsize=(20, 20),
+            #     layout="constrained",
+            # )
+            # for example_i, (ci, co, q, l) in enumerate(zip(context_inputs, context_outputs, queries, outputs)):
+            #     for idx, (img, label) in enumerate(zip(ci, co)):
+            #         axes[example_i, idx].imshow(img)
+            #         axes[example_i, idx].set_title(np.argmax(label))
+            #         axes[example_i, idx].axis("off")
+            #     axes[example_i, -1].axis("off")
+            #     axes[example_i, -1].imshow(q[0])
+            #     axes[example_i, -1].set_title(np.argmax(l, axis=-1))
+            # fig.savefig("default.png")
+            # assert 0
+
+            examples = np.concatenate((context_inputs, queries), axis=1)
+            labels = np.concatenate((context_outputs, outputs[:, None]), axis=1)
+            labels = np.argmax(labels, axis=-1)
+
+            self.model_dict, aux = self.train_step(
+                self._model_dict, examples, labels, outputs
+            )
+
+            total_update_time += timeit.default_timer() - tic
+            assert np.isfinite(aux[CONST_AGG_LOSS]), f"Loss became NaN\naux: {aux}"
+
+            auxes[-1][CONST_AUX] = aux
+            self._num_updates += 1
+
+        auxes = jax.tree_util.tree_map(lambda *args: np.mean(args), *auxes)
+        aux[CONST_LOG] = {
+            f"losses/{CONST_AGG_LOSS}": auxes[CONST_AUX][CONST_AGG_LOSS].item(),
+            f"time/{CONST_UPDATE_TIME}": total_update_time,
+            f"{CONST_GRAD_NORM}/model": auxes[CONST_AUX][CONST_GRAD_NORM][
+                CONST_MODEL
+            ].item(),
+            f"{CONST_PARAM_NORM}/model": l2_norm(self._model_dict[CONST_MODEL]).item(),
+        }
+
+        if isinstance(self._model_dict[CONST_OPT_STATE], dict):
+            for model_name, opt_state_list in self._model_dict[CONST_OPT_STATE]:
+                gather_learning_rate(aux, model_name, opt_state_list)
+        else:
+            gather_learning_rate(aux, CONST_MODEL, self._model_dict[CONST_OPT_STATE])
+
+        return aux
+
+
+class HaikuInContextLearnerMask(InContextLearner):
+    """
+    In-context learner class that extends the ``OfflineLearner`` class.
+    This is the general learner for in-context learning agents.
+    """
+
+    def __init__(
+        self,
+        config: SimpleNamespace,
+        model_config: SimpleNamespace,
+        optimizer_config: SimpleNamespace,
+    ):
+        super().__init__(config, model_config, optimizer_config)
+        self._num_updates = 0
+
+    def _initialize_model_and_opt(self, input_dim: chex.Array, output_dim: chex.Array):
+        """
+        Construct the model and the optimizer.
+
+        :param input_dim: input dimension of the data point
+        :param output_dim: output dimension of the data point
+        :type input_dim: chex.Array
+        :type output_dim: chex.Array
+
+        """
+        embed_dim = 64
+        num_classes = output_dim[0]
+        embedding_config = dict(
+            emb_dim=embed_dim,
+            example_encoding="resnet",  # 'resnet'/'linear'/'embedding'
+            flatten_superpixels=False,  # to flatten resnet outputs
+            example_dropout_prob=0.0,
+            concatenate_labels=False,
+            use_positional_encodings=True,
+            positional_dropout_prob=0.0,
+            num_classes=num_classes,
+        )
+
+        transformer_config = dict(
+            num_layers=12,
+            num_heads=8,
+            dropout_prob=0.0,
+            num_classes=num_classes,
+        )
+
+        from jaxl.models.haiku_modules.embedding import InputEmbedder
+        from jaxl.models.haiku_modules.transformer import Transformer
+
+        def forward_fn(examples, labels, mask, is_training):
+            embedder = InputEmbedder(**embedding_config)
+            model = Transformer(embedder, **transformer_config)
+            return model(examples, labels, mask, is_training=is_training)
+
+        self.forward = hk.transform_with_state(forward_fn)
+
+        model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
+        dummy_input = self._generate_dummy_x(input_dim)
+        dummy_output = self._generate_dummy_x((1,)).astype(np.int32)
+
+        params, state = self.forward.init(
+            model_key, dummy_input, dummy_output, None, is_training=True
+        )
+        self._optimizer, opt_state = get_optimizer(self._optimizer_config, None, params)
+        self._model_dict = {
+            CONST_MODEL: params,
+            "state": state,
+            CONST_OPT_STATE: opt_state,
+        }
+
+    def _initialize_losses(self):
+        """
+        Construct the losses.
+        """
+        rng = jrandom.PRNGKey(1)
+
+        def make_loss(params, state, examples, labels, outputs):
+            logits, state = self.forward.apply(
+                params,
+                state,
+                rng=rng,
+                examples=examples,
+                labels=labels,
+                mask=None,
+                is_training=True,
+            )
+            losses_all = optax.softmax_cross_entropy_with_integer_labels(logits, outputs)
+            query_mask = jnp.full_like(losses_all, False).at[:, -1].set(True)
+            losses_all = losses_all * query_mask
+
+            return jnp.sum(losses_all) / len(examples), {
+                "logits": logits,
+                "outputs": outputs,
+                "state": state,
+                CONST_UPDATES: {},
+            }
+
+        self._loss = jax.jit(make_loss)
+
+    def make_train_step(self):
+        """
+        Makes the training step for model update.
+        """
+
+        def _train_step(
+            model_dict: Dict[str, Any],
+            examples,
+            labels,
+            outputs,
+            *args,
+            **kwargs,
+        ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            (agg_loss, aux), grads = jax.value_and_grad(self._loss, has_aux=True)(
+                model_dict[CONST_MODEL],
+                model_dict["state"],
+                examples,
+                labels,
+                outputs,
+            )
+            aux[CONST_AGG_LOSS] = agg_loss
+            aux[CONST_GRAD_NORM] = {CONST_MODEL: l2_norm(grads)}
+
+            updates, opt_state = self._optimizer.update(
+                grads,
+                model_dict[CONST_OPT_STATE],
+                model_dict[CONST_MODEL],
+            )
+            params = optax.apply_updates(model_dict[CONST_MODEL], updates)
+
+            return {
+                CONST_MODEL: params,
+                "state": aux["state"],
+                CONST_OPT_STATE: opt_state,
+            }, aux
+
+        return _train_step
 
     def update(self, *args, **kwargs) -> Dict[str, Any]:
         """
@@ -459,11 +671,38 @@ class HaikuInContextLearner(InContextLearner):
                 queries = queries.numpy()
                 outputs = outputs.numpy()
 
+            # import matplotlib.pyplot as plt
+            # nrows = len(context_inputs)
+            # ncols = 9
+
+            # fig, axes = plt.subplots(
+            #     nrows,
+            #     ncols,
+            #     figsize=(20, 20),
+            #     layout="constrained",
+            # )
+            # for example_i, (ci, co, q, l) in enumerate(zip(context_inputs, context_outputs, queries, outputs)):
+            #     for idx, (img, label) in enumerate(zip(ci, co)):
+            #         axes[example_i, idx].imshow(img)
+            #         axes[example_i, idx].set_title(np.argmax(label))
+            #         axes[example_i, idx].axis("off")
+            #     axes[example_i, -1].axis("off")
+            #     axes[example_i, -1].imshow(q[0])
+            #     axes[example_i, -1].set_title(np.argmax(l, axis=-1))
+            # fig.savefig("mask.png")
+            # assert 0
+
+
             examples = np.concatenate((context_inputs, queries), axis=1)
             labels = np.concatenate((context_outputs, outputs[:, None]), axis=1)
             labels = np.argmax(labels, axis=-1)
 
-            self._optimizer = optax.adam(self._linear_warmup_and_sqrt_decay(self._num_updates))
+            (bs, seq_len) = labels.shape
+            outputs = np.concatenate(
+                (labels[..., None], np.zeros(labels.shape)[..., None]), axis=-1
+            ).reshape((bs, seq_len * 2))[..., :-1].astype(np.int32)
+
+            # self._optimizer = optax.adam(self._linear_warmup_and_sqrt_decay(self._num_updates))
             self.model_dict, aux = self.train_step(
                 self._model_dict, examples, labels, outputs
             )
