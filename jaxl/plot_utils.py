@@ -214,8 +214,9 @@ def icl_image_grid(
         axes[sample_i * 2 + 1, -1].axis("off")
         axes[sample_i * 2 + 1, -1].set_title("Pred: {}".format(np.argmax(pred_i)))
         title = ""
-        for logit in pred_i:
-            title += "{:.4f}\n".format(logit)
+        top_10 = np.argsort(pred_i)[-10:]
+        for idx in top_10:
+            title += "idx {}: {:.4f}\n".format(idx, pred_i[idx])
         axes[sample_i * 2 + 1, -1].text(0.25, 0.0, title, fontsize=6)
 
     if filename is not None:

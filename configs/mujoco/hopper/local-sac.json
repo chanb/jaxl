@@ -12,13 +12,15 @@
                 256,
                 256
             ],
-            "activation": "tanh"
+            "activation": "tanh",
+            "flatten": true
         },
         "qf": {
             "architecture": "ensemble",
             "model": {
                 "architecture": "mlp",
-                "layers": [256, 256]
+                "layers": [256, 256],
+                "flatten": true
             },
             "num_models": 2,
             "vmap_all": false

@@ -2,8 +2,8 @@
     "logging_config": {
         "save_path": "./logs/frozen_lake",
         "experiment_name": "ppo",
-        "log_interval": 1,
-        "checkpoint_interval": false
+        "log_interval": 10,
+        "checkpoint_interval": 100
     },
     "model_config": {
         "policy": {
@@ -103,6 +103,6 @@
         }
     },
     "train_config": {
-        "num_epochs": 500
+        "num_epochs": 5000
     }
 }

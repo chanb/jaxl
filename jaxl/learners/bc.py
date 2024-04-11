@@ -9,7 +9,6 @@ import timeit
 
 from jaxl.constants import *
 from jaxl.learners.supervised import SupervisedLearner
-from jaxl.learners.utils import gather_per_leaf_l2_norm
 from jaxl.models import get_update_function
 from jaxl.utils import l2_norm, RunningMeanStd
 
@@ -119,6 +118,7 @@ class BC(SupervisedLearner):
                 grads,
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
+                aux[self._config.losses[0]][CONST_AUX][CONST_UPDATES],
             )
             aux[CONST_GRAD_NORM] = {CONST_POLICY: l2_norm(grads)}
             return {
@@ -164,9 +164,9 @@ class BC(SupervisedLearner):
             ].item(),
         }
 
-        gather_per_leaf_l2_norm(
-            aux[CONST_LOG], "pi", self.model_dict[CONST_MODEL][CONST_POLICY]
-        )
+        aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_POLICY}"] = l2_norm(
+            self.model_dict[CONST_MODEL][CONST_POLICY]
+        ).item()
 
         for loss_key in self._config.losses:
             aux[CONST_LOG][f"losses/{loss_key}"] = auxes[CONST_AUX][loss_key][

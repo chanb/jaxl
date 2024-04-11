@@ -22,6 +22,7 @@ class QFunction(ABC):
             chex.Array,
             Union[chex.Array, Dict[str, Any]],
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array],
     ]
@@ -40,7 +41,10 @@ class StateActionInputQ(QFunction):
         self.encoding = encoding
         self.encoding_params = encoding_params
         self.model = model
-        self.q_values = jax.jit(self.make_q_values(encoding, encoding_params, model))
+        self.q_values = jax.jit(
+            self.make_q_values(encoding, encoding_params, model),
+            static_argnames=[CONST_EVAL],
+        )
 
     def make_q_values(
         self,
@@ -53,6 +57,7 @@ class StateActionInputQ(QFunction):
             chex.Array,
             Union[chex.Array, Dict[str, Any]],
             chex.Array,
+            bool,
         ],
         Tuple[chex.Array, chex.Array],
     ]:
@@ -72,6 +77,7 @@ class StateActionInputQ(QFunction):
                 chex.Array,
                 chex.Array,
                 Union[chex.Array, Dict[str, Any]],
+                bool,
             ],
             Tuple[chex.Array, chex.Array],
         ]
@@ -83,6 +89,8 @@ class StateActionInputQ(QFunction):
             obs: chex.Array,
             h_state: Union[chex.Array, Dict[str, Any]],
             act: chex.Array,
+            eval: bool = False,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Compute action-value based on a state-aciton pair.
@@ -105,9 +113,12 @@ class StateActionInputQ(QFunction):
                     CONST_OBSERVATION: obs,
                     CONST_ACTION: act,
                 },
+                **kwargs,
             )
-            q_val, h_state = model.forward(params, state_action, h_state)
-            return q_val, h_state
+            q_val, h_state, updates = model.forward(
+                params, state_action, h_state, eval, **kwargs
+            )
+            return q_val, h_state, updates
 
         return compute_q_value
 

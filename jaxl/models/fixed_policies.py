@@ -60,6 +60,7 @@ class FixedSquashedGaussianPolicy(Policy):
             obs: chex.Array,
             h_state: chex.Array,
             key: jrandom.PRNGKey,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Compute action to take in environment.
@@ -84,7 +85,10 @@ class FixedSquashedGaussianPolicy(Policy):
 
     def make_deterministic_action(
         self,
-    ) -> Callable[[Any, chex.Array, chex.Array], Tuple[chex.Array, chex.Array],]:
+    ) -> Callable[
+        [Any, chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array],
+    ]:
         """
         Makes the function for taking deterministic action.
 
@@ -100,6 +104,7 @@ class FixedSquashedGaussianPolicy(Policy):
             params: Any,
             obs: chex.Array,
             h_state: chex.Array,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Compute deterministic action.
@@ -146,6 +151,7 @@ class FixedSquashedGaussianPolicy(Policy):
             obs: chex.Array,
             h_state: chex.Array,
             key: jrandom.PRNGKey,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array]:
             """
             Compute random action.
@@ -195,6 +201,7 @@ class FixedSquashedGaussianPolicy(Policy):
             obs: chex.Array,
             h_state: chex.Array,
             key: jrandom.PRNGKey,
+            **kwargs,
         ) -> Tuple[chex.Array, chex.Array, chex.Array]:
             """
             Compute action and its log probability.
@@ -221,7 +228,10 @@ class FixedSquashedGaussianPolicy(Policy):
 
     def make_lprob(
         self,
-    ) -> Callable[[Any, chex.Array, chex.Array, chex.Array], chex.Array,]:
+    ) -> Callable[
+        [Any, chex.Array, chex.Array, chex.Array],
+        chex.Array,
+    ]:
         """
         Makes the function for computing action log probability.
 
@@ -238,6 +248,7 @@ class FixedSquashedGaussianPolicy(Policy):
             obs: chex.Array,
             h_state: chex.Array,
             act: chex.Array,
+            **kwargs,
         ) -> Tuple[chex.Array, Dict[str, Any]]:
             """
             Compute action log probability.

@@ -1,6 +1,6 @@
 from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
-from typing import Any, Dict, Tuple, Union, Sequence
+from typing import Any, Dict, Tuple, Union, Sequence, Iterable
 
 import chex
 import json
@@ -150,7 +150,9 @@ def get_optimizer(
                 )
             else:
                 opt_transforms.append(
-                    optax.inject_hyperparams(optax.adam)(get_scheduler(opt_config.lr))
+                    optax.inject_hyperparams(optax.adam)(
+                        get_scheduler(opt_config.lr), b1=getattr(opt_config, "b1", 0.9)
+                    )
                 )
         elif opt_config.optimizer == CONST_SGD:
             opt_transforms.append(
@@ -192,6 +194,9 @@ def get_model(
             model_config.layers + list(np.prod(output_dim, keepdims=True)),
             getattr(model_config, "activation", CONST_RELU),
             getattr(model_config, "output_activation", CONST_IDENTITY),
+            getattr(model_config, "use_batch_norm", False),
+            getattr(model_config, "use_bias", True),
+            getattr(model_config, "flatten", False),
         )
     elif model_config.architecture == CONST_CNN:
         return CNN(
@@ -200,6 +205,7 @@ def get_model(
             model_config.layers + list(np.prod(output_dim, keepdims=True)),
             getattr(model_config, "activation", CONST_RELU),
             getattr(model_config, "output_activation", CONST_IDENTITY),
+            getattr(model_config, "use_batch_norm", False),
         )
     elif model_config.architecture == CONST_ENCODER_PREDICTOR:
         encoder = get_model(input_dim, model_config.encoder_dim, model_config.encoder)
@@ -229,10 +235,12 @@ def get_model(
                 model_config.num_blocks,
                 model_config.num_heads,
                 model_config.embed_dim,
+                getattr(model_config, "widening_factor", 1),
                 model_config.positional_encoding,
                 model_config.input_tokenizer,
                 model_config.output_tokenizer,
                 getattr(model_config, "query_pred_only", False),
+                getattr(model_config, "input_output_same_encoding", True),
             )
         return InContextSupervisedTransformer(
             output_dim,
@@ -240,8 +248,10 @@ def get_model(
             model_config.num_blocks,
             model_config.num_heads,
             model_config.embed_dim,
+            getattr(model_config, "widening_factor", 1),
             model_config.positional_encoding,
             getattr(model_config, "query_pred_only", False),
+            getattr(model_config, "input_output_same_encoding", True),
         )
     else:
         raise NotImplementedError
@@ -255,6 +265,7 @@ def get_update_function(
         Union[Dict[str, Any], chex.Array],
         optax.OptState,
         optax.Params,
+        Any,
     ],
     Tuple[Any, Any],
 ]:
@@ -268,7 +279,8 @@ def get_update_function(
         [optax.GradientTransformation,
         Union[Dict[str, Any], chex.Array],
         optax.OptState,
-        optax.Params],
+        optax.Params,
+        Any],
         Tuple[Any, Any]
     ]
 
@@ -276,13 +288,17 @@ def get_update_function(
 
     if isinstance(model, EncoderPredictorModel):
 
-        def update_encoder_predictor(optimizer, grads, opt_state, params):
+        def update_encoder_predictor(optimizer, grads, opt_state, params, batch_stats):
             updates, encoder_opt_state = optimizer[CONST_ENCODER].update(
                 grads[CONST_ENCODER],
                 opt_state[CONST_ENCODER],
                 params[CONST_ENCODER],
             )
             encoder_params = optax.apply_updates(params[CONST_ENCODER], updates)
+            encoder_params = model.encoder.update_batch_stats(
+                encoder_params,
+                batch_stats[CONST_ENCODER],
+            )
 
             updates, predictor_opt_state = optimizer[CONST_PREDICTOR].update(
                 grads[CONST_PREDICTOR],
@@ -290,6 +306,10 @@ def get_update_function(
                 params[CONST_PREDICTOR],
             )
             predictor_params = optax.apply_updates(params[CONST_PREDICTOR], updates)
+            predictor_params = model.encoder.update_batch_stats(
+                predictor_params,
+                batch_stats[CONST_PREDICTOR],
+            )
 
             return {
                 CONST_ENCODER: encoder_params,
@@ -302,13 +322,17 @@ def get_update_function(
         return update_encoder_predictor
     else:
 
-        def update_default(optimizer, grads, opt_state, params):
+        def update_default(optimizer, grads, opt_state, params, batch_stats):
             updates, opt_state = optimizer.update(
                 grads,
                 opt_state,
                 params,
             )
             params = optax.apply_updates(params, updates)
+            params = model.update_batch_stats(
+                params,
+                batch_stats,
+            )
             return params, opt_state
 
         return update_default
@@ -349,7 +373,7 @@ def load_model(
     :type output_dim: Sequence[int]
     :type learner_path: str
     :type checkpoint_i: int
-    :return: the parameters, the model, and the experiment configuration
+    :return: the model and the parameters
     :rtype: Tuple[Dict, Model]
     """
     config_path = os.path.join(learner_path, "config.json")
@@ -365,8 +389,42 @@ def load_model(
     )
 
     all_steps = checkpoint_manager.all_steps()
-    params = checkpoint_manager.restore(
-        all_steps[min(len(all_steps) - 1, checkpoint_i)]
-    )
+    to_load = min(len(all_steps) - 1, checkpoint_i)
+    print("Loading checkpoint: {}".format(all_steps[to_load]))
+    params = checkpoint_manager.restore(all_steps[to_load])
 
     return params, model
+
+
+def iterate_models(
+    input_dim: Sequence[int],
+    output_dim: Sequence[int],
+    learner_path: str,
+) -> Iterable[Tuple[Dict, Model, int]]:
+    """
+    An iterator that yields the model and the each checkpointed parameters
+
+    :param input_dim: the input dimensionality
+    :param output_dim: the output dimensionality
+    :param learner_path: the path that stores the experiment configuation
+    :type input_dim: Sequence[int]
+    :type output_dim: Sequence[int]
+    :type learner_path: str
+    :return: an iterable of the model, the parameters, and the i'th checkpoint
+    :rtype: Iterable[Tuple[Dict, Model, int]]
+    """
+    config_path = os.path.join(learner_path, "config.json")
+    with open(config_path, "r") as f:
+        config_dict = json.load(f)
+        config = parse_dict(config_dict)
+
+    model = get_model(input_dim, output_dim, config.model_config)
+
+    checkpoint_manager = CheckpointManager(
+        os.path.join(learner_path, "models"),
+        PyTreeCheckpointer(),
+    )
+
+    for step in checkpoint_manager.all_steps():
+        params = checkpoint_manager.restore(step)
+        yield params, model, step

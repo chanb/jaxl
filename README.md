@@ -1,6 +1,6 @@
 # JAXL (JAX Learning)
 ## Prerequisite:
-- Python 3.9
+- Python 3.9+
 - MuJoCo (See [here](https://github.com/openai/mujoco-py#install-mujoco))
   - Remember to set `LD_LIBRARY_PATH` (e..g. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<PATH_TO_MUJOCO>/.mujoco/mujoco210/bin`)
   - For troubleshooting, see [here](https://github.com/openai/mujoco-py#ubuntu-installtion-troubleshooting)
@@ -27,7 +27,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia
 
 If `torch` somehow conflicts, install the CPU-only version:
 ```
-pip install torch>=1.13.0+cpu
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 ```
 
 Potential memory issue:
@@ -37,13 +37,12 @@ export XLA_FLAGS=--xla_gpu_graph_level=0
 
 ### Conda on Salient
 ```
-conda create --name jaxl python=3.9
+conda create --name jaxl python=3.11
 conda install -c conda-forge glew
 conda install -c conda-forge mesalib
 conda install jaxlib=*=*cuda* jax cuda-nvcc -c conda-forge -c nvidia
 conda install -c menpo glfw3
 pip install patchelf
-conda install pytorch-cpu torchvision-cpu -c pytorch
 pip install -r requirements/conda.txt
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 pip install "cython<3"
@@ -91,9 +90,19 @@ In particular, there are two types of learners: `OfflineLearner` and `OnlineLear
 By default, the `Learner` class enforces all learners have a way to perform checkpointing, initializing the parameters, and performing learning updates (if any).
   - `OfflineLearner` assumes that a batch of **offline** data is given, as a `ReplayBuffer`.
   The attribute is `_buffer`, which corresponds the "dataset" in the standard offline learning vocabulary.
+  Alternatively, we can use `torch.Dataset` instead of more traditional offline learning approaches (e.g. MNIST, Omniglot, etc.).
+  This can be specified through the configuration files using `buffer_config` for `ReplayBuffer` and `dataset_config` for `torch.Dataset`.
   - On the other hand, `OnlineLearner` assumes that it has access to a **buffer**, which is populated sample by sample.
   By varying the buffer size, we can obtain "streaming" online learners that assume to have no *memory*.
   The online learner can also interact with the environment, which is implemented via the `gymnasium` API.
+- `datasets` contains offline datasets.
+In particular, we provide variations of different datasets including linear regression/classification, MNIST, and Omniglot.
+The corresponding `wrapper.py` allows us to augment the dataset (e.g. convert a standard supervised learning problem into an in-context learning problem).
+- `envs` contains customized sequential decision making problems.
+We provide parameterized version of some `gymnasium` environments including MuJoCo, pendulum, and frozen lake, as well as parameterized version of Deepmind Control Suite.
+- `models` implements commonly used machine learning model architectures.
+To account for special layers including recurrent networks and batch normalization, we construct a standardized interface for inference---a model is expected to output a tuple `(model_output, carry, updates)`.
+`model_output` is the "prediction" of the model, `carry` is often known as the hidden state, and `updates` is used for storing information for layers such as batch normalization.
 
 ### Supported Custom Environments
 We provide customized MuJoCo environments (in both Gymnasium and Deepmind Control Suite) that randomize the physical parameters at the initialization of the environment. This allows us to do some form of multi-task learning, or some form of domain randomization. We achieve this by modifying the XML before passing it to the MuJoCo environment wrapper provided by `MujocoEnv` or `control.Environment`. For more details, the environments are located under `envs/mujoco` and `envs/dmc`.

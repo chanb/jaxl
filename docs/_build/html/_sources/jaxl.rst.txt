@@ -15,6 +15,7 @@ Subpackages
    jaxl.learners
    jaxl.losses
    jaxl.models
+   jaxl.optimizers
 
 Submodules
 ----------

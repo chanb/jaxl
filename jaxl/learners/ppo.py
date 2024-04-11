@@ -12,7 +12,6 @@ import timeit
 
 from jaxl.constants import *
 from jaxl.learners.reinforcement import OnPolicyLearner
-from jaxl.learners.utils import gather_per_leaf_l2_norm
 from jaxl.losses.reinforcement import (
     scan_gae_lambda_returns,
     make_pi_is_loss,
@@ -191,10 +190,12 @@ class PPO(OnPolicyLearner):
                     CONST_LOG_PROBS: pi_aux[CONST_LOG_PROBS],
                     CONST_ENTROPY: pi_aux[CONST_AUX].get(CONST_ENTROPY, 0.0),
                     CONST_REGULARIZATION: reg_term,
+                    CONST_UPDATES: pi_aux[CONST_AUX][CONST_UPDATES],
                 },
                 CONST_VF: {
                     CONST_LOSS: vf_loss,
                     CONST_NUM_CLIPPED: vf_aux.get(CONST_NUM_CLIPPED, 0),
+                    CONST_UPDATES: vf_aux[CONST_UPDATES],
                 },
             }
             return agg_loss, aux
@@ -343,6 +344,7 @@ class PPO(OnPolicyLearner):
                 grads[CONST_POLICY],
                 model_dict[CONST_OPT_STATE][CONST_POLICY],
                 model_dict[CONST_MODEL][CONST_POLICY],
+                aux[CONST_POLICY][CONST_UPDATES],
             )
 
             vf_params, vf_opt_state = vf_update(
@@ -350,6 +352,7 @@ class PPO(OnPolicyLearner):
                 grads[CONST_VF],
                 model_dict[CONST_OPT_STATE][CONST_VF],
                 model_dict[CONST_MODEL][CONST_VF],
+                aux[CONST_VF][CONST_UPDATES],
             )
 
             return {
@@ -423,10 +426,11 @@ class PPO(OnPolicyLearner):
             obss = self.update_obs_rms_and_normalize(obss, lengths)
 
             # Get value predictions for computing GAE return
-            vals, _ = self._model[CONST_VF].forward(
+            vals, _, _ = self._model[CONST_VF].forward(
                 self._model_dict[CONST_MODEL][CONST_VF],
                 np.concatenate((obss, np.array([[next_obs]])), axis=0),
                 np.concatenate((h_states, np.array([[next_h_state]])), axis=0),
+                eval=True,
             )
 
             unnormalized_vals = vals
@@ -514,7 +518,11 @@ class PPO(OnPolicyLearner):
                 for i in range(acts.shape[-1])
             }
             auxes[-1][CONST_POLICY] = {
-                i: {k: np.abs(old_act_params[k][..., i]).mean() for k in old_act_params}
+                i: {
+                    k: np.abs(old_act_params[k][..., i]).mean()
+                    for k in old_act_params
+                    if k != CONST_UPDATES
+                }
                 for i in range(acts.shape[-1])
             }
             self._num_updates += 1

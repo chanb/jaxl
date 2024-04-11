@@ -17,6 +17,7 @@ CONST_MODEL_DICT = "model_dict"
 CONST_OPTIMIZER = "optimizer"
 CONST_OPT_STATE = "opt_state"
 CONST_PARAMS = "params"
+CONST_EVAL = "eval"
 CONST_TRAIN = "train"
 CONST_TEST = "test"
 CONST_VALIDATION = "validation"
@@ -35,12 +36,14 @@ CONST_STD = "std"
 CONST_VAR = "var"
 CONST_DATASET_WRAPPER = "dataset_wrapper"
 CONST_WRAPPER = "wrapper"
+CONST_UPDATES = "updates"
 
 VALID_SPLIT = (CONST_TRAIN, CONST_TEST)
 
 CONST_A_MIN = "a_min"
 CONST_A_MAX = "a_max"
 
+CONST_EPS = "eps"
 CONST_EPSILON = "epsilon"
 
 CONST_ICL = "in_context_learning"
@@ -70,3 +73,4 @@ CONST_GLOBAL_STEP = "global_step"
 CONST_IS_RATIO = "is_ratio"
 
 CONST_AUTO = "auto"
+CONST_TAU = "tau"

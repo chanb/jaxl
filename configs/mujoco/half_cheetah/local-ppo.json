@@ -8,11 +8,13 @@
     "model_config": {
         "policy": {
             "architecture": "mlp",
-            "layers": [128, 128]
+            "layers": [128, 128],
+            "flatten": true
         },
         "vf": {
             "architecture": "mlp",
-            "layers": [128, 128]
+            "layers": [128, 128],
+            "flatten": true
         }
     },
     "optimizer_config": {
@@ -41,11 +43,8 @@
         "task": "reinforcement_learning",
         "env_config": {
             "env_type": "gym",
-            "env_name": "ParameterizedHalfCheetah-v0",
-            "env_kwargs": {
-                "seed": 36,
-                "use_default": true
-            }
+            "env_name": "HalfCheetah-v4",
+            "env_kwargs": {}
         },
         "seeds": {
             "model_seed": 42,
@@ -68,18 +67,31 @@
         "min_std": 1e-4,
         "opt_batch_size": 32,
         "opt_epochs": 10,
+        "kl_threshold": false,
+        "update_before_early_stopping": false,
+        "ent_loss_setting": {
+            "scheduler": "linear_schedule",
+            "scheduler_kwargs": {
+                "init_value": 0.002,
+                "end_value": 0.0,
+                "transition_begin": 0,
+                "transition_steps": 100
+            }
+        },
         "vf_loss_setting": {
             "coefficient": 0.5,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": 0.1
         },
         "pi_loss_setting": {
+            "objective": "clip",
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2
+            "clip_param": 0.1,
+            "beta": 0.02
         }
     },
     "train_config": {
-        "num_epochs": 1000
+        "num_epochs": 500
     }
 }

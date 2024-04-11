@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/hopper-default",
+        "save_path": "./logs/mujoco-hopper",
         "experiment_name": "ppo",
         "log_interval": 1,
         "checkpoint_interval": false
@@ -8,11 +8,13 @@
     "model_config": {
         "policy": {
             "architecture": "mlp",
-            "layers": [128, 128]
+            "layers": [128, 128],
+            "flatten": true
         },
         "vf": {
             "architecture": "mlp",
-            "layers": [128, 128]
+            "layers": [128, 128],
+            "flatten": true
         }
     },
     "optimizer_config": {
@@ -64,13 +66,16 @@
         "policy_distribution": "softmax",
         "temperature": 1.0,
         "opt_batch_size": 256,
-        "opt_epochs": 100,
-        "kl_threshold": 0.015,
-        "update_before_early_stopping": true,
+        "opt_epochs": 5,
+        "kl_threshold": false,
+        "update_before_early_stopping": false,
         "ent_loss_setting": {
-            "scheduler": "constant_schedule",
+            "scheduler": "linear_schedule",
             "scheduler_kwargs": {
-                "value": 0
+                "init_value": 0.002,
+                "end_value": 0.0,
+                "transition_begin": 0,
+                "transition_steps": 100
             }
         },
         "vf_loss_setting": {
@@ -82,8 +87,8 @@
             "objective": "clip",
             "coefficient": 1.0,
             "reduction": "mean",
-            "clip_param": 0.2,
-            "beta": 0.0
+            "clip_param": 0.1,
+            "beta": 0.02
         }
     },
     "train_config": {
