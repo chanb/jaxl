@@ -119,6 +119,7 @@ def construct_omniglot(
             num_sequences=task_config.num_sequences,
             sequence_length=task_config.sequence_length,
             p_bursty=task_config.p_bursty,
+            p_imagined_class=task_config.p_imagined_class,
             seed=seed,
             remap=remap,
             random_label=getattr(task_config, "random_label", False),
@@ -330,12 +331,14 @@ class MultitaskOmniglotBursty(Dataset):
         p_bursty: float = 1,
         min_num_per_class: int = 20,
         unique_classes: bool = False,
+        p_imagined_class: bool = False,
         remap: bool = False,
         random_label: bool = False,
         save_dir: str = None,
     ):
-        dataset_name = "omniglot_bursty-all_split-p_bursty_{}-num_sequences_{}-sequence_length_{}-min_num_per_class_{}-random_label_{}-seed_{}.pkl".format(
+        dataset_name = "omniglot_bursty-all_split-p_bursty_{}-p_imagined_class_{}-num_sequences_{}-sequence_length_{}-min_num_per_class_{}-random_label_{}-seed_{}.pkl".format(
             p_bursty,
+            p_imagined_class,
             num_sequences,
             sequence_length,
             min_num_per_class,
@@ -352,11 +355,13 @@ class MultitaskOmniglotBursty(Dataset):
                 context_idxes,
                 query_idxes,
                 is_bursty,
+                is_imagined_class,
             ) = self._generate_data(
                 num_sequences=num_sequences,
                 context_len=context_len,
                 p_bursty=p_bursty,
                 min_num_per_class=min_num_per_class,
+                p_imagined_class=p_imagined_class,
                 seed=seed,
             )
 
@@ -371,6 +376,7 @@ class MultitaskOmniglotBursty(Dataset):
                 "max_num_classes": max_num_classes,
                 "seed": seed,
                 "p_bursty": p_bursty,
+                "is_imagined_class": is_imagined_class,
                 "is_bursty": is_bursty,
             }
             maybe_save_dataset(
@@ -408,6 +414,7 @@ class MultitaskOmniglotBursty(Dataset):
         context_len: int,
         min_num_per_class: int,
         p_bursty: float,
+        p_imagined_class: bool,
         seed: int,
     ) -> Tuple[chex.Array, chex.Array, chex.Array]:
         print("Generating Data")
@@ -424,7 +431,9 @@ class MultitaskOmniglotBursty(Dataset):
             np.arange(min_num_per_class), size=(num_sequences, context_len)
         )
 
-        return context_idxes, query_idxes, is_bursty
+        is_imagined_class = sample_rng.rand(num_sequences) < p_imagined_class
+
+        return context_idxes, query_idxes, is_bursty, is_imagined_class
 
     @property
     def input_dim(self) -> chex.Array:
@@ -432,7 +441,7 @@ class MultitaskOmniglotBursty(Dataset):
 
     @property
     def output_dim(self) -> chex.Array:
-        return (self._data["max_num_classes"],)
+        return (self._data["max_num_classes"] + 1,)
 
     @property
     def sequence_length(self) -> int:
@@ -443,6 +452,7 @@ class MultitaskOmniglotBursty(Dataset):
 
     def __getitem__(self, idx):
         is_bursty = self._data["is_bursty"][idx]
+        is_imagined_class = self._data["is_imagined_class"][idx]
         sample_rng = np.random.RandomState(idx)
 
         label = sample_rng.choice(self._classes)
@@ -506,6 +516,7 @@ class MultitaskOmniglotBursty(Dataset):
                 )
             )
         )
+
         inputs = np.concatenate(
             (*[context_input[None] for context_input in inputs], query[None])
         )
@@ -517,9 +528,15 @@ class MultitaskOmniglotBursty(Dataset):
             )
             labels = label_map[labels]
 
+        if is_imagined_class:
+            inputs[-1] = 1.0
+            random_idx = sample_rng.randint(len(inputs) - 1)
+            inputs[random_idx] = 1.0
+            labels[random_idx] = labels[-1]
+
         if self._remap:
             labels = labels % 2
-        outputs = np.eye(self._data["max_num_classes"])[labels]
+        outputs = np.eye(self._data["max_num_classes"] + 1)[labels]
 
         return (inputs, outputs)
 
