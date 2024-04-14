@@ -231,7 +231,7 @@ def get_model(
         ):
             constructor = (
                 AsyncCustomTokenizerICSupervisedTransformer
-                if model_config.type == "async"
+                if getattr(model_config, "type", False) == "async"
                 else CustomTokenizerICSupervisedTransformer
             )
             return constructor(
