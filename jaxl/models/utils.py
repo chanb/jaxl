@@ -19,6 +19,7 @@ from jaxl.models.common import (
 from jaxl.models.transformers import (
     InContextSupervisedTransformer,
     CustomTokenizerICSupervisedTransformer,
+    AsyncCustomTokenizerICSupervisedTransformer,
 )
 from jaxl.models.policies import *
 from jaxl.models.q_functions import *
@@ -228,7 +229,12 @@ def get_model(
         if hasattr(model_config, CONST_INPUT_TOKENIZER) and hasattr(
             model_config, CONST_OUTPUT_TOKENIZER
         ):
-            return CustomTokenizerICSupervisedTransformer(
+            constructor = (
+                AsyncCustomTokenizerICSupervisedTransformer
+                if model_config.type == "async"
+                else CustomTokenizerICSupervisedTransformer
+            )
+            return constructor(
                 output_dim,
                 model_config.num_contexts,
                 model_config.num_blocks,
