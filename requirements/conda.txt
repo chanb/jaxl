@@ -15,3 +15,4 @@ moviepy>=1.0.3
 jupyter>=1.0.0
 xmldiff>=2.6.3
 dm-control>=1.0.13
+dill>=0.3.8

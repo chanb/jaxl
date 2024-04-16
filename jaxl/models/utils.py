@@ -2,8 +2,8 @@ from orbax.checkpoint import CheckpointManager, CheckpointManagerOptions
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union, Sequence, Iterable
 
-import _pickle as pickle
 import chex
+import dill
 import json
 import numpy as np
 import optax
@@ -390,15 +390,10 @@ def load_model(
 
     model = get_model(input_dim, output_dim, config.model_config)
 
-    checkpoint_manager = CheckpointManager(
-        os.path.join(learner_path, "models"),
-        CheckpointManagerOptions(),
-    )
-
-    all_steps = checkpoint_manager.all_steps()
+    all_steps = sorted(os.listdir(os.path.join(learner_path, "models")))
     to_load = min(len(all_steps) - 1, checkpoint_i)
     print("Loading checkpoint: {}".format(all_steps[to_load]))
-    params = checkpoint_manager.restore(all_steps[to_load])
+    params = dill.load(open(os.path.join(learner_path, "models", all_steps[to_load]), "rb"))
 
     return params, model
 
@@ -426,16 +421,8 @@ def iterate_models(
         config = parse_dict(config_dict)
 
     model = get_model(input_dim, output_dim, config.model_config)
-    abstract_pytree = pickle.load(open(os.path.join(learner_path, "abstract_pytree.pkl"), "rb"))
 
-    checkpoint_manager = CheckpointManager(
-        os.path.join(learner_path, "models"),
-        options=CheckpointManagerOptions(),
-    )
-
-    for step in checkpoint_manager.all_steps():
-        params = checkpoint_manager.restore(
-            step,
-            args=ocp.args.StandardRestore(abstract_pytree),
-        )
-        yield params, model, step
+    all_steps = sorted(os.listdir(os.path.join(learner_path, "models")))
+    for step in all_steps:
+        params = dill.load(open(os.path.join(learner_path, "models", step), "rb"))
+        yield params, model, int(step.split(".dill")[0])

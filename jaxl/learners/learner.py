@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Tuple, Union
 
-import _pickle as pickle
+import dill
 import chex
 import numpy as np
 import optax
@@ -271,7 +271,7 @@ class OnlineLearner(Learner):
         """
         if hasattr(self._env, "get_config"):
             with open(checkpoint_path, "wb") as f:
-                pickle.dump(self._env.get_config(), f)
+                dill.dump(self._env.get_config(), f)
 
     @property
     def env(self):

@@ -3,7 +3,7 @@
         "save_path": "./logs/icl-omniglot/async_batch_norm",
         "experiment_name": "sync",
         "log_interval": 50,
-        "checkpoint_interval": 50000
+        "checkpoint_interval": 10000
     },
     "model_config": {
         "architecture": "icl_gpt",
