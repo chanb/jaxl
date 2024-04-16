@@ -19,10 +19,13 @@ class MLPModule(nn.Module):
     output_activation: Callable
     use_batch_norm: bool
     use_bias: bool
+    flatten: bool = False
 
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         idx = -1
+        if self.flatten:
+            x = x.reshape((len(x), -1))
         for idx, layer in enumerate(self.layers[:-1]):
             x = self.activation(nn.Dense(layer)(x))
             if self.use_batch_norm:
