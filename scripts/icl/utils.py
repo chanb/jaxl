@@ -13,7 +13,13 @@ from torch.utils.data import DataLoader
 
 # Plot dataset example
 def plot_examples(
-    dataset, dataset_loader, num_examples, save_path, exp_name, eval_name, doc_width_pt=500
+    dataset,
+    dataset_loader,
+    num_examples,
+    save_path,
+    exp_name,
+    eval_name,
+    doc_width_pt=500,
 ):
     nrows = num_examples
     ncols = dataset._dataset.sequence_length
@@ -96,9 +102,7 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
         all_labels.append(labels)
         all_outputs.append(outputs)
         num_query_class_in_context.append(
-            np.max(
-                np.argmax(context_outputs, axis=-1) == labels[:, None], axis=-1
-            )
+            np.max(np.argmax(context_outputs, axis=-1) == labels[:, None], axis=-1)
         )
 
     all_outputs = np.concatenate(all_outputs)
@@ -170,9 +174,7 @@ def get_data_loader(
     if visualize:
         plot_examples(dataset)
 
-    data_loader = dataset.get_dataloader(
-        config.learner_config
-    )
+    data_loader = dataset.get_dataloader(config.learner_config)
     return dataset, data_loader
 
 
