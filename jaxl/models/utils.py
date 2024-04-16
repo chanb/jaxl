@@ -1,4 +1,4 @@
-from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
+from orbax.checkpoint import CheckpointManager, CheckpointManagerOptions
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union, Sequence, Iterable
 
@@ -390,7 +390,7 @@ def load_model(
 
     checkpoint_manager = CheckpointManager(
         os.path.join(learner_path, "models"),
-        PyTreeCheckpointer(),
+        CheckpointManagerOptions(),
     )
 
     all_steps = checkpoint_manager.all_steps()
@@ -427,9 +427,11 @@ def iterate_models(
 
     checkpoint_manager = CheckpointManager(
         os.path.join(learner_path, "models"),
-        PyTreeCheckpointer(),
+        options=CheckpointManagerOptions(),
     )
 
     for step in checkpoint_manager.all_steps():
-        params = checkpoint_manager.restore(step)
+        params = checkpoint_manager.restore(
+            step,
+        )
         yield params, model, step

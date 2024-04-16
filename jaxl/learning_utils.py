@@ -5,7 +5,7 @@ import os
 import tqdm
 
 from gymnasium import Env
-from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
+from orbax.checkpoint import CheckpointManagerOptions, CheckpointManager
 from torch.utils.tensorboard import SummaryWriter
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union
@@ -220,7 +220,7 @@ def load_evaluation_components(
 
     checkpoint_manager = CheckpointManager(
         os.path.join(run_path, "models"),
-        PyTreeCheckpointer(),
+        CheckpointManagerOptions(),
     )
 
     params = checkpoint_manager.restore(checkpoint_manager.latest_step())
