@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-widening_factor-pixel_noise_0.0-tf",
-        "experiment_name": "bursty_0.9-match_code",
+        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-pixel_noise_0.1-proper_variance_bn-tf",
+        "experiment_name": "bursty_0.9",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -66,7 +66,7 @@
                     "p_bursty": 0.9,
                     "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl-tf",
                     "augmentation": false,
-                    "noise_scale": 0.0,
+                    "noise_scale": 0.1,
                     "min_num_per_class": 1,
                     "unique_classes": false
                 }

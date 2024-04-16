@@ -201,12 +201,8 @@ class OfflineLearner(Learner):
                 self._config.dataset_config,
                 self._config.seeds.data_seed,
             )
-            self._train_dataloader = DataLoader(
-                self._buffer,
-                batch_size=self._config.batch_size,
-                shuffle=getattr(self._config.dataset_config, "shuffle", True),
-                drop_last=True,
-                num_workers=getattr(self._config.dataset_config, "num_workers", 0),
+            self._train_dataloader = self._buffer.get_dataloader(
+                self._config,
             )
             self._train_loader = iter(self._train_dataloader)
 

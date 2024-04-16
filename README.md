@@ -38,6 +38,7 @@ export XLA_FLAGS=--xla_gpu_graph_level=0
 ### Conda on Salient
 ```
 conda create --name jaxl python=3.11
+pip install tensorflow-cpu tensorflow-datasets
 conda install -c conda-forge glew
 conda install -c conda-forge mesalib
 conda install jaxlib=*=*cuda* jax cuda-nvcc -c conda-forge -c nvidia

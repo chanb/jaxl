@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-widening_factor-pixel_noise_0.1",
-        "experiment_name": "bursty_0.5",
+        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/all_samples-pixel_noise_0.0",
+        "experiment_name": "bursty_1.0",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
@@ -48,8 +48,7 @@
                 "warmup_steps": 4000
             }
         },
-        "max_grad_norm": false,
-        "mask_names": ["output_tokenizer"]
+        "max_grad_norm": false
     },
     "learner_config": {
         "task": "in_context_learning",
@@ -59,13 +58,14 @@
                 "save_path": "/home/bryanpu1/projects/icl/data",
                 "task_name": "multitask_omniglot_bursty",
                 "task_config": {
+                    "num_holdout": 10,
                     "num_sequences": 5000000,
                     "sequence_length": 9,
                     "random_label": false,
-                    "p_bursty": 0.5,
-                    "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
-                    "augmentation": true,
-                    "noise_scale": 0.1,
+                    "p_bursty": 1.0,
+                    "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl-tf",
+                    "augmentation": false,
+                    "noise_scale": 0.0,
                     "min_num_per_class": 1,
                     "unique_classes": false
                 }
@@ -79,8 +79,8 @@
             "num_workers": 4
         },
         "seeds": {
-            "model_seed": 42,
-            "data_seed": 42
+            "model_seed": 44,
+            "data_seed": 44
         },
         "learner": "mle",
         "losses": ["categorical", "l2"],

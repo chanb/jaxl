@@ -13,7 +13,13 @@ from torch.utils.data import DataLoader
 
 # Plot dataset example
 def plot_examples(
-    dataset, num_examples, save_path, exp_name, eval_name, doc_width_pt=500
+    dataset,
+    dataset_loader,
+    num_examples,
+    save_path,
+    exp_name,
+    eval_name,
+    doc_width_pt=500,
 ):
     nrows = num_examples
     ncols = dataset._dataset.sequence_length
@@ -25,8 +31,14 @@ def plot_examples(
         layout="constrained",
     )
 
+    samples = next(iter(dataset_loader))
+    cis = samples["context_inputs"]
+    cos = samples["context_outputs"]
+    qs = samples["queries"]
+    ls = samples["outputs"]
+
     for example_i in range(num_examples):
-        ci, co, q, l = dataset[example_i]
+        ci, co, q, l = cis[example_i], cos[example_i], qs[example_i], ls[example_i]
 
         for idx, (img, label) in enumerate(zip(ci, co)):
             axes[example_i, idx].imshow(img)
@@ -51,18 +63,27 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
     all_outputs = []
     num_query_class_in_context = []
 
-    for batch_i, samples in enumerate(data_loader):
+    for batch_i, data in enumerate(data_loader):
         if batch_i >= num_tasks:
             break
 
-        (context_inputs, context_outputs, queries, one_hot_labels) = samples
+        context_inputs = data["context_inputs"]
+        context_outputs = data["context_outputs"]
+        queries = data["queries"]
+        one_hot_labels = data["outputs"]
+
+        if hasattr(context_inputs, "numpy"):
+            context_inputs = context_inputs.numpy()
+            context_outputs = context_outputs.numpy()
+            queries = queries.numpy()
+            one_hot_labels = one_hot_labels.numpy()
 
         outputs, _, _ = model.forward(
             params[CONST_MODEL_DICT][CONST_MODEL],
-            queries.numpy(),
+            queries,
             {
-                CONST_CONTEXT_INPUT: context_inputs.numpy(),
-                CONST_CONTEXT_OUTPUT: context_outputs.numpy(),
+                CONST_CONTEXT_INPUT: context_inputs,
+                CONST_CONTEXT_OUTPUT: context_outputs,
             },
             eval=True,
         )
@@ -76,14 +97,12 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
             )
         else:
             preds = np.argmax(outputs[..., :max_label], axis=-1)
-        labels = np.argmax(one_hot_labels.numpy(), axis=-1)
+        labels = np.argmax(one_hot_labels, axis=-1)
         all_preds.append(preds)
         all_labels.append(labels)
         all_outputs.append(outputs)
         num_query_class_in_context.append(
-            np.max(
-                np.argmax(context_outputs.numpy(), axis=-1) == labels[:, None], axis=-1
-            )
+            np.max(np.argmax(context_outputs, axis=-1) == labels[:, None], axis=-1)
         )
 
     all_outputs = np.concatenate(all_outputs)
@@ -143,27 +162,19 @@ def print_performance_with_aux(
 
 # Get dataloader
 def get_data_loader(
-    dataset_config,
+    config,
     seed,
-    batch_size,
-    num_workers,
     visualize=False,
 ):
     dataset = get_dataset(
-        dataset_config,
+        config.learner_config.dataset_config,
         seed,
     )
 
     if visualize:
         plot_examples(dataset)
 
-    data_loader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        drop_last=False,
-        num_workers=num_workers,
-    )
+    data_loader = dataset.get_dataloader(config.learner_config)
     return dataset, data_loader
 
 

@@ -1,21 +1,22 @@
 {
     "logging_config": {
-        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/all_omniglot-pixel_noise_0.1",
-        "experiment_name": "bursty_0.0",
+        "save_path": "./logs/icl-omniglot/pixel_noise_ablation/single_sample-pixel_noise_0.1-proper_variance_bn-tf",
+        "experiment_name": "bursty_1.0",
         "log_interval": 50,
         "checkpoint_interval": 50000
     },
     "model_config": {
         "architecture": "icl_gpt",
         "num_contexts": 8,
-        "num_blocks": 8,
+        "num_blocks": 12,
         "num_heads": 8,
         "embed_dim": 64,
+        "widening_factor": 4,
         "positional_encoding": {
             "type": "default",
             "kwargs": {
                 "embed_dim": 64,
-                "max_len": 9
+                "max_len": 17
             }
         },
         "input_tokenizer": {
@@ -35,7 +36,8 @@
                 "layers": []
             }
         },
-        "query_pred_only": true
+        "query_pred_only": true,
+        "input_output_same_encoding": false
     },
     "optimizer_config": {
         "optimizer": "adam",
@@ -46,8 +48,7 @@
                 "warmup_steps": 4000
             }
         },
-        "max_grad_norm": false,
-        "mask_names": ["output_tokenizer"]
+        "max_grad_norm": false
     },
     "learner_config": {
         "task": "in_context_learning",
@@ -55,16 +56,18 @@
             "dataset_name": "omniglot",
             "dataset_kwargs": {
                 "save_path": "/home/bryanpu1/projects/icl/data",
-                "task_name": "multitask_omniglot_bursty",
+                "task_name": "multitask_omniglot_bursty_tf",
                 "task_config": {
+                    "load_path": "/home/bryanpu1/projects/icl/data/tf_omniglot-single_example-all.pkl",
+                    "num_holdout": 10,
                     "num_sequences": 5000000,
                     "sequence_length": 9,
                     "random_label": false,
-                    "p_bursty": 0.0,
-                    "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl",
-                    "augmentation": true,
+                    "p_bursty": 1.0,
+                    "save_dir": "/home/bryanpu1/projects/icl/data/omniglot_icl-tf",
+                    "augmentation": false,
                     "noise_scale": 0.1,
-                    "min_num_per_class": 20,
+                    "min_num_per_class": 1,
                     "unique_classes": false
                 }
             },
@@ -77,8 +80,8 @@
             "num_workers": 4
         },
         "seeds": {
-            "model_seed": 42,
-            "data_seed": 42
+            "model_seed": 44,
+            "data_seed": 44
         },
         "learner": "mle",
         "losses": ["categorical", "l2"],

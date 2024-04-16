@@ -17,6 +17,7 @@ from jaxl.datasets.linear_classification import (
 )
 from jaxl.datasets.mnist import construct_mnist
 from jaxl.datasets.omniglot import construct_omniglot
+from jaxl.datasets.tf_omniglot import utils
 from jaxl.datasets.random_classification import (
     MultitaskRandomClassificationND,
 )
@@ -60,7 +61,7 @@ def get_basis(dataset_kwargs: SimpleNamespace) -> Callable[..., chex.Array]:
 def get_dataset(
     dataset_config: SimpleNamespace,
     seed: int,
-) -> Dataset:
+) -> DatasetWrapper:
     """
     Gets a dataset.
 
@@ -69,7 +70,7 @@ def get_dataset(
     :type dataset_config: SimpleNamespace
     :type seed: int
     :return: the dataset
-    :rtype: Dataset
+    :rtype: DatasetWrapper
     """
     assert (
         dataset_config.dataset_name in VALID_DATASET
@@ -159,6 +160,11 @@ def get_dataset(
             train=getattr(dataset_kwargs, "train", True),
             remap=getattr(dataset_kwargs, "remap", False),
         )
+    elif dataset_config.dataset_name == CONST_OMNIGLOT_TF:
+        dataset = utils.get_omniglot_seq_generator(
+            dataset_kwargs,
+            seed,
+        )
     elif dataset_config.dataset_name == CONST_ONE_HOT_CLASSIFICATION:
         dataset = OneHotClassification(
             num_sequences=dataset_kwargs.num_sequences,
@@ -218,5 +224,7 @@ def get_dataset(
                 dataset_config.dataset_wrapper.kwargs.context_len,
                 dataset_config.dataset_wrapper.kwargs.seed,
             )
+    else:
+        dataset = DatasetWrapper(dataset)
 
     return dataset
