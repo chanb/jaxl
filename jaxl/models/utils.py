@@ -2,10 +2,12 @@ from orbax.checkpoint import CheckpointManager, CheckpointManagerOptions
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union, Sequence, Iterable
 
+import _pickle as pickle
 import chex
 import json
 import numpy as np
 import optax
+import orbax.checkpoint as ocp
 import os
 
 from jaxl.constants import *
@@ -424,6 +426,7 @@ def iterate_models(
         config = parse_dict(config_dict)
 
     model = get_model(input_dim, output_dim, config.model_config)
+    abstract_pytree = pickle.load(open(os.path.join(learner_path, "abstract_pytree.pkl"), "rb"))
 
     checkpoint_manager = CheckpointManager(
         os.path.join(learner_path, "models"),
@@ -433,5 +436,6 @@ def iterate_models(
     for step in checkpoint_manager.all_steps():
         params = checkpoint_manager.restore(
             step,
+            args=ocp.args.StandardRestore(abstract_pytree),
         )
         yield params, model, step

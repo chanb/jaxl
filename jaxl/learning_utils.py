@@ -1,4 +1,5 @@
 import _pickle as pickle
+import jax
 import json
 import orbax.checkpoint as ocp
 import os
@@ -107,6 +108,16 @@ def train(
 
             checkpoint_manager = CheckpointManager(
                 os.path.join(os.path.abspath(save_path), "models"),
+                options=ocp.CheckpointManagerOptions(),
+            )
+            checkpoint_manager.save(
+                0,
+                args=ocp.args.StandardSave(learner.checkpoint()),
+            )
+            abstract_pytree = jax.eval_shape(lambda: learner.checkpoint())
+            pickle.dump(
+                abstract_pytree,
+                open(os.path.join(save_path, "abstract_pytree.pkl"), "wb")
             )
 
         for epoch in tqdm.tqdm(range(train_config.num_epochs)):
@@ -128,7 +139,6 @@ def train(
                 and logging_config.checkpoint_interval
                 and (
                     true_epoch % logging_config.checkpoint_interval == 0
-                    or true_epoch == 1
                 )
             ):
                 with open(
