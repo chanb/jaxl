@@ -1,4 +1,3 @@
-from orbax.checkpoint import CheckpointManager, CheckpointManagerOptions
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union, Sequence, Iterable
 
@@ -7,7 +6,6 @@ import dill
 import json
 import numpy as np
 import optax
-import orbax.checkpoint as ocp
 import os
 
 from jaxl.constants import *
@@ -393,7 +391,9 @@ def load_model(
     all_steps = sorted(os.listdir(os.path.join(learner_path, "models")))
     to_load = min(len(all_steps) - 1, checkpoint_i)
     print("Loading checkpoint: {}".format(all_steps[to_load]))
-    params = dill.load(open(os.path.join(learner_path, "models", all_steps[to_load]), "rb"))
+    params = dill.load(
+        open(os.path.join(learner_path, "models", all_steps[to_load]), "rb")
+    )
 
     return params, model
 

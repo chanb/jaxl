@@ -5,7 +5,6 @@ import os
 import tqdm
 
 from gymnasium import Env
-from orbax.checkpoint import CheckpointManagerOptions, CheckpointManager
 from torch.utils.tensorboard import SummaryWriter
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union
@@ -92,9 +91,11 @@ def train(
     train_config = config.train_config
 
     num_digits = int(math.log10(train_config.num_epochs))
+
     def pad_string(s):
         s = str(s)
         return "0" * (num_digits - len(s)) + s
+
     true_epoch = 0
     summary_writer = DummySummaryWriter()
     try:
@@ -110,7 +111,10 @@ def train(
             learner.save_env_config(os.path.join(save_path, "env_config.dill"))
             dill.dump(
                 learner.checkpoint(),
-                open(os.path.join(save_path, "models", "{}.dill".format(pad_string(0))), "wb")
+                open(
+                    os.path.join(save_path, "models", "{}.dill".format(pad_string(0))),
+                    "wb",
+                ),
             )
 
         for epoch in tqdm.tqdm(range(train_config.num_epochs)):
@@ -130,9 +134,7 @@ def train(
             if (
                 save_path
                 and logging_config.checkpoint_interval
-                and (
-                    true_epoch % logging_config.checkpoint_interval == 0
-                )
+                and (true_epoch % logging_config.checkpoint_interval == 0)
             ):
                 with open(
                     os.path.join(save_path, "auxes", f"auxes-{true_epoch}.dill"),
@@ -153,14 +155,26 @@ def train(
                     )
                 dill.dump(
                     learner.checkpoint(),
-                    open(os.path.join(save_path, "models", "{}.dill".format(pad_string(true_epoch))), "wb")
+                    open(
+                        os.path.join(
+                            save_path,
+                            "models",
+                            "{}.dill".format(pad_string(true_epoch)),
+                        ),
+                        "wb",
+                    ),
                 )
     except KeyboardInterrupt:
         pass
     if save_path:
         dill.dump(
             learner.checkpoint(final=True),
-            open(os.path.join(save_path, "models", "{}.dill".format(pad_string(true_epoch))), "wb")
+            open(
+                os.path.join(
+                    save_path, "models", "{}.dill".format(pad_string(true_epoch))
+                ),
+                "wb",
+            ),
         )
 
 
@@ -222,12 +236,15 @@ def load_evaluation_components(
     )
     policy = get_policy(model, agent_config.learner_config)
 
-    checkpoint_manager = CheckpointManager(
-        os.path.join(run_path, "models"),
-        CheckpointManagerOptions(),
+    all_steps = sorted(
+        os.listdir(os.path.join(os.path.join(run_path, "models"), "models"))
     )
-
-    params = checkpoint_manager.restore(checkpoint_manager.latest_step())
+    params = dill.load(
+        open(
+            os.path.join(os.path.join(run_path, "models"), "models", all_steps[-1]),
+            "rb",
+        )
+    )
     model_dict = params[CONST_MODEL_DICT]
     policy_params = model_dict[CONST_MODEL][CONST_POLICY]
     obs_rms = False
