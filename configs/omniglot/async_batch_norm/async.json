@@ -54,10 +54,9 @@
     "learner_config": {
         "task": "in_context_learning",
         "dataset_config": {
-            "dataset_name": "omniglot",
+            "dataset_name": "omniglot_tf",
             "dataset_kwargs": {
-                "save_path": "/home/bryanpu1/projects/icl/data",
-                "task_name": "multitask_omniglot_bursty",
+                "task_name": "bursty",
                 "task_config": {
                     "num_holdout": 10,
                     "num_sequences": 5000000,
@@ -81,7 +80,7 @@
         },
         "seeds": {
             "model_seed": 44,
-            "data_seed": 44
+            "data_seed": 1337
         },
         "learner": "mle",
         "losses": ["categorical", "l2"],
