@@ -106,6 +106,7 @@ class OneHotClassification(Dataset):
         if not is_train and not remap:
             targets += num_classes - num_holdout
 
+        # TODO: Assign each class to a fixed input -> drawn from a sphere with equidistance
         inputs = np.eye(num_classes)[targets]
         noise = inputs_range[1] - data_gen_rng.uniform(
             inputs_range[0],
