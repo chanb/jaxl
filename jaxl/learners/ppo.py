@@ -1,13 +1,14 @@
-from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple
 
 import chex
+import dill
 import jax
 import jax.numpy as jnp
 import jax.random as jrandom
 import numpy as np
 import optax
+import os
 import timeit
 
 from jaxl.constants import *
@@ -239,11 +240,15 @@ class PPO(OnPolicyLearner):
         vf_params = self._model[CONST_VF].init(model_keys[1], dummy_x)
 
         if getattr(self._config, "load_pretrain", False):
-            checkpoint_manager = CheckpointManager(
-                self._config.load_pretrain.checkpoint_path,
-                PyTreeCheckpointer(),
+            all_steps = sorted(os.listdir(self._config.load_pretrain.checkpoint_path))
+            all_params = dill.load(
+                open(
+                    os.path.join(
+                        self._config.load_pretrain.checkpoint_path, all_steps[-1]
+                    ),
+                    "rb",
+                )
             )
-            all_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
             if CONST_POLICY in self._config.load_pretrain.load_components:
                 pi_params = all_params[CONST_MODEL_DICT][CONST_MODEL][CONST_POLICY]
             if CONST_VF in self._config.load_pretrain.load_components:

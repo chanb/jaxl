@@ -1,15 +1,13 @@
-from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union
 
-import _pickle as pickle
 import chex
+import dill
 import jax
 import jax.numpy as jnp
 import jax.random as jrandom
 import math
 import numpy as np
-import optax
 import os
 import timeit
 
@@ -206,11 +204,10 @@ class MTBC(OfflineLearner):
 
         encoder_path = getattr(self._config, "load_encoder", False)
         if encoder_path:
-            checkpoint_manager = CheckpointManager(
-                self._config.load_encoder,
-                PyTreeCheckpointer(),
+            all_steps = sorted(os.listdir(self._config.load_encoder))
+            all_params = dill.load(
+                open(os.path.join(self._config.load_encoder, all_steps[-1]), "rb")
             )
-            all_params = checkpoint_manager.restore(checkpoint_manager.latest_step())
             params[CONST_ENCODER] = all_params[CONST_MODEL_DICT][CONST_MODEL][
                 CONST_POLICY
             ][CONST_ENCODER]

@@ -32,7 +32,8 @@ results_dir = "./results"
 # ablation_name = "single_sample-widening_factor-pixel_noise_0.1-tf"
 # ablation_name = "all_samples-pixel_noise_0.0"
 # ablation_name = "single_sample-pixel_noise_0.1-proper_variance_bn-tf"
-ablation_name = "single_sample-pixel_noise_0.1"
+# ablation_name = "single_sample-pixel_noise_0.1"
+ablation_name = "async_batch_norm"
 
 # MNIST
 # ablation_name = "include_query_class-random_label"
