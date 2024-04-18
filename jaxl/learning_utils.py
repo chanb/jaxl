@@ -100,9 +100,8 @@ def train(
     summary_writer = DummySummaryWriter()
     try:
         if save_path:
-            if logging_config.checkpoint_interval:
-                os.makedirs(os.path.join(save_path, "models"), exist_ok=True)
-                os.makedirs(os.path.join(save_path, "auxes"), exist_ok=True)
+            os.makedirs(os.path.join(save_path, "models"), exist_ok=True)
+            os.makedirs(os.path.join(save_path, "auxes"), exist_ok=True)
             summary_writer = SummaryWriter(log_dir=f"{save_path}/tensorboard")
             summary_writer.add_text(
                 CONST_HYPERPARAMETERS,
