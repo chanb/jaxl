@@ -1,8 +1,8 @@
-from orbax.checkpoint import PyTreeCheckpointer, CheckpointManager
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple, Union, Sequence, Iterable
 
 import chex
+import dill
 import json
 import numpy as np
 import optax
@@ -19,6 +19,7 @@ from jaxl.models.common import (
 from jaxl.models.transformers import (
     InContextSupervisedTransformer,
     CustomTokenizerICSupervisedTransformer,
+    AsyncCustomTokenizerICSupervisedTransformer,
 )
 from jaxl.models.policies import *
 from jaxl.models.q_functions import *
@@ -229,7 +230,12 @@ def get_model(
         if hasattr(model_config, CONST_INPUT_TOKENIZER) and hasattr(
             model_config, CONST_OUTPUT_TOKENIZER
         ):
-            return CustomTokenizerICSupervisedTransformer(
+            constructor = (
+                AsyncCustomTokenizerICSupervisedTransformer
+                if getattr(model_config, "type", False) == "async"
+                else CustomTokenizerICSupervisedTransformer
+            )
+            return constructor(
                 output_dim,
                 model_config.num_contexts,
                 model_config.num_blocks,
@@ -383,15 +389,12 @@ def load_model(
 
     model = get_model(input_dim, output_dim, config.model_config)
 
-    checkpoint_manager = CheckpointManager(
-        os.path.join(learner_path, "models"),
-        PyTreeCheckpointer(),
-    )
-
-    all_steps = checkpoint_manager.all_steps()
+    all_steps = sorted(os.listdir(os.path.join(learner_path, "models")))
     to_load = min(len(all_steps) - 1, checkpoint_i)
     print("Loading checkpoint: {}".format(all_steps[to_load]))
-    params = checkpoint_manager.restore(all_steps[to_load])
+    params = dill.load(
+        open(os.path.join(learner_path, "models", all_steps[to_load]), "rb")
+    )
 
     return params, model
 
@@ -420,11 +423,7 @@ def iterate_models(
 
     model = get_model(input_dim, output_dim, config.model_config)
 
-    checkpoint_manager = CheckpointManager(
-        os.path.join(learner_path, "models"),
-        PyTreeCheckpointer(),
-    )
-
-    for step in checkpoint_manager.all_steps():
-        params = checkpoint_manager.restore(step)
-        yield params, model, step
+    all_steps = sorted(os.listdir(os.path.join(learner_path, "models")))
+    for step in all_steps:
+        params = dill.load(open(os.path.join(learner_path, "models", step), "rb"))
+        yield params, model, int(step.split(".dill")[0])
