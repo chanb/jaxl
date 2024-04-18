@@ -422,6 +422,7 @@ class MLP(Model):
         output_activation: str = CONST_IDENTITY,
         use_batch_norm: bool = False,
         use_bias: bool = True,
+        flatten: bool = False,
     ) -> None:
         self.use_batch_norm = use_batch_norm
         self.model = MLPModule(
@@ -430,6 +431,7 @@ class MLP(Model):
             get_activation(output_activation),
             use_batch_norm,
             use_bias,
+            flatten,
         )
         self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
 
