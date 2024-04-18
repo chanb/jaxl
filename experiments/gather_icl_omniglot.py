@@ -2,7 +2,6 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 from types import SimpleNamespace
 from typing import Dict, Any

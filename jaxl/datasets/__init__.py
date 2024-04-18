@@ -165,6 +165,17 @@ def get_dataset(
             dataset_kwargs,
             seed,
         )
+    elif dataset_config.dataset_name == CONST_TIGHT_FRAME:
+        from jaxl.datasets.tight_frame_classification import TightFrameClassification
+        dataset = TightFrameClassification(
+            tight_frame_path=dataset_kwargs.tight_frame_path,
+            num_sequences=dataset_kwargs.num_sequences,
+            sequence_length=dataset_kwargs.sequence_length,
+            num_holdout=dataset_kwargs.num_holdout,
+            split=dataset_kwargs.split,
+            p_bursty=dataset_kwargs.p_bursty,
+            seed=seed,
+        )
     elif dataset_config.dataset_name == CONST_ONE_HOT_CLASSIFICATION:
         dataset = OneHotClassification(
             num_sequences=dataset_kwargs.num_sequences,

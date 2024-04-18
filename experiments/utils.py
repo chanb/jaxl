@@ -2,13 +2,11 @@ from jaxl.constants import *
 from jaxl.datasets import get_dataset
 from jaxl.plot_utils import set_size
 
-import _pickle as pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 from sklearn.metrics import confusion_matrix
-from torch.utils.data import DataLoader
 
 
 # Plot dataset example
