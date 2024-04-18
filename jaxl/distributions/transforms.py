@@ -1,4 +1,4 @@
-from abc import abstractstaticmethod, ABC
+from abc import abstractmethod, ABC
 
 import chex
 import jax
@@ -10,7 +10,7 @@ class Transform(ABC):
     Abstract transform class.
     """
 
-    @abstractstaticmethod
+    @abstractmethod
     def transform(x: chex.Array) -> chex.Array:
         """
         Transforms the samples.
@@ -23,7 +23,7 @@ class Transform(ABC):
         """
         pass
 
-    @abstractstaticmethod
+    @abstractmethod
     def log_abs_det_jacobian(self, x: chex.Array, x_t: chex.Array) -> chex.Array:
         """
         Computes the "adjustment" term for the transformation when
@@ -39,7 +39,7 @@ class Transform(ABC):
         """
         pass
 
-    @abstractstaticmethod
+    @abstractmethod
     def inv(self, x: chex.Array) -> chex.Array:
         """
         Invert the transformed samples.
@@ -85,7 +85,7 @@ class TanhTransform(Transform):
         """
         return 2.0 * (math.log(2.0) - x - jax.nn.softplus(-2.0 * x))
 
-    @abstractstaticmethod
+    @abstractmethod
     def inv(self, x: chex.Array) -> chex.Array:
         """
         Invert the transformed samples.

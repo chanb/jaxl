@@ -15,6 +15,7 @@ from jaxl.datasets.linear_classification import (
 from jaxl.datasets.mnist import construct_mnist
 from jaxl.datasets.omniglot import construct_omniglot
 from jaxl.datasets.tf_omniglot import utils
+from jaxl.datasets.wrappers import DatasetWrapper
 
 import chex
 import numpy as np
@@ -176,6 +177,6 @@ def get_dataset(
         else:
             raise NotImplementedError
     else:
-        dataset = dataset_wrappers.DatasetWrapper(dataset)
+        dataset = DatasetWrapper(dataset)
 
     return dataset

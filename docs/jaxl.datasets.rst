@@ -12,14 +12,6 @@ jaxl.datasets.basis\_regression module
    :undoc-members:
    :show-inheritance:
 
-jaxl.datasets.large\_classes\_classification module
----------------------------------------------------
-
-.. automodule:: jaxl.datasets.large_classes_classification
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 jaxl.datasets.linear\_classification module
 -------------------------------------------
 
@@ -52,10 +44,10 @@ jaxl.datasets.omniglot module
    :undoc-members:
    :show-inheritance:
 
-jaxl.datasets.random\_classification module
--------------------------------------------
+jaxl.datasets.tight\_frame\_classification module
+-------------------------------------------------
 
-.. automodule:: jaxl.datasets.random_classification
+.. automodule:: jaxl.datasets.tight_frame_classification
    :members:
    :undoc-members:
    :show-inheritance:

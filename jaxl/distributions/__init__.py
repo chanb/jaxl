@@ -8,7 +8,7 @@ import jax
 from typing import Callable
 
 
-def get_transform(transform_name: str) -> Callable[chex.Array, chex.Array]:
+def get_transform(transform_name: str) -> Callable[[chex.Array], chex.Array]:
     """
     Gets a transform
 
