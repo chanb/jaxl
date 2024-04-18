@@ -22,7 +22,6 @@ from jaxl.constants import *
 from jaxl.buffers import get_buffer, ReplayBuffer
 from jaxl.envs import get_environment
 from jaxl.envs.rollouts import EvaluationRollout
-from jaxl.learning_utils import load_evaluation_components
 from jaxl.models import get_model, get_policy, policy_output_dim, Policy
 from jaxl.utils import set_seed, get_device, parse_dict, RunningMeanStd
 
@@ -139,11 +138,11 @@ def load_evaluation_components(
     policy = get_policy(model, agent_config.learner_config)
 
     all_steps = sorted(
-        os.listdir(os.path.join(os.path.join(run_path, "models"), "models"))
+        os.listdir(os.path.join(run_path, "models"))
     )
     params = dill.load(
         open(
-            os.path.join(os.path.join(run_path, "models"), "models", all_steps[-1]),
+            os.path.join(run_path, "models", all_steps[-1]),
             "rb",
         )
     )

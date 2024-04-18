@@ -102,7 +102,7 @@ class A2C(OnPolicyLearner):
                 CONST_ADVANTAGE: (rets - baselines).mean(),
                 CONST_UPDATES: {
                     CONST_VF: vf_aux[CONST_UPDATES],
-                    CONST_POLICY: pi_aux[CONST_UPDATES],
+                    CONST_POLICY: pi_aux[CONST_AUX][CONST_UPDATES],
                 },
             }
             return agg_loss, aux
