@@ -1,11 +1,9 @@
-import _pickle as pickle
 import chex
 import jax.random as jrandom
 import numpy as np
-import os
 
 from torch.utils.data import Dataset
-from typing import Callable, Tuple
+from typing import Tuple
 
 from jaxl.datasets.utils import maybe_load_dataset, maybe_save_dataset
 

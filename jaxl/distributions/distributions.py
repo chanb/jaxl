@@ -1,4 +1,4 @@
-from abc import abstractstaticmethod
+from abc import abstractmethod
 from jax.scipy.special import entr
 from typing import Optional
 
@@ -15,7 +15,7 @@ class Distribution:
     Abstract distribution class
     """
 
-    @abstractstaticmethod
+    @abstractmethod
     def sample(
         *, key: jrandom.PRNGKey, num_samples: Optional[int] = None
     ) -> chex.Array:
@@ -33,7 +33,7 @@ class Distribution:
         """
         raise NotImplementedError
 
-    @abstractstaticmethod
+    @abstractmethod
     def lprob(*, x: chex.Array) -> chex.Array:
         """
         Computes the log probabilities.
@@ -47,7 +47,7 @@ class Distribution:
         """
         raise NotImplementedError
 
-    @abstractstaticmethod
+    @abstractmethod
     def entropy(*args) -> chex.Array:
         """
         Computes the entropy of the distribution.

@@ -6,9 +6,6 @@ from jaxl.constants import *
 from jaxl.datasets.basis_regression import (
     MultitaskFixedBasisRegression1D,
 )
-from jaxl.datasets.large_classes_classification import (
-    OneHotClassification,
-)
 from jaxl.datasets.linear_regression import (
     MultitaskLinearRegressionND,
 )
@@ -18,13 +15,12 @@ from jaxl.datasets.linear_classification import (
 from jaxl.datasets.mnist import construct_mnist
 from jaxl.datasets.omniglot import construct_omniglot
 from jaxl.datasets.tf_omniglot import utils
-from jaxl.datasets.random_classification import (
-    MultitaskRandomClassificationND,
-)
-from jaxl.datasets.wrappers import *
+from jaxl.datasets.wrappers import DatasetWrapper
 
 import chex
 import numpy as np
+
+import jaxl.datasets.wrappers as dataset_wrappers
 
 
 """
@@ -129,19 +125,6 @@ def get_dataset(
                 None,
             ),
         )
-    elif dataset_config.dataset_name == CONST_MULTITASK_ND_RANDOM_CLASSIFICATION:
-        dataset = MultitaskRandomClassificationND(
-            num_sequences=dataset_kwargs.num_sequences,
-            sequence_length=dataset_kwargs.sequence_length,
-            input_dim=dataset_kwargs.input_dim,
-            seed=seed,
-            inputs_range=getattr(dataset_kwargs, "inputs_range", [-1.0, 1.0]),
-            save_path=getattr(
-                dataset_kwargs,
-                "save_path",
-                None,
-            ),
-        )
     elif dataset_config.dataset_name == CONST_MNIST:
         dataset = construct_mnist(
             dataset_kwargs.save_path,
@@ -165,21 +148,18 @@ def get_dataset(
             dataset_kwargs,
             seed,
         )
-    elif dataset_config.dataset_name == CONST_ONE_HOT_CLASSIFICATION:
-        dataset = OneHotClassification(
+    elif dataset_config.dataset_name == CONST_TIGHT_FRAME:
+        from jaxl.datasets.tight_frame_classification import TightFrameClassification
+
+        dataset = TightFrameClassification(
+            tight_frame_path=dataset_kwargs.tight_frame_path,
             num_sequences=dataset_kwargs.num_sequences,
             sequence_length=dataset_kwargs.sequence_length,
-            num_classes=dataset_kwargs.num_classes,
             num_holdout=dataset_kwargs.num_holdout,
             split=dataset_kwargs.split,
-            remap=getattr(dataset_kwargs, "remap", False),
+            p_bursty=dataset_kwargs.p_bursty,
+            random_label=getattr(dataset_kwargs, "random_label", False),
             seed=seed,
-            inputs_range=getattr(dataset_kwargs, "inputs_range", [0.0, 0.5]),
-            save_dir=getattr(
-                dataset_kwargs,
-                "save_dir",
-                None,
-            ),
         )
     else:
         raise ValueError(
@@ -187,43 +167,15 @@ def get_dataset(
         )
 
     if hasattr(dataset_config, CONST_DATASET_WRAPPER):
-        if dataset_config.dataset_wrapper.type == "StandardSupervisedDataset":
-            dataset = StandardSupervisedDataset(dataset)
-        elif dataset_config.dataset_wrapper.type == "FixedLengthTrajectoryDataset":
-            dataset = FixedLengthTrajectoryDataset(
-                dataset, dataset_config.dataset_wrapper.kwargs.sample_seq_len
+        wrapper_constructor = getattr(
+            dataset_wrappers, dataset_config.dataset_wrapper.type, None
+        )
+        if wrapper_constructor:
+            dataset = wrapper_constructor(
+                dataset, **vars(dataset_config.dataset_wrapper.kwargs)
             )
-        elif dataset_config.dataset_wrapper.type == "ContextDataset":
-            dataset = ContextDataset(
-                dataset,
-                dataset_config.dataset_wrapper.kwargs.context_len,
-                getattr(
-                    dataset_config.dataset_wrapper.kwargs, "include_query_class", False
-                ),
-            )
-        elif dataset_config.dataset_wrapper.type == "RepeatedContextDataset":
-            dataset = RepeatedContextDataset(
-                dataset, dataset_config.dataset_wrapper.kwargs.context_len
-            )
-        elif dataset_config.dataset_wrapper.type == "FixedLengthContextDataset":
-            dataset = FixedLengthContextDataset(
-                dataset, dataset_config.dataset_wrapper.kwargs.context_len
-            )
-        elif dataset_config.dataset_wrapper.type == "PermutationContextDataset":
-            dataset = PermutationContextDataset(
-                dataset,
-                dataset_config.dataset_wrapper.kwargs.context_len,
-                dataset_config.dataset_wrapper.kwargs.seed,
-            )
-        elif (
-            dataset_config.dataset_wrapper.type
-            == "PermutationFixedLengthContextDataset"
-        ):
-            dataset = PermutationFixedLengthContextDataset(
-                dataset,
-                dataset_config.dataset_wrapper.kwargs.context_len,
-                dataset_config.dataset_wrapper.kwargs.seed,
-            )
+        else:
+            raise NotImplementedError
     else:
         dataset = DatasetWrapper(dataset)
 

@@ -137,9 +137,7 @@ def load_evaluation_components(
     )
     policy = get_policy(model, agent_config.learner_config)
 
-    all_steps = sorted(
-        os.listdir(os.path.join(run_path, "models"))
-    )
+    all_steps = sorted(os.listdir(os.path.join(run_path, "models")))
     params = dill.load(
         open(
             os.path.join(run_path, "models", all_steps[-1]),

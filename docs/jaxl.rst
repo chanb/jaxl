@@ -20,14 +20,6 @@ Subpackages
 Submodules
 ----------
 
-jaxl.gather\_expert\_data module
---------------------------------
-
-.. automodule:: jaxl.gather_expert_data
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 jaxl.learning\_utils module
 ---------------------------
 
