@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "./logs/mujoco-hopper",
+        "save_path": "./logs/mujoco/hopper",
         "experiment_name": "ppo",
         "log_interval": 1,
         "checkpoint_interval": false

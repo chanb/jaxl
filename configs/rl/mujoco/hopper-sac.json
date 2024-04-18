@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/mujoco-hopper",
-        "experiment_name": "sac-unbounded_std",
+        "save_path": "./logs/mujoco/hopper",
+        "experiment_name": "sac",
         "log_interval": 1,
         "checkpoint_interval": false
     },
