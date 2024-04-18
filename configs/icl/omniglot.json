@@ -56,7 +56,8 @@
         "dataset_config": {
             "dataset_name": "omniglot",
             "dataset_kwargs": {
-                "task_name": "bursty",
+                "save_path": "/home/bryanpu1/projects/icl/data",
+                "task_name": "multitask_omniglot_bursty",
                 "task_config": {
                     "num_holdout": 10,
                     "num_sequences": 5000000,
@@ -80,7 +81,7 @@
         },
         "seeds": {
             "model_seed": 44,
-            "data_seed": 1337
+            "data_seed": 44
         },
         "learner": "mle",
         "losses": ["categorical", "l2"],
