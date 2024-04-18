@@ -1,12 +1,46 @@
 import _pickle as pickle
 import chex
+import jax
+import jax.numpy as jnp
 import jax.random as jrandom
 import numpy as np
+import optax
 import os
 
 from torch.utils.data import Dataset
 
 from jaxl.constants import *
+
+
+def make_tight_frame(
+    save_path: str,
+    num_classes: int = 1000,
+    hidden_dim: int = 64,
+    num_epochs: int = 20000,
+    lr: float = 1e-4,
+    seed: int = 0,
+):
+    frames = np.random.RandomState(seed).randn(num_classes, hidden_dim)
+
+    @jax.jit
+    def loss_fn(v):
+        return jnp.sum(
+            (jnp.sum(v[..., None] @ v[:, None], axis=0) - jnp.eye(hidden_dim)) ** 2
+        )
+
+    optimizer = optax.sgd(lr)
+    opt_state = optimizer.init(frames)
+
+    losses = []
+    for ii in range(num_epochs):
+        loss, grads = jax.value_and_grad(loss_fn)(frames)
+
+        updates, opt_state = optimizer.update(grads, opt_state)
+        frames = optax.apply_updates(a, updates)
+        if (ii + 1) % 1000 == 0:
+            losses.append(loss)
+            print(ii + 1, loss)
+    pickle.dump(frames, open(save_path, "wb"))
 
 
 class TightFrameClassification(Dataset):
