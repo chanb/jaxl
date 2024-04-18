@@ -58,7 +58,7 @@ You may install this code on Compute Canada by simply running `jaxl/installation
 ### Locally
 To run a single experiment, you may execute:
 ```
-python jaxl/main.py --config_path=${config_path} --run_seed=${run_seed} --device=${device}
+python main.py --config_path=${config_path} --run_seed=${run_seed} --device=${device}
 ```
 Examples of configuration file (i.e. `config_path`) are located under `jaxl/configs`.
 `device` can be `cpu` or `gpu:<device_ids>` (e.g. `gpu:0,1`).

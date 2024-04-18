@@ -6,6 +6,8 @@ from jaxl.constants.losses import *
 from jaxl.constants.models import *
 from jaxl.constants.optimizers import *
 
+CONST_CPU = "cpu"
+CONST_GPU = "gpu"
 CONST_BUFFER_CONFIG = "buffer_config"
 CONST_BUFFER_PATH = "buffer_path"
 CONST_CONFIG = "config"

@@ -22,11 +22,13 @@ from jaxl.losses.reinforcement import (
 from jaxl.losses.supervised import make_squared_loss
 from jaxl.models import (
     get_model,
-    get_optimizer,
     get_policy,
-    get_scheduler,
     get_update_function,
     policy_output_dim,
+)
+from jaxl.optimizers import (
+    get_scheduler,
+    get_optimizer,
 )
 from jaxl.utils import l2_norm
 

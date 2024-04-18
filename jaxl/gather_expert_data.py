@@ -5,27 +5,27 @@ XXX: Try not to modify this.
 
 from absl import app, flags
 from absl.flags import FlagValues
+from gymnasium import Env
 from gymnasium.experimental.wrappers import RecordVideoV0
+from typing import Any, Dict, Tuple, Union
 
 import _pickle as pickle
+import dill
 import jax
+import json
 import logging
 import numpy as np
 import os
 import timeit
 
-from jaxl.constants import (
-    CONST_EPISODE_LENGTHS,
-    CONST_EPISODIC_RETURNS,
-    CONST_RUN_PATH,
-    CONST_BUFFER_PATH,
-)
+from jaxl.constants import *
+from jaxl.buffers import get_buffer, ReplayBuffer
+from jaxl.envs import get_environment
 from jaxl.envs.rollouts import EvaluationRollout
 from jaxl.learning_utils import load_evaluation_components
-from jaxl.utils import set_seed, get_device
+from jaxl.models import get_model, get_policy, policy_output_dim, Policy
+from jaxl.utils import set_seed, get_device, parse_dict, RunningMeanStd
 
-CONST_CPU = "cpu"
-CONST_GPU = "gpu"
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string("run_path", default=None, help="The saved run", required=True)
@@ -78,6 +78,82 @@ flags.DEFINE_string(
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
+
+def load_evaluation_components(
+    run_path: str,
+    buffer_size: int,
+) -> Tuple[
+    Policy,
+    Dict[str, Any],
+    Union[RunningMeanStd, bool],
+    Env,
+    ReplayBuffer,
+    int,
+]:
+    """
+
+    Loads the latest checkpointed agent, the buffer, and the environment.
+
+    :param run_path: the configuration file path to load the components from
+    :param buffer_size: the buffer size
+    :type run_path: str
+    :type buffer_size: int
+    :return: the latest checkpointed agent, the buffer, and the environment
+    :rtype: Tuple[Policy, Dict[str, Any], Union[RunningMeanStd, bool], ReplayBuffer, Env, int,]
+
+    """
+    assert buffer_size > 0, f"buffer_size {buffer_size} needs to be at least 1."
+    assert os.path.isdir(run_path), f"{run_path} is not a directory"
+
+    agent_config_path = os.path.join(run_path, "config.json")
+    with open(agent_config_path, "r") as f:
+        agent_config_dict = json.load(f)
+
+    agent_config_dict["learner_config"]["buffer_config"]["buffer_size"] = buffer_size
+    agent_config_dict["learner_config"]["buffer_config"]["buffer_type"] = CONST_DEFAULT
+    agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
+        "render_mode"
+    ] = "rgb_array"
+    agent_config = parse_dict(agent_config_dict)
+
+    h_state_dim = (1,)
+    if hasattr(agent_config.model_config, "h_state_dim"):
+        h_state_dim = agent_config.model_config.h_state_dim
+    env = get_environment(agent_config.learner_config.env_config)
+    env_seed = agent_config.learner_config.seeds.env_seed
+
+    buffer = get_buffer(
+        agent_config.learner_config.buffer_config,
+        agent_config.learner_config.seeds.buffer_seed,
+        env,
+        h_state_dim,
+    )
+    input_dim = buffer.input_dim
+    output_dim = policy_output_dim(buffer.output_dim, agent_config.learner_config)
+    model = get_model(
+        input_dim,
+        output_dim,
+        getattr(agent_config.model_config, "policy", agent_config.model_config),
+    )
+    policy = get_policy(model, agent_config.learner_config)
+
+    all_steps = sorted(
+        os.listdir(os.path.join(os.path.join(run_path, "models"), "models"))
+    )
+    params = dill.load(
+        open(
+            os.path.join(os.path.join(run_path, "models"), "models", all_steps[-1]),
+            "rb",
+        )
+    )
+    model_dict = params[CONST_MODEL_DICT]
+    policy_params = model_dict[CONST_MODEL][CONST_POLICY]
+    obs_rms = False
+    if CONST_OBS_RMS in params:
+        obs_rms = RunningMeanStd()
+        obs_rms.set_state(params[CONST_OBS_RMS])
+    return policy, policy_params, obs_rms, buffer, env, env_seed
 
 
 """

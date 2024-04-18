@@ -36,14 +36,6 @@ jaxl.learning\_utils module
    :undoc-members:
    :show-inheritance:
 
-jaxl.main module
-----------------
-
-.. automodule:: jaxl.main
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 jaxl.plot\_utils module
 -----------------------
 

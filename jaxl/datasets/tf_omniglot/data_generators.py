@@ -122,7 +122,6 @@ class OmniglotDatasetForSampling:
         for image in data_orig.values():
             for flip_lr in [False, True]:
                 for rot90 in range(4):
-
                     # Apply the transformations.
                     transformed = image.copy()
                     if flip_lr:
