@@ -18,7 +18,6 @@ from jaxl.losses.reinforcement import (
 )
 from jaxl.models import (
     get_model,
-    get_optimizer,
     get_policy,
     get_q_function,
     get_update_function,
@@ -28,6 +27,7 @@ from jaxl.models import (
     Temperature,
     get_fixed_policy,
 )
+from jaxl.optimizers import get_optimizer
 from jaxl.utils import l2_norm, polyak_average_generator
 
 

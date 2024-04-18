@@ -6,7 +6,6 @@ import jax
 import jax.numpy as jnp
 import jax.random as jrandom
 import numpy as np
-import optax
 import timeit
 
 from jaxl.constants import *
@@ -14,11 +13,11 @@ from jaxl.learners.reinforcement import OnPolicyLearner
 from jaxl.losses.reinforcement import monte_carlo_returns, make_reinforce_loss
 from jaxl.models import (
     get_model,
-    get_optimizer,
     get_policy,
     get_update_function,
     policy_output_dim,
 )
+from jaxl.optimizers import get_optimizer
 from jaxl.utils import l2_norm
 
 

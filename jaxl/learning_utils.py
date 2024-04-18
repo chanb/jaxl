@@ -1,21 +1,15 @@
 import dill
-import json
 import math
 import os
 import tqdm
 
-from gymnasium import Env
 from torch.utils.tensorboard import SummaryWriter
 from types import SimpleNamespace
-from typing import Any, Dict, Tuple, Union
 
-from jaxl.buffers import get_buffer, ReplayBuffer
 from jaxl.constants import *
-from jaxl.envs import get_environment
 from jaxl.learners import Learner
-from jaxl.models import get_model, get_policy, policy_output_dim, Policy
 from jaxl.plot_utils import icl_image_grid
-from jaxl.utils import DummySummaryWriter, parse_dict, RunningMeanStd
+from jaxl.utils import DummySummaryWriter
 
 import jaxl.learners as jaxl_learners
 
@@ -175,79 +169,3 @@ def train(
                 "wb",
             ),
         )
-
-
-def load_evaluation_components(
-    run_path: str,
-    buffer_size: int,
-) -> Tuple[
-    Policy,
-    Dict[str, Any],
-    Union[RunningMeanStd, bool],
-    Env,
-    ReplayBuffer,
-    int,
-]:
-    """
-
-    Loads the latest checkpointed agent, the buffer, and the environment.
-
-    :param run_path: the configuration file path to load the components from
-    :param buffer_size: the buffer size
-    :type run_path: str
-    :type buffer_size: int
-    :return: the latest checkpointed agent, the buffer, and the environment
-    :rtype: Tuple[Policy, Dict[str, Any], Union[RunningMeanStd, bool], ReplayBuffer, Env, int,]
-
-    """
-    assert buffer_size > 0, f"buffer_size {buffer_size} needs to be at least 1."
-    assert os.path.isdir(run_path), f"{run_path} is not a directory"
-
-    agent_config_path = os.path.join(run_path, "config.json")
-    with open(agent_config_path, "r") as f:
-        agent_config_dict = json.load(f)
-
-    agent_config_dict["learner_config"]["buffer_config"]["buffer_size"] = buffer_size
-    agent_config_dict["learner_config"]["buffer_config"]["buffer_type"] = CONST_DEFAULT
-    agent_config_dict["learner_config"]["env_config"]["env_kwargs"][
-        "render_mode"
-    ] = "rgb_array"
-    agent_config = parse_dict(agent_config_dict)
-
-    h_state_dim = (1,)
-    if hasattr(agent_config.model_config, "h_state_dim"):
-        h_state_dim = agent_config.model_config.h_state_dim
-    env = get_environment(agent_config.learner_config.env_config)
-    env_seed = agent_config.learner_config.seeds.env_seed
-
-    buffer = get_buffer(
-        agent_config.learner_config.buffer_config,
-        agent_config.learner_config.seeds.buffer_seed,
-        env,
-        h_state_dim,
-    )
-    input_dim = buffer.input_dim
-    output_dim = policy_output_dim(buffer.output_dim, agent_config.learner_config)
-    model = get_model(
-        input_dim,
-        output_dim,
-        getattr(agent_config.model_config, "policy", agent_config.model_config),
-    )
-    policy = get_policy(model, agent_config.learner_config)
-
-    all_steps = sorted(
-        os.listdir(os.path.join(os.path.join(run_path, "models"), "models"))
-    )
-    params = dill.load(
-        open(
-            os.path.join(os.path.join(run_path, "models"), "models", all_steps[-1]),
-            "rb",
-        )
-    )
-    model_dict = params[CONST_MODEL_DICT]
-    policy_params = model_dict[CONST_MODEL][CONST_POLICY]
-    obs_rms = False
-    if CONST_OBS_RMS in params:
-        obs_rms = RunningMeanStd()
-        obs_rms.set_state(params[CONST_OBS_RMS])
-    return policy, policy_params, obs_rms, buffer, env, env_seed

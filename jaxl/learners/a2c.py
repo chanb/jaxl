@@ -5,7 +5,6 @@ import chex
 import jax
 import jax.random as jrandom
 import numpy as np
-import optax
 import timeit
 
 from jaxl.constants import *
@@ -14,11 +13,11 @@ from jaxl.losses.reinforcement import monte_carlo_returns, make_reinforce_loss
 from jaxl.losses.supervised import make_squared_loss
 from jaxl.models import (
     get_model,
-    get_optimizer,
     get_policy,
     get_update_function,
     policy_output_dim,
 )
+from jaxl.optimizers import get_optimizer
 from jaxl.utils import l2_norm
 
 
@@ -103,7 +102,7 @@ class A2C(OnPolicyLearner):
                 CONST_ADVANTAGE: (rets - baselines).mean(),
                 CONST_UPDATES: {
                     CONST_VF: vf_aux[CONST_UPDATES],
-                    CONST_POLICY: pi_aux[CONST_UPDATES],
+                    CONST_POLICY: pi_aux[CONST_AUX][CONST_UPDATES],
                 },
             }
             return agg_loss, aux
