@@ -403,7 +403,7 @@ def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
     :type embed_dim: int
     :return: a tokenizer
     :rtype: Model
-    """ 
+    """
     assert (
         tokenizer_config.type in VALID_TOKENIZER_TYPE
     ), f"{tokenizer_config.type} is not supported (one of {VALID_TOKENIZER_TYPE})"

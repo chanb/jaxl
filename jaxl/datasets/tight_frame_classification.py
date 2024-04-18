@@ -18,6 +18,7 @@ class TightFrameClassification(Dataset):
         num_holdout: int,
         split: str,
         p_bursty: float,
+        random_label: bool = False,
         seed: int = 0,
     ):
         assert os.path.isfile(tight_frame_path)
@@ -42,6 +43,7 @@ class TightFrameClassification(Dataset):
             "seed": seed,
             "is_bursty": data_gen_rng.rand(num_sequences) < p_bursty,
             "context_len": sequence_length - 1,
+            "random_label": random_label,
         }
 
         if is_train:
@@ -74,7 +76,6 @@ class TightFrameClassification(Dataset):
         sample_rng = np.random.RandomState(idx)
         label = self._data["targets"][idx]
         query = self.tight_frame[label]
-        
 
         if is_bursty:
             label_idxes = []
@@ -105,6 +106,12 @@ class TightFrameClassification(Dataset):
         )
 
         labels = np.concatenate([label_idxes, [label]])
+
+        if self._data["random_label"]:
+            label_map = sample_rng.permutation(
+                self._num_classes,
+            )
+            labels = label_map[labels]
 
         outputs = np.eye(self._data["num_classes"])[labels]
         return inputs, outputs
