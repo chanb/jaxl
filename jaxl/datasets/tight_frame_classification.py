@@ -36,7 +36,7 @@ def make_tight_frame(
         loss, grads = jax.value_and_grad(loss_fn)(frames)
 
         updates, opt_state = optimizer.update(grads, opt_state)
-        frames = optax.apply_updates(a, updates)
+        frames = optax.apply_updates(frames, updates)
         if (ii + 1) % 1000 == 0:
             losses.append(loss)
             print(ii + 1, loss)
