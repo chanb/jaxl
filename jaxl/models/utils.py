@@ -99,6 +99,8 @@ def get_model(
                 constructor = CustomTokenizerICSupervisedTransformer
             elif model_config.type == "no_tokenizer":
                 constructor = NoTokenizerICSupervisedTransformer
+            else:
+                raise NotImplementedError
             return constructor(
                 output_dim,
                 model_config.num_contexts,

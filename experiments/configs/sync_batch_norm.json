@@ -7,7 +7,7 @@
     },
     "model_config": {
         "architecture": "icl_gpt",
-        "type": "sync",
+        "type": "default",
         "num_contexts": 8,
         "num_blocks": 12,
         "num_heads": 8,
