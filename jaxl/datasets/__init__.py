@@ -1,4 +1,3 @@
-from torch.utils.data import Dataset
 from types import SimpleNamespace
 from typing import Callable
 
@@ -149,18 +148,35 @@ def get_dataset(
             seed,
         )
     elif dataset_config.dataset_name == CONST_TIGHT_FRAME:
-        from jaxl.datasets.tight_frame_classification import TightFrameClassification
-
-        dataset = TightFrameClassification(
-            tight_frame_path=dataset_kwargs.tight_frame_path,
-            num_sequences=dataset_kwargs.num_sequences,
-            sequence_length=dataset_kwargs.sequence_length,
-            num_holdout=dataset_kwargs.num_holdout,
-            split=dataset_kwargs.split,
-            p_bursty=dataset_kwargs.p_bursty,
-            random_label=getattr(dataset_kwargs, "random_label", False),
-            seed=seed,
+        from jaxl.datasets.tight_frame_classification import (
+            TightFrameClassification,
+            TightFrameClassificationNShotKWay,
         )
+
+        task_name = getattr(dataset_kwargs, "task_name", None)
+
+        if task_name == "n_shot_k_way":
+            dataset = TightFrameClassificationNShotKWay(
+                tight_frame_path=dataset_kwargs.tight_frame_path,
+                num_sequences=dataset_kwargs.num_sequences,
+                sequence_length=dataset_kwargs.sequence_length,
+                num_holdout=dataset_kwargs.num_holdout,
+                split=dataset_kwargs.split,
+                k_way=dataset_kwargs.k_way,
+                seed=seed,
+            )
+        else:
+            dataset = TightFrameClassification(
+                tight_frame_path=dataset_kwargs.tight_frame_path,
+                num_sequences=dataset_kwargs.num_sequences,
+                sequence_length=dataset_kwargs.sequence_length,
+                num_holdout=dataset_kwargs.num_holdout,
+                split=dataset_kwargs.split,
+                p_bursty=dataset_kwargs.p_bursty,
+                unique_classes=getattr(dataset_kwargs, "unique_classes", False),
+                random_label=getattr(dataset_kwargs, "random_label", False),
+                seed=seed,
+            )
     else:
         raise ValueError(
             f"{dataset_config.dataset_name} is not supported (one of {VALID_DATASET})"

@@ -3,7 +3,7 @@
         "save_path": "./logs/icl-tight_frame_classification",
         "experiment_name": "p_bursty-1.0-random_label",
         "log_interval": 50,
-        "checkpoint_interval": 500
+        "checkpoint_interval": 10000
     },
     "model_config": {
         "architecture": "icl_gpt",
@@ -91,6 +91,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 15000
+        "num_epochs": 300000
     }
 }
