@@ -71,7 +71,7 @@ def hierarchical_clustering(
                 "curr_cluster": data,
                 "next_cluster": None,
             }
-        
+
         pairwise_diff = np.sum((data[:, None] - data[None, :]) ** 2, axis=-1)
         pairwise_diff += np.diag(np.full(len(data), np.inf))
         min_idx = np.argmin(pairwise_diff)
@@ -82,17 +82,12 @@ def hierarchical_clustering(
 
         data[min_idx % len(data)] = np.inf
         data[min_idx // len(data)] = np.inf
-        next_clusters = _hierarhical_clustering(
-            np.concatenate(
-                data,
-                new_center
-            )
-        )
+        next_clusters = _hierarhical_clustering(np.concatenate(data, new_center))
         return {
             "curr_cluster": curr_cluster,
             "next_cluster": next_clusters,
         }
-    
+
     return _hierarhical_clustering(data)
 
 
@@ -122,10 +117,13 @@ class TightFrameClassification(Dataset):
                 size=num_sequences,
             )
         else:
-            targets = data_gen_rng.choice(
-                num_holdout,
-                size=num_sequences,
-            ) + offset
+            targets = (
+                data_gen_rng.choice(
+                    num_holdout,
+                    size=num_sequences,
+                )
+                + offset
+            )
 
         self._data = {
             "targets": targets,
@@ -223,6 +221,120 @@ class TightFrameClassification(Dataset):
 
         outputs = np.eye(self._data["num_classes"])[labels]
         return inputs, outputs
+
+
+class TightFrameAbstractClassification(Dataset):
+    def __init__(
+        self,
+        tight_frame_path: str,
+        num_sequences: int,
+        sequence_length: int,
+        num_holdout: int,
+        split: str,
+        abstraction: str = "cosine_similarity",
+        seed: int = 0,
+    ):
+        assert os.path.isfile(tight_frame_path)
+
+        context_len = sequence_length - 1
+        assert context_len % 2 == 0, "context_len {} must be divisible by 2".format(
+            context_len
+        )
+
+        self.tight_frame = pickle.load(open(tight_frame_path, "rb"))
+        is_train = int(split == CONST_TRAIN)
+
+        labels = self._generate_labels(num_sequences, abstraction, is_train, seed)
+
+        self._data = {
+            "labels": labels,
+            "num_sequences": num_sequences,
+            "sequence_length": sequence_length,
+            "num_holdout": num_holdout,
+            "num_classes": self.tight_frame.shape[0],
+            "input_dim": self.tight_frame.shape[1],
+            "split": split,
+            "seed": seed,
+            "context_len": context_len,
+        }
+
+        if is_train:
+            self._num_classes = self._data["num_classes"] - num_holdout
+            self._classes = np.arange(self._num_classes)
+        else:
+            self._num_classes = num_holdout
+            self._classes = np.arange(
+                self._data["num_classes"] - num_holdout,
+                self._data["num_classes"],
+            )
+        self._context_labels = [0] * context_len + [1] * context_len
+
+    def _generate_labels(
+        self, num_sequences: int, abstraction: str, is_train: bool, seed: int
+    ):
+        data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)[is_train]
+        data_gen_rng = np.random.RandomState(seed=data_gen_seed)
+
+        if abstraction == "cosine_similarity":
+            random_boundaries = data_gen_rng.randn(
+                num_sequences, self.tight_frame.shape[1]
+            )
+            labels = (
+                jax.vmap(
+                    lambda boundary, tight_frame: tight_frame @ boundary,
+                    in_axes=[0, None],
+                )(random_boundaries, self.tight_frame)
+            ) >= 0
+        else:
+            labels = data_gen_rng.choice(2, size=(num_sequences, len(self.tight_frame)))
+
+        return labels
+
+    @property
+    def input_dim(self) -> chex.Array:
+        return (self._data["num_classes"],)
+
+    @property
+    def output_dim(self) -> chex.Array:
+        return (self._data["num_classes"],)
+
+    @property
+    def sequence_length(self) -> int:
+        return self._data["sequence_length"]
+
+    def __len__(self):
+        return self._data["num_sequences"]
+
+    def __getitem__(self, idx):
+        sample_rng = np.random.RandomState(idx)
+
+        label_idxes = self._data["labels"][idx]
+
+        # Generate query-output pair
+        query_idx = sample_rng.choice(len(label_idxes))
+        query = self.tight_frame[query_idx]
+        label = label_idxes[query_idx]
+
+        # Generate context pairs
+        context_zeros = sample_rng.choice(
+            np.where(label_idxes == 0)[0], size=(self._data["context_len"] // 2)
+        )
+        context_ones = sample_rng.choice(
+            np.where(label_idxes == 0)[0], size=(self._data["context_len"] // 2)
+        )
+        shuffle_idxes = sample_rng.permutation(self._data["context_len"])
+
+        context_idxes = np.concatenate((context_zeros, context_ones))[shuffle_idxes]
+        labels = np.concatenate((self._context_labels[shuffle_idxes], [label]))
+
+        inputs = list(map(lambda ii: self.tight_frame[ii], context_idxes))
+        inputs = np.concatenate(
+            (*[context_input[None] for context_input in inputs], query[None])
+        )
+
+        outputs = np.eye(self._data["num_classes"])[labels]
+
+        return (inputs, outputs)
 
 
 class TightFrameClassificationNShotKWay(Dataset):
