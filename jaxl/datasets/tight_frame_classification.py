@@ -8,6 +8,7 @@ import optax
 import os
 
 from torch.utils.data import Dataset
+from typing import Any
 
 from jaxl.constants import *
 
@@ -20,6 +21,9 @@ def make_tight_frame(
     lr: float = 1e-4,
     seed: int = 0,
 ):
+    """
+    Generates an approximately tight frame.
+    """
     frames = np.random.RandomState(seed).randn(num_classes, hidden_dim)
 
     @jax.jit
@@ -43,6 +47,32 @@ def make_tight_frame(
     pickle.dump(frames, open(save_path, "wb"))
 
 
+def hierarchical_clustering(
+    load_path: str,
+) -> Any:
+    """
+    Perform hierarchical clustering to the tight frame.
+    This algorithm forms cluster based on the cluster center similarity,
+    where the similarity is defined to be the Euclidean distance between two "points".
+
+    NOTE: Assumes the data is with shape (num_samples x dim)
+    """
+    assert os.path.isfile(load_path)
+
+    data = pickle.load(open(load_path, "rb"))
+
+    # NOTE: Use cluster center to compare cluster similarity
+    def _hierarhical_clustering(
+        data: chex.Array,
+    ):
+        if len(data) <= 1:
+            return data
+        
+        pairwise_diff = data[:, None] - data[None, :] + np.diag
+
+
+
+
 class TightFrameClassification(Dataset):
     def __init__(
         self,
@@ -62,10 +92,17 @@ class TightFrameClassification(Dataset):
         data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)[is_train]
         data_gen_rng = np.random.RandomState(seed=data_gen_seed)
 
-        targets = data_gen_rng.choice(
-            self.tight_frame.shape[0] - num_holdout if is_train else num_holdout,
-            size=num_sequences,
-        )
+        offset = self.tight_frame.shape[0] - num_holdout
+        if is_train:
+            targets = data_gen_rng.choice(
+                offset,
+                size=num_sequences,
+            )
+        else:
+            targets = data_gen_rng.choice(
+                num_holdout,
+                size=num_sequences,
+            ) + offset
 
         self._data = {
             "targets": targets,
@@ -85,12 +122,14 @@ class TightFrameClassification(Dataset):
         if is_train:
             self._num_classes = self._data["num_classes"] - num_holdout
             self._classes = np.arange(self._num_classes)
+            self._offset = 0
         else:
             self._num_classes = num_holdout
             self._classes = np.arange(
                 self._data["num_classes"] - num_holdout,
                 self._data["num_classes"],
             )
+            self._offset = offset
 
     @property
     def input_dim(self) -> chex.Array:
@@ -151,7 +190,7 @@ class TightFrameClassification(Dataset):
             (*[context_input[None] for context_input in inputs], query[None])
         )
 
-        labels = np.concatenate([label_idxes, [label]])
+        labels = np.concatenate([label_idxes, [label]]) - self._offset
 
         if self._data["random_label"]:
             label_map = sample_rng.permutation(

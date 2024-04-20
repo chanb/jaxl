@@ -124,6 +124,8 @@ def main(args: SimpleNamespace):
         exp_name = "-".join(curr_run_path.split("-")[:-8])
         # if not exp_name.endswith("-tf"):
         #     continue
+        # if not "random" in exp_name:
+        #     continue
         all_results.setdefault(exp_name, {})
 
         config_dict, config = load_config(learner_path)
