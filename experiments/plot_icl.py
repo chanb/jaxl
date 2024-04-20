@@ -21,7 +21,7 @@ sns.set_palette("colorblind")
 # Using the set_size function as defined earlier
 doc_width_pt = 1000.0
 
-results_dir = "./results"
+# results_dir = "./results"
 # Omniglot
 # ablation_name = "single_sample-pixel_noise_0.1"
 # ablation_name = "single_sample-all_splits-pixel_noise_0.1"
@@ -33,17 +33,28 @@ results_dir = "./results"
 # ablation_name = "all_samples-pixel_noise_0.0"
 # ablation_name = "single_sample-pixel_noise_0.1-proper_variance_bn-tf"
 # ablation_name = "single_sample-pixel_noise_0.1"
-ablation_name = "async_batch_norm"
+# ablation_name = "async_batch_norm"
 
 # MNIST
 # ablation_name = "include_query_class-random_label"
+
+# Tight Frame
+results_dir = "./tight_frame_results"
+ablation_name = "icl-tight_frame_classification"
 
 # FILTERS
 include_prefix = None
 include_suffix = None
 exclude_prefix = None
 exclude_suffix = None
-include_evals = ["in_weight", "test_n_shot_2_way", "pretraining", "same_pretraining"]
+include_evals = [
+    "in_weight",
+    "test_n_shot_2_way",
+    "pretraining",
+    "same_pretraining",
+    "ood",
+    "pretrain_n_shot_2_way",
+]
 map_eval_to_title = {
     "in_weight": "In-weight",
     "test_n_shot_2_way": "In-context",

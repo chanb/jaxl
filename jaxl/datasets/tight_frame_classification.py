@@ -47,6 +47,7 @@ def make_tight_frame(
     pickle.dump(frames, open(save_path, "wb"))
 
 
+# TODO: Try something like a decision tree split?
 def hierarchical_clustering(
     load_path: str,
 ) -> Any:
@@ -66,11 +67,33 @@ def hierarchical_clustering(
         data: chex.Array,
     ):
         if len(data) <= 1:
-            return data
+            return {
+                "curr_cluster": data,
+                "next_cluster": None,
+            }
         
-        pairwise_diff = data[:, None] - data[None, :] + np.diag
+        pairwise_diff = np.sum((data[:, None] - data[None, :]) ** 2, axis=-1)
+        pairwise_diff += np.diag(np.full(len(data), np.inf))
+        min_idx = np.argmin(pairwise_diff)
+        data_i = data[min_idx % len(data)]
+        data_j = data[min_idx // len(data)]
+        curr_cluster = [data_i, data_j]
+        new_center = np.mean(curr_cluster, axis=0)
 
-
+        data[min_idx % len(data)] = np.inf
+        data[min_idx // len(data)] = np.inf
+        next_clusters = _hierarhical_clustering(
+            np.concatenate(
+                data,
+                new_center
+            )
+        )
+        return {
+            "curr_cluster": curr_cluster,
+            "next_cluster": next_clusters,
+        }
+    
+    return _hierarhical_clustering(data)
 
 
 class TightFrameClassification(Dataset):
