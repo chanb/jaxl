@@ -1,9 +1,9 @@
 {
     "logging_config": {
         "save_path": "./logs/icl-tight_frame_classification",
-        "experiment_name": "p_bursty-1.0-random_label",
+        "experiment_name": "p_bursty-1.0-random_label-less_classes",
         "log_interval": 50,
-        "checkpoint_interval": 10000
+        "checkpoint_interval": 50000
     },
     "model_config": {
         "architecture": "icl_gpt",
@@ -55,9 +55,9 @@
             "dataset_name": "tight_frame",
             "dataset_kwargs": {
                 "tight_frame_path": "/Users/chanb/research/personal/jaxl/experiments/tight_frame.pkl",
-                "num_sequences": 1000000,
+                "num_sequences": 5000000,
                 "sequence_length": 9,
-                "num_holdout": 10,
+                "num_holdout": 750,
                 "split": "train",
                 "p_bursty": 1.0,
                 "random_label": true
@@ -91,6 +91,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 300000
+        "num_epochs": 500000
     }
 }

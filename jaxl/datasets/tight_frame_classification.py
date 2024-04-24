@@ -13,6 +13,19 @@ from typing import Any
 from jaxl.constants import *
 
 
+def sample_from_sphere_surface(
+    save_path: str,
+    num_classes: int = 1000,
+    hidden_dim: int = 64,
+    seed: int = 0,
+):
+    samples = np.random.RandomState(seed).randn(
+        num_classes, hidden_dim
+    )
+    sample_norms = np.linalg.norm(samples, axis=-1)
+    pickle.dump(samples / sample_norms, open(save_path, "wb"))
+
+
 def make_tight_frame(
     save_path: str,
     num_classes: int = 1000,
