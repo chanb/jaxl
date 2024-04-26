@@ -19,9 +19,7 @@ def sample_from_sphere_surface(
     hidden_dim: int = 64,
     seed: int = 0,
 ):
-    samples = np.random.RandomState(seed).randn(
-        num_classes, hidden_dim
-    )
+    samples = np.random.RandomState(seed).randn(num_classes, hidden_dim)
     sample_norms = np.linalg.norm(samples, axis=-1)
     pickle.dump(samples / sample_norms, open(save_path, "wb"))
 
@@ -280,7 +278,9 @@ class TightFrameAbstractClassification(Dataset):
                 self._data["num_classes"] - num_holdout,
                 self._data["num_classes"],
             )
-        self._context_labels = [0] * context_len + [1] * context_len
+        self._context_labels = np.array(
+            [0] * context_len + [1] * context_len, dtype=int
+        )
 
     def _generate_labels(
         self, num_sequences: int, abstraction: str, is_train: bool, seed: int

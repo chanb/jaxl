@@ -151,6 +151,7 @@ def get_dataset(
         from jaxl.datasets.tight_frame_classification import (
             TightFrameClassification,
             TightFrameClassificationNShotKWay,
+            TightFrameAbstractClassification,
         )
 
         task_name = getattr(dataset_kwargs, "task_name", None)
@@ -163,6 +164,15 @@ def get_dataset(
                 num_holdout=dataset_kwargs.num_holdout,
                 split=dataset_kwargs.split,
                 k_way=dataset_kwargs.k_way,
+                seed=seed,
+            )
+        elif task_name == "abstract_class":
+            dataset = TightFrameAbstractClassification(
+                tight_frame_path=dataset_kwargs.tight_frame_path,
+                num_sequences=dataset_kwargs.num_sequences,
+                sequence_length=dataset_kwargs.sequence_length,
+                num_holdout=dataset_kwargs.num_holdout,
+                split=dataset_kwargs.split,
                 seed=seed,
             )
         else:

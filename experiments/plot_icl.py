@@ -51,15 +51,18 @@ include_evals = [
     "in_weight",
     "test_n_shot_2_way",
     "pretraining",
-    "same_pretraining",
+    # "same_pretraining",
     "ood",
     "pretrain_n_shot_2_way",
+    "abstract_hierarchy",
 ]
 map_eval_to_title = {
     "in_weight": "In-weight",
     "test_n_shot_2_way": "In-context",
+    "pretrain_n_shot_2_way": "In-context with Train Samples",
     "pretraining": "Pretraining",
     "same_pretraining": "Pretraining with Different Seed",
+    "abstract_hierarchy": "Abstract Hierarchy",
 }
 
 num_cols = 2
