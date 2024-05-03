@@ -298,6 +298,16 @@ class TightFrameAbstractClassification(Dataset):
                     in_axes=[0, None],
                 )(random_boundaries, self.tight_frame)
             ) >= 0
+        elif abstraction.endswith("closest"):
+            num_closest = int(abstraction.split("-")[0])
+            random_boundaries = data_gen_rng.randn(
+                num_sequences, self.tight_frame.shape[1]
+            )
+
+            dists = np.sum((random_boundaries[:, None] - self.tight_frame[None]) ** 2, axis=-1)
+            sorted_dists = np.argsort(dists, axis=-1)[:, :num_closest]
+            labels = np.zeros((num_sequences, len(self.tight_frame)), dtype=int)
+            labels = jax.vmap(lambda per_seq_labels, idxes: per_seq_labels.at[idxes].set(1))(labels, sorted_dists)
         else:
             labels = data_gen_rng.choice(2, size=(num_sequences, len(self.tight_frame)))
 

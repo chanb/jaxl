@@ -90,26 +90,46 @@ def get_eval_datasets(
     ] = num_test_tasks
     test_n_shot_2_way_config = parse_dict(test_n_shot_2_way_config_dict)
 
-    # Abstract hierarchy
-    abstract_hierarchy_config_dict = copy.deepcopy(config_dict)
-    abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+    # Cosine Similarity: Abstract hierarchy
+    cos_abstract_hierarchy_config_dict = copy.deepcopy(config_dict)
+    cos_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
         "dataset_kwargs"
     ]["split"] = "train"
-    abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+    cos_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
         "dataset_kwargs"
     ]["task_name"] = "abstract_class"
-    abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+    cos_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
         "dataset_kwargs"
     ]["num_sequences"] = num_test_tasks
-    abstract_hierarchy_config = parse_dict(abstract_hierarchy_config_dict)
+    cos_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+        "dataset_kwargs"
+    ]["abstraction"] = "cosine_similarity"
+    cos_abstract_hierarchy_config = parse_dict(cos_abstract_hierarchy_config_dict)
+
+    # N-closest: Abstract hierarchy
+    n_abstract_hierarchy_config_dict = copy.deepcopy(config_dict)
+    n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+        "dataset_kwargs"
+    ]["split"] = "train"
+    n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+        "dataset_kwargs"
+    ]["task_name"] = "abstract_class"
+    n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+        "dataset_kwargs"
+    ]["num_sequences"] = num_test_tasks
+    n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+        "dataset_kwargs"
+    ]["abstraction"] = "20-closest"
+    n_abstract_hierarchy_config = parse_dict(n_abstract_hierarchy_config_dict)
 
     configs = {
         "same_pretraining": same_pretraining_config,
         "in_weight": in_weight_config,
-        "pretrain_n_shot_2_way": pretrain_n_shot_2_way_config,
-        "ood": ood_config,
+        # "pretrain_n_shot_2_way": pretrain_n_shot_2_way_config,
+        # "ood": ood_config,
         "test_n_shot_2_way": test_n_shot_2_way_config,
-        "abstract_hierarchy": abstract_hierarchy_config,
+        "cos_abstract_hierarchy": cos_abstract_hierarchy_config,
+        "20_abstract_hierarchy": n_abstract_hierarchy_config,
     }
 
     return {

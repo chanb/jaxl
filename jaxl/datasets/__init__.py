@@ -173,6 +173,7 @@ def get_dataset(
                 sequence_length=dataset_kwargs.sequence_length,
                 num_holdout=dataset_kwargs.num_holdout,
                 split=dataset_kwargs.split,
+                abstraction=dataset_kwargs.abstraction,
                 seed=seed,
             )
         else:
