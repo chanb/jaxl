@@ -194,7 +194,7 @@ def main(args: SimpleNamespace):
                         if eval_name == "pretraining"
                         else num_test_tasks
                     ),
-                    max_label=2 if eval_name.endswith("2_way") else None,
+                    max_label=2 if eval_name.endswith("2_way") or eval_name.endswith("hierarchy") else None,
                     context_len=context_len,
                     fixed_length=fixed_length,
                 )

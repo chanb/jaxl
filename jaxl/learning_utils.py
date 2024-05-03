@@ -84,7 +84,7 @@ def train(
     logging_config = config.logging_config
     train_config = config.train_config
 
-    num_digits = int(math.log10(train_config.num_epochs))
+    num_digits = int(math.log10(train_config.num_epochs)) + 1
 
     def pad_string(s):
         s = str(s)
