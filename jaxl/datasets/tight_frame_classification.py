@@ -20,7 +20,7 @@ def sample_from_sphere_surface(
     seed: int = 0,
 ):
     samples = np.random.RandomState(seed).randn(num_classes, hidden_dim)
-    sample_norms = np.linalg.norm(samples, axis=-1)
+    sample_norms = np.linalg.norm(samples, axis=-1, keepdims=True)
     pickle.dump(samples / sample_norms, open(save_path, "wb"))
 
 
@@ -242,7 +242,7 @@ class TightFrameAbstractClassification(Dataset):
         sequence_length: int,
         num_holdout: int,
         split: str,
-        abstraction: str = "cosine_similarity",
+        abstraction: str = None,
         seed: int = 0,
     ):
         assert os.path.isfile(tight_frame_path)
@@ -279,7 +279,7 @@ class TightFrameAbstractClassification(Dataset):
                 self._data["num_classes"],
             )
         self._context_labels = np.array(
-            [0] * context_len + [1] * context_len, dtype=int
+            [0] * (context_len // 2) + [1] * (context_len // 2), dtype=int
         )
 
     def _generate_labels(
@@ -288,7 +288,8 @@ class TightFrameAbstractClassification(Dataset):
         data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)[is_train]
         data_gen_rng = np.random.RandomState(seed=data_gen_seed)
 
-        if abstraction == "cosine_similarity":
+        if abstraction.endswith("cos"):
+            cos_threshold = float(abstraction.split("-")[0])
             random_boundaries = data_gen_rng.randn(
                 num_sequences, self.tight_frame.shape[1]
             )
@@ -297,17 +298,21 @@ class TightFrameAbstractClassification(Dataset):
                     lambda boundary, tight_frame: tight_frame @ boundary,
                     in_axes=[0, None],
                 )(random_boundaries, self.tight_frame)
-            ) >= 0
-        elif abstraction.endswith("closest"):
+            ) >= cos_threshold
+        elif abstraction.endswith("l2"):
             num_closest = int(abstraction.split("-")[0])
             random_boundaries = data_gen_rng.randn(
                 num_sequences, self.tight_frame.shape[1]
             )
 
-            dists = np.sum((random_boundaries[:, None] - self.tight_frame[None]) ** 2, axis=-1)
+            dists = np.sum(
+                (random_boundaries[:, None] - self.tight_frame[None]) ** 2, axis=-1
+            )
             sorted_dists = np.argsort(dists, axis=-1)[:, :num_closest]
             labels = np.zeros((num_sequences, len(self.tight_frame)), dtype=int)
-            labels = jax.vmap(lambda per_seq_labels, idxes: per_seq_labels.at[idxes].set(1))(labels, sorted_dists)
+            labels = jax.vmap(
+                lambda per_seq_labels, idxes: per_seq_labels.at[idxes].set(1)
+            )(labels, sorted_dists)
         else:
             labels = data_gen_rng.choice(2, size=(num_sequences, len(self.tight_frame)))
 
@@ -343,10 +348,10 @@ class TightFrameAbstractClassification(Dataset):
             np.where(label_idxes == 0)[0], size=(self._data["context_len"] // 2)
         )
         context_ones = sample_rng.choice(
-            np.where(label_idxes == 0)[0], size=(self._data["context_len"] // 2)
+            np.where(label_idxes == 1)[0], size=(self._data["context_len"] // 2)
         )
-        shuffle_idxes = sample_rng.permutation(self._data["context_len"])
 
+        shuffle_idxes = sample_rng.permutation(self._data["context_len"])
         context_idxes = np.concatenate((context_zeros, context_ones))[shuffle_idxes]
         labels = np.concatenate((self._context_labels[shuffle_idxes], [label]))
 

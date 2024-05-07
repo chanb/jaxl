@@ -212,13 +212,13 @@ class InContextLearner(OfflineLearner):
         else:
             gather_learning_rate(aux, CONST_MODEL, self._model_dict[CONST_OPT_STATE])
 
-        aux[CONST_DATA] = [
-            context_inputs,
-            context_outputs,
-            queries,
-            outputs,
-            aux["categorical"]["aux"]["logits"],
-        ]
+        # aux[CONST_DATA] = [
+        #     context_inputs,
+        #     context_outputs,
+        #     queries,
+        #     outputs,
+        #     aux["categorical"]["aux"]["logits"],
+        # ]
 
         return aux
 

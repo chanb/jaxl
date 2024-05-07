@@ -90,47 +90,49 @@ def get_eval_datasets(
     ] = num_test_tasks
     test_n_shot_2_way_config = parse_dict(test_n_shot_2_way_config_dict)
 
-    # Cosine Similarity: Abstract hierarchy
-    cos_abstract_hierarchy_config_dict = copy.deepcopy(config_dict)
-    cos_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ]["split"] = "train"
-    cos_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ]["task_name"] = "abstract_class"
-    cos_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ]["num_sequences"] = num_test_tasks
-    cos_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ]["abstraction"] = "cosine_similarity"
-    cos_abstract_hierarchy_config = parse_dict(cos_abstract_hierarchy_config_dict)
-
-    # N-closest: Abstract hierarchy
-    n_abstract_hierarchy_config_dict = copy.deepcopy(config_dict)
-    n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ]["split"] = "train"
-    n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ]["task_name"] = "abstract_class"
-    n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ]["num_sequences"] = num_test_tasks
-    n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ]["abstraction"] = "20-closest"
-    n_abstract_hierarchy_config = parse_dict(n_abstract_hierarchy_config_dict)
-
     configs = {
         "same_pretraining": same_pretraining_config,
         "in_weight": in_weight_config,
-        # "pretrain_n_shot_2_way": pretrain_n_shot_2_way_config,
-        # "ood": ood_config,
+        "pretrain_n_shot_2_way": pretrain_n_shot_2_way_config,
+        "ood": ood_config,
         "test_n_shot_2_way": test_n_shot_2_way_config,
-        "cos_abstract_hierarchy": cos_abstract_hierarchy_config,
-        "20_abstract_hierarchy": n_abstract_hierarchy_config,
     }
+
+    # Cosine Similarity: Abstract hierarchy
+    for cos_threshold in [0.0, 0.2, 0.5]:
+        n_abstract_hierarchy_config_dict = copy.deepcopy(config_dict)
+        n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ]["split"] = "train"
+        n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ]["task_name"] = "abstract_class"
+        n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ]["num_sequences"] = num_test_tasks
+        n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ]["abstraction"] = "{}-cos".format(cos_threshold)
+        n_abstract_hierarchy_config = parse_dict(n_abstract_hierarchy_config_dict)
+        configs["{}_cos".format(cos_threshold)] = n_abstract_hierarchy_config
+
+    # N-l2: Abstract hierarchy
+    for n_closest in [2, 10, 20, 40, 100, 500]:
+        n_abstract_hierarchy_config_dict = copy.deepcopy(config_dict)
+        n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ]["split"] = "train"
+        n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ]["task_name"] = "abstract_class"
+        n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ]["num_sequences"] = num_test_tasks
+        n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ]["abstraction"] = "{}-l2".format(n_closest)
+        n_abstract_hierarchy_config = parse_dict(n_abstract_hierarchy_config_dict)
+        configs["{}_l2".format(n_closest)] = n_abstract_hierarchy_config
 
     return {
         eval_name: get_data_loader(config, test_data_seed)
@@ -160,6 +162,8 @@ def main(args: SimpleNamespace):
         #     continue
         # if not "random" in exp_name:
         #     continue
+        if not "learn_embedder" in exp_name:
+            continue
         all_results.setdefault(exp_name, {})
 
         config_dict, config = load_config(learner_path)
@@ -170,8 +174,6 @@ def main(args: SimpleNamespace):
         )
 
         context_len = config.model_config.num_contexts
-        num_samples_per_task = train_dataset._dataset.sequence_length - context_len
-        sequence_length = train_dataset._dataset.sequence_length
 
         fixed_length = True
         if hasattr(config.learner_config.dataset_config, "dataset_wrapper"):
@@ -179,8 +181,6 @@ def main(args: SimpleNamespace):
                 config.learner_config.dataset_config.dataset_wrapper.type
                 in ["FixedLengthContextDataset"]
             )
-
-        print(num_samples_per_task, num_train_tasks, sequence_length, context_len)
 
         datasets, dataset_configs = get_eval_datasets(
             config_dict,
@@ -214,7 +214,13 @@ def main(args: SimpleNamespace):
                         if eval_name == "pretraining"
                         else num_test_tasks
                     ),
-                    max_label=2 if eval_name.endswith("2_way") or eval_name.endswith("hierarchy") else None,
+                    max_label=(
+                        2
+                        if eval_name.endswith("2_way")
+                        or eval_name.endswith("cos")
+                        or eval_name.endswith("l2")
+                        else None
+                    ),
                     context_len=context_len,
                     fixed_length=fixed_length,
                 )

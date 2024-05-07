@@ -16,6 +16,10 @@ from jaxl.models.common import (
     EnsembleModel,
     EncoderPredictorModel,
 )
+from jaxl.models.implicit_transformers import (
+    ImplicitInContextSupervisedTransformer,
+    ImplicitNoTokenizerICSupervisedTransformer,
+)
 from jaxl.models.transformers import (
     InContextSupervisedTransformer,
     CustomTokenizerICSupervisedTransformer,
@@ -99,6 +103,8 @@ def get_model(
                 constructor = CustomTokenizerICSupervisedTransformer
             elif model_config.type == "no_tokenizer":
                 constructor = NoTokenizerICSupervisedTransformer
+            elif model_config.type == "implicit":
+                constructor = ImplicitNoTokenizerICSupervisedTransformer
             else:
                 raise NotImplementedError
             return constructor(

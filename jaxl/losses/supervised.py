@@ -266,3 +266,70 @@ def make_sigmoid_bce_loss(
         }
 
     return sigmoid_bce_loss
+
+
+def make_contrastive_loss(
+    model: Model,
+    loss_setting: SimpleNamespace,
+    num_classes: int,
+    *args,
+    **kwargs,
+) -> Callable[
+    [Union[optax.Params, Dict[str, Any]], chex.Array, chex.Array, chex.Array],
+    Tuple[chex.Array, Dict],
+]:
+    """
+    Gets contrastive loss function.
+
+    :param model: the model
+    :param loss_setting: the loss configuration
+    :param num_classes: the number of classes
+    :type model: Model
+    :type loss_setting: SimpleNamespace
+    :type num_classes: int
+    :return: the loss function
+    :rtype: Callable[..., chex.Array]
+
+    """
+    reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "is_one_hot", False):
+
+        def convert_to_one_hot(y):
+            return y
+
+    else:
+
+        def convert_to_one_hot(y):
+            return jax.nn.one_hot(jnp.squeeze(y), num_classes=num_classes)
+
+    def contrastive_loss(
+        params: Union[optax.Params, Dict[str, Any]],
+        x: chex.Array,
+        carry: chex.Array,
+        y: chex.Array,
+    ) -> Tuple[chex.Array, Dict]:
+        """
+        Contrastive Loss.
+
+        :param params: the model parameters
+        :param x: the input
+        :param carry: the hidden state
+        :param y: the output
+        :param *args:
+        :param **kwargs:
+        :type params: Union[optax.Params, Dict[str, Any]]
+        :return: the loss and auxiliary information
+        :rtype: Tuple[chex.Array, Dict]
+
+        """
+        y_one_hot = convert_to_one_hot(y)
+        logits, _, updates = model.forward(params, x, carry, y)
+
+        return reduction(-logits), {
+            "logits": logits,
+            "y_one_hot": y_one_hot,
+            CONST_UPDATES: updates,
+        }
+
+    return contrastive_loss

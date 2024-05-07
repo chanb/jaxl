@@ -43,6 +43,8 @@ def get_loss_function(
         make_loss_function = make_hinge_loss
     elif loss == CONST_L2:
         make_loss_function = make_weight_decay
+    elif loss == "contrastive":
+        make_loss_function = make_contrastive_loss
     else:
         raise NotImplementedError
     return make_loss_function(model, loss_setting, *args, **kwargs)

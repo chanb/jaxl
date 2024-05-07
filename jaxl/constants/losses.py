@@ -3,6 +3,7 @@ CONST_GAUSSIAN = "gaussian"
 CONST_HINGE = "hinge"
 CONST_L2 = "l2"
 CONST_SIGMOID_BCE = "sigmoid_bce"
+CONST_CONTRASTIVE = "contrastive"
 
 VALID_LOSS = [
     CONST_CATEGORICAL,
@@ -10,6 +11,7 @@ VALID_LOSS = [
     CONST_L2,
     CONST_HINGE,
     CONST_SIGMOID_BCE,
+    CONST_CONTRASTIVE,
 ]
 
 CONST_AUX = "aux"
