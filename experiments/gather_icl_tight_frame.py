@@ -162,8 +162,8 @@ def main(args: SimpleNamespace):
         #     continue
         # if not "random" in exp_name:
         #     continue
-        if not "learn_embedder" in exp_name:
-            continue
+        # if not "learn_embedder" in exp_name:
+        #     continue
         all_results.setdefault(exp_name, {})
 
         config_dict, config = load_config(learner_path)

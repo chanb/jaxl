@@ -293,12 +293,26 @@ class TightFrameAbstractClassification(Dataset):
             random_boundaries = data_gen_rng.randn(
                 num_sequences, self.tight_frame.shape[1]
             )
-            labels = (
+            positive_cap = (
                 jax.vmap(
                     lambda boundary, tight_frame: tight_frame @ boundary,
                     in_axes=[0, None],
                 )(random_boundaries, self.tight_frame)
             ) >= cos_threshold
+            negative_cap = (
+                jax.vmap(
+                    lambda boundary, tight_frame: tight_frame @ boundary,
+                    in_axes=[0, None],
+                )(random_boundaries, self.tight_frame)
+            ) <= -cos_threshold
+            labels = np.full_like(positive_cap, -1)
+            labels[positive_cap] = 1
+            labels[negative_cap] = 0
+            print(
+                "num pos: {}, num neg: {}".format(
+                    np.sum(positive_cap), np.sum(negative_cap)
+                )
+            )
         elif abstraction.endswith("l2"):
             num_closest = int(abstraction.split("-")[0])
             random_boundaries = data_gen_rng.randn(
