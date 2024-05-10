@@ -41,13 +41,16 @@ doc_width_pt = 1000.0
 # Tight Frame
 results_dir = "./tight_frame_results"
 ablation_name = "icl-tight_frame_classification"
+ablation_name = "icl-tight_frame_classification-hidden_dim_2"
+ablation_name = "icl-tight_frame_classification-hidden_dim_64"
+context_len_exp = True
 
 # FILTERS
 include_prefix = None
 include_suffix = None
 exclude_prefix = None
 exclude_suffix = None
-include_evals = ["{}_cos".format(threshold) for threshold in [0.0, 0.2, 0.5]]
+include_evals = ["{}_cos".format(threshold) for threshold in [0.0, 0.2, 0.3]]
 include_evals + ["in_weight"]
 map_eval_to_title = {
     "in_weight": "In-weight",
@@ -56,7 +59,7 @@ map_eval_to_title = {
     "pretraining": "Pretraining",
     "same_pretraining": "Pretraining with Different Seed",
 }
-for threshold in [0.0, 0.2, 0.5]:
+for threshold in [0.0, 0.2, 0.3]:
     map_eval_to_title["{}_cos".format(threshold)] = "{} Cos Similarity".format(
         threshold
     )
@@ -67,7 +70,14 @@ num_cols = 2
 
 interp_gap_size = 1000
 
-agg_result_path = os.path.join(results_dir, ablation_name, "agg_data/accuracies.pkl")
+if context_len_exp:
+    agg_result_path = os.path.join(
+        results_dir, ablation_name, "agg_data/accuracies-context_len.pkl"
+    )
+else:
+    agg_result_path = os.path.join(
+        results_dir, ablation_name, "agg_data/accuracies.pkl"
+    )
 plot_path = os.path.join(results_dir, ablation_name, "plots")
 
 os.makedirs(plot_path, exist_ok=True)

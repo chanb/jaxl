@@ -111,8 +111,10 @@ class TightFrameClassification(Dataset):
         num_holdout: int,
         split: str,
         p_bursty: float,
+        bursty_len: int = 3,
         unique_classes: bool = False,
         random_label: bool = False,
+        perturb_query: bool = False,
         seed: int = 0,
     ):
         assert os.path.isfile(tight_frame_path)
@@ -150,6 +152,8 @@ class TightFrameClassification(Dataset):
             "random_label": random_label,
         }
 
+        self._bursty_len = bursty_len
+        self._perturb_query = perturb_query
         self._unique_classes = unique_classes
         if is_train:
             self._num_classes = self._data["num_classes"] - num_holdout
@@ -184,9 +188,13 @@ class TightFrameClassification(Dataset):
         label = self._data["targets"][idx]
         query = self.tight_frame[label]
 
+        if self._perturb_query:
+            query += sample_rng.random.randn(*query.shape)
+            query /= np.linalg.norm(query, axis=-1, keepdims=True)
+
         if is_bursty:
             label_idxes = []
-            min_tokens = 6
+            min_tokens = self._bursty_len * 2
             if self._data["sequence_length"] > min_tokens:
                 label_idxes = sample_rng.choice(
                     self._classes,
@@ -196,8 +204,8 @@ class TightFrameClassification(Dataset):
             label_idxes = sample_rng.permutation(
                 np.concatenate(
                     [
-                        [label] * 3,
-                        [repeated_distractor_label] * 3,
+                        [label] * self._bursty_len,
+                        [repeated_distractor_label] * self._bursty_len,
                         label_idxes,
                     ]
                 )[: self._data["context_len"]]
@@ -293,6 +301,7 @@ class TightFrameAbstractClassification(Dataset):
             random_boundaries = data_gen_rng.randn(
                 num_sequences, self.tight_frame.shape[1]
             )
+            random_boundaries /= np.linalg.norm(random_boundaries, axis=-1, keepdims=True)
             positive_cap = (
                 jax.vmap(
                     lambda boundary, tight_frame: tight_frame @ boundary,
@@ -308,9 +317,10 @@ class TightFrameAbstractClassification(Dataset):
             labels = np.full_like(positive_cap, -1)
             labels[positive_cap] = 1
             labels[negative_cap] = 0
+            print(labels.shape, positive_cap.shape, negative_cap.shape)
             print(
                 "num pos: {}, num neg: {}".format(
-                    np.sum(positive_cap), np.sum(negative_cap)
+                    np.min(np.sum(positive_cap, axis=-1)), np.min(np.sum(negative_cap, axis=-1))
                 )
             )
         elif abstraction.endswith("l2"):

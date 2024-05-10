@@ -184,8 +184,10 @@ def get_dataset(
                 num_holdout=dataset_kwargs.num_holdout,
                 split=dataset_kwargs.split,
                 p_bursty=dataset_kwargs.p_bursty,
+                bursty_len=getattr(dataset_kwargs, "bursty_len", 3),
                 unique_classes=getattr(dataset_kwargs, "unique_classes", False),
                 random_label=getattr(dataset_kwargs, "random_label", False),
+                perturb_query=getattr(dataset_kwargs, "perturb_query", False),
                 seed=seed,
             )
     else:

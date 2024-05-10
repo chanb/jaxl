@@ -40,7 +40,9 @@ doc_width_pt = 1000.0
 
 # Tight Frame
 results_dir = "./tight_frame_results"
-ablation_name = "icl-tight_frame_classification"
+# ablation_name = "icl-tight_frame_classification"
+ablation_name = "icl-tight_frame_classification-hidden_dim_2"
+ablation_name = "icl-tight_frame_classification-hidden_dim_64"
 
 # FILTERS
 include_prefix = None
