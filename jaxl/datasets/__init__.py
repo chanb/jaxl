@@ -164,6 +164,7 @@ def get_dataset(
                 num_holdout=dataset_kwargs.num_holdout,
                 split=dataset_kwargs.split,
                 k_way=dataset_kwargs.k_way,
+                perturb_query=getattr(dataset_kwargs, "perturb_query", False),
                 seed=seed,
             )
         elif task_name == "abstract_class":

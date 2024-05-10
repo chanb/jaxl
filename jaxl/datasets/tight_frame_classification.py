@@ -189,7 +189,7 @@ class TightFrameClassification(Dataset):
         query = self.tight_frame[label]
 
         if self._perturb_query:
-            query += sample_rng.random.randn(*query.shape)
+            query += sample_rng.randn(*query.shape) * 0.0001
             query /= np.linalg.norm(query, axis=-1, keepdims=True)
 
         if is_bursty:
@@ -301,7 +301,9 @@ class TightFrameAbstractClassification(Dataset):
             random_boundaries = data_gen_rng.randn(
                 num_sequences, self.tight_frame.shape[1]
             )
-            random_boundaries /= np.linalg.norm(random_boundaries, axis=-1, keepdims=True)
+            random_boundaries /= np.linalg.norm(
+                random_boundaries, axis=-1, keepdims=True
+            )
             positive_cap = (
                 jax.vmap(
                     lambda boundary, tight_frame: tight_frame @ boundary,
@@ -320,7 +322,8 @@ class TightFrameAbstractClassification(Dataset):
             print(labels.shape, positive_cap.shape, negative_cap.shape)
             print(
                 "num pos: {}, num neg: {}".format(
-                    np.min(np.sum(positive_cap, axis=-1)), np.min(np.sum(negative_cap, axis=-1))
+                    np.min(np.sum(positive_cap, axis=-1)),
+                    np.min(np.sum(negative_cap, axis=-1)),
                 )
             )
         elif abstraction.endswith("l2"):
@@ -398,6 +401,7 @@ class TightFrameClassificationNShotKWay(Dataset):
         num_holdout: int,
         split: str,
         k_way: int,
+        perturb_query: bool = False,
         seed: int = 0,
     ):
         assert os.path.isfile(tight_frame_path)
@@ -431,6 +435,7 @@ class TightFrameClassificationNShotKWay(Dataset):
             "n_shot": context_len // k_way,
         }
 
+        self._perturb_query = perturb_query
         if is_train:
             self._num_classes = self._data["num_classes"] - num_holdout
             self._classes = np.arange(self._num_classes)
@@ -461,6 +466,10 @@ class TightFrameClassificationNShotKWay(Dataset):
 
         label = sample_rng.choice(self._classes)
         query = self.tight_frame[label]
+
+        if self._perturb_query:
+            query += sample_rng.randn(*query.shape) * 0.0001
+            query /= np.linalg.norm(query, axis=-1, keepdims=True)
 
         while True:
             repeated_distractor_labels = sample_rng.choice(
