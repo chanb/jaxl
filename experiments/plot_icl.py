@@ -43,6 +43,7 @@ results_dir = "./tight_frame_results"
 # ablation_name = "icl-tight_frame_classification"
 ablation_name = "icl-tight_frame_classification-hidden_dim_2"
 ablation_name = "icl-tight_frame_classification-hidden_dim_64"
+ablation_name = "icl-tight_frame_classification-hidden_dim_64-perturb_all"
 
 # FILTERS
 include_prefix = None

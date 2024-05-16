@@ -165,6 +165,7 @@ def get_dataset(
                 split=dataset_kwargs.split,
                 k_way=dataset_kwargs.k_way,
                 perturb_query=getattr(dataset_kwargs, "perturb_query", False),
+                perturb_context=getattr(dataset_kwargs, "perturb_context", False),
                 seed=seed,
             )
         elif task_name == "abstract_class":
@@ -189,6 +190,8 @@ def get_dataset(
                 unique_classes=getattr(dataset_kwargs, "unique_classes", False),
                 random_label=getattr(dataset_kwargs, "random_label", False),
                 perturb_query=getattr(dataset_kwargs, "perturb_query", False),
+                perturb_context=getattr(dataset_kwargs, "perturb_context", False),
+                novel_query=getattr(dataset_kwargs, "novel_query", False),
                 seed=seed,
             )
     else:

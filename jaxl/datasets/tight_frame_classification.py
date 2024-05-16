@@ -115,6 +115,8 @@ class TightFrameClassification(Dataset):
         unique_classes: bool = False,
         random_label: bool = False,
         perturb_query: bool = False,
+        perturb_context: bool = False,
+        novel_query: bool = False,
         seed: int = 0,
     ):
         assert os.path.isfile(tight_frame_path)
@@ -154,6 +156,8 @@ class TightFrameClassification(Dataset):
 
         self._bursty_len = bursty_len
         self._perturb_query = perturb_query
+        self._perturb_context = perturb_context
+        self._novel_query = novel_query
         self._unique_classes = unique_classes
         if is_train:
             self._num_classes = self._data["num_classes"] - num_holdout
@@ -192,6 +196,7 @@ class TightFrameClassification(Dataset):
             query += sample_rng.randn(*query.shape) * 0.0001
             query /= np.linalg.norm(query, axis=-1, keepdims=True)
 
+        repeated_distractor_label = sample_rng.choice(self._classes)
         if is_bursty:
             label_idxes = []
             min_tokens = self._bursty_len * 2
@@ -200,7 +205,6 @@ class TightFrameClassification(Dataset):
                     self._classes,
                     size=(self._data["context_len"] - min_tokens),
                 )
-            repeated_distractor_label = sample_rng.choice(self._classes)
             label_idxes = sample_rng.permutation(
                 np.concatenate(
                     [
@@ -229,6 +233,29 @@ class TightFrameClassification(Dataset):
         inputs = np.concatenate(
             (*[context_input[None] for context_input in inputs], query[None])
         )
+        if self._perturb_context:
+            inputs[:-1] += sample_rng.randn(*inputs[:-1].shape) * 0.0001
+            inputs[:-1] /= np.linalg.norm(inputs[:-1], axis=-1, keepdims=True)
+
+        if self._novel_query:
+            correct_class_mean = np.mean(
+                inputs[np.where(label_idxes == label)[0]], axis=0
+            )
+            distractor_class_mean = np.mean(
+                inputs[np.where(label_idxes == repeated_distractor_label)[0]], axis=0
+            )
+            bisector = (correct_class_mean + distractor_class_mean) / 2
+
+            if np.dot(bisector, correct_class_mean) > 0:
+                bisector *= -1
+
+            bisector += (
+                (correct_class_mean - bisector)
+                * sample_rng.rand(*bisector.shape)
+                * 0.0001
+            )
+            bisector /= np.linalg.norm(bisector, axis=-1)
+            inputs[-1] = bisector
 
         labels = np.concatenate([label_idxes, [label]]) - self._offset
 
@@ -402,6 +429,7 @@ class TightFrameClassificationNShotKWay(Dataset):
         split: str,
         k_way: int,
         perturb_query: bool = False,
+        perturb_context: bool = False,
         seed: int = 0,
     ):
         assert os.path.isfile(tight_frame_path)
@@ -436,6 +464,7 @@ class TightFrameClassificationNShotKWay(Dataset):
         }
 
         self._perturb_query = perturb_query
+        self._perturb_context = perturb_context
         if is_train:
             self._num_classes = self._data["num_classes"] - num_holdout
             self._classes = np.arange(self._num_classes)
@@ -494,6 +523,9 @@ class TightFrameClassificationNShotKWay(Dataset):
         inputs = np.concatenate(
             (*[context_input[None] for context_input in inputs], query[None])
         )
+        if self._perturb_context:
+            inputs[:-1] += sample_rng.randn(*inputs[:-1].shape) * 0.0001
+            inputs[:-1] /= np.linalg.norm(inputs[:-1], axis=-1, keepdims=True)
 
         labels = np.concatenate([label_idxes, [label]])
         label_to_k_way = sample_rng.permutation(np.unique(labels))

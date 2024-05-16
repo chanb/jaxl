@@ -25,6 +25,16 @@ def get_eval_datasets(
     num_test_tasks: int,
     test_data_seed: int,
 ):
+    # In-weight
+    in_weight_config_dict = copy.deepcopy(config_dict)
+    in_weight_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"][
+        "task_name"
+    ] = "no_support"
+    in_weight_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"][
+        "perturb_query"
+    ] = True
+    in_weight_config = parse_dict(in_weight_config_dict)
+
     # Pretrain N-shot 2-way
     pretrain_n_shot_2_way_config_dict = copy.deepcopy(config_dict)
     pretrain_n_shot_2_way_config_dict["learner_config"]["dataset_config"][
@@ -67,6 +77,7 @@ def get_eval_datasets(
     test_n_shot_2_way_config = parse_dict(test_n_shot_2_way_config_dict)
 
     configs = {
+        "in_weight": in_weight_config,
         "pretrain_n_shot_2_way": pretrain_n_shot_2_way_config,
         "test_n_shot_2_way": test_n_shot_2_way_config,
     }

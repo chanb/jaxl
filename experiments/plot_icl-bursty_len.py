@@ -43,7 +43,6 @@ results_dir = "./tight_frame_results"
 ablation_name = "icl-tight_frame_classification"
 ablation_name = "icl-tight_frame_classification-hidden_dim_2"
 ablation_name = "icl-tight_frame_classification-hidden_dim_64"
-ablation_name = "icl-tight_frame_classification-hidden_dim_64-perturb_all"
 context_len_exp = True
 
 # FILTERS
@@ -51,8 +50,11 @@ include_prefix = None
 include_suffix = None
 exclude_prefix = None
 exclude_suffix = None
-include_evals = ["{}_cos".format(threshold) for threshold in [0.0, 0.2, 0.3]]
-include_evals + ["in_weight"]
+include_evals = [
+    "bursty_len_{}-{}_cos".format(bursty_len, threshold)
+    for threshold in [0.0, 0.2, 0.3]
+    for bursty_len in range(1, 9)
+]
 map_eval_to_title = {
     "in_weight": "In-weight",
     "test_n_shot_2_way": "In-context",
@@ -71,7 +73,9 @@ num_cols = 2
 
 interp_gap_size = 1000
 
-agg_result_path = os.path.join(results_dir, ablation_name, "agg_data/accuracies.pkl")
+agg_result_path = os.path.join(
+    results_dir, ablation_name, "agg_data/accuracies-bursty_len.pkl"
+)
 plot_path = os.path.join(results_dir, ablation_name, "plots")
 
 os.makedirs(plot_path, exist_ok=True)
@@ -130,7 +134,7 @@ def process_exp_runs(exp_runs: dict, x_range: chex.Array):
 
 
 def plot_main_plot():
-    save_path = os.path.join(plot_path, "{}-cos.pdf".format(ablation_name))
+    save_path = os.path.join(plot_path, "{}-bursty_len.pdf".format(ablation_name))
     num_rows = math.ceil(max_num_evals / num_cols)
     fig, axes = plt.subplots(
         num_rows,
