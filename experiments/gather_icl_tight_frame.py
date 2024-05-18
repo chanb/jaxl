@@ -117,7 +117,8 @@ def get_eval_datasets(
         configs["{}_cos".format(cos_threshold)] = n_abstract_hierarchy_config
 
     # N-l2: Abstract hierarchy
-    for n_closest in [2, 10, 20, 40, 100, 500]:
+    # for n_closest in [2, 10, 20, 40, 100, 500]:
+    for n_closest in [2, 40, 500]:
         n_abstract_hierarchy_config_dict = copy.deepcopy(config_dict)
         n_abstract_hierarchy_config_dict["learner_config"]["dataset_config"][
             "dataset_kwargs"

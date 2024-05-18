@@ -68,11 +68,20 @@ class InContextLearner(OfflineLearner):
         model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
         dummy_input = self._generate_dummy_x(input_dim)
         dummy_output = self._generate_dummy_x(output_dim)
-        params = self._model.init(model_key, dummy_input, dummy_output)
-        self._optimizer, opt_state = get_optimizer(
-            self._optimizer_config, self._model, params
-        )
-        self._model_dict = {CONST_MODEL: params, CONST_OPT_STATE: opt_state}
+
+        restore_path = getattr(self._model_config, "restore_path", False)
+        if restore_path:
+            import dill
+            self._model_dict = dill.load(open(restore_path, "rb"))[CONST_MODEL_DICT]
+            self._optimizer, _ = get_optimizer(
+                self._optimizer_config, self._model, self._model_dict[CONST_MODEL]
+            )
+        else:
+            params = self._model.init(model_key, dummy_input, dummy_output)
+            self._optimizer, opt_state = get_optimizer(
+                self._optimizer_config, self._model, params
+            )
+            self._model_dict = {CONST_MODEL: params, CONST_OPT_STATE: opt_state}
 
     def _initialize_losses(self):
         """

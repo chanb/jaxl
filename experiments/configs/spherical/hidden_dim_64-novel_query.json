@@ -35,7 +35,8 @@
             }
         },
         "query_pred_only": true,
-        "input_output_same_encoding": false
+        "input_output_same_encoding": false,
+        "restore_path": "/Users/chanb/research/personal/jaxl/logs/icl-tight_frame_classification/p_bursty-1.0-hidden_dim_64-novel_query-05-15-24_19_47_54-06ad8762-3e94-4ed6-aa05-0b6d74419e10/models/200000.dill"
     },
     "optimizer_config": {
         "optimizer": "adam",
