@@ -13,11 +13,23 @@ class DatasetWrapper(Dataset):
     def __init__(self, dataset: Any):
         self._dataset = dataset
 
-    def __getattr__(self, attr):
-        return getattr(self._dataset, attr)
+    def __getitem__(self, index):
+        return self._dataset[index]
 
     def __len__(self):
         return len(self._dataset)
+
+    @property
+    def input_dim(self) -> chex.Array:
+        return self._dataset.input_dim
+
+    @property
+    def output_dim(self) -> chex.Array:
+        return self._dataset.output_dim
+
+    @property
+    def sequence_length(self) -> int:
+        return self._dataset.sequence_length
 
     def get_dataloader(
         self,

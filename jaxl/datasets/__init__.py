@@ -152,6 +152,7 @@ def get_dataset(
             TightFrameClassification,
             TightFrameClassificationNShotKWay,
             TightFrameAbstractClassification,
+            OneSequencePerClassTightFrameClassification,
         )
 
         task_name = getattr(dataset_kwargs, "task_name", None)
@@ -178,6 +179,19 @@ def get_dataset(
                 abstraction=dataset_kwargs.abstraction,
                 seed=seed,
             )
+        elif task_name == "one_sequence_per_class":
+            dataset = OneSequencePerClassTightFrameClassification(
+                tight_frame_path=dataset_kwargs.tight_frame_path,
+                sequence_length=dataset_kwargs.sequence_length,
+                num_holdout=dataset_kwargs.num_holdout,
+                split=dataset_kwargs.split,
+                p_bursty=dataset_kwargs.p_bursty,
+                bursty_len=getattr(dataset_kwargs, "bursty_len", 3),
+                unique_classes=getattr(dataset_kwargs, "unique_classes", False),
+                perturb_query=getattr(dataset_kwargs, "perturb_query", False),
+                perturb_context=getattr(dataset_kwargs, "perturb_context", False),
+                seed=seed,
+            )
         else:
             dataset = TightFrameClassification(
                 tight_frame_path=dataset_kwargs.tight_frame_path,
@@ -192,6 +206,7 @@ def get_dataset(
                 perturb_query=getattr(dataset_kwargs, "perturb_query", False),
                 perturb_context=getattr(dataset_kwargs, "perturb_context", False),
                 novel_query=getattr(dataset_kwargs, "novel_query", False),
+                zipf_exp=getattr(dataset_kwargs, "zipf_exp", 0.0),
                 seed=seed,
             )
     else:

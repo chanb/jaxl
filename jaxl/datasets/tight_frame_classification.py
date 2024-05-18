@@ -117,6 +117,7 @@ class TightFrameClassification(Dataset):
         perturb_query: bool = False,
         perturb_context: bool = False,
         novel_query: bool = False,
+        zipf_exp: float = 0.0,
         seed: int = 0,
     ):
         assert os.path.isfile(tight_frame_path)
@@ -127,8 +128,11 @@ class TightFrameClassification(Dataset):
 
         offset = self.tight_frame.shape[0] - num_holdout
         if is_train:
+            zipf_weights = np.array([1 / j**zipf_exp for j in range(offset, 0, -1)])
+            zipf_weights /= np.sum(zipf_weights)
             targets = data_gen_rng.choice(
                 offset,
+                p=zipf_weights,
                 size=num_sequences,
             )
         else:
@@ -228,6 +232,7 @@ class TightFrameClassification(Dataset):
                 label_idxes = sample_rng.choice(
                     self._classes, size=(self._data["context_len"])
                 )
+        label_idxes = label_idxes.astype(int)
 
         inputs = list(map(lambda ii: self.tight_frame[ii], label_idxes))
         inputs = np.concatenate(
@@ -258,6 +263,7 @@ class TightFrameClassification(Dataset):
             inputs[-1] = bisector
 
         labels = np.concatenate([label_idxes, [label]]) - self._offset
+        labels = labels.astype(int)
 
         if self._data["random_label"]:
             label_map = sample_rng.permutation(
@@ -534,3 +540,130 @@ class TightFrameClassificationNShotKWay(Dataset):
         outputs = np.eye(self._data["num_classes"])[labels]
 
         return (inputs, outputs)
+
+
+class OneSequencePerClassTightFrameClassification(Dataset):
+    def __init__(
+        self,
+        tight_frame_path: str,
+        sequence_length: int,
+        num_holdout: int,
+        split: str,
+        p_bursty: float,
+        bursty_len: int = 3,
+        unique_classes: bool = False,
+        perturb_query: bool = False,
+        perturb_context: bool = False,
+        seed: int = 0,
+    ):
+        assert os.path.isfile(tight_frame_path)
+        self.tight_frame = pickle.load(open(tight_frame_path, "rb"))
+        is_train = int(split == CONST_TRAIN)
+        data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)[is_train]
+        data_gen_rng = np.random.RandomState(seed=data_gen_seed)
+
+        offset = self.tight_frame.shape[0] - num_holdout
+        if is_train:
+            targets = np.arange(offset)
+        else:
+            targets = np.arange(num_holdout) + offset
+
+        self._data = {
+            "targets": targets,
+            "num_sequences": len(targets),
+            "sequence_length": sequence_length,
+            "num_holdout": num_holdout,
+            "num_classes": self.tight_frame.shape[0],
+            "input_dim": self.tight_frame.shape[1],
+            "split": split,
+            "seed": seed,
+            "is_bursty": data_gen_rng.rand(len(targets)) < p_bursty,
+            "context_len": sequence_length - 1,
+        }
+
+        self._bursty_len = bursty_len
+        self._perturb_query = perturb_query
+        self._perturb_context = perturb_context
+        self._unique_classes = unique_classes
+        if is_train:
+            self._num_classes = self._data["num_classes"] - num_holdout
+            self._classes = np.arange(self._num_classes)
+            self._offset = 0
+        else:
+            self._num_classes = num_holdout
+            self._classes = np.arange(
+                self._data["num_classes"] - num_holdout,
+                self._data["num_classes"],
+            )
+            self._offset = offset
+
+    @property
+    def input_dim(self) -> chex.Array:
+        return (self._data["num_classes"],)
+
+    @property
+    def output_dim(self) -> chex.Array:
+        return (self._data["num_classes"],)
+
+    @property
+    def sequence_length(self) -> int:
+        return self._data["sequence_length"]
+
+    def __len__(self):
+        return self._data["num_sequences"]
+
+    def __getitem__(self, idx):
+        is_bursty = self._data["is_bursty"][idx]
+        sample_rng = np.random.RandomState(idx)
+        label = self._data["targets"][idx]
+        query = self.tight_frame[label]
+
+        if self._perturb_query:
+            query += sample_rng.randn(*query.shape) * 0.0001
+            query /= np.linalg.norm(query, axis=-1, keepdims=True)
+
+        repeated_distractor_label = sample_rng.choice(self._classes)
+        if is_bursty:
+            label_idxes = []
+            min_tokens = self._bursty_len * 2
+            if self._data["sequence_length"] > min_tokens:
+                label_idxes = sample_rng.choice(
+                    self._classes,
+                    size=(self._data["context_len"] - min_tokens),
+                )
+            label_idxes = sample_rng.permutation(
+                np.concatenate(
+                    [
+                        [label] * self._bursty_len,
+                        [repeated_distractor_label] * self._bursty_len,
+                        label_idxes,
+                    ]
+                )[: self._data["context_len"]]
+            )
+        else:
+            if self._unique_classes:
+                done = False
+                while not done:
+                    label_idxes = sample_rng.choice(
+                        self._classes,
+                        size=(self._data["context_len"]),
+                        replace=False,
+                    )
+                    done = label not in label_idxes
+            else:
+                label_idxes = sample_rng.choice(
+                    self._classes, size=(self._data["context_len"])
+                )
+
+        inputs = list(map(lambda ii: self.tight_frame[ii], label_idxes))
+        inputs = np.concatenate(
+            (*[context_input[None] for context_input in inputs], query[None])
+        )
+        if self._perturb_context:
+            inputs[:-1] += sample_rng.randn(*inputs[:-1].shape) * 0.0001
+            inputs[:-1] /= np.linalg.norm(inputs[:-1], axis=-1, keepdims=True)
+
+        labels = np.concatenate([label_idxes, [label]]) - self._offset
+
+        outputs = np.eye(self._data["num_classes"])[labels]
+        return inputs, outputs

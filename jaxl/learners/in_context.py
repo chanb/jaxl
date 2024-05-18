@@ -72,6 +72,7 @@ class InContextLearner(OfflineLearner):
         restore_path = getattr(self._model_config, "restore_path", False)
         if restore_path:
             import dill
+
             self._model_dict = dill.load(open(restore_path, "rb"))[CONST_MODEL_DICT]
             self._optimizer, _ = get_optimizer(
                 self._optimizer_config, self._model, self._model_dict[CONST_MODEL]

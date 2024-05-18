@@ -371,9 +371,12 @@ class GPTBlock(nn.Module):
     # : Widening dimension
     widening_factor: int
 
+    # : Causal mask
+    use_causal_mask: int
+
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
-        mask = nn.make_causal_mask(x[..., 0])
+        mask = nn.make_causal_mask(x[..., 0]) * self.use_causal_mask
         x = x + SelfAttentionModule(self.num_heads, self.embed_dim)(
             nn.LayerNorm(epsilon=1e-5, use_fast_variance=False)(x), eval, mask=mask
         )
@@ -401,10 +404,17 @@ class GPTModule(nn.Module):
     # : Widening dimension
     widening_factor: int
 
+    use_causal_mask: int = 1
+
     @nn.compact
     def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
         for idx, _ in enumerate(range(self.num_blocks)):
-            x = GPTBlock(self.num_heads, self.embed_dim, self.widening_factor)(x, eval)
+            x = GPTBlock(
+                self.num_heads,
+                self.embed_dim,
+                self.widening_factor,
+                self.use_causal_mask,
+            )(x, eval)
             # self.sow("gpt_latents", "gpt_{}".format(idx), x)
         x = nn.LayerNorm(epsilon=1e-5, use_fast_variance=False)(x)
         # self.sow("gpt_latents", "gpt_{}".format(idx + 1), x)
