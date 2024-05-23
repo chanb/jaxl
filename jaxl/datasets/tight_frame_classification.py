@@ -113,9 +113,10 @@ class TightFrameClassification(Dataset):
         p_bursty: float,
         bursty_len: int = 3,
         unique_classes: bool = False,
-        random_label: bool = False,
+        p_random_label: float = 0.0,
         perturb_query: bool = False,
         perturb_context: bool = False,
+        perturb_noise: float = 0.001,
         novel_query: bool = False,
         zipf_exp: float = 0.0,
         seed: int = 0,
@@ -155,12 +156,13 @@ class TightFrameClassification(Dataset):
             "seed": seed,
             "is_bursty": data_gen_rng.rand(num_sequences) < p_bursty,
             "context_len": sequence_length - 1,
-            "random_label": random_label,
+            "p_random_label": p_random_label,
         }
 
         self._bursty_len = bursty_len
         self._perturb_query = perturb_query
         self._perturb_context = perturb_context
+        self._perturb_noise = perturb_noise
         self._novel_query = novel_query
         self._unique_classes = unique_classes
         if is_train:
@@ -197,7 +199,7 @@ class TightFrameClassification(Dataset):
         query = self.tight_frame[label]
 
         if self._perturb_query:
-            query += sample_rng.randn(*query.shape) * 0.0001
+            query += sample_rng.randn(*query.shape) * self._perturb_noise
             query /= np.linalg.norm(query, axis=-1, keepdims=True)
 
         repeated_distractor_label = sample_rng.choice(self._classes)
@@ -239,7 +241,7 @@ class TightFrameClassification(Dataset):
             (*[context_input[None] for context_input in inputs], query[None])
         )
         if self._perturb_context:
-            inputs[:-1] += sample_rng.randn(*inputs[:-1].shape) * 0.0001
+            inputs[:-1] += sample_rng.randn(*inputs[:-1].shape) * self._perturb_noise
             inputs[:-1] /= np.linalg.norm(inputs[:-1], axis=-1, keepdims=True)
 
         if self._novel_query:
@@ -257,7 +259,7 @@ class TightFrameClassification(Dataset):
             bisector += (
                 (correct_class_mean - bisector)
                 * sample_rng.rand(*bisector.shape)
-                * 0.0001
+                * self._perturb_noise
             )
             bisector /= np.linalg.norm(bisector, axis=-1)
             inputs[-1] = bisector
@@ -265,7 +267,7 @@ class TightFrameClassification(Dataset):
         labels = np.concatenate([label_idxes, [label]]) - self._offset
         labels = labels.astype(int)
 
-        if self._data["random_label"]:
+        if self._data["p_random_label"] > sample_rng.rand():
             label_map = sample_rng.permutation(
                 self._num_classes,
             )
@@ -436,6 +438,7 @@ class TightFrameClassificationNShotKWay(Dataset):
         k_way: int,
         perturb_query: bool = False,
         perturb_context: bool = False,
+        perturb_noise: float = 0.001,
         seed: int = 0,
     ):
         assert os.path.isfile(tight_frame_path)
@@ -471,6 +474,7 @@ class TightFrameClassificationNShotKWay(Dataset):
 
         self._perturb_query = perturb_query
         self._perturb_context = perturb_context
+        self._perturb_noise = perturb_noise
         if is_train:
             self._num_classes = self._data["num_classes"] - num_holdout
             self._classes = np.arange(self._num_classes)
@@ -503,7 +507,7 @@ class TightFrameClassificationNShotKWay(Dataset):
         query = self.tight_frame[label]
 
         if self._perturb_query:
-            query += sample_rng.randn(*query.shape) * 0.0001
+            query += sample_rng.randn(*query.shape) * self._perturb_noise
             query /= np.linalg.norm(query, axis=-1, keepdims=True)
 
         while True:
@@ -530,7 +534,7 @@ class TightFrameClassificationNShotKWay(Dataset):
             (*[context_input[None] for context_input in inputs], query[None])
         )
         if self._perturb_context:
-            inputs[:-1] += sample_rng.randn(*inputs[:-1].shape) * 0.0001
+            inputs[:-1] += sample_rng.randn(*inputs[:-1].shape) * self._perturb_noise
             inputs[:-1] /= np.linalg.norm(inputs[:-1], axis=-1, keepdims=True)
 
         labels = np.concatenate([label_idxes, [label]])
@@ -619,7 +623,7 @@ class OneSequencePerClassTightFrameClassification(Dataset):
         query = self.tight_frame[label]
 
         if self._perturb_query:
-            query += sample_rng.randn(*query.shape) * 0.0001
+            query += sample_rng.randn(*query.shape) * self._perturb_noise
             query /= np.linalg.norm(query, axis=-1, keepdims=True)
 
         repeated_distractor_label = sample_rng.choice(self._classes)
@@ -660,7 +664,7 @@ class OneSequencePerClassTightFrameClassification(Dataset):
             (*[context_input[None] for context_input in inputs], query[None])
         )
         if self._perturb_context:
-            inputs[:-1] += sample_rng.randn(*inputs[:-1].shape) * 0.0001
+            inputs[:-1] += sample_rng.randn(*inputs[:-1].shape) * self._perturb_noise
             inputs[:-1] /= np.linalg.norm(inputs[:-1], axis=-1, keepdims=True)
 
         labels = np.concatenate([label_idxes, [label]]) - self._offset

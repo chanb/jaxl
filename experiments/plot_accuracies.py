@@ -39,12 +39,20 @@ doc_width_pt = 1000.0
 # ablation_name = "include_query_class-random_label"
 
 # Tight Frame
-results_dir = "./tight_frame_results"
-ablation_name = "icl-tight_frame_classification"
+# results_dir = "./tight_frame_results"
+# ablation_name = "icl-tight_frame_classification"
 # ablation_name = "icl-tight_frame_classification-hidden_dim_2"
 # ablation_name = "icl-tight_frame_classification-hidden_dim_64"
 # ablation_name = "icl-tight_frame_classification-hidden_dim_64-perturb_all"
 # ablation_name = "icl-tight_frame_classification-hidden_dim_64-more_epochs"
+# results_dir = "./zipf_perturbation_ablation_results"
+# ablation_name = "zipf_experiments"
+# results_dir = "zipf_larger_ablation_results"
+# ablation_name = "zipf_larger_experiments"
+# results_dir = "zipf_largest_ablation_results"
+# ablation_name = "zipf_largest_experiments"
+results_dir = "zipf_larger_more_noise_ablation_results"
+ablation_name = "zipf_larger_more_noise_experiments"
 # variant = "-perturb_query"
 variant = ""
 

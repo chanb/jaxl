@@ -167,6 +167,7 @@ def get_dataset(
                 k_way=dataset_kwargs.k_way,
                 perturb_query=getattr(dataset_kwargs, "perturb_query", False),
                 perturb_context=getattr(dataset_kwargs, "perturb_context", False),
+                perturb_noise=getattr(dataset_kwargs, "perturb_noise", 0.001),
                 seed=seed,
             )
         elif task_name == "abstract_class":
@@ -202,9 +203,10 @@ def get_dataset(
                 p_bursty=dataset_kwargs.p_bursty,
                 bursty_len=getattr(dataset_kwargs, "bursty_len", 3),
                 unique_classes=getattr(dataset_kwargs, "unique_classes", False),
-                random_label=getattr(dataset_kwargs, "random_label", False),
+                p_random_label=getattr(dataset_kwargs, "p_random_label", 0.0),
                 perturb_query=getattr(dataset_kwargs, "perturb_query", False),
                 perturb_context=getattr(dataset_kwargs, "perturb_context", False),
+                perturb_noise=getattr(dataset_kwargs, "perturb_noise", 0.001),
                 novel_query=getattr(dataset_kwargs, "novel_query", False),
                 zipf_exp=getattr(dataset_kwargs, "zipf_exp", 0.0),
                 seed=seed,
