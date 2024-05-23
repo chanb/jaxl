@@ -158,32 +158,50 @@ def get_update_function(
 
     if isinstance(model, EncoderPredictorModel):
 
-        def update_encoder_predictor(optimizer, grads, opt_state, params, batch_stats):
+        def update_encoder_predictor(
+            optimizer, grads, opt_state, train_states, batch_stats
+        ):
             updates, encoder_opt_state = optimizer[CONST_ENCODER].update(
                 grads[CONST_ENCODER],
                 opt_state[CONST_ENCODER],
-                params[CONST_ENCODER],
+                train_states[CONST_ENCODER][CONST_PARAMS],
             )
-            encoder_params = optax.apply_updates(params[CONST_ENCODER], updates)
+            encoder_params = optax.apply_updates(
+                train_states[CONST_ENCODER][CONST_PARAMS], updates
+            )
             encoder_params = model.encoder.update_batch_stats(
                 encoder_params,
                 batch_stats[CONST_ENCODER],
+            )
+            encoder_random_keys = model.encoder.update_random_keys(
+                train_states[CONST_ENCODER][CONST_RANDOM_KEYS]
             )
 
             updates, predictor_opt_state = optimizer[CONST_PREDICTOR].update(
                 grads[CONST_PREDICTOR],
                 opt_state[CONST_PREDICTOR],
-                params[CONST_PREDICTOR],
+                train_states[CONST_PREDICTOR][CONST_PARAMS],
             )
-            predictor_params = optax.apply_updates(params[CONST_PREDICTOR], updates)
-            predictor_params = model.encoder.update_batch_stats(
+            predictor_params = optax.apply_updates(
+                train_states[CONST_PREDICTOR][CONST_PARAMS], updates
+            )
+            predictor_params = model.predictor.update_batch_stats(
                 predictor_params,
                 batch_stats[CONST_PREDICTOR],
             )
+            predictor_random_keys = model.encoder.update_random_keys(
+                train_states[CONST_PREDICTOR][CONST_RANDOM_KEYS]
+            )
 
             return {
-                CONST_ENCODER: encoder_params,
-                CONST_PREDICTOR: predictor_params,
+                CONST_ENCODER: {
+                    CONST_PARAMS: encoder_params,
+                    CONST_RANDOM_KEYS: encoder_random_keys,
+                },
+                CONST_PREDICTOR: {
+                    CONST_PARAMS: predictor_params,
+                    CONST_RANDOM_KEYS: predictor_random_keys,
+                },
             }, {
                 CONST_ENCODER: encoder_opt_state,
                 CONST_PREDICTOR: predictor_opt_state,
@@ -192,18 +210,21 @@ def get_update_function(
         return update_encoder_predictor
     else:
 
-        def update_default(optimizer, grads, opt_state, params, batch_stats):
+        def update_default(optimizer, grads, opt_state, train_states, batch_stats):
             updates, opt_state = optimizer.update(
                 grads,
                 opt_state,
-                params,
+                train_states[CONST_PARAMS],
             )
-            params = optax.apply_updates(params, updates)
+            params = optax.apply_updates(train_states[CONST_PARAMS], updates)
             params = model.update_batch_stats(
                 params,
                 batch_stats,
             )
-            return params, opt_state
+            random_keys = model.encoder.update_random_keys(
+                train_states[CONST_RANDOM_KEYS]
+            )
+            return {CONST_PARAMS: params, CONST_RANDOM_KEYS: random_keys}, opt_state
 
         return update_default
 

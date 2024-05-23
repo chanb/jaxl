@@ -39,6 +39,7 @@ CONST_VAR = "var"
 CONST_DATASET_WRAPPER = "dataset_wrapper"
 CONST_WRAPPER = "wrapper"
 CONST_UPDATES = "updates"
+CONST_RANDOM_KEYS = "random_keys"
 
 VALID_SPLIT = (CONST_TRAIN, CONST_TEST)
 

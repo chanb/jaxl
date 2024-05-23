@@ -10,18 +10,59 @@ import numpy as np
 import optax
 
 from jaxl.constants import *
-from jaxl.models.common import (
-    Model,
-    CNN,
-    MLP,
-    ResNetV1,
-)
+from jaxl.models.common import Model
 from jaxl.models.encodings import get_positional_encoding
-from jaxl.models.modules import GPTModule
+from jaxl.models.modules import GPTModule, MLPModule, CNNModule, ResNetV1Module
+
+
+def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
+    """
+    Get tokenizer.
+
+    :param tokenizer_config: the tokenizer configuration
+    :param embed_dim: the embedding dimension
+    :type tokenizer_config: SimpleNameSpace
+    :type embed_dim: int
+    :return: a tokenizer
+    :rtype: Model
+    """
+    assert (
+        tokenizer_config.type in VALID_TOKENIZER_TYPE
+    ), f"{tokenizer_config.type} is not supported (one of {VALID_TOKENIZER_TYPE})"
+
+    tokenizer_kwargs = tokenizer_config.kwargs
+    if tokenizer_config.type == CONST_MLP:
+        return MLPModule(
+            tokenizer_kwargs.layers + [embed_dim],
+            getattr(tokenizer_kwargs, "activation", CONST_RELU),
+            getattr(tokenizer_kwargs, "output_activation", CONST_IDENTITY),
+            getattr(tokenizer_kwargs, "use_batch_norm", False),
+            getattr(tokenizer_kwargs, "use_bias", False),
+        )
+    elif tokenizer_config.type == CONST_CNN:
+        return CNNModule(
+            tokenizer_kwargs.features,
+            tokenizer_kwargs.kernel_sizes,
+            getattr(tokenizer_kwargs, "activation", CONST_RELU),
+            getattr(tokenizer_kwargs, "use_batch_norm", False),
+        )
+    elif tokenizer_config.type == CONST_RESNET:
+        return ResNetV1Module(
+            tokenizer_kwargs.blocks_per_group,
+            tokenizer_kwargs.features,
+            tokenizer_kwargs.stride,
+            tokenizer_kwargs.use_projection,
+            tokenizer_kwargs.use_bottleneck,
+            getattr(tokenizer_kwargs, "use_batch_norm", True),
+        )
+    else:
+        raise ValueError(
+            f"{tokenizer_config.type} is not supported (one of {VALID_TOKENIZER_TYPE})"
+        )
 
 
 class InContextSupervisedTransformer(Model):
-    """A GPT for in-context learning."""
+    """A GPT for in-context learning with customized tokenizers."""
 
     def __init__(
         self,
@@ -32,17 +73,19 @@ class InContextSupervisedTransformer(Model):
         embed_dim: int,
         widening_factor: int,
         positional_encoding: SimpleNamespace,
+        input_tokenizer_config: SimpleNamespace,
+        output_tokenizer_config: SimpleNamespace,
         query_pred_only: bool = False,
         input_output_same_encoding: bool = True,
-    ) -> None:
+    ):
         self.gpt = GPTModule(
             num_blocks=num_blocks,
             num_heads=num_heads,
             embed_dim=embed_dim,
             widening_factor=widening_factor,
         )
-        self.input_tokenizer = nn.Dense(embed_dim)
-        self.output_tokenizer = nn.Dense(embed_dim)
+        self.input_tokenizer = get_tokenizer(input_tokenizer_config, embed_dim)
+        self.output_tokenizer = get_tokenizer(output_tokenizer_config, embed_dim)
         self.predictor = nn.Dense(int(np.product(output_dim)))
         self.positional_encoding = get_positional_encoding(positional_encoding)
         self.num_tokens = num_contexts * 2 + 1
@@ -51,9 +94,11 @@ class InContextSupervisedTransformer(Model):
         self.apply_positional_encoding = self._make_get_positional_encoding(
             input_output_same_encoding
         )
-        self.tokenize = jax.jit(self.make_tokenize())
-        self.get_latent = jax.jit(self.make_get_latent())
-        self.forward = jax.jit(self.make_forward(query_pred_only))
+        self.tokenize = jax.jit(self.make_tokenize(), static_argnames=[CONST_EVAL])
+        self.get_latent = jax.jit(self.make_get_latent(), static_argnames=[CONST_EVAL])
+        self.forward = jax.jit(
+            self.make_forward(query_pred_only), static_argnames=[CONST_EVAL]
+        )
 
     def _make_get_positional_encoding(
         self, input_output_same_encoding: bool
@@ -127,47 +172,53 @@ class InContextSupervisedTransformer(Model):
         model_key: jrandom.PRNGKey,
         dummy_input: chex.Array,
         dummy_output: chex.Array,
-    ) -> Union[optax.Params, Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """
-        Initialize model parameters.
+        Initialize model train states.
 
-        :param model_key: the random number generation key for initializing parameters
+        :param model_key: the random number generation key for initializing train states
         :param dummy_input: the input data
         :param dummy_output: the output data
         :type model_key: jrandom.PRNGKey
         :type dummy_input: chex.Array
         :type dummy_output: chex.Array
-        :return: the initialized parameters
-        :rtype: Union[optax.Params, Dict[str, Any]]
+        :return: the initialized train states
+        :rtype: Dict[str, Any]
 
         """
         input_key, output_key, gpt_key, predictor_key, pe_key = jrandom.split(
             model_key, 5
         )
+
         dummy_token = np.zeros((1, 1, self.embed_dim))
         dummy_repr = np.zeros((1, 1, self.embed_dim))
+
+        it_params = self.input_tokenizer.init(input_key, dummy_input)
+        ot_params = self.output_tokenizer.init(output_key, dummy_output)
+        gpt_params = self.gpt.init(gpt_key, dummy_token, eval=True)
+        pe_params = self.positional_encoding.init(pe_key, dummy_token)
+        predictor_params = self.predictor.init(predictor_key, dummy_repr)
         return {
-            CONST_INPUT_TOKENIZER: self.input_tokenizer.init(input_key, dummy_input),
-            CONST_OUTPUT_TOKENIZER: self.output_tokenizer.init(
-                output_key, dummy_output
-            ),
-            CONST_GPT: self.gpt.init(gpt_key, dummy_token, eval=True),
-            CONST_POSITIONAL_ENCODING: self.positional_encoding.init(
-                pe_key, dummy_token
-            ),
-            CONST_PREDICTOR: self.predictor.init(predictor_key, dummy_repr),
+            CONST_PARAMS: {
+                CONST_INPUT_TOKENIZER: it_params,
+                CONST_OUTPUT_TOKENIZER: ot_params,
+                CONST_GPT: gpt_params,
+                CONST_POSITIONAL_ENCODING: pe_params,
+                CONST_PREDICTOR: predictor_params,
+            },
+            CONST_RANDOM_KEYS: {},  # TODO: Should probably have something to deal with random_keys
         }
 
     def make_tokenize(
         self,
     ) -> Callable[
         [
-            Union[optax.Params, Dict[str, Any]],
+            Dict[str, Any],
             chex.Array,
             chex.Array,
             chex.Array,
         ],
-        Tuple[chex.Array, chex.Array],
+        Tuple[chex.Array, chex.Array, Any],
     ]:
         """
         Makes the tokenize call of the ICL model.
@@ -175,39 +226,25 @@ class InContextSupervisedTransformer(Model):
         :return: the tokenize call.
         :rtype: Callable[
             [
-                Union[optax.Params, Dict[str, Any]],
+                Dict[str, Any],
                 chex.Array,
                 chex.Array,
                 chex.Array,
+                bool,
             ],
-            Tuple[chex.Array, chex.Array],
+            Tuple[chex.Array, chex.Array, Any],
         ]
         """
 
         def tokenize(
-            params: Union[optax.Params, Dict[str, Any]],
+            train_states: Dict[str, Any],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
             eval: bool = False,
             **kwargs,
-        ) -> Tuple[chex.Array, chex.Array]:
-            """
-            Get latent call of the GPT.
-
-            :param params: the model parameters
-            :param queries: the queries
-            :param contexts: the context with keys `context_input` and `context_output`
-            :type params: Union[optax.Params, Dict[str, Any]]
-            :type queries: chex.Array
-            :type contexts: Dict[str, chex.Array]
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array]
-
-            """
-            num_samples, context_len = contexts[CONST_CONTEXT_INPUT].shape[:2]
-
+        ) -> Tuple[chex.Array, chex.Array, Any]:
             input_embedding, input_updates = self.input_tokenizer.apply(
-                params[CONST_INPUT_TOKENIZER],
+                train_states[CONST_PARAMS][CONST_INPUT_TOKENIZER],
                 jnp.concatenate(
                     (
                         contexts[CONST_CONTEXT_INPUT],
@@ -215,20 +252,22 @@ class InContextSupervisedTransformer(Model):
                     ),
                     axis=1,
                 ),
-                None,
                 eval,
                 mutable=[CONST_BATCH_STATS],
             )
-
             context_output_embedding, output_updates = self.output_tokenizer.apply(
-                params[CONST_OUTPUT_TOKENIZER],
+                train_states[CONST_PARAMS][CONST_OUTPUT_TOKENIZER],
                 contexts[CONST_CONTEXT_OUTPUT],
                 eval,
                 mutable=[CONST_BATCH_STATS],
             )
 
             stacked_inputs = self.apply_positional_encoding(
-                params, queries, input_embedding, context_output_embedding, **kwargs
+                train_states,
+                queries,
+                input_embedding,
+                context_output_embedding,
+                **kwargs,
             )
 
             return (
@@ -246,7 +285,7 @@ class InContextSupervisedTransformer(Model):
         self,
     ) -> Callable[
         [
-            Union[optax.Params, Dict[str, Any]],
+            Dict[str, Any],
             chex.Array,
             chex.Array,
             chex.Array,
@@ -260,7 +299,7 @@ class InContextSupervisedTransformer(Model):
         :return: the get latent call.
         :rtype: Callable[
             [
-                Union[optax.Params, Dict[str, Any]],
+                Dict[str, Any],
                 chex.Array,
                 chex.Array,
                 chex.Array,
@@ -271,43 +310,28 @@ class InContextSupervisedTransformer(Model):
         """
 
         def get_latent(
-            params: Union[optax.Params, Dict[str, Any]],
+            train_states: Dict[str, Any],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
             eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
-            """
-            Get latent call of the GPT.
-
-            :param params: the model parameters
-            :param queries: the queries
-            :param contexts: the context with keys `context_input` and `context_output`
-            :type params: Union[optax.Params, Dict[str, Any]]
-            :type queries: chex.Array
-            :type contexts: Dict[str, chex.Array]
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array, Any]
-
-            """
             stacked_inputs, _, token_updates = self.tokenize(
-                params, queries, contexts, eval, **kwargs
+                train_states, queries, contexts, eval, **kwargs
             )
-            (repr, gpt_updates) = self.gpt.apply(
-                params[CONST_GPT],
+            repr = self.gpt.apply(
+                train_states[CONST_PARAMS][CONST_GPT],
                 stacked_inputs,
                 eval,
-                mutable=[CONST_BATCH_STATS],
-                **kwargs,
             )
 
-            return repr, None, {**token_updates, CONST_GPT: gpt_updates}
+            return repr, None, token_updates
 
         return get_latent
 
     def make_forward(self, query_pred_only: bool) -> Callable[
         [
-            Union[optax.Params, Dict[str, Any]],
+            Dict[str, Any],
             chex.Array,
             chex.Array,
             chex.Array,
@@ -315,24 +339,6 @@ class InContextSupervisedTransformer(Model):
         ],
         Tuple[chex.Array, chex.Array, Any],
     ]:
-        """
-        Makes the forward call of the ICL model.
-
-        :param query_pred_only: whether or not to output the query prediciton only
-        :type query_pred_only: bool
-        :return: the forward call.
-        :rtype: Callable[
-            [
-                Union[optax.Params, Dict[str, Any]],
-                chex.Array,
-                chex.Array,
-                chex.Array,
-                bool,
-            ],
-            Tuple[chex.Array, chex.Array, Any],
-        ]
-        """
-
         if query_pred_only:
 
             def process_prediction(preds):
@@ -344,30 +350,17 @@ class InContextSupervisedTransformer(Model):
                 return preds[:, ::2]
 
         def forward(
-            params: Union[optax.Params, Dict[str, Any]],
+            train_states: Dict[str, Any],
             queries: chex.Array,
             contexts: Dict[str, chex.Array],
             eval: bool = False,
             **kwargs,
         ) -> Tuple[chex.Array, chex.Array, Any]:
-            """
-            Forward call of the GPT.
-
-            :param params: the model parameters
-            :param queries: the queries
-            :param contexts: the context with keys `context_input` and `context_output`
-            :type params: Union[optax.Params, Dict[str, Any]]
-            :type queries: chex.Array
-            :type contexts: Dict[str, chex.Array]
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array, Any]
-
-            """
             repr, carry, latent_updates = self.get_latent(
-                params, queries, contexts, eval, **kwargs
+                train_states, queries, contexts, eval, **kwargs
             )
             outputs = self.predictor.apply(
-                params[CONST_PREDICTOR],
+                train_states[CONST_PARAMS][CONST_PREDICTOR],
                 repr,
             )
 
@@ -378,438 +371,14 @@ class InContextSupervisedTransformer(Model):
     def update_batch_stats(
         self, params: Dict[str, Any], batch_stats: Any
     ) -> Dict[str, Any]:
-        params[CONST_INPUT_TOKENIZER] = self.input_tokenizer.update_batch_stats(
-            params[CONST_INPUT_TOKENIZER],
-            batch_stats[CONST_INPUT_TOKENIZER],
-        )
-        params[CONST_OUTPUT_TOKENIZER] = self.output_tokenizer.update_batch_stats(
-            params[CONST_OUTPUT_TOKENIZER],
-            batch_stats[CONST_OUTPUT_TOKENIZER],
-        )
-        params[CONST_GPT] = self.output_tokenizer.update_batch_stats(
-            params[CONST_GPT],
-            batch_stats[CONST_GPT],
-        )
+        if CONST_BATCH_STATS in params[CONST_INPUT_TOKENIZER]:
+            params[CONST_INPUT_TOKENIZER][CONST_BATCH_STATS] = batch_stats[
+                CONST_INPUT_TOKENIZER
+            ]
+
+        if CONST_BATCH_STATS in params[CONST_OUTPUT_TOKENIZER]:
+            params[CONST_OUTPUT_TOKENIZER][CONST_BATCH_STATS] = batch_stats[
+                CONST_OUTPUT_TOKENIZER
+            ]
+
         return params
-
-
-def get_tokenizer(tokenizer_config: SimpleNamespace, embed_dim: int) -> Model:
-    """
-    Get tokenizer.
-
-    :param tokenizer_config: the tokenizer configuration
-    :param embed_dim: the embedding dimension
-    :type tokenizer_config: SimpleNameSpace
-    :type embed_dim: int
-    :return: a tokenizer
-    :rtype: Model
-    """
-    assert (
-        tokenizer_config.type in VALID_TOKENIZER_TYPE
-    ), f"{tokenizer_config.type} is not supported (one of {VALID_TOKENIZER_TYPE})"
-
-    tokenizer_kwargs = tokenizer_config.kwargs
-    if tokenizer_config.type == CONST_MLP:
-        return MLP(
-            layers=tokenizer_kwargs.layers + [embed_dim],
-            activation=getattr(tokenizer_kwargs, "activation", CONST_RELU),
-            output_activation=getattr(
-                tokenizer_kwargs, "output_activation", CONST_IDENTITY
-            ),
-            use_batch_norm=getattr(tokenizer_kwargs, "use_batch_norm", False),
-            use_bias=getattr(tokenizer_kwargs, "use_bias", False),
-        )
-    elif tokenizer_config.type == CONST_CNN:
-        return CNN(
-            features=tokenizer_kwargs.features,
-            kernel_sizes=tokenizer_kwargs.kernel_sizes,
-            layers=tokenizer_kwargs.layers + [embed_dim],
-            activation=getattr(tokenizer_kwargs, "activation", CONST_RELU),
-            output_activation=getattr(
-                tokenizer_kwargs, "output_activation", CONST_IDENTITY
-            ),
-            use_batch_norm=getattr(tokenizer_kwargs, "use_batch_norm", False),
-        )
-    elif tokenizer_config.type == CONST_RESNET:
-        return ResNetV1(
-            blocks_per_group=tokenizer_kwargs.blocks_per_group,
-            features=tokenizer_kwargs.features,
-            stride=tokenizer_kwargs.stride,
-            use_projection=tokenizer_kwargs.use_projection,
-            use_bottleneck=tokenizer_kwargs.use_bottleneck,
-            use_batch_norm=getattr(tokenizer_kwargs, "use_batch_norm", True),
-        )
-    else:
-        raise ValueError(
-            f"{tokenizer_config.type} is not supported (one of {VALID_TOKENIZER_TYPE})"
-        )
-
-
-class CustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
-    """A GPT for in-context learning with customized tokenizers."""
-
-    def __init__(
-        self,
-        output_dim: int,
-        num_contexts: int,
-        num_blocks: int,
-        num_heads: int,
-        embed_dim: int,
-        widening_factor: int,
-        positional_encoding: SimpleNamespace,
-        input_tokenizer_config: SimpleNamespace,
-        output_tokenizer_config: SimpleNamespace,
-        query_pred_only: bool = False,
-        input_output_same_encoding: bool = True,
-    ) -> None:
-        self.gpt = GPTModule(
-            num_blocks=num_blocks,
-            num_heads=num_heads,
-            embed_dim=embed_dim,
-            widening_factor=widening_factor,
-        )
-        self.input_tokenizer = get_tokenizer(input_tokenizer_config, embed_dim)
-        self.output_tokenizer = get_tokenizer(output_tokenizer_config, embed_dim)
-        self.predictor = nn.Dense(int(np.product(output_dim)))
-        self.positional_encoding = get_positional_encoding(positional_encoding)
-        self.num_tokens = num_contexts * 2 + 1
-        self.num_heads = num_heads
-        self.embed_dim = embed_dim
-        self.apply_positional_encoding = self._make_get_positional_encoding(
-            input_output_same_encoding
-        )
-        self.tokenize = jax.jit(self.make_tokenize(), static_argnames=[CONST_EVAL])
-        self.get_latent = jax.jit(self.make_get_latent(), static_argnames=[CONST_EVAL])
-        self.forward = jax.jit(
-            self.make_forward(query_pred_only), static_argnames=[CONST_EVAL]
-        )
-
-    def make_tokenize(
-        self,
-    ) -> Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-            chex.Array,
-        ],
-        Tuple[chex.Array, chex.Array, Any],
-    ]:
-        """
-        Makes the tokenize call of the ICL model.
-
-        :return: the tokenize call.
-        :rtype: Callable[
-            [
-                Union[optax.Params, Dict[str, Any]],
-                chex.Array,
-                chex.Array,
-                chex.Array,
-                bool,
-            ],
-            Tuple[chex.Array, chex.Array, Any],
-        ]
-        """
-
-        def tokenize(
-            params: Union[optax.Params, Dict[str, Any]],
-            queries: chex.Array,
-            contexts: Dict[str, chex.Array],
-            eval: bool = False,
-            **kwargs,
-        ) -> Tuple[chex.Array, chex.Array, Any]:
-            """
-            Get latent call of the GPT.
-
-            :param params: the model parameters
-            :param queries: the queries
-            :param contexts: the context with keys `context_input` and `context_output`
-            :type params: Union[optax.Params, Dict[str, Any]]
-            :type queries: chex.Array
-            :type contexts: Dict[str, chex.Array]
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array, Any]
-
-            """
-            input_embedding, _, input_updates = self.input_tokenizer.forward(
-                params[CONST_INPUT_TOKENIZER],
-                jnp.concatenate(
-                    (
-                        contexts[CONST_CONTEXT_INPUT],
-                        queries,
-                    ),
-                    axis=1,
-                ),
-                None,
-                eval,
-                **kwargs,
-            )
-            context_output_embedding, _, output_updates = self.output_tokenizer.forward(
-                params[CONST_OUTPUT_TOKENIZER],
-                contexts[CONST_CONTEXT_OUTPUT],
-                None,
-                eval,
-                **kwargs,
-            )
-
-            stacked_inputs = self.apply_positional_encoding(
-                params, queries, input_embedding, context_output_embedding, **kwargs
-            )
-
-            return (
-                stacked_inputs,
-                None,
-                {
-                    CONST_INPUT_TOKENIZER: input_updates,
-                    CONST_OUTPUT_TOKENIZER: output_updates,
-                },
-            )
-
-        return tokenize
-
-
-class AsyncCustomTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
-    """A GPT for in-context learning with customized tokenizers."""
-
-    def __init__(
-        self,
-        output_dim: int,
-        num_contexts: int,
-        num_blocks: int,
-        num_heads: int,
-        embed_dim: int,
-        widening_factor: int,
-        positional_encoding: SimpleNamespace,
-        input_tokenizer_config: SimpleNamespace,
-        output_tokenizer_config: SimpleNamespace,
-        query_pred_only: bool = False,
-        input_output_same_encoding: bool = True,
-    ) -> None:
-        self.gpt = GPTModule(
-            num_blocks=num_blocks,
-            num_heads=num_heads,
-            embed_dim=embed_dim,
-            widening_factor=widening_factor,
-        )
-        self.input_tokenizer = get_tokenizer(input_tokenizer_config, embed_dim)
-        self.output_tokenizer = get_tokenizer(output_tokenizer_config, embed_dim)
-        self.predictor = nn.Dense(int(np.product(output_dim)))
-        self.positional_encoding = get_positional_encoding(positional_encoding)
-        self.num_tokens = num_contexts * 2 + 1
-        self.num_heads = num_heads
-        self.embed_dim = embed_dim
-        self.apply_positional_encoding = self._make_get_positional_encoding(
-            input_output_same_encoding
-        )
-        self.tokenize = jax.jit(self.make_tokenize(), static_argnames=[CONST_EVAL])
-        self.get_latent = jax.jit(self.make_get_latent(), static_argnames=[CONST_EVAL])
-        self.forward = jax.jit(
-            self.make_forward(query_pred_only), static_argnames=[CONST_EVAL]
-        )
-
-    def make_tokenize(
-        self,
-    ) -> Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-            chex.Array,
-        ],
-        Tuple[chex.Array, chex.Array, Any],
-    ]:
-        """
-        Makes the tokenize call of the ICL model.
-
-        :return: the tokenize call.
-        :rtype: Callable[
-            [
-                Union[optax.Params, Dict[str, Any]],
-                chex.Array,
-                chex.Array,
-                chex.Array,
-                bool,
-            ],
-            Tuple[chex.Array, chex.Array, Any],
-        ]
-        """
-
-        def tokenize(
-            params: Union[optax.Params, Dict[str, Any]],
-            queries: chex.Array,
-            contexts: Dict[str, chex.Array],
-            eval: bool = False,
-            **kwargs,
-        ) -> Tuple[chex.Array, chex.Array, Any]:
-            """
-            Get latent call of the GPT.
-
-            :param params: the model parameters
-            :param queries: the queries
-            :param contexts: the context with keys `context_input` and `context_output`
-            :type params: Union[optax.Params, Dict[str, Any]]
-            :type queries: chex.Array
-            :type contexts: Dict[str, chex.Array]
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array, Any]
-
-            """
-            input_embedding, _, input_updates = jax.vmap(
-                self.input_tokenizer.forward, in_axes=[None, 0, None, None]
-            )(
-                params[CONST_INPUT_TOKENIZER],
-                jnp.concatenate(
-                    (
-                        contexts[CONST_CONTEXT_INPUT],
-                        queries,
-                    ),
-                    axis=1,
-                ),
-                None,
-                eval,
-                **kwargs,
-            )
-
-            # Only take the first update
-            input_updates = jax.tree_util.tree_map(lambda x: x[0], input_updates)
-            context_output_embedding, _, output_updates = self.output_tokenizer.forward(
-                params[CONST_OUTPUT_TOKENIZER],
-                contexts[CONST_CONTEXT_OUTPUT],
-                None,
-                eval,
-                **kwargs,
-            )
-
-            stacked_inputs = self.apply_positional_encoding(
-                params, queries, input_embedding, context_output_embedding, **kwargs
-            )
-
-            return (
-                stacked_inputs,
-                None,
-                {
-                    CONST_INPUT_TOKENIZER: input_updates,
-                    CONST_OUTPUT_TOKENIZER: output_updates,
-                },
-            )
-
-        return tokenize
-
-
-class NoTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
-    """A GPT for in-context learning with no tokenizers."""
-
-    def __init__(
-        self,
-        output_dim: int,
-        num_contexts: int,
-        num_blocks: int,
-        num_heads: int,
-        embed_dim: int,
-        widening_factor: int,
-        positional_encoding: SimpleNamespace,
-        input_tokenizer_config: SimpleNamespace,
-        output_tokenizer_config: SimpleNamespace,
-        query_pred_only: bool = False,
-        input_output_same_encoding: bool = True,
-    ) -> None:
-        self.gpt = GPTModule(
-            num_blocks=num_blocks,
-            num_heads=num_heads,
-            embed_dim=embed_dim,
-            widening_factor=widening_factor,
-        )
-        self.input_tokenizer = get_tokenizer(input_tokenizer_config, embed_dim)
-        self.output_tokenizer = get_tokenizer(output_tokenizer_config, embed_dim)
-        self.predictor = nn.Dense(int(np.product(output_dim)))
-        self.positional_encoding = get_positional_encoding(positional_encoding)
-        self.num_tokens = num_contexts * 2 + 1
-        self.num_heads = num_heads
-        self.embed_dim = embed_dim
-        self.apply_positional_encoding = self._make_get_positional_encoding(
-            input_output_same_encoding
-        )
-        self.tokenize = jax.jit(self.make_tokenize(), static_argnames=[CONST_EVAL])
-        self.get_latent = jax.jit(self.make_get_latent(), static_argnames=[CONST_EVAL])
-        self.forward = jax.jit(
-            self.make_forward(query_pred_only), static_argnames=[CONST_EVAL]
-        )
-
-    def make_tokenize(
-        self,
-    ) -> Callable[
-        [
-            Union[optax.Params, Dict[str, Any]],
-            chex.Array,
-            chex.Array,
-            chex.Array,
-        ],
-        Tuple[chex.Array, chex.Array, Any],
-    ]:
-        """
-        Makes the tokenize call of the ICL model.
-
-        :return: the tokenize call.
-        :rtype: Callable[
-            [
-                Union[optax.Params, Dict[str, Any]],
-                chex.Array,
-                chex.Array,
-                chex.Array,
-                bool,
-            ],
-            Tuple[chex.Array, chex.Array, Any],
-        ]
-        """
-
-        def tokenize(
-            params: Union[optax.Params, Dict[str, Any]],
-            queries: chex.Array,
-            contexts: Dict[str, chex.Array],
-            eval: bool = False,
-            **kwargs,
-        ) -> Tuple[chex.Array, chex.Array, Any]:
-            """
-            Get latent call of the GPT.
-
-            :param params: the model parameters
-            :param queries: the queries
-            :param contexts: the context with keys `context_input` and `context_output`
-            :type params: Union[optax.Params, Dict[str, Any]]
-            :type queries: chex.Array
-            :type contexts: Dict[str, chex.Array]
-            :return: the output and a pass-through carry
-            :rtype: Tuple[chex.Array, chex.Array, Any]
-
-            """
-            input_embedding = jnp.concatenate(
-                (
-                    contexts[CONST_CONTEXT_INPUT],
-                    queries,
-                ),
-                axis=1,
-            )
-            context_output_embedding = contexts[CONST_CONTEXT_OUTPUT]
-
-            context_output_embedding, _, output_updates = self.output_tokenizer.forward(
-                params[CONST_OUTPUT_TOKENIZER],
-                contexts[CONST_CONTEXT_OUTPUT],
-                None,
-                eval,
-                **kwargs,
-            )
-
-            stacked_inputs = self.apply_positional_encoding(
-                params, queries, input_embedding, context_output_embedding, **kwargs
-            )
-
-            return (
-                stacked_inputs,
-                None,
-                {
-                    CONST_INPUT_TOKENIZER: None,
-                    CONST_OUTPUT_TOKENIZER: output_updates,
-                },
-            )
-
-        return tokenize
