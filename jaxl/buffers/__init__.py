@@ -49,7 +49,7 @@ def get_buffer(
         buffer_kwargs["act_dim"] = env.act_dim
         buffer_kwargs["rew_dim"] = env.reward_dim
         buffer_kwargs["h_state_dim"] = h_state_dim
-        buffer_kwargs["rng"] = np.random.RandomState(buffer_seed)
+    buffer_kwargs["rng"] = np.random.RandomState(buffer_seed)
 
     if buffer_config.buffer_type == CONST_DEFAULT:
         buffer_constructor = NextStateNumPyBuffer

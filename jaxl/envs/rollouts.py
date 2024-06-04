@@ -1,4 +1,4 @@
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from gymnasium import spaces
 from tqdm import tqdm
 from typing import Any, Dict, Iterable, Tuple, Union
@@ -47,7 +47,7 @@ class Rollout(ABC):
         self._episode_lengths = []
         self._done = True
 
-    @abstractclassmethod
+    @abstractmethod
     def rollout(self, *args, **kwargs) -> Any:
         raise NotImplementedError
 
@@ -135,6 +135,8 @@ class EvaluationRollout(Rollout):
         buffer: ReplayBuffer = None,
         use_tqdm: bool = True,
         random: bool = False,
+        render: bool = False,
+        include_absorbing_state: bool = False,
     ):
         """
         Executes the policy in the environment.
@@ -176,7 +178,10 @@ class EvaluationRollout(Rollout):
 
             done = False
             while not done:
-                normalize_obs = np.array([self._curr_obs])
+                curr_obs = self._curr_obs
+                if include_absorbing_state:
+                    curr_obs = np.concatenate((self._curr_obs, [0]), axis=-1)
+                normalize_obs = np.array([curr_obs])
                 if obs_rms:
                     normalize_obs = obs_rms.normalize(normalize_obs)
 
@@ -197,6 +202,8 @@ class EvaluationRollout(Rollout):
                     )
                 env_act = np.array(env_act)
                 next_obs, rew, terminated, truncated, info = self._env.step(env_act)
+                if render and hasattr(self._env, "render"):
+                    self._env.render()
                 self._episodic_returns[-1] += float(rew)
                 self._episode_lengths[-1] += 1
 

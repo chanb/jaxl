@@ -302,12 +302,12 @@ def get_fixed_policy(act_dim: chex.Array, config: SimpleNamespace) -> Policy:
         stds = None
 
         if isinstance(config_kwargs.means, float):
-            means = np.ones(act_dim) * config_kwargs.means
+            means = np.ones((1, int(np.prod(act_dim)))) * config_kwargs.means
         else:
             raise NotImplementedError
 
         if isinstance(config_kwargs.stds, float):
-            stds = np.ones(act_dim) * config_kwargs.stds
+            stds = np.ones((1, int(np.prod(act_dim)))) * config_kwargs.stds
         else:
             raise NotImplementedError
 

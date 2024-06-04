@@ -263,6 +263,23 @@ def load_model(
     return params, model
 
 
+def load_params(
+    learner_path: str,
+) -> Tuple[Model, Callable]:
+    learner_path, checkpoint_i = learner_path.split(":")
+
+    all_steps = sorted(os.listdir(os.path.join(learner_path, "models")))
+    if checkpoint_i == "latest":
+        step = all_steps[-1]
+    else:
+        step = np.argmin(
+            np.abs(
+                np.array([int(step.split(".")[0]) for step in all_steps]) - checkpoint_i
+            )
+        )
+    return dill.load(open(os.path.join(learner_path, "models", step), "rb"))
+
+
 def iterate_models(
     input_dim: Sequence[int],
     output_dim: Sequence[int],
