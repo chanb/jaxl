@@ -196,7 +196,9 @@ class EvaluationRollout(Rollout):
                 next_h_state = next_h_state[0]
 
                 env_act = act
-                if isinstance(self._env.action_space, spaces.Box):
+                if hasattr(self._env.action_space, "low") and hasattr(
+                    self._env.action_space, "high"
+                ):
                     env_act = np.clip(
                         act, self._env.action_space.low, self._env.action_space.high
                     )

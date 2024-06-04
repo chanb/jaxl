@@ -6,17 +6,21 @@
         "checkpoint_interval": 100
     },
     "model_config": {
-        "architecture": "mlp",
-        "layers": [
-            256,
-            256,
-            256
-        ],
-        "activation": "tanh",
-        "flatten": true
+        "policy":{
+            "architecture": "mlp",
+            "layers": [
+                256,
+                256,
+                256
+            ],
+            "activation": "tanh",
+            "flatten": true,
+            "init_log_std": -10.0
+        }
     },
     "optimizer_config": {
-        "optimizer": "adam",
+        "policy": {
+            "optimizer": "adam",
         "lr": {
             "scheduler": "constant_schedule",
             "scheduler_kwargs": {
@@ -24,6 +28,7 @@
             }
         },
         "max_grad_norm": false
+        }
     },
     "learner_config": {
         "task": "warm_start_reinforcement_learning",

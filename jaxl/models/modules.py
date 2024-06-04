@@ -423,14 +423,14 @@ class Temperature(nn.Module):
         return jnp.exp(log_temp)
 
 
-class ParameterVector(nn.Module):
+class LogStd(nn.Module):
     param_dim: int
     fixed_value: float = None
 
     @nn.compact
     def __call__(self, **kwargs) -> jnp.ndarray:
-        parameter_vector = self.param(
-            "parameter_vector",
+        log_std = self.param(
+            "log_std",
             (
                 nn.initializers.normal()
                 if self.fixed_value is None
@@ -438,4 +438,4 @@ class ParameterVector(nn.Module):
             ),
             (self.param_dim,),
         )
-        return parameter_vector
+        return jnp.exp(log_std)

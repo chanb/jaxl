@@ -54,14 +54,14 @@ class REINFORCE(OnPolicyLearner):
 
         """
         output_dim = policy_output_dim(output_dim, self._config)
-        self._model = get_model(input_dim, output_dim, self._model_config)
+        self._model = get_model(input_dim, output_dim, self._model_config.policy)
 
         model_key = jrandom.PRNGKey(self._config.seeds.model_seed)
         dummy_x = self._generate_dummy_x(input_dim)
         params = self._model.init(model_key, dummy_x)
 
         self._optimizer, opt_state = get_optimizer(
-            self._optimizer_config, self._model, params
+            self._optimizer_config.policy, self._model, params
         )
 
         self._model_dict = {

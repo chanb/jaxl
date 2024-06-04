@@ -11,7 +11,7 @@ class ManipulatorLearningEnv(gym.Wrapper):
         include_absorbing_state: bool = False,
     ):
         super().__init__(env)
-        self.action_space = gym.spaces.Box(low=-np.ones(4), high=np.ones(4))
+        self.agent_action_space = gym.spaces.Box(low=-np.ones(4), high=np.ones(4))
         obs_dim = 59 + int(include_absorbing_state)
         self.observation_space = gym.spaces.Box(
             low=-np.ones(obs_dim), high=np.ones(obs_dim)

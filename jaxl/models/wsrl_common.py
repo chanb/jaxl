@@ -35,7 +35,7 @@ class MLPWithStatelessStd(Model):
             use_bias,
             flatten,
         )
-        self.log_std = ParameterVector(layers[-1], init_log_std)
+        self.log_std = LogStd(layers[-1], init_log_std)
         self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
 
     def init(
