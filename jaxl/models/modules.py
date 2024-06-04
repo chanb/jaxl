@@ -422,5 +422,20 @@ class Temperature(nn.Module):
         )
         return jnp.exp(log_temp)
 
-    def update_batch_stats(self, params, batch_stats):
-        return params
+
+class ParameterVector(nn.Module):
+    param_dim: int
+    fixed_value: float = None
+
+    @nn.compact
+    def __call__(self, **kwargs) -> jnp.ndarray:
+        parameter_vector = self.param(
+            "parameter_vector",
+            (
+                nn.initializers.normal()
+                if self.fixed_value is None
+                else nn.initializers.constant(self.fixed_value)
+            ),
+            (self.param_dim,),
+        )
+        return parameter_vector

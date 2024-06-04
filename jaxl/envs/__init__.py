@@ -30,7 +30,10 @@ def get_environment(env_config: SimpleNamespace) -> DefaultGymWrapper:
         from jaxl.envs.manipulator_learning.env import ManipulatorLearningEnv
 
         env = ManipulatorLearningEnv(
-            getattr(manlearn_envs, env_config.env_name)(**vars(env_config.env_kwargs))
+            getattr(manlearn_envs, env_config.env_name)(**vars(env_config.env_kwargs)),
+            include_absorbing_state=getattr(
+                env_config, "include_absorbing_state", False
+            ),
         )
     elif env_config.env_type == CONST_DM_CONTROL:
         from dm_control import suite

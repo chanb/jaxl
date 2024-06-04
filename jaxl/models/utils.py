@@ -127,6 +127,23 @@ def get_model(
         raise NotImplementedError
 
 
+def get_wsrl_model(
+    input_dim: chex.Array, output_dim: chex.Array, model_config: SimpleNamespace
+):
+    import jaxl.models.wsrl_common as wsrl_common
+
+    if model_config.architecture == CONST_MLP:
+        return wsrl_common.MLPWithStatelessStd(
+            model_config.layers + list(np.prod(output_dim, keepdims=True) // 2),
+            getattr(model_config, "activation", CONST_RELU),
+            getattr(model_config, "output_activation", CONST_IDENTITY),
+            getattr(model_config, "use_batch_norm", False),
+            getattr(model_config, "use_bias", True),
+            getattr(model_config, "flatten", False),
+            getattr(model_config, "init_log_std", 1.0),
+        )
+
+
 def get_update_function(
     model: Model,
 ) -> Callable[

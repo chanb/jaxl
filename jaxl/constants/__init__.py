@@ -52,8 +52,9 @@ CONST_ICL = "in_context_learning"
 CONST_IL = "imitation_learning"
 CONST_RL = "reinforcement_learning"
 CONST_SUPERVISED = "supervised_learning"
+CONST_WSRL = "warm_start_reinforcement_learning"
 
-VALID_TASK = [CONST_ICL, CONST_IL, CONST_RL, CONST_SUPERVISED]
+VALID_TASK = [CONST_ICL, CONST_IL, CONST_RL, CONST_SUPERVISED, CONST_WSRL]
 
 CONST_ACTION = "action"
 CONST_ADVANTAGE = "advantage"

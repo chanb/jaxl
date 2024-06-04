@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/manipulator_learning/stack",
-        "experiment_name": "bc",
+        "experiment_name": "bc-10k_steps",
         "log_interval": 1,
         "checkpoint_interval": 1000
     },
@@ -30,7 +30,7 @@
         "buffer_config": {
             "load_buffer": "/home/bryan/research/lfgp/lfgp_data/custom_expert_data/stack/1000000_steps_no_extra_final/int_0.gz",
             "buffer_type": "default",
-            "set_size": false
+            "set_size": 10000
         },
         "seeds": {
             "model_seed": 927,
@@ -56,6 +56,6 @@
         ]
     },
     "train_config": {
-        "num_epochs": 100000
+        "num_epochs": 5000
     }
 }
