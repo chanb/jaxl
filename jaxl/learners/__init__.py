@@ -13,7 +13,7 @@ from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE
 from jaxl.learners.sac import SAC, CrossQSAC
 from jaxl.learners.supervised import SupervisedLearner
-from jaxl.learners.wsrl import WSRLPPO, WSRLREINFORCE
+from jaxl.learners.wsrl import WSRLPPO, WSRLREINFORCE, WSRLPolicyEvaluation
 
 
 def get_rl_learner(
@@ -82,6 +82,8 @@ def get_wsrl_learner(
         learner_constructor = WSRLPPO
     elif learner_config.learner == CONST_REINFORCE:
         learner_constructor = WSRLREINFORCE
+    elif learner_config.learner == CONST_POLICY_EVALUATION:
+        learner_constructor = WSRLPolicyEvaluation
     else:
         raise NotImplementedError
 
