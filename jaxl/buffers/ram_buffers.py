@@ -560,7 +560,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
         self.observations = buffer_dict[c.OBSERVATIONS]
         self.hidden_states = buffer_dict[c.HIDDEN_STATES]
         self.actions = buffer_dict[c.ACTIONS]
-        self.rewards = buffer_dict[c.REWARDS]
+        self.rewards = buffer_dict[c.REWARDS][..., [0]]
         self.dones = buffer_dict[c.DONES]
         if c.TERMINATEDS in buffer_dict and c.TRUNCATEDS in buffer_dict:
             self.terminateds = buffer_dict[c.TERMINATEDS]

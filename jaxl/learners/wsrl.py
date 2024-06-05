@@ -193,9 +193,7 @@ class WSRLPolicyEvaluation(OnPolicyLearner):
         }
 
         pretrained_params = load_params(self._config.load_pretrain.checkpoint_path)
-        pi_params = pretrained_params[CONST_MODEL_DICT][CONST_MODEL][
-            CONST_POLICY
-        ]
+        pi_params = pretrained_params[CONST_MODEL_DICT][CONST_MODEL][CONST_POLICY]
 
         model_keys = jrandom.split(jrandom.PRNGKey(self._config.seeds.model_seed))
         dummy_x = self._generate_dummy_x(input_dim)
@@ -230,7 +228,9 @@ class WSRLPolicyEvaluation(OnPolicyLearner):
             *args,
             **kwargs,
         ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-            (agg_loss, aux), grads = jax.value_and_grad(self._critic_loss, has_aux=True)(
+            (agg_loss, aux), grads = jax.value_and_grad(
+                self._critic_loss, has_aux=True
+            )(
                 model_dict[CONST_MODEL],
                 obss,
                 h_states,

@@ -422,6 +422,9 @@ class Temperature(nn.Module):
         )
         return jnp.exp(log_temp)
 
+    def update_batch_stats(self, params, batch_stats):
+        return params
+
 
 class LogStd(nn.Module):
     param_dim: int

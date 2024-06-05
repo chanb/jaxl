@@ -11,6 +11,7 @@ from jaxl.learners.in_context import (
 from jaxl.learners.mtbc import MTBC
 from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE
+from jaxl.learners.rlpd import RLPDSAC
 from jaxl.learners.sac import SAC, CrossQSAC
 from jaxl.learners.supervised import SupervisedLearner
 from jaxl.learners.wsrl import WSRLPPO, WSRLREINFORCE, WSRLPolicyEvaluation
@@ -49,6 +50,8 @@ def get_rl_learner(
             learner_constructor = SAC
         elif sac_variant == CONST_CROSS_Q:
             learner_constructor = CrossQSAC
+        elif sac_variant == CONST_RLPD:
+            learner_constructor = RLPDSAC
         else:
             raise NotImplementedError
     else:
