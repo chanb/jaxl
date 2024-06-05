@@ -3,12 +3,13 @@
         "save_path": "./logs/manipulator_learning/stack",
         "experiment_name": "rlpd-sac",
         "log_interval": 1,
-        "checkpoint_interval": false
+        "checkpoint_interval": 10
     },
     "model_config": {
         "policy": {
             "architecture": "mlp",
             "layers": [
+                256,
                 256,
                 256
             ],
@@ -19,7 +20,7 @@
             "architecture": "ensemble",
             "model": {
                 "architecture": "mlp",
-                "layers": [256, 256],
+                "layers": [256, 256, 256],
                 "flatten": true
             },
             "num_models": 2,
@@ -121,7 +122,8 @@
             "coefficient": 1.0,
             "reduction": "mean"
         },
-        "actor_update_frequency": 1,
+        "num_qf_updates": 20,
+        "actor_update_frequency": 20,
         "target_update_frequency": 1,
         "tau": 5e-3
     },

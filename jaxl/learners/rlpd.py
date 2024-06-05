@@ -145,7 +145,6 @@ class RLPDSAC(SAC):
             total_rollout_time += timeit.default_timer() - tic
 
         for update_i in range(num_update_steps):
-            qf_auxes.append({})
             tic = timeit.default_timer()
             if update_i > 0:
                 step_count = self._update_frequency
@@ -162,126 +161,133 @@ class RLPDSAC(SAC):
             self._global_step += step_count
             total_rollout_time += timeit.default_timer() - tic
 
-            # TODO: Extend this to higher UTD ratio
-            tic = timeit.default_timer()
-            (
-                obss,
-                h_states,
-                acts,
-                rews,
-                _,
-                terminateds,
-                _,
-                next_obss,
-                next_h_states,
-                _,
-                lengths,
-                _,
-            ) = self._buffer.sample_with_next_obs(batch_size=self._batch_size // 2)
-
-            (
-                demo_obss,
-                demo_h_states,
-                demo_acts,
-                demo_rews,
-                _,
-                demo_terminateds,
-                _,
-                demo_next_obss,
-                demo_next_h_states,
-                _,
-                demo_lengths,
-                _,
-            ) = self._demo_buffer.sample_with_next_obs(batch_size=self._batch_size // 2)
-
-            if self._config.remove_demo_absorbing_state:
-                demo_obss = demo_obss[..., :-1]
-                demo_next_obss = demo_next_obss[..., :-1]
-
-            obss = np.vstack((obss, demo_obss))
-            h_states = np.vstack((h_states, demo_h_states))
-            acts = np.vstack((acts, demo_acts))
-            rews = np.vstack((rews, demo_rews))
-            terminateds = np.vstack((terminateds, demo_terminateds))
-            next_obss = np.vstack((next_obss, demo_next_obss))
-            next_h_states = np.vstack((next_h_states, demo_next_h_states))
-            lengths = np.vstack((lengths, demo_lengths))
-
-            obss = self.update_obs_rms_and_normalize(obss, lengths)
-            total_sampling_time += timeit.default_timer() - tic
-
-            tic = timeit.default_timer()
-            self._learning_key, qf_keys, pi_keys, temp_keys = jrandom.split(
-                self._learning_key, num=4
-            )
-            qf_model_dict, qf_aux = self.qf_step(
-                self._model_dict,
-                obss,
-                h_states,
-                acts,
-                rews,
-                terminateds,
-                next_obss,
-                next_h_states,
-                qf_keys,
-            )
-            self._model_dict[CONST_MODEL][CONST_QF] = qf_model_dict[CONST_MODEL]
-            self._model_dict[CONST_OPT_STATE][CONST_QF] = qf_model_dict[CONST_OPT_STATE]
-            assert np.isfinite(
-                qf_aux[CONST_AGG_LOSS]
-            ), f"Loss became NaN\nqf_aux: {qf_aux}"
-            self._num_qf_updates += 1
-            total_qf_update_time += timeit.default_timer() - tic
-
-            qf_auxes[-1] = qf_aux
-            if self._num_qf_updates % self._target_update_frequency == 0:
+            for _ in range(self._config.num_qf_updates):
+                qf_auxes.append({})
                 tic = timeit.default_timer()
-                self._model_dict[CONST_MODEL][CONST_TARGET_QF] = (
-                    self.update_target_model(self._model_dict)
+                (
+                    obss,
+                    h_states,
+                    acts,
+                    rews,
+                    _,
+                    terminateds,
+                    _,
+                    next_obss,
+                    next_h_states,
+                    _,
+                    lengths,
+                    _,
+                ) = self._buffer.sample_with_next_obs(batch_size=self._batch_size // 2)
+
+                (
+                    demo_obss,
+                    demo_h_states,
+                    demo_acts,
+                    demo_rews,
+                    _,
+                    demo_terminateds,
+                    _,
+                    demo_next_obss,
+                    demo_next_h_states,
+                    _,
+                    demo_lengths,
+                    _,
+                ) = self._demo_buffer.sample_with_next_obs(
+                    batch_size=self._batch_size // 2
                 )
-                total_target_qf_update_time += timeit.default_timer() - tic
 
-            # Update Actor
-            if self._num_qf_updates % self._actor_update_frequency == 0:
-                pi_auxes.append({})
+                if self._config.remove_demo_absorbing_state:
+                    demo_obss = demo_obss[..., :-1]
+                    demo_next_obss = demo_next_obss[..., :-1]
+
+                obss = np.vstack((obss, demo_obss))
+                h_states = np.vstack((h_states, demo_h_states))
+                acts = np.vstack((acts, demo_acts))
+                rews = np.vstack((rews, demo_rews))
+                terminateds = np.vstack((terminateds, demo_terminateds))
+                next_obss = np.vstack((next_obss, demo_next_obss))
+                next_h_states = np.vstack((next_h_states, demo_next_h_states))
+                lengths = np.vstack((lengths, demo_lengths))
+
+                obss = self.update_obs_rms_and_normalize(obss, lengths)
+                total_sampling_time += timeit.default_timer() - tic
+
                 tic = timeit.default_timer()
-                pi_model_dict, pi_aux = self.pi_step(
+                self._learning_key, qf_keys, pi_keys, temp_keys = jrandom.split(
+                    self._learning_key, num=4
+                )
+                qf_model_dict, qf_aux = self.qf_step(
                     self._model_dict,
                     obss,
                     h_states,
-                    pi_keys,
+                    acts,
+                    rews,
+                    terminateds,
+                    next_obss,
+                    next_h_states,
+                    qf_keys,
                 )
-                assert np.isfinite(
-                    pi_aux[CONST_AGG_LOSS]
-                ), f"Loss became NaN\npi_aux: {pi_aux}"
-                self._model_dict[CONST_MODEL][CONST_POLICY] = pi_model_dict[CONST_MODEL]
-                self._model_dict[CONST_OPT_STATE][CONST_POLICY] = pi_model_dict[
+                self._model_dict[CONST_MODEL][CONST_QF] = qf_model_dict[CONST_MODEL]
+                self._model_dict[CONST_OPT_STATE][CONST_QF] = qf_model_dict[
                     CONST_OPT_STATE
                 ]
-                total_pi_update_time += timeit.default_timer() - tic
-                pi_auxes[-1] = pi_aux
+                assert np.isfinite(
+                    qf_aux[CONST_AGG_LOSS]
+                ), f"Loss became NaN\nqf_aux: {qf_aux}"
+                self._num_qf_updates += 1
+                total_qf_update_time += timeit.default_timer() - tic
 
-                # Update temperature
-                if self._target_entropy is not None:
-                    temp_auxes.append({})
+                qf_auxes[-1] = qf_aux
+                if self._num_qf_updates % self._target_update_frequency == 0:
                     tic = timeit.default_timer()
-                    temp_model_dict, temp_aux = self.temp_step(
+                    self._model_dict[CONST_MODEL][CONST_TARGET_QF] = (
+                        self.update_target_model(self._model_dict)
+                    )
+                    total_target_qf_update_time += timeit.default_timer() - tic
+
+                # Update Actor
+                if self._num_qf_updates % self._actor_update_frequency == 0:
+                    pi_auxes.append({})
+                    tic = timeit.default_timer()
+                    pi_model_dict, pi_aux = self.pi_step(
                         self._model_dict,
                         obss,
                         h_states,
-                        temp_keys,
+                        pi_keys,
                     )
                     assert np.isfinite(
-                        temp_aux[CONST_AGG_LOSS]
-                    ), f"Loss became NaN\ntemp_aux: {temp_aux}"
-                    self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = temp_model_dict[
+                        pi_aux[CONST_AGG_LOSS]
+                    ), f"Loss became NaN\npi_aux: {pi_aux}"
+                    self._model_dict[CONST_MODEL][CONST_POLICY] = pi_model_dict[
                         CONST_MODEL
                     ]
-                    self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = (
-                        temp_model_dict[CONST_OPT_STATE]
-                    )
-                    total_temp_update_time += timeit.default_timer() - tic
-                    temp_auxes[-1] = temp_aux
+                    self._model_dict[CONST_OPT_STATE][CONST_POLICY] = pi_model_dict[
+                        CONST_OPT_STATE
+                    ]
+                    total_pi_update_time += timeit.default_timer() - tic
+                    pi_auxes[-1] = pi_aux
+
+                    # Update temperature
+                    if self._target_entropy is not None:
+                        temp_auxes.append({})
+                        tic = timeit.default_timer()
+                        temp_model_dict, temp_aux = self.temp_step(
+                            self._model_dict,
+                            obss,
+                            h_states,
+                            temp_keys,
+                        )
+                        assert np.isfinite(
+                            temp_aux[CONST_AGG_LOSS]
+                        ), f"Loss became NaN\ntemp_aux: {temp_aux}"
+                        self._model_dict[CONST_MODEL][CONST_TEMPERATURE] = (
+                            temp_model_dict[CONST_MODEL]
+                        )
+                        self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = (
+                            temp_model_dict[CONST_OPT_STATE]
+                        )
+                        total_temp_update_time += timeit.default_timer() - tic
+                        temp_auxes[-1] = temp_aux
 
             qf_auxes[-1][CONST_ACTION] = {
                 i: {
