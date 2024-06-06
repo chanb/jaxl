@@ -289,13 +289,13 @@ class RLPDSAC(SAC):
                         total_temp_update_time += timeit.default_timer() - tic
                         temp_auxes[-1] = temp_aux
 
-            qf_auxes[-1][CONST_ACTION] = {
-                i: {
-                    CONST_SATURATION: np.abs(acts[..., i]).max(),
-                    CONST_MEAN: np.abs(acts[..., i]).mean(),
+                qf_auxes[-1][CONST_ACTION] = {
+                    i: {
+                        CONST_SATURATION: np.abs(acts[..., i]).max(),
+                        CONST_MEAN: np.abs(acts[..., i]).mean(),
+                    }
+                    for i in range(acts.shape[-1])
                 }
-                for i in range(acts.shape[-1])
-            }
 
         aux[CONST_LOG][f"time/{CONST_ROLLOUT_TIME}"] = total_rollout_time
         aux[CONST_LOG][f"time/{CONST_SAMPLING_TIME}"] = total_sampling_time
