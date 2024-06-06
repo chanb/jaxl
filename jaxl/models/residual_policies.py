@@ -93,7 +93,7 @@ class SquashedGaussianResidualPolicy(StochasticPolicy):
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
             act = TanhTransform.transform(act)
-            act = act + backbone_act
+            act = act + jax.nn.tanh(backbone_act)
             return act, h_state
 
         return compute_action
@@ -120,7 +120,7 @@ class SquashedGaussianResidualPolicy(StochasticPolicy):
             )
             act_mean, _ = jnp.split(act_params, 2, axis=-1)
             act_mean = TanhTransform.transform(act_mean)
-            act_mean = act_mean + backbone_act
+            act_mean = act_mean + jax.nn.tanh(backbone_act)
             return act_mean, h_state
 
         return deterministic_action
@@ -155,7 +155,7 @@ class SquashedGaussianResidualPolicy(StochasticPolicy):
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
             act = TanhTransform.transform(act)
-            act = act + backbone_act
+            act = act + jax.nn.tanh(backbone_act)
             return act, h_state
 
         return random_action
@@ -186,13 +186,13 @@ class SquashedGaussianResidualPolicy(StochasticPolicy):
                 **kwargs,
             )
             act_params, h_state, updates = model.forward(
-                params[CONST_RESIDUAL], obs, h_state, eval=True, **kwargs
+                params[CONST_RESIDUAL], obs, h_state, eval=eval, **kwargs
             )
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
             act = Normal.sample(act_mean, act_std, key)
             act_t = TanhTransform.transform(act)
-            act_t = act_t + backbone_act
+            act_t = act_t + jax.nn.tanh(backbone_act)
             lprob = Normal.lprob(act_mean, act_std, act).sum(-1, keepdims=True)
             lprob = lprob - TanhTransform.log_abs_det_jacobian(act, act_t)
             return (
@@ -224,12 +224,12 @@ class SquashedGaussianResidualPolicy(StochasticPolicy):
                 **kwargs,
             )
             act_params, h_state, updates = model.forward(
-                params[CONST_RESIDUAL], obs, h_state, eval=True, **kwargs
+                params[CONST_RESIDUAL], obs, h_state, eval=eval, **kwargs
             )
             act_mean, act_raw_std = jnp.split(act_params, 2, axis=-1)
             act_std = self._std_transform(act_raw_std) + self._min_std
 
-            act_inv = TanhTransform.inv(act - backbone_act)
+            act_inv = TanhTransform.inv(act - jax.nn.tanh(backbone_act))
 
             lprob = Normal.lprob(act_mean, act_std, act_inv).sum(-1, keepdims=True)
             lprob = lprob - TanhTransform.log_abs_det_jacobian(act_inv, act)
