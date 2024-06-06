@@ -359,15 +359,17 @@ class RLPDSAC(SAC):
                 getattr(self._config, "dormant_threshold", 0.0),
             )
 
-            percentage = dormant_utils.compute_dormant_percentage(score, multi_output)
+            percentage = dormant_utils.compute_dormant_percentage(
+                is_dormant, multi_output
+            )
             if multi_output:
                 for head_i, curr_val in enumerate(percentage):
                     aux[CONST_LOG][
-                        f"dormant_info/{param_key}_percentage_{head_i}"
+                        f"dormant_info/percentage_{param_key}_{head_i}"
                     ] = curr_val.item()
             else:
                 aux[CONST_LOG][
-                    f"dormant_info/{param_key}_percentage"
+                    f"dormant_info/percentage_{param_key}"
                 ] = percentage.item()
 
             for stats_key, stats_val in dormant_utils.compute_dormant_score_stats(
@@ -376,7 +378,7 @@ class RLPDSAC(SAC):
                 if multi_output:
                     for head_i, curr_val in enumerate(stats_val):
                         aux[CONST_LOG][
-                            f"dormant_info/{param_key}_score_{stats_key}_{head_i}"
+                            f"dormant_info/{param_key}_{head_i}_score_{stats_key}"
                         ] = curr_val.item()
                 else:
                     aux[CONST_LOG][

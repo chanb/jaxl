@@ -79,7 +79,6 @@ def compute_dormant_score_stats(dormant_score, multi_output):
             axis=-1,
         )
         return {
-            "mean": np.mean(flattened_scores, axis=1),
             "std": np.std(flattened_scores, axis=1),
             "max": np.max(flattened_scores, axis=1),
             "min": np.min(flattened_scores, axis=1),
@@ -89,7 +88,6 @@ def compute_dormant_score_stats(dormant_score, multi_output):
             [(dormant_score[key]).flatten() for key in list(dormant_score.keys())[:-1]]
         )
         return {
-            "mean": np.mean(flattened_scores),
             "std": np.std(flattened_scores),
             "max": np.max(flattened_scores),
             "min": np.min(flattened_scores),
