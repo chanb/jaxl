@@ -11,6 +11,7 @@ from jaxl.learners.in_context import (
 from jaxl.learners.mtbc import MTBC
 from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE
+from jaxl.learners.residual_learning.rlpd import ResidualRLPDSAC
 from jaxl.learners.residual_learning.sac import ResidualSAC
 from jaxl.learners.rlpd import RLPDSAC
 from jaxl.learners.sac import SAC, CrossQSAC
@@ -119,6 +120,8 @@ def get_residual_rl_learner(
         sac_variant = getattr(learner_config, "variant", CONST_DEFAULT)
         if sac_variant == CONST_DEFAULT:
             learner_constructor = ResidualSAC
+        elif sac_variant == CONST_RLPD:
+            learner_constructor = ResidualRLPDSAC
         else:
             raise NotImplementedError
     else:
