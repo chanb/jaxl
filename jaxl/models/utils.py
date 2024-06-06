@@ -282,7 +282,7 @@ def load_model(
 
 def load_params(
     learner_path: str,
-) -> Tuple[Model, Callable]:
+) -> optax.Params:
     learner_path, checkpoint_i = learner_path.split(":")
 
     all_steps = sorted(os.listdir(os.path.join(learner_path, "models")))
@@ -291,10 +291,20 @@ def load_params(
     else:
         step = np.argmin(
             np.abs(
-                np.array([int(step.split(".")[0]) for step in all_steps]) - checkpoint_i
+                np.array([int(step.split(".")[0]) for step in all_steps]) - int(checkpoint_i)
             )
         )
+        step = all_steps[step]
     return dill.load(open(os.path.join(learner_path, "models", step), "rb"))
+
+
+def iterate_params(
+    learner_path: str,
+) -> Iterable[Tuple[Dict, int]]:
+    all_steps = sorted(os.listdir(os.path.join(learner_path, "models")))
+    for step in all_steps:
+        params = dill.load(open(os.path.join(learner_path, "models", step), "rb"))
+        yield params, int(step.split(".dill")[0])
 
 
 def iterate_models(

@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/manipulator_learning/stack",
-        "experiment_name": "rlpd-sac",
+        "experiment_name": "rlpd-sac-high_utd",
         "log_interval": 1,
         "checkpoint_interval": 10
     },
@@ -107,7 +107,7 @@
         "policy_distribution": "squashed_gaussian",
         "std_transform": "squareplus",
         "gamma": 0.99,
-        "update_frequency": 1,
+        "update_frequency": 360,
         "target_entropy": "auto",
         "initial_temperature": 0.2,
         "qf_loss_setting": {
@@ -122,7 +122,7 @@
             "coefficient": 1.0,
             "reduction": "mean"
         },
-        "num_qf_updates": 1,
+        "num_qf_updates": 720,
         "actor_update_frequency": 20,
         "target_update_frequency": 1,
         "tau": 5e-3
