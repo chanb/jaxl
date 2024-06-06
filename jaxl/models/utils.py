@@ -212,6 +212,7 @@ def get_residual_policy(
             backbone,
             model,
             getattr(config.backbone, "include_absorbing_state", False),
+            getattr(config.residual, "residual_impact", 0.5),
             getattr(config.residual, CONST_MIN_STD, DEFAULT_MIN_STD),
             get_transform(
                 getattr(config.residual, CONST_STD_TRANSFORM, CONST_SQUAREPLUS)

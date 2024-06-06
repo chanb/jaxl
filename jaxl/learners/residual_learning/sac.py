@@ -404,7 +404,7 @@ class ResidualSAC(OffPolicyLearner):
 
             aux[CONST_AGG_LOSS] = agg_loss
             aux[CONST_GRAD_NORM] = {
-                CONST_POLICY: l2_norm(grads),
+                CONST_POLICY: l2_norm(grads[CONST_RESIDUAL]),
             }
 
             pi_params, pi_opt_state = pi_update(
@@ -696,7 +696,7 @@ class ResidualSAC(OffPolicyLearner):
                 CONST_GRAD_NORM
             ][CONST_POLICY].item()
             aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_POLICY}"] = l2_norm(
-                self.model_dict[CONST_MODEL][CONST_POLICY]
+                self.model_dict[CONST_MODEL][CONST_POLICY][CONST_RESIDUAL]
             ).item()
 
             for key in PI_LOG_KEYS:
