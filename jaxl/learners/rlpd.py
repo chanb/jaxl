@@ -74,9 +74,65 @@ class RLPDSAC(SAC):
         )
         self._demo_buffer = get_buffer(
             self._config.demo_buffer_config,
-            self._config.seeds.buffer_seed,
+            self._config.seeds.demo_buffer_seed,
             self._env,
             h_state_dim,
+        )
+
+    def _get_samples(self):
+        (
+            obss,
+            h_states,
+            acts,
+            rews,
+            _,
+            terminateds,
+            _,
+            next_obss,
+            next_h_states,
+            _,
+            lengths,
+            _,
+        ) = self._buffer.sample_with_next_obs(batch_size=self._batch_size // 2)
+
+        (
+            demo_obss,
+            demo_h_states,
+            demo_acts,
+            demo_rews,
+            _,
+            demo_terminateds,
+            _,
+            demo_next_obss,
+            demo_next_h_states,
+            _,
+            demo_lengths,
+            _,
+        ) = self._demo_buffer.sample_with_next_obs(batch_size=self._batch_size // 2)
+
+        if self._config.remove_demo_absorbing_state:
+            demo_obss = demo_obss[..., :-1]
+            demo_next_obss = demo_next_obss[..., :-1]
+
+        obss = np.vstack((obss, demo_obss))
+        h_states = np.vstack((h_states, demo_h_states))
+        acts = np.vstack((acts, demo_acts))
+        rews = np.vstack((rews, demo_rews))
+        terminateds = np.vstack((terminateds, demo_terminateds))
+        next_obss = np.vstack((next_obss, demo_next_obss))
+        next_h_states = np.vstack((next_h_states, demo_next_h_states))
+        lengths = np.vstack((lengths, demo_lengths))
+
+        obss = self.update_obs_rms_and_normalize(obss, lengths)
+        return (
+            obss,
+            h_states,
+            acts,
+            rews,
+            terminateds,
+            next_obss,
+            next_h_states,
+            lengths,
         )
 
     def update(self, *args, **kwargs) -> Dict[str, Any]:
@@ -150,47 +206,11 @@ class RLPDSAC(SAC):
                     h_states,
                     acts,
                     rews,
-                    _,
                     terminateds,
-                    _,
                     next_obss,
                     next_h_states,
-                    _,
                     lengths,
-                    _,
-                ) = self._buffer.sample_with_next_obs(batch_size=self._batch_size // 2)
-
-                (
-                    demo_obss,
-                    demo_h_states,
-                    demo_acts,
-                    demo_rews,
-                    _,
-                    demo_terminateds,
-                    _,
-                    demo_next_obss,
-                    demo_next_h_states,
-                    _,
-                    demo_lengths,
-                    _,
-                ) = self._demo_buffer.sample_with_next_obs(
-                    batch_size=self._batch_size // 2
-                )
-
-                if self._config.remove_demo_absorbing_state:
-                    demo_obss = demo_obss[..., :-1]
-                    demo_next_obss = demo_next_obss[..., :-1]
-
-                obss = np.vstack((obss, demo_obss))
-                h_states = np.vstack((h_states, demo_h_states))
-                acts = np.vstack((acts, demo_acts))
-                rews = np.vstack((rews, demo_rews))
-                terminateds = np.vstack((terminateds, demo_terminateds))
-                next_obss = np.vstack((next_obss, demo_next_obss))
-                next_h_states = np.vstack((next_h_states, demo_next_h_states))
-                lengths = np.vstack((lengths, demo_lengths))
-
-                obss = self.update_obs_rms_and_normalize(obss, lengths)
+                ) = self._get_samples()
                 total_sampling_time += timeit.default_timer() - tic
 
                 tic = timeit.default_timer()
@@ -347,6 +367,10 @@ class RLPDSAC(SAC):
                     key
                 ].item()
 
+        # Compute dormant
+        obss, h_states, acts, rews, terminateds, next_obss, next_h_states, lengths = (
+            self._get_samples()
+        )
         for param_key in [CONST_POLICY, CONST_QF]:
             model = self._model[param_key]
             score, is_dormant, multi_output = dormant_utils.compute_dormant(

@@ -77,6 +77,7 @@
         "seeds": {
             "model_seed": 42,
             "buffer_seed": 42,
+            "demo_buffer_seed": 43,
             "env_seed": 42,
             "learner_seed": 42
         },
@@ -125,8 +126,7 @@
         "num_qf_updates": 1,
         "actor_update_frequency": 20,
         "target_update_frequency": 1,
-        "tau": 5e-3,
-        "save_buffer": "/home/bryan/research/jaxl/analysis/data/rlpd_sac-buffer_checkpoint.gzip"
+        "tau": 5e-3
     },
     "train_config": {
         "num_epochs": 200
