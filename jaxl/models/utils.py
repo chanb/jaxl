@@ -24,6 +24,7 @@ from jaxl.models.transformers import (
 )
 from jaxl.models.policies import *
 from jaxl.models.q_functions import *
+from jaxl.models.residual_policies import *
 from jaxl.optimizers import *
 from jaxl.utils import parse_dict
 
@@ -142,6 +143,102 @@ def get_wsrl_model(
             getattr(model_config, "flatten", False),
             getattr(model_config, "init_log_std", 1.0),
         )
+
+
+def get_policy(model: Model, config: SimpleNamespace) -> Policy:
+    """
+    Gets a policy
+
+    :param model: a model
+    :param config: the policy configuration
+    :type model: Model
+    :type config: SimpleNamespace
+    :return: a policy
+    :rtype: Policy
+
+    """
+    assert (
+        config.policy_distribution in VALID_POLICY_DISTRIBUTION
+    ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
+
+    if config.policy_distribution == CONST_GAUSSIAN:
+        return GaussianPolicy(
+            model,
+            getattr(config, CONST_MIN_STD, DEFAULT_MIN_STD),
+            get_transform(getattr(config, CONST_STD_TRANSFORM, CONST_SQUAREPLUS)),
+        )
+    elif config.policy_distribution == CONST_SQUASHED_GAUSSIAN:
+        return SquashedGaussianPolicy(
+            model,
+            getattr(config, CONST_MIN_STD, DEFAULT_MIN_STD),
+            get_transform(getattr(config, CONST_STD_TRANSFORM, CONST_SQUAREPLUS)),
+        )
+    elif config.policy_distribution == CONST_DETERMINISTIC:
+        return DeterministicPolicy(model)
+    elif config.policy_distribution == CONST_SOFTMAX:
+        return SoftmaxPolicy(
+            model, getattr(config, CONST_TEMPERATURE, DEFAULT_TEMPERATURE)
+        )
+    elif config.policy_distribution == CONST_BANG_BANG:
+        return BangBangPolicy(
+            model, getattr(config, CONST_TEMPERATURE, DEFAULT_TEMPERATURE)
+        )
+    else:
+        raise NotImplementedError
+
+
+def get_residual_policy(
+    backbone: Model, model: Model, config: SimpleNamespace
+) -> Policy:
+    """
+    Gets a residual policy
+
+    :param backbone: a backbone
+    :param model: a model
+    :param config: the policy configuration
+    :type backbone: Model
+    :type model: Model
+    :type config: SimpleNamespace
+    :return: a policy
+    :rtype: Policy
+
+    """
+    assert (
+        config.residual.policy_distribution in VALID_POLICY_DISTRIBUTION
+    ), f"{config.residual.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
+
+    if config.residual.policy_distribution == CONST_SQUASHED_GAUSSIAN:
+        return SquashedGaussianResidualPolicy(
+            backbone,
+            model,
+            getattr(config.backbone, "include_absorbing_state", False),
+            getattr(config.residual, CONST_MIN_STD, DEFAULT_MIN_STD),
+            get_transform(
+                getattr(config.residual, CONST_STD_TRANSFORM, CONST_SQUAREPLUS)
+            ),
+        )
+    else:
+        raise NotImplementedError
+
+
+def policy_output_dim(output_dim: chex.Array, config: SimpleNamespace) -> chex.Array:
+    """
+    Gets the policy output dimension based on its distribution.
+
+    :param output_dim: the original output dimension
+    :param config: the policy configuration
+    :type output_dim: chex.Array
+    :type config: SimpleNamespace
+    :return: the output dimension of the policy
+    :rtype: chex.Array
+
+    """
+    assert (
+        config.policy_distribution in VALID_POLICY_DISTRIBUTION
+    ), f"{config.policy_distribution} is not supported (one of {VALID_POLICY_DISTRIBUTION})"
+    if config.policy_distribution in [CONST_GAUSSIAN, CONST_SQUASHED_GAUSSIAN]:
+        return [*output_dim[:-1], output_dim[-1] * 2]
+    return output_dim
 
 
 def get_update_function(

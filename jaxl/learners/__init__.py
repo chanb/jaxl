@@ -11,6 +11,7 @@ from jaxl.learners.in_context import (
 from jaxl.learners.mtbc import MTBC
 from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE
+from jaxl.learners.residual_learning.sac import ResidualSAC
 from jaxl.learners.rlpd import RLPDSAC
 from jaxl.learners.sac import SAC, CrossQSAC
 from jaxl.learners.supervised import SupervisedLearner
@@ -66,7 +67,7 @@ def get_wsrl_learner(
     optimizer_config: SimpleNamespace,
 ) -> Learner:
     """
-    Gets reinforcement learning learner.
+    Gets warm-start reinforcement learning learner.
 
     :param learner_config: the learner configuration
     :param model_config: the model configuration
@@ -87,6 +88,39 @@ def get_wsrl_learner(
         learner_constructor = WSRLREINFORCE
     elif learner_config.learner == CONST_POLICY_EVALUATION:
         learner_constructor = WSRLPolicyEvaluation
+    else:
+        raise NotImplementedError
+
+    return learner_constructor(learner_config, model_config, optimizer_config)
+
+
+def get_residual_rl_learner(
+    learner_config: SimpleNamespace,
+    model_config: SimpleNamespace,
+    optimizer_config: SimpleNamespace,
+) -> Learner:
+    """
+    Gets residual reinforcement learning learner.
+
+    :param learner_config: the learner configuration
+    :param model_config: the model configuration
+    :param optimizer_config: the optimizer configuration
+    :type learner_config: SimpleNamespace
+    :type model_config: SimpleNamespace
+    :type optimizer_config: SimpleNamespace
+    :return: the reinforcement learning learner
+    :rtype: Learner
+
+    """
+    assert (
+        learner_config.learner in VALID_RL_LEARNER
+    ), f"{learner_config.learner} is not supported (one of {VALID_RL_LEARNER})"
+    if learner_config.learner == CONST_SAC:
+        sac_variant = getattr(learner_config, "variant", CONST_DEFAULT)
+        if sac_variant == CONST_DEFAULT:
+            learner_constructor = ResidualSAC
+        else:
+            raise NotImplementedError
     else:
         raise NotImplementedError
 

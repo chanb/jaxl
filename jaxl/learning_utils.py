@@ -52,6 +52,8 @@ def get_learner(
         make_learner = jaxl_learners.get_supervised_learner
     elif learner_config.task == CONST_WSRL:
         make_learner = jaxl_learners.get_wsrl_learner
+    elif learner_config.task == CONST_RESIDUAL:
+        make_learner = jaxl_learners.get_residual_rl_learner
     else:
         raise NotImplementedError
     return make_learner(learner_config, model_config, optimizer_config)
