@@ -291,7 +291,8 @@ def load_params(
     else:
         step = np.argmin(
             np.abs(
-                np.array([int(step.split(".")[0]) for step in all_steps]) - int(checkpoint_i)
+                np.array([int(step.split(".")[0]) for step in all_steps])
+                - int(checkpoint_i)
             )
         )
         step = all_steps[step]

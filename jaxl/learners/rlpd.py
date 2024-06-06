@@ -1,35 +1,16 @@
-from types import SimpleNamespace
-from typing import Any, Dict, Tuple, Sequence
+from typing import Any, Dict
 
-import chex
 import jax
 import jax.random as jrandom
 import numpy as np
-import optax
 import timeit
 
 from jaxl.buffers import get_buffer
 from jaxl.constants import *
 from jaxl.learners.sac import SAC
-from jaxl.losses.reinforcement import (
-    make_cross_q_sac_qf_loss,
-    make_sac_qf_loss,
-    make_sac_pi_loss,
-    make_sac_temp_loss,
-)
-from jaxl.models import (
-    get_model,
-    get_policy,
-    get_q_function,
-    get_update_function,
-    q_function_dims,
-    policy_output_dim,
-    get_state_action_encoding,
-    Temperature,
-    get_fixed_policy,
-)
-from jaxl.optimizers import get_optimizer
-from jaxl.utils import l2_norm, polyak_average_generator
+from jaxl.utils import l2_norm
+
+import jaxl.learners.dormant_utils as dormant_utils
 
 
 """
@@ -366,5 +347,45 @@ class RLPDSAC(SAC):
                     key
                 ].item()
 
+        for param_key in [CONST_POLICY, CONST_QF]:
+            model = self._model[param_key]
+            score, is_dormant, multi_output = dormant_utils.compute_dormant(
+                self._model_dict[CONST_MODEL],
+                obss,
+                acts,
+                self._model_config,
+                model,
+                param_key,
+                getattr(self._config, "dormant_threshold", 0.0),
+            )
+
+            percentage = dormant_utils.compute_dormant_percentage(score, multi_output)
+            if multi_output:
+                for head_i, curr_val in enumerate(percentage):
+                    aux[CONST_LOG][
+                        f"dormant_info/{param_key}_percentage_{head_i}"
+                    ] = curr_val.item()
+            else:
+                aux[CONST_LOG][
+                    f"dormant_info/{param_key}_percentage"
+                ] = percentage.item()
+
+            for stats_key, stats_val in dormant_utils.compute_dormant_score_stats(
+                score, multi_output
+            ).items():
+                if multi_output:
+                    for head_i, curr_val in enumerate(stats_val):
+                        aux[CONST_LOG][
+                            f"dormant_info/{param_key}_score_{stats_key}_{head_i}"
+                        ] = curr_val.item()
+                else:
+                    aux[CONST_LOG][
+                        f"dormant_info/{param_key}_score_{stats_key}"
+                    ] = stats_val.item()
+
         self.gather_rms(aux)
+
+        if getattr(self._config, "save_buffer", False):
+            self.buffer.save(self._config.save_buffer)
+
         return aux
