@@ -242,7 +242,12 @@ class ResidualSAC(OffPolicyLearner):
                 output_dim, self._config.exploration_policy
             )
         else:
-            self._exploration_pi = self._pi
+            self._exploration_pi = get_residual_policy(
+                self._model[CONST_BACKBONE],
+                self._model[CONST_RESIDUAL],
+                self._model_config,
+                use_backbone_only=True,
+            )
 
         # Temperature
         self._target_entropy = getattr(self._config, CONST_TARGET_ENTROPY, CONST_AUTO)
