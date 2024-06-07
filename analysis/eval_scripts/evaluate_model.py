@@ -1,10 +1,8 @@
 import _pickle as pickle
 import argparse
-import jax.random as jrandom
 import numpy as np
 import os
 
-from tqdm import tqdm
 
 from jaxl.constants import *
 from jaxl.models.utils import (
@@ -12,7 +10,6 @@ from jaxl.models.utils import (
     load_config,
     load_params,
     get_wsrl_model,
-    iterate_params,
     get_policy,
     policy_output_dim,
     get_residual_policy,
