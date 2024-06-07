@@ -92,7 +92,7 @@ class ResidualRLPDSAC(ResidualSAC):
             next_h_states,
             _,
             lengths,
-            _,
+            idxes,
         ) = self._buffer.sample_with_next_obs(batch_size=self._batch_size // 2)
 
         (
@@ -384,7 +384,7 @@ class ResidualRLPDSAC(ResidualSAC):
                 self._model_config,
                 model,
                 param_key,
-                getattr(self._config, "dormant_threshold", 0.0),
+                getattr(self._config, "dormant_threshold", 0.25),
             )
 
             percentage = dormant_utils.compute_dormant_percentage(

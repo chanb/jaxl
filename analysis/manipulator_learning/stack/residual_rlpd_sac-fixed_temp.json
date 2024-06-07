@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/manipulator_learning/stack",
-        "experiment_name": "residual-rlpd-sac",
+        "experiment_name": "residual-rlpd-sac-fixed_temp",
         "log_interval": 1,
         "checkpoint_interval": 10
     },
@@ -114,8 +114,8 @@
         "value_rms": false,
         "gamma": 0.99,
         "update_frequency": 1,
-        "target_entropy": "auto",
-        "initial_temperature": 0.2,
+        "target_entropy": null,
+        "initial_temperature": 0.02,
         "qf_loss_setting": {
             "coefficient": 1.0,
             "reduction": "mean"

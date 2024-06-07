@@ -1,33 +1,25 @@
 {
     "logging_config": {
         "save_path": "./logs/manipulator_learning/stack",
-        "experiment_name": "residual-rlpd-sac",
+        "experiment_name": "sac",
         "log_interval": 1,
-        "checkpoint_interval": 10
+        "checkpoint_interval": false
     },
     "model_config": {
-        "backbone": {
+        "policy": {
             "architecture": "mlp",
-            "layers": [256, 256, 256],
+            "layers": [
+                256,
+                256
+            ],
             "activation": "tanh",
-            "flatten": true,
-            "policy_distribution": "deterministic",
-            "pretrained_model": "/home/bryan/research/jaxl/logs/manipulator_learning/stack/bc-10k_steps-06-04-24_10_06_35-333b32a8-c019-4fed-9b8f-1ce59166bb2b:latest",
-            "include_absorbing_state": true
-        },
-        "residual": {
-            "architecture": "mlp",
-            "layers": [256, 256, 256],
-            "activation": "tanh",
-            "flatten": true,
-            "std_transform": "squareplus",
-            "policy_distribution": "squashed_gaussian"
+            "flatten": true
         },
         "qf": {
             "architecture": "ensemble",
             "model": {
                 "architecture": "mlp",
-                "layers": [256, 256, 256],
+                "layers": [256, 256],
                 "flatten": true
             },
             "num_models": 2,
@@ -40,7 +32,7 @@
         }
     },
     "optimizer_config": {
-        "residual": {
+        "policy": {
             "optimizer": "adam",
             "lr": {
                 "scheduler": "constant_schedule",
@@ -72,7 +64,7 @@
         }
     },
     "learner_config": {
-        "task": "residual",
+        "task": "reinforcement_learning",
         "env_config": {
             "env_type": "manipulator_learning",
             "env_name": "PandaPlayInsertTrayXYZState",
@@ -84,18 +76,12 @@
         "seeds": {
             "model_seed": 42,
             "buffer_seed": 42,
-            "demo_buffer_seed": 43,
             "env_seed": 42,
             "learner_seed": 42
         },
         "buffer_config": {
             "buffer_type": "default",
             "buffer_size": 1000000
-        },
-        "demo_buffer_config": {
-            "load_buffer": "/home/bryan/research/lfgp/lfgp_data/custom_expert_data/stack/1000000_steps_no_extra_final/int_0.gz",
-            "buffer_type": "default",
-            "set_size": 10000
         },
         "buffer_warmup": 1000,
         "exploration_policy": {
@@ -108,10 +94,10 @@
         "num_steps_per_epoch": 5000,
         "batch_size": 256,
         "learner": "sac",
-        "variant": "rlpd",
-        "remove_demo_absorbing_state": true,
         "obs_rms": false,
         "value_rms": false,
+        "policy_distribution": "squashed_gaussian",
+        "std_transform": "squareplus",
         "gamma": 0.99,
         "update_frequency": 1,
         "target_entropy": "auto",
@@ -128,12 +114,11 @@
             "coefficient": 1.0,
             "reduction": "mean"
         },
-        "num_qf_updates": 1,
-        "actor_update_frequency": 20,
+        "actor_update_frequency": 1,
         "target_update_frequency": 1,
         "tau": 5e-3
     },
     "train_config": {
-        "num_epochs": 1000
+        "num_epochs": 5
     }
 }
