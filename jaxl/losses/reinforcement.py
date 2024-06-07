@@ -466,6 +466,16 @@ def make_sac_qf_loss(
     """
     reduction = get_reduction(loss_setting.reduction)
 
+    if getattr(loss_setting, "include_entropy_regularization", True):
+
+        def get_temp(temp_params):
+            return models[CONST_TEMPERATURE].apply(temp_params)
+
+    else:
+
+        def get_temp(temp_params):
+            return 0.0
+
     # XXX: It's designed this way so that we don't keep track of gradient of other models.
     def qf_loss(
         qf_params: Union[optax.Params, Dict[str, Any]],
@@ -534,7 +544,7 @@ def make_sac_qf_loss(
         next_q_preds_min = jnp.min(next_q_preds, axis=0)
 
         # Compute temperature
-        temp = models[CONST_TEMPERATURE].apply(temp_params)
+        temp = get_temp(temp_params)
 
         # Compute min. clipped TD error
         next_vs = next_q_preds_min - temp * next_lprobs
