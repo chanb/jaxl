@@ -15,7 +15,8 @@ def main(args):
     sh_content = "#!/bin/bash \n"
     sh_content += "source /home/bryan/research/jaxl/.venv/bin/activate \n"
     sh_content += f"mkdir -p {save_dir} \n"
-    for checkpoint_i in checkpoints:
+
+    for checkpoint_i in checkpoints[:: args.skip_every + 1]:
         sh_content += (
             "python /home/bryan/research/jaxl/analysis/eval_scripts/evaluate_model.py"
         )
@@ -43,6 +44,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--script_path", type=str, required=True, help="The script name to save"
+    )
+    parser.add_argument(
+        "--skip_every", type=int, default=0, help="The amount of checkpoints to skip"
     )
     args = parser.parse_args()
     main(args)
