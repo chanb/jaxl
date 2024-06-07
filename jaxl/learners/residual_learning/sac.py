@@ -867,7 +867,12 @@ class ResidualCrossQSAC(ResidualSAC):
                 output_dim, self._config.exploration_policy
             )
         else:
-            self._exploration_pi = self._pi
+            self._exploration_pi = get_residual_policy(
+                self._model[CONST_BACKBONE],
+                self._model[CONST_RESIDUAL],
+                self._model_config,
+                use_backbone_only=True,
+            )
 
         # Temperature
         self._target_entropy = getattr(self._config, CONST_TARGET_ENTROPY, CONST_AUTO)
@@ -1011,6 +1016,7 @@ class ResidualCrossQSAC(ResidualSAC):
                 self._obs_rms,
                 self._buffer,
                 step_count,
+                random=getattr(self._config, "random_explore_action", True),
             )
             self._global_step += step_count
             total_rollout_time += timeit.default_timer() - tic

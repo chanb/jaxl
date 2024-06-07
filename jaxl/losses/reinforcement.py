@@ -568,6 +568,7 @@ def make_sac_qf_loss(
             "min_q_log_prob": jnp.min(next_lprobs),
             "mean_q_log_prob": jnp.mean(next_lprobs),
             "curr_q_targets": curr_q_targets,
+            CONST_TEMPERATURE: temp,
             CONST_UPDATES: updates,
         }
 

@@ -172,11 +172,12 @@ class ResidualRLPDSAC(ResidualSAC):
             tic = timeit.default_timer()
             step_count = self._buffer_warmup - self._global_step
             self._rollout.rollout(
-                None,
+                self._model_dict[CONST_MODEL][CONST_POLICY],
                 self._exploration_pi,
                 self._obs_rms,
                 self._buffer,
                 step_count,
+                random=getattr(self._config, "random_explore_action", True),
             )
             self._global_step += step_count
             total_rollout_time += timeit.default_timer() - tic

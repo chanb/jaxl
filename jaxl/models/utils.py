@@ -188,7 +188,10 @@ def get_policy(model: Model, config: SimpleNamespace) -> Policy:
 
 
 def get_residual_policy(
-    backbone: Model, model: Model, config: SimpleNamespace
+    backbone: Model,
+    model: Model,
+    config: SimpleNamespace,
+    use_backbone_only: bool = False,
 ) -> Policy:
     """
     Gets a residual policy
@@ -196,9 +199,11 @@ def get_residual_policy(
     :param backbone: a backbone
     :param model: a model
     :param config: the policy configuration
+    :param use_backbone_only: use backbone output only
     :type backbone: Model
     :type model: Model
     :type config: SimpleNamespace
+    :type use_backbone_only: bool
     :return: a policy
     :rtype: Policy
 
@@ -217,6 +222,7 @@ def get_residual_policy(
             get_transform(
                 getattr(config.residual, CONST_STD_TRANSFORM, CONST_SQUAREPLUS)
             ),
+            use_backbone_only,
         )
     else:
         raise NotImplementedError
