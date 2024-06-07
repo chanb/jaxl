@@ -144,10 +144,6 @@ class ResidualSAC(OffPolicyLearner):
             encoding_input_dim, encoding_output_dim, self._model_config.qf_encoding
         )
 
-        self._exploration_pi = get_fixed_policy(
-            output_dim, self._config.exploration_policy
-        )
-
         # Initialize parameters for policy and critics
         self._model = {
             CONST_BACKBONE: get_model(
@@ -240,6 +236,13 @@ class ResidualSAC(OffPolicyLearner):
             CONST_QF: self._qf,
             CONST_TARGET_QF: self._target_qf,
         }
+
+        if hasattr(self._config, "exploration_policy"):
+            self._exploration_pi = get_fixed_policy(
+                output_dim, self._config.exploration_policy
+            )
+        else:
+            self._exploration_pi = self._pi
 
         # Temperature
         self._target_entropy = getattr(self._config, CONST_TARGET_ENTROPY, CONST_AUTO)
@@ -521,11 +524,12 @@ class ResidualSAC(OffPolicyLearner):
             tic = timeit.default_timer()
             step_count = self._buffer_warmup - self._global_step
             self._rollout.rollout(
-                None,
+                self._model_dict[CONST_MODEL][CONST_POLICY],
                 self._exploration_pi,
                 self._obs_rms,
                 self._buffer,
                 step_count,
+                random=getattr(self._config, "random_explore_action", True),
             )
             self._global_step += step_count
             total_rollout_time += timeit.default_timer() - tic

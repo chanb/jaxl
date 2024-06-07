@@ -428,6 +428,7 @@ class StandardRollout(Rollout):
         obs_rms: Union[bool, RunningMeanStd],
         buffer: ReplayBuffer,
         num_steps: int,
+        random: bool = True,
     ) -> Tuple[chex.Array, chex.Array]:
         """
         Executes the policy in the environment.
@@ -446,6 +447,13 @@ class StandardRollout(Rollout):
         :rtype: Tuple[chex.Array, chex.Array]
 
         """
+        if random:
+            get_action = policy.compute_action
+        else:
+            get_action = lambda params, obs, h_state, key: policy.deterministic_action(
+                params, obs, h_state
+            )
+
         for _ in range(num_steps):
             if self._done:
                 self._done = False
@@ -462,7 +470,7 @@ class StandardRollout(Rollout):
             if obs_rms:
                 normalize_obs = obs_rms.normalize(normalize_obs)
 
-            act, next_h_state = policy.compute_action(
+            act, next_h_state = get_action(
                 params,
                 normalize_obs,
                 np.array([self._curr_h_state]),

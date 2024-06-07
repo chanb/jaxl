@@ -98,13 +98,7 @@
             "set_size": 10000
         },
         "buffer_warmup": 1000,
-        "exploration_policy": {
-            "policy_distribution": "squashed_gaussian",
-            "kwargs": {
-                "means": 0.0,
-                "stds": 0.5
-            }
-        },
+        "random_explore_action": false,
         "num_steps_per_epoch": 5000,
         "batch_size": 256,
         "learner": "sac",
