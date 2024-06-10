@@ -209,10 +209,7 @@ def prepare_seqs_for_transformer_jaxl(ds, num_classes: int):
         is_image = len(example["example"].shape) == 5
 
         # Cast the examples into the correct shape and tf datatype.
-        if is_image:
-            examples = tf.cast(example["example"], tf.float32)  # (B,SS,H,W,C)
-        else:
-            examples = tf.cast(example["example"], tf.int32)  # (B, SS)
+        examples = tf.cast(example["example"], tf.float32)
 
         # Cast the labels into the correct tf datatype.
         labels = tf.cast(example["label"], tf.int32)  # (B,SS)

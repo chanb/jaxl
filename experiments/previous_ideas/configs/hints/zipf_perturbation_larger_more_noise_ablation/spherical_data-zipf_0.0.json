@@ -1,0 +1,100 @@
+{
+    "logging_config": {
+        "save_path": "./logs/spherical_data/zipf_larger_more_noise_experiments",
+        "experiment_name": "p_bursty-1.0-zipf_0.0",
+        "log_interval": 50,
+        "checkpoint_interval": 5000
+    },
+    "model_config": {
+        "architecture": "icl_gpt",
+        "type": "no_tokenizer",
+        "num_contexts": 8,
+        "num_blocks": 4,
+        "num_heads": 8,
+        "embed_dim": 64,
+        "widening_factor": 4,
+        "positional_encoding": {
+            "type": "default",
+            "kwargs": {
+                "embed_dim": 64,
+                "max_len": 17
+            }
+        },
+        "input_tokenizer": {
+            "type": "mlp",
+            "kwargs": {
+                "layers": [],
+                "use_bias": false
+            }
+        },
+        "output_tokenizer": {
+            "type": "mlp",
+            "kwargs": {
+                "layers": [],
+                "use_bias": false
+            }
+        },
+        "query_pred_only": true,
+        "input_output_same_encoding": false
+    },
+    "optimizer_config": {
+        "optimizer": "adam",
+        "lr": {
+            "scheduler": "linear_warmup_sqrt_decay",
+            "scheduler_kwargs": {
+                "max_lr": 3e-4,
+                "warmup_steps": 4000
+            }
+        },
+        "max_grad_norm": false,
+        "mask_names": ["input_tokenizer"]
+    },
+    "learner_config": {
+        "task": "in_context_learning",
+        "dataset_config": {
+            "dataset_name": "tight_frame",
+            "dataset_kwargs": {
+                "tight_frame_path": "/Users/chanb/research/personal/jaxl/data/sphere_data-dim_64-num_classes_10000.pkl",
+                "num_sequences": 5000000,
+                "sequence_length": 9,
+                "num_holdout": 10,
+                "split": "train",
+                "p_bursty": 1.0,
+                "zipf_exp": 0.0,
+                "random_label": false,
+                "perturb_query": true,
+                "perturb_context": true,
+                "perturb_noise": 0.1
+            },
+            "dataset_wrapper": {
+                "type": "FixedLengthContextDataset",
+                "kwargs": {
+                    "context_len": 8
+                }
+            },
+            "num_workers": 6
+        },
+        "seeds": {
+            "model_seed": 44,
+            "data_seed": 44
+        },
+        "learner": "mle",
+        "losses": ["categorical", "l2"],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean",
+                "is_one_hot": true
+            },
+            {
+                "coefficient": 0.0
+            }
+        ],
+        "num_updates_per_epoch": 1,
+        "batch_size": 32,
+        "predictor_type": "default"
+    },
+    "train_config": {
+        "num_epochs": 100000
+    }
+}

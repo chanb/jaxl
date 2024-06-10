@@ -211,6 +211,21 @@ def get_dataset(
                 zipf_exp=getattr(dataset_kwargs, "zipf_exp", 0.0),
                 seed=seed,
             )
+    elif dataset_config.dataset_name == CONST_REDDY:
+        import jaxl.datasets.icl.gmm_classification as data
+        dataset = data.get_dataset(
+            num_examples=dataset_kwargs.num_examples,
+            p_bursty=dataset_kwargs.p_bursty,
+            bursty_len=dataset_kwargs.bursty_len,
+            zipf_exp=dataset_kwargs.zipf_exp,
+            input_noise_std=dataset_kwargs.input_noise_std,
+            target_allowed_in_example=dataset_kwargs.target_allowed_in_example,
+            num_base_classes=dataset_kwargs.num_base_classes,
+            num_abstract_classes=dataset_kwargs.num_abstract_classes,
+            num_dims=dataset_kwargs.num_dims,
+            seed=seed,
+            base_per_abstract_map=dataset_kwargs.base_per_abstract_map,
+        )
     else:
         raise ValueError(
             f"{dataset_config.dataset_name} is not supported (one of {VALID_DATASET})"

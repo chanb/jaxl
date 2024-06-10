@@ -331,7 +331,29 @@ class TightFrameAbstractClassification(Dataset):
         data_gen_seed = jrandom.split(jrandom.PRNGKey(seed), 2)[is_train]
         data_gen_rng = np.random.RandomState(seed=data_gen_seed)
 
-        if abstraction.endswith("cos"):
+        if abstraction.endswith("negcos"):
+            cos_threshold = float(abstraction.split("-")[0])
+            random_boundaries = data_gen_rng.randn(
+                num_sequences, self.tight_frame.shape[1]
+            )
+            random_boundaries /= np.linalg.norm(
+                random_boundaries, axis=-1, keepdims=True
+            )
+            positive_cap = np.abs((
+                jax.vmap(
+                    lambda boundary, tight_frame: tight_frame @ boundary,
+                    in_axes=[0, None],
+                )(random_boundaries, self.tight_frame)
+            )) < cos_threshold
+            labels = np.full_like(positive_cap, 1)
+            labels[positive_cap] = 0
+            print(
+                "num pos: {}, num neg: {}".format(
+                    np.min(np.sum(labels, axis=-1)),
+                    np.min(np.sum(1 - labels, axis=-1)),
+                )
+            )
+        elif abstraction.endswith("cos"):
             cos_threshold = float(abstraction.split("-")[0])
             random_boundaries = data_gen_rng.randn(
                 num_sequences, self.tight_frame.shape[1]
