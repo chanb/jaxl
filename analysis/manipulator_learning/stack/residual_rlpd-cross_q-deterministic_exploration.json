@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/manipulator_learning/stack",
-        "experiment_name": "residual-rlpd-deterministic_exploration-wide_critic",
+        "experiment_name": "residual-rlpd-cross_q-deterministic_exploration-wide_critic",
         "log_interval": 1,
         "checkpoint_interval": 10
     },
@@ -102,7 +102,7 @@
         "num_steps_per_epoch": 5000,
         "batch_size": 256,
         "learner": "sac",
-        "variant": "rlpd",
+        "variant": "rlpd:cross_q",
         "remove_demo_absorbing_state": true,
         "obs_rms": false,
         "value_rms": false,
@@ -124,9 +124,7 @@
             "reduction": "mean"
         },
         "num_qf_updates": 1,
-        "actor_update_frequency": 20,
-        "target_update_frequency": 1,
-        "tau": 5e-3
+        "actor_update_frequency": 20
     },
     "train_config": {
         "num_epochs": 1000

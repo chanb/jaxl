@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/manipulator_learning/stack",
-        "experiment_name": "residual-rlpd-deterministic_exploration-wide_critic",
+        "experiment_name": "residual-cross_q_sac",
         "log_interval": 1,
         "checkpoint_interval": 10
     },
@@ -27,8 +27,9 @@
             "architecture": "ensemble",
             "model": {
                 "architecture": "mlp",
-                "layers": [2048, 2048],
-                "flatten": true
+                "layers": [256, 256, 256],
+                "flatten": true,
+                "use_batch_norm": true
             },
             "num_models": 2,
             "vmap_all": false
@@ -84,7 +85,6 @@
         "seeds": {
             "model_seed": 42,
             "buffer_seed": 42,
-            "demo_buffer_seed": 43,
             "env_seed": 42,
             "learner_seed": 42
         },
@@ -92,28 +92,27 @@
             "buffer_type": "default",
             "buffer_size": 1000000
         },
-        "demo_buffer_config": {
-            "load_buffer": "/home/bryan/research/lfgp/lfgp_data/custom_expert_data/stack/1000000_steps_no_extra_final/int_0.gz",
-            "buffer_type": "default",
-            "set_size": 10000
-        },
         "buffer_warmup": 1000,
-        "random_explore_action": false,
+        "exploration_policy": {
+            "policy_distribution": "squashed_gaussian",
+            "kwargs": {
+                "means": 0.0,
+                "stds": 0.5
+            }
+        },
         "num_steps_per_epoch": 5000,
         "batch_size": 256,
         "learner": "sac",
-        "variant": "rlpd",
-        "remove_demo_absorbing_state": true,
+        "variant": "default:cross_q",
         "obs_rms": false,
         "value_rms": false,
         "gamma": 0.99,
         "update_frequency": 1,
-        "target_entropy": "auto",
-        "initial_temperature": 0.2,
+        "target_entropy": null,
+        "initial_temperature": 0.02,
         "qf_loss_setting": {
             "coefficient": 1.0,
-            "reduction": "mean",
-            "include_entropy_regularization": false
+            "reduction": "mean"
         },
         "pi_loss_setting": {
             "coefficient": 1.0,
@@ -129,6 +128,6 @@
         "tau": 5e-3
     },
     "train_config": {
-        "num_epochs": 1000
+        "num_epochs": 200
     }
 }

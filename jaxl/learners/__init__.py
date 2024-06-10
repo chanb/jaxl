@@ -11,8 +11,8 @@ from jaxl.learners.in_context import (
 from jaxl.learners.mtbc import MTBC
 from jaxl.learners.ppo import PPO
 from jaxl.learners.reinforce import REINFORCE
-from jaxl.learners.residual_learning.rlpd import ResidualRLPDSAC
-from jaxl.learners.residual_learning.sac import ResidualSAC
+from jaxl.learners.residual_learning.rlpd import ResidualRLPDSAC, ResidualRLPDCrossQSAC
+from jaxl.learners.residual_learning.sac import ResidualSAC, ResidualCrossQSAC
 from jaxl.learners.rlpd import RLPDSAC
 from jaxl.learners.sac import SAC, CrossQSAC
 from jaxl.learners.supervised import SupervisedLearner
@@ -118,10 +118,17 @@ def get_residual_rl_learner(
     ), f"{learner_config.learner} is not supported (one of {VALID_RL_LEARNER})"
     if learner_config.learner == CONST_SAC:
         sac_variant = getattr(learner_config, "variant", CONST_DEFAULT)
-        if sac_variant == CONST_DEFAULT:
-            learner_constructor = ResidualSAC
-        elif sac_variant == CONST_RLPD:
-            learner_constructor = ResidualRLPDSAC
+        variants = sac_variant.split(":")
+        if variants[0] == CONST_DEFAULT:
+            if len(variants) == 1 or variants[1] == CONST_SAC:
+                learner_constructor = ResidualSAC
+            elif variants[1] == CONST_CROSS_Q:
+                learner_constructor = ResidualCrossQSAC
+        elif variants[0] == CONST_RLPD:
+            if len(variants) == 1 or variants[1] == CONST_SAC:
+                learner_constructor = ResidualRLPDSAC
+            elif variants[1] == CONST_CROSS_Q:
+                learner_constructor = ResidualRLPDCrossQSAC
         else:
             raise NotImplementedError
     else:
