@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/manipulator_learning/stack",
-        "experiment_name": "residual-rlpd-cross_q-deterministic_exploration-wide_critic",
+        "experiment_name": "residual-rlpd-cross_q-deterministic_exploration-wide_critic-pretrain",
         "log_interval": 1,
         "checkpoint_interval": 10
     },
@@ -99,6 +99,7 @@
             "set_size": 10000
         },
         "buffer_warmup": 1000,
+        "pretrain_steps": 5000,
         "random_explore_action": false,
         "num_steps_per_epoch": 5000,
         "batch_size": 256,
@@ -111,6 +112,13 @@
         "update_frequency": 1,
         "target_entropy": "auto",
         "initial_temperature": 0.2,
+        "pretrain_qf_loss_setting": {
+            "coefficient": 1.0,
+            "reduction": "mean",
+            "include_entropy_regularization": false,
+            "cal_q_regularizer": 1.0,
+            "cal_q_max_return": 360
+        },
         "qf_loss_setting": {
             "coefficient": 1.0,
             "reduction": "mean",

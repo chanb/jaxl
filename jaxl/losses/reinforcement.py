@@ -476,6 +476,18 @@ def make_sac_qf_loss(
         def get_temp(temp_params):
             return 0.0
 
+    if getattr(loss_setting, "cal_q_regularizer", False):
+
+        def cal_q(curr_q_preds):
+            return loss_setting.cal_q_regularizer * (
+                loss_setting.cal_q_max_return - jnp.mean(curr_q_preds)
+            )
+
+    else:
+
+        def cal_q(curr_q_preds):
+            return 0.0
+
     # XXX: It's designed this way so that we don't keep track of gradient of other models.
     def qf_loss(
         qf_params: Union[optax.Params, Dict[str, Any]],
@@ -545,12 +557,13 @@ def make_sac_qf_loss(
 
         # Compute temperature
         temp = get_temp(temp_params)
+        cal_q_loss = cal_q(curr_q_preds)
 
         # Compute min. clipped TD error
         next_vs = next_q_preds_min - temp * next_lprobs
         curr_q_targets = rews + gamma * (1 - terminateds) * next_vs
         td_errors = (curr_q_preds - curr_q_targets[None]) ** 2
-        loss = reduction(td_errors)
+        loss = reduction(td_errors) + cal_q_loss
 
         return loss, {
             "mean_var_q": jnp.mean(jnp.var(curr_q_preds, axis=0)),
@@ -568,6 +581,7 @@ def make_sac_qf_loss(
             "min_q_log_prob": jnp.min(next_lprobs),
             "mean_q_log_prob": jnp.mean(next_lprobs),
             "curr_q_targets": curr_q_targets,
+            "cal_q_loss": cal_q_loss,
             CONST_TEMPERATURE: temp,
             CONST_UPDATES: updates,
         }
@@ -598,6 +612,28 @@ def make_cross_q_sac_qf_loss(
 
     """
     reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "include_entropy_regularization", True):
+
+        def get_temp(temp_params):
+            return models[CONST_TEMPERATURE].apply(temp_params)
+
+    else:
+
+        def get_temp(temp_params):
+            return 0.0
+
+    if getattr(loss_setting, "cal_q_regularizer", False):
+
+        def cal_q(curr_q_preds):
+            return loss_setting.cal_q_regularizer * (
+                loss_setting.cal_q_max_return - jnp.mean(curr_q_preds)
+            )
+
+    else:
+
+        def cal_q(curr_q_preds):
+            return 0.0
 
     # XXX: It's designed this way so that we don't keep track of gradient of other models.
     def qf_loss(
@@ -672,13 +708,14 @@ def make_cross_q_sac_qf_loss(
         curr_q_preds, _ = jnp.split(all_q_preds, 2, axis=1)
 
         # Compute temperature
-        temp = models[CONST_TEMPERATURE].apply(temp_params)
+        temp = get_temp(temp_params)
+        cal_q_loss = cal_q(curr_q_preds)
 
         # Compute min. clipped TD error
         next_vs = next_q_preds_min - temp * next_lprobs
         curr_q_targets = rews + gamma * (1 - terminateds) * next_vs
         td_errors = (curr_q_preds - curr_q_targets[None]) ** 2
-        loss = reduction(td_errors)
+        loss = reduction(td_errors) + cal_q_loss
 
         return loss, {
             "mean_var_q": jnp.mean(jnp.var(curr_q_preds, axis=0)),
@@ -696,6 +733,7 @@ def make_cross_q_sac_qf_loss(
             "min_q_log_prob": jnp.min(next_lprobs),
             "mean_q_log_prob": jnp.mean(next_lprobs),
             "curr_q_targets": curr_q_targets,
+            "cal_q_loss": cal_q_loss,
             CONST_UPDATES: updates,
         }
 
