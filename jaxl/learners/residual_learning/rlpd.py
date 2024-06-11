@@ -10,7 +10,7 @@ import timeit
 from jaxl.buffers import get_buffer
 from jaxl.constants import *
 from jaxl.learners.residual_learning.sac import ResidualSAC, ResidualCrossQSAC
-from jaxl.losses.reinforcement import make_cross_q_sac_qf_loss
+from jaxl.losses.reinforcement import make_cross_q_sac_qf_loss, make_sac_pi_loss
 from jaxl.models import get_update_function
 from jaxl.utils import l2_norm
 
@@ -439,6 +439,10 @@ class ResidualRLPDCrossQSAC(ResidualCrossQSAC):
             self._agent, self._config.pretrain_qf_loss_setting
         )
         self.cal_q_qf_step = jax.jit(self.make_cal_q_qf_step())
+        self._cal_q_pi_loss = make_sac_pi_loss(
+            self._agent, self._config.pretrain_pi_loss_setting
+        )
+        self.cal_q_pi_step = jax.jit(self.make_cal_q_pi_step())
 
     def make_cal_q_qf_step(self):
         """
@@ -496,6 +500,52 @@ class ResidualRLPDCrossQSAC(ResidualCrossQSAC):
             }, aux
 
         return _qf_step
+
+    def make_cal_q_pi_step(self):
+        """
+        Makes the training step for the actor update.
+        """
+
+        pi_update = get_update_function(self._model[CONST_RESIDUAL])
+
+        def _pi_step(
+            model_dict: Dict[str, Any],
+            obss: chex.Array,
+            h_states: chex.Array,
+            keys: Sequence[jrandom.PRNGKey],
+            *args,
+            **kwargs,
+        ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            (agg_loss, aux), grads = jax.value_and_grad(
+                self._cal_q_pi_loss, has_aux=True
+            )(
+                model_dict[CONST_MODEL][CONST_POLICY],
+                model_dict[CONST_MODEL][CONST_QF],
+                model_dict[CONST_MODEL][CONST_TEMPERATURE],
+                obss,
+                h_states,
+                keys,
+            )
+
+            aux[CONST_AGG_LOSS] = agg_loss
+            aux[CONST_GRAD_NORM] = {
+                CONST_POLICY: l2_norm(grads[CONST_RESIDUAL]),
+            }
+
+            pi_params, pi_opt_state = pi_update(
+                self._optimizer[CONST_RESIDUAL],
+                grads[CONST_RESIDUAL],
+                model_dict[CONST_OPT_STATE][CONST_RESIDUAL],
+                model_dict[CONST_MODEL][CONST_POLICY][CONST_RESIDUAL],
+                aux[CONST_UPDATES],
+            )
+
+            return {
+                CONST_MODEL: pi_params,
+                CONST_OPT_STATE: pi_opt_state,
+            }, aux
+
+        return _pi_step
 
     def _initialize_buffer(self):
         """
@@ -621,7 +671,7 @@ class ResidualRLPDCrossQSAC(ResidualCrossQSAC):
             qf_update_time = timeit.default_timer() - tic
 
             tic = timeit.default_timer()
-            pi_model_dict, pi_aux = self.pi_step(
+            pi_model_dict, pi_aux = self.cal_q_pi_step(
                 self._model_dict,
                 obss,
                 h_states,

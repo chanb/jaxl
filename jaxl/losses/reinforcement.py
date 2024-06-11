@@ -764,6 +764,16 @@ def make_sac_pi_loss(
     """
     reduction = get_reduction(loss_setting.reduction)
 
+    if getattr(loss_setting, "action_regularization", False):
+
+        def act_reg(acts):
+            return loss_setting.action_regularization * jnp.mean(acts**2)
+
+    else:
+
+        def act_reg(acts):
+            return 0.0
+
     # XXX: It's designed this way so that we don't keep track of gradient of other models.
     def pi_loss(
         pi_params: Union[optax.Params, Dict[str, Any]],
@@ -809,7 +819,7 @@ def make_sac_pi_loss(
         temp = models[CONST_TEMPERATURE].apply(temp_params)
 
         vals = -(curr_q_preds_min - temp * lprobs)
-        loss = reduction(vals)
+        loss = reduction(vals) + act_reg(acts)
 
         return loss, {
             "max_policy_log_prob": jnp.max(lprobs),

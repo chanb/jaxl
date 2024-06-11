@@ -112,6 +112,11 @@
         "update_frequency": 1,
         "target_entropy": "auto",
         "initial_temperature": 0.2,
+        "pretrain_pi_loss_setting": {
+            "coefficient": 1.0,
+            "reduction": "mean",
+            "action_regularization": 1.0
+        },
         "pretrain_qf_loss_setting": {
             "coefficient": 1.0,
             "reduction": "mean",
