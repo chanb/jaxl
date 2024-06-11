@@ -1,6 +1,7 @@
 from types import SimpleNamespace
-from typing import Any, Dict
+from typing import Any, Dict, Tuple, Sequence
 
+import chex
 import jax
 import jax.random as jrandom
 import numpy as np
@@ -10,6 +11,7 @@ from jaxl.buffers import get_buffer
 from jaxl.constants import *
 from jaxl.learners.residual_learning.sac import ResidualSAC, ResidualCrossQSAC
 from jaxl.losses.reinforcement import make_cross_q_sac_qf_loss
+from jaxl.models import get_update_function
 from jaxl.utils import l2_norm
 
 import jaxl.learners.dormant_utils as dormant_utils
@@ -433,10 +435,67 @@ class ResidualRLPDCrossQSAC(ResidualCrossQSAC):
         optimizer_config: SimpleNamespace,
     ):
         super().__init__(config, model_config, optimizer_config)
-        self._qf_loss = make_cross_q_sac_qf_loss(
+        self._cal_q_qf_loss = make_cross_q_sac_qf_loss(
             self._agent, self._config.pretrain_qf_loss_setting
         )
-        self.cal_q_qf_step = jax.jit(self.make_qf_step())
+        self.cal_q_qf_step = jax.jit(self.make_cal_q_qf_step())
+
+    def make_cal_q_qf_step(self):
+        """
+        Makes the training step for the critic update.
+        """
+
+        qf_update = get_update_function(self._model[CONST_QF])
+
+        def _qf_step(
+            model_dict: Dict[str, Any],
+            obss: chex.Array,
+            h_states: chex.Array,
+            acts: chex.Array,
+            rews: chex.Array,
+            terminateds: chex.Array,
+            next_obss: chex.Array,
+            next_h_states: chex.Array,
+            keys: Sequence[jrandom.PRNGKey],
+            *args,
+            **kwargs,
+        ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+            (agg_loss, aux), grads = jax.value_and_grad(
+                self._cal_q_qf_loss, has_aux=True
+            )(
+                model_dict[CONST_MODEL][CONST_QF],
+                model_dict[CONST_MODEL][CONST_POLICY],
+                model_dict[CONST_MODEL][CONST_TEMPERATURE],
+                obss,
+                h_states,
+                acts,
+                rews,
+                terminateds,
+                next_obss,
+                next_h_states,
+                self._gamma,
+                keys,
+            )
+
+            aux[CONST_AGG_LOSS] = agg_loss
+            aux[CONST_GRAD_NORM] = {
+                CONST_QF: l2_norm(grads),
+            }
+
+            qf_params, qf_opt_state = qf_update(
+                self._optimizer[CONST_QF],
+                grads,
+                model_dict[CONST_OPT_STATE][CONST_QF],
+                model_dict[CONST_MODEL][CONST_QF],
+                aux[CONST_UPDATES],
+            )
+
+            return {
+                CONST_MODEL: qf_params,
+                CONST_OPT_STATE: qf_opt_state,
+            }, aux
+
+        return _qf_step
 
     def _initialize_buffer(self):
         """
