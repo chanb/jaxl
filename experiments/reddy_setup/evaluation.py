@@ -23,80 +23,44 @@ from utils import *
 def get_eval_datasets(
     config_dict: Dict[str, Any],
     test_data_seed: int,
+    context_len: int,
 ):
     # IWL evaluation
     iwl_config_dict = copy.deepcopy(config_dict)
 
     dataset_kwargs = {
-        "num_examples": 8,
         "p_bursty": 0.0,
-        "bursty_len": 3,
-        "zipf_exp": 0.0,
-        "input_noise_std": 0.5,
         "target_allowed_in_example": False,
-        "empty_examples": False,
-        "num_base_classes": 100000,
-        "num_abstract_classes": 32,
-        "num_dims": 128,
-        "base_per_abstract_map": None,
-        "novel_abstract_class": False,
-        "tf_type": "prepare_seqs_for_transformer",
-        "num_workers": -1,
     }
 
     iwl_config_dict["learner_config"]["dataset_config"][
         "dataset_kwargs"
-    ] = dataset_kwargs
+    ].update(dataset_kwargs)
     iwl_config = parse_dict(iwl_config_dict)
 
     # IWL evaluation with empty context
     iwl_empty_examples_config_dict = copy.deepcopy(config_dict)
 
     dataset_kwargs = {
-        "num_examples": 8,
-        "p_bursty": 0.0,
-        "bursty_len": 3,
-        "zipf_exp": 0.0,
-        "input_noise_std": 0.5,
-        "target_allowed_in_example": False,
         "empty_examples": True,
-        "num_base_classes": 100000,
-        "num_abstract_classes": 32,
-        "num_dims": 128,
-        "base_per_abstract_map": None,
-        "novel_abstract_class": False,
-        "tf_type": "prepare_seqs_for_transformer",
-        "num_workers": -1,
     }
 
     iwl_empty_examples_config_dict["learner_config"]["dataset_config"][
         "dataset_kwargs"
-    ] = dataset_kwargs
+    ].update(dataset_kwargs)
     iwl_empty_examples_config = parse_dict(iwl_empty_examples_config_dict)
 
     # ICL with novel input
     icl_novel_inputs_config_dict = copy.deepcopy(config_dict)
 
     dataset_kwargs = {
-        "num_examples": 8,
         "p_bursty": 1.0,
-        "bursty_len": 4,
-        "zipf_exp": 0.0,
-        "input_noise_std": 0.5,
-        "target_allowed_in_example": False,
-        "empty_examples": False,
-        "num_base_classes": 100000,
-        "num_abstract_classes": 32,
-        "num_dims": 128,
-        "base_per_abstract_map": None,
-        "novel_abstract_class": False,
-        "tf_type": "prepare_seqs_for_transformer",
-        "num_workers": -1,
+        "bursty_len": context_len // 2,
     }
 
     icl_novel_inputs_config_dict["learner_config"]["dataset_config"][
         "dataset_kwargs"
-    ] = dataset_kwargs
+    ].update(dataset_kwargs)
     icl_novel_inputs_config_dict["learner_config"]["seeds"][
         "data_seed"
     ] = test_data_seed
@@ -106,25 +70,14 @@ def get_eval_datasets(
     icl_permuted_label_config_dict = copy.deepcopy(config_dict)
 
     dataset_kwargs = {
-        "num_examples": 8,
         "p_bursty": 1.0,
-        "bursty_len": 4,
-        "zipf_exp": 0.0,
-        "input_noise_std": 0.5,
-        "target_allowed_in_example": False,
-        "empty_examples": False,
-        "num_base_classes": 100000,
-        "num_abstract_classes": 32,
-        "num_dims": 128,
-        "base_per_abstract_map": None,
+        "bursty_len": context_len // 2,
         "novel_abstract_class": True,
-        "tf_type": "prepare_seqs_for_transformer",
-        "num_workers": -1,
     }
 
     icl_permuted_label_config_dict["learner_config"]["dataset_config"][
         "dataset_kwargs"
-    ] = dataset_kwargs
+    ].update(dataset_kwargs)
     icl_permuted_label_config = parse_dict(icl_permuted_label_config_dict)
 
     configs = {
@@ -174,6 +127,7 @@ def main(args: SimpleNamespace):
         datasets, dataset_configs = get_eval_datasets(
             config_dict,
             test_data_seed,
+            context_len,
         )
         datasets["pretraining"] = (
             train_dataset,

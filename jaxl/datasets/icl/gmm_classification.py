@@ -134,6 +134,7 @@ class GMMTask:
                     "example": inputs,
                     "label": labels,
                 }
+                continue
 
             is_bursty = self.rng.uniform() <= p_bursty
             if is_bursty:
