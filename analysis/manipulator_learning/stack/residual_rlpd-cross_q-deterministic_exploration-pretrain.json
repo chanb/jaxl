@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/manipulator_learning/stack",
-        "experiment_name": "residual-rlpd-cross_q-pretrain-deterministic_exploration-wide_critic",
+        "experiment_name": "residual-rlpd-cross_q-pretrain-deterministic_exploration-wide_critic-fixed_act_reg",
         "log_interval": 1,
         "checkpoint_interval": 10
     },

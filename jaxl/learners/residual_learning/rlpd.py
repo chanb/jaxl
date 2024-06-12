@@ -10,7 +10,10 @@ import timeit
 from jaxl.buffers import get_buffer
 from jaxl.constants import *
 from jaxl.learners.residual_learning.sac import ResidualSAC, ResidualCrossQSAC
-from jaxl.losses.reinforcement import make_cross_q_sac_qf_loss, make_sac_pi_loss
+from jaxl.losses.reinforcement import (
+    make_cross_q_sac_qf_loss,
+    make_sac_residual_pi_loss,
+)
 from jaxl.models import get_update_function
 from jaxl.utils import l2_norm
 
@@ -439,7 +442,7 @@ class ResidualRLPDCrossQSAC(ResidualCrossQSAC):
             self._agent, self._config.pretrain_qf_loss_setting
         )
         self.cal_q_qf_step = jax.jit(self.make_cal_q_qf_step())
-        self._cal_q_pi_loss = make_sac_pi_loss(
+        self._cal_q_pi_loss = make_sac_residual_pi_loss(
             self._agent, self._config.pretrain_pi_loss_setting
         )
         self.cal_q_pi_step = jax.jit(self.make_cal_q_pi_step())

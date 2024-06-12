@@ -60,12 +60,35 @@ class SquashedGaussianResidualPolicy(StochasticPolicy):
         self.lprob = jax.jit(
             self.make_lprob(backbone, model), static_argnames=[CONST_EVAL]
         )
+        self.act_params = jax.jit(self.make_act_params(model))
 
     def make_reset(self, model: Model) -> Callable[..., chex.Array]:
         def _reset() -> chex.Array:
             return model.reset_h_state()
 
         return _reset
+
+    def make_act_params(self, model: Model) -> Callable[
+        [
+            Union[optax.Params, Dict[str, Any]],
+            chex.Array,
+            chex.Array,
+            jrandom.PRNGKey,
+        ],
+        chex.Array,
+    ]:
+        def act_params(
+            params: Union[optax.Params, Dict[str, Any]],
+            obs: chex.Array,
+            h_state: chex.Array,
+            **kwargs,
+        ) -> Tuple[chex.Array, chex.Array]:
+            act_params, h_state, _ = model.forward(
+                params[CONST_RESIDUAL], obs, h_state, eval=True, **kwargs
+            )
+            return act_params
+
+        return act_params
 
     def make_compute_action(self, backbone: Model, model: Model) -> Callable[
         [

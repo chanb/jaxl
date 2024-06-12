@@ -908,3 +908,74 @@ def make_sac_temp_loss(
         }
 
     return temp_loss
+
+
+def make_sac_residual_pi_loss(
+    models: Dict[str, Any],
+    loss_setting: SimpleNamespace,
+) -> Callable[
+    [
+        Union[optax.Params, Dict[str, Any]],
+        chex.Array,
+        chex.Array,
+        chex.Array,
+        chex.Array,
+    ],
+    Tuple[chex.Array, Dict],
+]:
+    reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "action_regularization", False):
+
+        def act_reg(act_params):
+            return loss_setting.action_regularization * jnp.mean(act_params**2)
+
+    else:
+
+        def act_reg(act_params):
+            return 0.0
+
+    # XXX: It's designed this way so that we don't keep track of gradient of other models.
+    def pi_loss(
+        pi_params: Union[optax.Params, Dict[str, Any]],
+        qf_params: Union[optax.Params, Dict[str, Any]],
+        temp_params: Union[optax.Params, Dict[str, Any]],
+        obss: chex.Array,
+        h_states: chex.Array,
+        keys: Sequence[jrandom.PRNGKey],
+    ) -> Tuple[chex.Array, Dict]:
+
+        acts, lprobs, _, updates = models[CONST_POLICY].act_lprob(
+            pi_params, obss, h_states, keys
+        )
+        lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
+        act_params = models[CONST_POLICY].act_params(
+            pi_params,
+            obss,
+            h_states,
+        )
+        curr_q_preds, _, _ = models[CONST_QF].q_values(
+            qf_params,
+            obss,
+            h_states,
+            acts,
+            eval=True,
+        )
+        curr_q_preds_min = jnp.min(curr_q_preds, axis=0)
+
+        temp = models[CONST_TEMPERATURE].apply(temp_params)
+
+        vals = -(curr_q_preds_min - temp * lprobs)
+        loss = reduction(vals) + act_reg(act_params)
+
+        return loss, {
+            "max_policy_log_prob": jnp.max(lprobs),
+            "min_policy_log_prob": jnp.min(lprobs),
+            "mean_policy_log_prob": jnp.mean(lprobs),
+            "max_estimated_value": jnp.max(vals),
+            "min_estimated_value": jnp.min(vals),
+            "mean_estimated_value": jnp.mean(vals),
+            CONST_UPDATES: updates,
+        }
+
+    return pi_loss
