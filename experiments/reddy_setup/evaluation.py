@@ -107,7 +107,8 @@ def main(args: SimpleNamespace):
     all_results = {}
     save_path = os.path.join(args.save_path, ablation_name)
     os.makedirs(os.path.join(save_path, "agg_data"), exist_ok=True)
-    for curr_run_path in tqdm(os.listdir(runs_dir)):
+    for curr_run_path in os.listdir(runs_dir):
+        print("Evaluating {}".format(curr_run_path))
         learner_path = os.path.join(runs_dir, curr_run_path)
         exp_name = "-".join(curr_run_path.split("-")[:-8])
         all_results.setdefault(exp_name, {})
@@ -138,13 +139,15 @@ def main(args: SimpleNamespace):
         accuracies = {eval_name: [] for eval_name in datasets}
         auxes = {eval_name: [] for eval_name in datasets}
         checkpoint_steps = []
-        for params, model, checkpoint_step in iterate_models(
-            train_dataset.input_dim, train_dataset.output_dim, learner_path
+        for params, model, checkpoint_step in tqdm(
+            iterate_models(
+                train_dataset.input_dim, train_dataset.output_dim, learner_path
+            )
         ):
             checkpoint_steps.append(checkpoint_step)
             for eval_name in datasets:
-                tic = timeit.default_timer()
-                print(curr_run_path, checkpoint_step, eval_name)
+                # tic = timeit.default_timer()
+                # print(curr_run_path, checkpoint_step, eval_name)
                 dataset, data_loader = datasets[eval_name]
                 acc, aux = evaluate(
                     model=model,
@@ -158,8 +161,8 @@ def main(args: SimpleNamespace):
                 )
                 accuracies[eval_name].append(acc)
                 auxes[eval_name].append(aux)
-                toc = timeit.default_timer()
-                print("Takes {}s".format(toc - tic))
+                # toc = timeit.default_timer()
+                # print("Takes {}s".format(toc - tic))
 
         all_results[exp_name][curr_run_path] = {
             "checkpoint_steps": checkpoint_steps,
