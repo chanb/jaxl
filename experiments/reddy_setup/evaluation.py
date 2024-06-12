@@ -33,9 +33,9 @@ def get_eval_datasets(
         "target_allowed_in_example": False,
     }
 
-    iwl_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ].update(dataset_kwargs)
+    iwl_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"].update(
+        dataset_kwargs
+    )
     iwl_config = parse_dict(iwl_config_dict)
 
     # IWL evaluation with empty context
@@ -151,7 +151,7 @@ def main(args: SimpleNamespace):
                     params=params,
                     dataset=dataset,
                     data_loader=data_loader,
-                    num_tasks=num_eval_samples,
+                    num_tasks=num_eval_samples // batch_size,
                     max_label=None,
                     context_len=context_len,
                     fixed_length=fixed_length,
@@ -193,11 +193,12 @@ if __name__ == "__main__":
         help="The experiment runs to load from",
     )
     parser.add_argument(
-        "--num_eval_samples", type=int, default=1000, help="The number of evaluation tasks"
+        "--num_eval_samples",
+        type=int,
+        default=1000,
+        help="The number of evaluation tasks",
     )
-    parser.add_argument(
-        "--batch_size", type=int, default=100, help="The batch size"
-    )
+    parser.add_argument("--batch_size", type=int, default=100, help="The batch size")
     parser.add_argument(
         "--test_data_seed",
         type=int,

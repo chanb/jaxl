@@ -62,10 +62,9 @@ class GMMTask:
 
         if base_per_abstract_map == "l2":
             # Closest L2
-            abstract_centers = self.rng.standard_normal(
-                size=(self.num_abstract_classes, self.num_dims)
+            abstract_centers = self.rng.choice(
+                self.base_centers, size=(self.num_abstract_classes,)
             )
-            abstract_centers /= np.linalg.norm(abstract_centers, axis=-1, keepdims=True)
             base_to_abstract = np.argmin(
                 np.linalg.norm(
                     self.base_centers[:, None] - abstract_centers[None, :], axis=-1
@@ -120,15 +119,15 @@ class GMMTask:
 
             if empty_examples:
                 labels = np.array([target]).astype(int)
-                inputs = np.array(list(map(get_input, labels)))[:, None]
+                inputs = np.array(list(map(get_input, labels)))
 
                 labels = np.eye(self.num_abstract_classes)[labels]
                 labels = np.concatenate(
-                    (np.full((num_examples, *labels.shape), fill_value=-1), labels)
+                    (np.full((num_examples, *labels.shape[1:]), fill_value=-1), labels)
                 )
                 inputs = np.concatenate(
-                    (np.zeros((num_examples, inputs.shape[1:]), fill_value=0), inputs),
-                    axis=1,
+                    (np.zeros((num_examples, *inputs.shape[1:])), inputs),
+                    axis=0,
                 )
                 yield {
                     "example": inputs,
@@ -144,6 +143,7 @@ class GMMTask:
                     distractor_label = self.rng.choice(self.num_abstract_classes)
                     done = target != distractor_label
 
+                labels = []
                 # Generate extra distractor labels that are not target nor distractor
                 if generate_extra_distractors:
                     done = False
