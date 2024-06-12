@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/reddy",
-        "experiment_name": "icl_only-l2_clusters",
+        "save_path": "./logs/reddy/icl_only-l2_clusters",
+        "experiment_name": "default",
         "log_interval": 50,
         "checkpoint_interval": 5000
     },

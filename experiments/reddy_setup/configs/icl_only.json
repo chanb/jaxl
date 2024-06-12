@@ -1,7 +1,7 @@
 {
     "logging_config": {
-        "save_path": "./logs/reddy",
-        "experiment_name": "icl_only",
+        "save_path": "./logs/reddy/icl_only",
+        "experiment_name": "default",
         "log_interval": 50,
         "checkpoint_interval": 5000
     },
