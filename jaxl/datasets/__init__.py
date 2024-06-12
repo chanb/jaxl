@@ -221,11 +221,13 @@ def get_dataset(
             zipf_exp=dataset_kwargs.zipf_exp,
             input_noise_std=dataset_kwargs.input_noise_std,
             target_allowed_in_example=dataset_kwargs.target_allowed_in_example,
+            empty_examples=getattr(dataset_kwargs, "empty_examples", False),
             num_base_classes=dataset_kwargs.num_base_classes,
             num_abstract_classes=dataset_kwargs.num_abstract_classes,
             num_dims=dataset_kwargs.num_dims,
             seed=seed,
             base_per_abstract_map=dataset_kwargs.base_per_abstract_map,
+            novel_abstract_class=getattr(dataset_kwargs, "novel_abstract_class", False),
         )
     else:
         raise ValueError(

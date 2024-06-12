@@ -39,10 +39,10 @@ class GMMTask:
     ):
         """
         NOTE: For experiments:
-        - IWL eval: use pretrain config
+        - IWL eval: set p_bursty=0.0
         - IWL eval with no context: set empty_examples = True in get_sequences method
-        - ICL eval with novel input: use new seed
-        - ICL eval with permuted label: set novel_abstract_class = True
+        - ICL eval with novel input: use new seed with p_bursty=1 and bursty_len=4
+        - ICL eval with permuted label: set novel_abstract_class = True with p_bursty=1 and bursty_len=4
         """
         assert num_abstract_classes < num_base_classes
         self.num_base_classes = num_base_classes
@@ -197,11 +197,13 @@ def get_dataset(
     zipf_exp: float,
     input_noise_std: float,
     target_allowed_in_example: bool = False,
+    empty_examples: bool = False,
     num_base_classes: int = 100000,
     num_abstract_classes: int = 32,
     num_dims: int = 128,
     seed: int = 0,
     base_per_abstract_map: str = None,
+    novel_abstract_class: bool = False,
 ):
     task = GMMTask(
         num_base_classes,
@@ -209,6 +211,7 @@ def get_dataset(
         num_dims,
         seed,
         base_per_abstract_map,
+        novel_abstract_class,
     )
     dataset = tf.data.Dataset.from_generator(
         task.get_seqeunces,
@@ -219,6 +222,7 @@ def get_dataset(
             zipf_exp,
             input_noise_std,
             target_allowed_in_example,
+            empty_examples,
         ),
         output_signature={
             "example": tf.TensorSpec(
