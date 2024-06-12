@@ -62,13 +62,15 @@ class GMMTask:
 
         if base_per_abstract_map == "l2":
             # Closest L2
-            abstract_centers = self.rng.choice(
-                self.base_centers, size=(self.num_abstract_classes,)
-            )
+            abstract_centers = self.rng.permutation(len(self.base_centers))[
+                : self.num_abstract_classes
+            ]
+            abstract_centers = self.base_centers[abstract_centers]
             base_to_abstract = np.argmin(
                 np.linalg.norm(
                     self.base_centers[:, None] - abstract_centers[None, :], axis=-1
-                )
+                ),
+                axis=1,
             )
         else:
             # Randomly assign
