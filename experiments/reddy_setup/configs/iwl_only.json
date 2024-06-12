@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/reddy",
-        "experiment_name": "icl_only",
+        "experiment_name": "iwl_only",
         "log_interval": 50,
         "checkpoint_interval": 5000
     },
@@ -55,7 +55,7 @@
             "dataset_name": "reddy",
             "dataset_kwargs": {
                 "num_examples": 8,
-                "p_bursty": 1.0,
+                "p_bursty": 0.0,
                 "bursty_len": 3,
                 "zipf_exp": 0.0,
                 "input_noise_std": 0.5,

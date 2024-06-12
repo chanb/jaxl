@@ -213,6 +213,7 @@ def get_dataset(
             )
     elif dataset_config.dataset_name == CONST_REDDY:
         import jaxl.datasets.icl.gmm_classification as data
+
         dataset = data.get_dataset(
             num_examples=dataset_kwargs.num_examples,
             p_bursty=dataset_kwargs.p_bursty,

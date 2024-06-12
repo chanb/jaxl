@@ -205,17 +205,16 @@ def prepare_seqs_for_transformer_jaxl(ds, num_classes: int):
     """Convert example and label sequences for use by the transformer."""
 
     def _convert_dict(example):
-        # (dims: B:batch, SS:original seqlen, H:height, W:width, C:channels)
-        is_image = len(example["example"].shape) == 5
-
         # Cast the examples into the correct shape and tf datatype.
         examples = tf.cast(example["example"], tf.float32)
 
         # Cast the labels into the correct tf datatype.
-        labels = tf.cast(example["label"], tf.int32)  # (B,SS)
+        targets = tf.cast(example["label"], tf.int32)  # (B,SS)
 
         # Just use the original sequence of labels, e.g. [label, label, ...]
-        targets = tf.one_hot(labels, num_classes)  # (B,SS)
+        is_one_hot = targets.shape[-1] == num_classes
+        if not is_one_hot:
+            targets = tf.one_hot(targets, num_classes)  # (B,SS)
 
         # ret_dict = {"examples": examples, "labels": labels, "target": targets}
         ret_dict = {

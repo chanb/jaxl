@@ -35,7 +35,15 @@ class GMMTask:
         num_dims: int,
         seed: int,
         base_per_abstract_map: str = None,
+        novel_abstract_class: bool = False,
     ):
+        """
+        NOTE: For experiments:
+        - IWL eval: use pretrain config
+        - IWL eval with no context: set empty_examples = True in get_sequences method
+        - ICL eval with novel input: use new seed
+        - ICL eval with permuted label: set novel_abstract_class = True
+        """
         assert num_abstract_classes < num_base_classes
         self.num_base_classes = num_base_classes
         self.num_abstract_classes = num_abstract_classes
@@ -46,9 +54,12 @@ class GMMTask:
             size=(self.num_base_classes, self.num_dims)
         )
         self.base_centers /= np.linalg.norm(self.base_centers, axis=-1, keepdims=True)
-        self.generate_abstract_class_map(base_per_abstract_map)
-    
-    def generate_abstract_class_map(self, base_per_abstract_map):
+        self.generate_abstract_class_map(base_per_abstract_map, novel_abstract_class)
+
+    def generate_abstract_class_map(self, base_per_abstract_map, novel_abstract_class):
+        if novel_abstract_class:
+            self.rng.random()
+
         if base_per_abstract_map == "l2":
             # Closest L2
             abstract_centers = self.rng.standard_normal(
@@ -56,20 +67,26 @@ class GMMTask:
             )
             abstract_centers /= np.linalg.norm(abstract_centers, axis=-1, keepdims=True)
             base_to_abstract = np.argmin(
-                np.linalg.norm(self.base_centers[:, None] - abstract_centers[None, :], axis=-1)
+                np.linalg.norm(
+                    self.base_centers[:, None] - abstract_centers[None, :], axis=-1
+                )
             )
         else:
             # Randomly assign
-            num_base_per_abstract = int(np.ceil(
-                self.num_base_classes / self.num_abstract_classes
-            ))
-            base_to_abstract = self.rng.permutation(np.tile(
-                np.arange(self.num_abstract_classes),
-                reps=(num_base_per_abstract,)
-            )[:self.num_base_classes])
+            num_base_per_abstract = int(
+                np.ceil(self.num_base_classes / self.num_abstract_classes)
+            )
+            base_to_abstract = self.rng.permutation(
+                np.tile(
+                    np.arange(self.num_abstract_classes), reps=(num_base_per_abstract,)
+                )[: self.num_base_classes]
+            )
+
         self.abstract_to_base_map = dict()
         for abstract_class in range(self.num_abstract_classes):
-            self.abstract_to_base_map[abstract_class] = np.where(base_to_abstract == abstract_class)[0]
+            self.abstract_to_base_map[abstract_class] = np.where(
+                base_to_abstract == abstract_class
+            )[0]
 
     def get_seqeunces(
         self,
@@ -79,8 +96,12 @@ class GMMTask:
         zipf_exp: float,
         input_noise_std: float,
         target_allowed_in_example: bool = False,
+        empty_examples: bool = False,
     ):
-        zipf_weights = np.array([1 / j**zipf_exp for j in range(self.num_abstract_classes, 0, -1)])
+        # NOTE: The zipfian distribution skews towards smaller class labels.
+        zipf_weights = np.array(
+            [1 / j**zipf_exp for j in range(self.num_abstract_classes, 0, -1)]
+        )
         zipf_weights /= np.sum(zipf_weights)
         min_bursty_examples = bursty_len * 2
         generate_extra_distractors = num_examples > min_bursty_examples
@@ -96,6 +117,23 @@ class GMMTask:
                 self.num_abstract_classes,
                 p=zipf_weights,
             )
+
+            if empty_examples:
+                labels = np.array([target]).astype(int)
+                inputs = np.array(list(map(get_input, labels)))[:, None]
+
+                labels = np.eye(self.num_abstract_classes)[labels]
+                labels = np.concatenate(
+                    (np.full((num_examples, *labels.shape), fill_value=-1), labels)
+                )
+                inputs = np.concatenate(
+                    (np.zeros((num_examples, inputs.shape[1:]), fill_value=0), inputs),
+                    axis=1,
+                )
+                yield {
+                    "example": inputs,
+                    "label": labels,
+                }
 
             is_bursty = self.rng.uniform() <= p_bursty
             if is_bursty:
@@ -144,10 +182,13 @@ class GMMTask:
             # Append target to the end
             labels = np.concatenate((labels, [target])).astype(int)
             inputs = np.vstack(list(map(get_input, labels)))
+
+            labels = np.eye(self.num_abstract_classes)[labels]
             yield {
                 "example": inputs,
                 "label": labels,
             }
+
 
 def get_dataset(
     num_examples: int,
@@ -157,7 +198,7 @@ def get_dataset(
     input_noise_std: float,
     target_allowed_in_example: bool = False,
     num_base_classes: int = 100000,
-    num_abstract_classes: int = 1000,
+    num_abstract_classes: int = 32,
     num_dims: int = 128,
     seed: int = 0,
     base_per_abstract_map: str = None,
@@ -180,8 +221,12 @@ def get_dataset(
             target_allowed_in_example,
         ),
         output_signature={
-            "example": tf.TensorSpec(shape=(num_examples + 1, num_dims), dtype=tf.dtypes.float32),
-            "label": tf.TensorSpec(shape=(num_examples + 1,), dtype=tf.dtypes.int32),
+            "example": tf.TensorSpec(
+                shape=(num_examples + 1, num_dims), dtype=tf.dtypes.float32
+            ),
+            "label": tf.TensorSpec(
+                shape=(num_examples + 1, num_abstract_classes), dtype=tf.dtypes.int32
+            ),
         },
     )
     return TFDataset(
@@ -190,6 +235,7 @@ def get_dataset(
         (num_dims,),
         num_examples + 1,
     )
+
 
 def prepare_seqs_for_transformer_jaxl(ds, num_classes: int):
     """Convert example and label sequences for use by the transformer."""

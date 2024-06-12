@@ -339,12 +339,17 @@ class TightFrameAbstractClassification(Dataset):
             random_boundaries /= np.linalg.norm(
                 random_boundaries, axis=-1, keepdims=True
             )
-            positive_cap = np.abs((
-                jax.vmap(
-                    lambda boundary, tight_frame: tight_frame @ boundary,
-                    in_axes=[0, None],
-                )(random_boundaries, self.tight_frame)
-            )) < cos_threshold
+            positive_cap = (
+                np.abs(
+                    (
+                        jax.vmap(
+                            lambda boundary, tight_frame: tight_frame @ boundary,
+                            in_axes=[0, None],
+                        )(random_boundaries, self.tight_frame)
+                    )
+                )
+                < cos_threshold
+            )
             labels = np.full_like(positive_cap, 1)
             labels[positive_cap] = 0
             print(

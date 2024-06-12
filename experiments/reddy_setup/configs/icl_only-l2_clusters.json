@@ -1,7 +1,7 @@
 {
     "logging_config": {
         "save_path": "./logs/reddy",
-        "experiment_name": "icl_only",
+        "experiment_name": "icl_only-l2_clusters",
         "log_interval": 50,
         "checkpoint_interval": 5000
     },
@@ -63,7 +63,7 @@
                 "num_base_classes": 100000,
                 "num_abstract_classes": 32,
                 "num_dims": 128,
-                "base_per_abstract_map": null,
+                "base_per_abstract_map": "l2",
                 "tf_type": "prepare_seqs_for_transformer",
                 "num_workers": -1
             }

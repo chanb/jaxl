@@ -100,18 +100,17 @@ def get_eval_datasets(
 
     for zipf_exp in [0.0, 1.0]:
         zipf_exp_config_dict = copy.deepcopy(config_dict)
-        zipf_exp_config_dict["learner_config"]["dataset_config"][
-            "dataset_kwargs"
-        ]["split"] = "train"
-        zipf_exp_config_dict["learner_config"]["dataset_config"][
-            "dataset_kwargs"
-        ]["num_sequences"] = num_test_tasks
-        zipf_exp_config_dict["learner_config"]["dataset_config"][
-            "dataset_kwargs"
-        ]["zipf_exp"] = zipf_exp
+        zipf_exp_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"][
+            "split"
+        ] = "train"
+        zipf_exp_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"][
+            "num_sequences"
+        ] = num_test_tasks
+        zipf_exp_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"][
+            "zipf_exp"
+        ] = zipf_exp
         zipf_exp_config = parse_dict(zipf_exp_config_dict)
         configs["{}_zipf_exp".format(zipf_exp)] = zipf_exp_config
-
 
     # Cosine Similarity: Abstract hierarchy
     for cos_threshold in [0.0, 0.3]:
