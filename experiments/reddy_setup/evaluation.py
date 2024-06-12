@@ -22,12 +22,8 @@ from utils import *
 
 def get_eval_datasets(
     config_dict: Dict[str, Any],
-    num_test_tasks: int,
     test_data_seed: int,
 ):
-    # Pretrain
-    same_pretraining_config = copy.deepcopy(config_dict)
-
     # IWL evaluation
     iwl_config_dict = copy.deepcopy(config_dict)
 
@@ -132,7 +128,6 @@ def get_eval_datasets(
     icl_permuted_label_config = parse_dict(icl_permuted_label_config_dict)
 
     configs = {
-        "same_pretraining": same_pretraining_config,
         "iwl": iwl_config,
         "iwl_empty_examples": iwl_empty_examples_config,
         "icl_novel_inputs": icl_novel_inputs_config,
@@ -150,10 +145,9 @@ def main(args: SimpleNamespace):
     get_device(device)
 
     runs_dir = args.runs_dir
-    num_train_tasks = args.num_train_tasks
-    num_test_tasks = args.num_test_tasks
+    batch_size = args.batch_size
+    num_eval_samples = args.num_eval_samples
     test_data_seed = args.test_data_seed
-    num_workers = args.num_workers
 
     ablation_name = os.path.basename(runs_dir)
 
@@ -163,15 +157,11 @@ def main(args: SimpleNamespace):
     for curr_run_path in tqdm(os.listdir(runs_dir)):
         learner_path = os.path.join(runs_dir, curr_run_path)
         exp_name = "-".join(curr_run_path.split("-")[:-8])
-        # if not exp_name.endswith("-tf"):
-        #     continue
-        # if not "random" in exp_name:
-        #     continue
-        # if not "learn_embedder" in exp_name:
-        #     continue
         all_results.setdefault(exp_name, {})
 
         config_dict, config = load_config(learner_path)
+        config_dict["learner_config"]["batch_size"] = batch_size
+        config = parse_dict(config_dict)
 
         train_dataset = get_dataset(
             config.learner_config.dataset_config,
@@ -179,17 +169,10 @@ def main(args: SimpleNamespace):
         )
 
         context_len = config.model_config.num_contexts
-
         fixed_length = True
-        if hasattr(config.learner_config.dataset_config, "dataset_wrapper"):
-            fixed_length = (
-                config.learner_config.dataset_config.dataset_wrapper.type
-                in ["FixedLengthContextDataset"]
-            )
 
         datasets, dataset_configs = get_eval_datasets(
             config_dict,
-            num_test_tasks,
             test_data_seed,
         )
         datasets["pretraining"] = (
@@ -214,18 +197,8 @@ def main(args: SimpleNamespace):
                     params=params,
                     dataset=dataset,
                     data_loader=data_loader,
-                    num_tasks=(
-                        num_train_tasks
-                        if eval_name == "pretraining"
-                        else num_test_tasks
-                    ),
-                    max_label=(
-                        2
-                        if eval_name.endswith("2_way")
-                        or eval_name.endswith("cos")
-                        or eval_name.endswith(None)
-                        else None
-                    ),
+                    num_tasks=num_eval_samples,
+                    max_label=None,
                     context_len=context_len,
                     fixed_length=fixed_length,
                 )
@@ -266,25 +239,16 @@ if __name__ == "__main__":
         help="The experiment runs to load from",
     )
     parser.add_argument(
-        "--num_test_tasks", type=int, default=30, help="The number of evaluation tasks"
+        "--num_eval_samples", type=int, default=1000, help="The number of evaluation tasks"
+    )
+    parser.add_argument(
+        "--batch_size", type=int, default=100, help="The batch size"
     )
     parser.add_argument(
         "--test_data_seed",
         type=int,
         default=1000,
         help="The seed for generating the test data",
-    )
-    parser.add_argument(
-        "--num_train_tasks",
-        type=int,
-        default=100,
-        help="The number of training tasks to evaluate on",
-    )
-    parser.add_argument(
-        "--num_workers",
-        type=int,
-        default=4,
-        help="The number of workers for fetching the batches of data",
     )
     args = parser.parse_args()
 
