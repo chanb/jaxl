@@ -212,7 +212,7 @@ def get_dataset(
                 seed=seed,
             )
     elif dataset_config.dataset_name == CONST_REDDY:
-        import jaxl.datasets.icl.gmm_classification as data
+        import jaxl.datasets.icl.reddy as data
 
         dataset = data.get_dataset(
             num_examples=dataset_kwargs.num_examples,
@@ -227,6 +227,20 @@ def get_dataset(
             num_dims=dataset_kwargs.num_dims,
             seed=seed,
             base_per_abstract_map=dataset_kwargs.base_per_abstract_map,
+            novel_abstract_class=getattr(dataset_kwargs, "novel_abstract_class", False),
+        )
+    elif dataset_config.dataset_name == CONST_STREAM_BLOCK:
+        import jaxl.datasets.icl.stream_block as data
+
+        dataset = data.get_dataset(
+            num_examples=dataset_kwargs.num_examples,
+            zipf_exp=dataset_kwargs.zipf_exp,
+            input_noise_std=dataset_kwargs.input_noise_std,
+            num_base_classes=dataset_kwargs.num_base_classes,
+            num_clusters=dataset_kwargs.num_clusters,
+            num_abstract_classes=dataset_kwargs.num_abstract_classes,
+            num_dims=dataset_kwargs.num_dims,
+            seed=seed,
             novel_abstract_class=getattr(dataset_kwargs, "novel_abstract_class", False),
         )
     else:
