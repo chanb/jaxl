@@ -25,6 +25,16 @@ def get_environment(env_config: SimpleNamespace) -> DefaultGymWrapper:
         import gymnasium as gym
 
         env = gym.make(env_config.env_name, **vars(env_config.env_kwargs))
+    elif env_config.env_type == CONST_MANIPULATOR_LEARNING:
+        import manipulator_learning.sim.envs as manlearn_envs
+        from jaxl.envs.manipulator_learning.env import ManipulatorLearningEnv
+
+        env = ManipulatorLearningEnv(
+            getattr(manlearn_envs, env_config.env_name)(**vars(env_config.env_kwargs)),
+            include_absorbing_state=getattr(
+                env_config, "include_absorbing_state", False
+            ),
+        )
     elif env_config.env_type == CONST_DM_CONTROL:
         from dm_control import suite
 

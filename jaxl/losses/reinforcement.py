@@ -466,6 +466,28 @@ def make_sac_qf_loss(
     """
     reduction = get_reduction(loss_setting.reduction)
 
+    if getattr(loss_setting, "include_entropy_regularization", True):
+
+        def get_temp(temp_params):
+            return models[CONST_TEMPERATURE].apply(temp_params)
+
+    else:
+
+        def get_temp(temp_params):
+            return 0.0
+
+    if getattr(loss_setting, "cal_q_regularizer", False):
+
+        def cal_q(curr_q_preds):
+            return loss_setting.cal_q_regularizer * (
+                loss_setting.cal_q_max_return - jnp.mean(curr_q_preds)
+            )
+
+    else:
+
+        def cal_q(curr_q_preds):
+            return 0.0
+
     # XXX: It's designed this way so that we don't keep track of gradient of other models.
     def qf_loss(
         qf_params: Union[optax.Params, Dict[str, Any]],
@@ -534,13 +556,14 @@ def make_sac_qf_loss(
         next_q_preds_min = jnp.min(next_q_preds, axis=0)
 
         # Compute temperature
-        temp = models[CONST_TEMPERATURE].apply(temp_params)
+        temp = get_temp(temp_params)
+        cal_q_loss = cal_q(curr_q_preds)
 
         # Compute min. clipped TD error
         next_vs = next_q_preds_min - temp * next_lprobs
         curr_q_targets = rews + gamma * (1 - terminateds) * next_vs
         td_errors = (curr_q_preds - curr_q_targets[None]) ** 2
-        loss = reduction(td_errors)
+        loss = reduction(td_errors) + cal_q_loss
 
         return loss, {
             "mean_var_q": jnp.mean(jnp.var(curr_q_preds, axis=0)),
@@ -558,6 +581,8 @@ def make_sac_qf_loss(
             "min_q_log_prob": jnp.min(next_lprobs),
             "mean_q_log_prob": jnp.mean(next_lprobs),
             "curr_q_targets": curr_q_targets,
+            "cal_q_loss": cal_q_loss,
+            CONST_TEMPERATURE: temp,
             CONST_UPDATES: updates,
         }
 
@@ -587,6 +612,28 @@ def make_cross_q_sac_qf_loss(
 
     """
     reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "include_entropy_regularization", True):
+
+        def get_temp(temp_params):
+            return models[CONST_TEMPERATURE].apply(temp_params)
+
+    else:
+
+        def get_temp(temp_params):
+            return 0.0
+
+    if getattr(loss_setting, "cal_q_regularizer", False):
+
+        def cal_q(curr_q_preds):
+            return loss_setting.cal_q_regularizer * (
+                loss_setting.cal_q_max_return - jnp.mean(curr_q_preds)
+            )
+
+    else:
+
+        def cal_q(curr_q_preds):
+            return 0.0
 
     # XXX: It's designed this way so that we don't keep track of gradient of other models.
     def qf_loss(
@@ -661,13 +708,14 @@ def make_cross_q_sac_qf_loss(
         curr_q_preds, _ = jnp.split(all_q_preds, 2, axis=1)
 
         # Compute temperature
-        temp = models[CONST_TEMPERATURE].apply(temp_params)
+        temp = get_temp(temp_params)
+        cal_q_loss = cal_q(curr_q_preds)
 
         # Compute min. clipped TD error
         next_vs = next_q_preds_min - temp * next_lprobs
         curr_q_targets = rews + gamma * (1 - terminateds) * next_vs
         td_errors = (curr_q_preds - curr_q_targets[None]) ** 2
-        loss = reduction(td_errors)
+        loss = reduction(td_errors) + cal_q_loss
 
         return loss, {
             "mean_var_q": jnp.mean(jnp.var(curr_q_preds, axis=0)),
@@ -685,6 +733,7 @@ def make_cross_q_sac_qf_loss(
             "min_q_log_prob": jnp.min(next_lprobs),
             "mean_q_log_prob": jnp.mean(next_lprobs),
             "curr_q_targets": curr_q_targets,
+            "cal_q_loss": cal_q_loss,
             CONST_UPDATES: updates,
         }
 
@@ -714,6 +763,16 @@ def make_sac_pi_loss(
 
     """
     reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "action_regularization", False):
+
+        def act_reg(acts):
+            return loss_setting.action_regularization * jnp.mean(acts**2)
+
+    else:
+
+        def act_reg(acts):
+            return 0.0
 
     # XXX: It's designed this way so that we don't keep track of gradient of other models.
     def pi_loss(
@@ -760,7 +819,7 @@ def make_sac_pi_loss(
         temp = models[CONST_TEMPERATURE].apply(temp_params)
 
         vals = -(curr_q_preds_min - temp * lprobs)
-        loss = reduction(vals)
+        loss = reduction(vals) + act_reg(acts)
 
         return loss, {
             "max_policy_log_prob": jnp.max(lprobs),
@@ -849,3 +908,74 @@ def make_sac_temp_loss(
         }
 
     return temp_loss
+
+
+def make_sac_residual_pi_loss(
+    models: Dict[str, Any],
+    loss_setting: SimpleNamespace,
+) -> Callable[
+    [
+        Union[optax.Params, Dict[str, Any]],
+        chex.Array,
+        chex.Array,
+        chex.Array,
+        chex.Array,
+    ],
+    Tuple[chex.Array, Dict],
+]:
+    reduction = get_reduction(loss_setting.reduction)
+
+    if getattr(loss_setting, "action_regularization", False):
+
+        def act_reg(act_params):
+            return loss_setting.action_regularization * jnp.mean(act_params**2)
+
+    else:
+
+        def act_reg(act_params):
+            return 0.0
+
+    # XXX: It's designed this way so that we don't keep track of gradient of other models.
+    def pi_loss(
+        pi_params: Union[optax.Params, Dict[str, Any]],
+        qf_params: Union[optax.Params, Dict[str, Any]],
+        temp_params: Union[optax.Params, Dict[str, Any]],
+        obss: chex.Array,
+        h_states: chex.Array,
+        keys: Sequence[jrandom.PRNGKey],
+    ) -> Tuple[chex.Array, Dict]:
+
+        acts, lprobs, _, updates = models[CONST_POLICY].act_lprob(
+            pi_params, obss, h_states, keys
+        )
+        lprobs = jnp.sum(lprobs, axis=-1, keepdims=True)
+        act_params = models[CONST_POLICY].act_params(
+            pi_params,
+            obss,
+            h_states,
+        )
+        curr_q_preds, _, _ = models[CONST_QF].q_values(
+            qf_params,
+            obss,
+            h_states,
+            acts,
+            eval=True,
+        )
+        curr_q_preds_min = jnp.min(curr_q_preds, axis=0)
+
+        temp = models[CONST_TEMPERATURE].apply(temp_params)
+
+        vals = -(curr_q_preds_min - temp * lprobs)
+        loss = reduction(vals) + act_reg(act_params)
+
+        return loss, {
+            "max_policy_log_prob": jnp.max(lprobs),
+            "min_policy_log_prob": jnp.min(lprobs),
+            "mean_policy_log_prob": jnp.mean(lprobs),
+            "max_estimated_value": jnp.max(vals),
+            "min_estimated_value": jnp.min(vals),
+            "mean_estimated_value": jnp.mean(vals),
+            CONST_UPDATES: updates,
+        }
+
+    return pi_loss

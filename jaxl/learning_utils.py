@@ -50,6 +50,10 @@ def get_learner(
         make_learner = jaxl_learners.get_icl_learner
     elif learner_config.task == CONST_SUPERVISED:
         make_learner = jaxl_learners.get_supervised_learner
+    elif learner_config.task == CONST_WSRL:
+        make_learner = jaxl_learners.get_wsrl_learner
+    elif learner_config.task == CONST_RESIDUAL:
+        make_learner = jaxl_learners.get_residual_rl_learner
     else:
         raise NotImplementedError
     return make_learner(learner_config, model_config, optimizer_config)
@@ -84,7 +88,7 @@ def train(
     logging_config = config.logging_config
     train_config = config.train_config
 
-    num_digits = int(math.log10(train_config.num_epochs))
+    num_digits = int(math.log10(train_config.num_epochs)) + 1
 
     def pad_string(s):
         s = str(s)

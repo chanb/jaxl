@@ -59,7 +59,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
         load_buffer: str = None,
     ):
         if load_buffer is not None:
-            self.load(load_buffer)
+            self.load(load_buffer, rng)
         else:
             self.rng = rng
             self._buffer_size = buffer_size
@@ -543,7 +543,9 @@ class AbstractNumPyBuffer(ReplayBuffer):
 
         return buffer_dict
 
-    def load_from_buffer_dict(self, buffer_dict: Dict[str, Any]):
+    def load_from_buffer_dict(
+        self, buffer_dict: Dict[str, Any], rng: np.random.RandomState
+    ):
         """
         Load from a buffer dictionary.
 
@@ -551,22 +553,38 @@ class AbstractNumPyBuffer(ReplayBuffer):
         :type buffer_dict: Dict[str, Any]
 
         """
-        self._buffer_size = buffer_dict[c.BUFFER_SIZE]
+        if c.BUFFER_SIZE in buffer_dict:
+            self._buffer_size = buffer_dict[c.BUFFER_SIZE]
+        else:
+            self._buffer_size = buffer_dict[c.MEMORY_SIZE]
         self.observations = buffer_dict[c.OBSERVATIONS]
         self.hidden_states = buffer_dict[c.HIDDEN_STATES]
         self.actions = buffer_dict[c.ACTIONS]
-        self.rewards = buffer_dict[c.REWARDS]
+        self.rewards = buffer_dict[c.REWARDS][..., [0]]
         self.dones = buffer_dict[c.DONES]
-        self.terminateds = buffer_dict[c.TERMINATEDS]
-        self.truncateds = buffer_dict[c.TRUNCATEDS]
+        if c.TERMINATEDS in buffer_dict and c.TRUNCATEDS in buffer_dict:
+            self.terminateds = buffer_dict[c.TERMINATEDS]
+            self.truncateds = buffer_dict[c.TRUNCATEDS]
+        else:
+            self.terminateds = buffer_dict[c.DONES]
+            self.truncateds = np.zeros_like(self.terminateds)
+
         self.infos = buffer_dict[c.INFOS]
-        self.act_dim = buffer_dict[c.ACT_DIM]
+
+        if c.ACT_DIM in buffer_dict:
+            self.act_dim = buffer_dict[c.ACT_DIM]
+        else:
+            self.act_dim = self.actions.shape[1:]
 
         self._pointer = buffer_dict[c.POINTER]
         self._count = buffer_dict[c.COUNT]
 
         self._dtype = buffer_dict[c.DTYPE]
-        self.rng = buffer_dict[c.RNG]
+
+        if c.RNG in buffer_dict:
+            self.rng = buffer_dict[c.RNG]
+        else:
+            self.rng = rng
 
         if c.BURN_IN_WINDOW in buffer_dict:
             self.burn_in_window = buffer_dict[c.BURN_IN_WINDOW][c.BURN_IN_WINDOW]
@@ -579,6 +597,8 @@ class AbstractNumPyBuffer(ReplayBuffer):
                     c.HIDDEN_STATES
                 ]
                 self.historic_dones = buffer_dict[c.BURN_IN_WINDOW][c.DONES]
+        else:
+            self.burn_in_window = 0
 
     def save(self, save_path: str, end_with_done: bool = True, **kwargs):
         """
@@ -622,7 +642,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
                 f,
             )
 
-    def load(self, load_path: str, **kwargs):
+    def load(self, load_path: str, rng: np.random.RandomState, **kwargs):
         """
         Loads a replay buffer.
 
@@ -633,7 +653,7 @@ class AbstractNumPyBuffer(ReplayBuffer):
         """
         with gzip.open(load_path, "rb") as f:
             buffer_dict = pickle.load(f)
-        self.load_from_buffer_dict(buffer_dict)
+        self.load_from_buffer_dict(buffer_dict, rng)
 
 
 class TransitionNumPyBuffer(AbstractNumPyBuffer):
@@ -911,7 +931,9 @@ class MemoryEfficientNumPyBuffer(TransitionNumPyBuffer):
         buffer_dict[c.NEXT_OBSERVATION] = self.next_observation
         return buffer_dict
 
-    def load_from_buffer_dict(self, buffer_dict: Dict[str, Any]):
+    def load_from_buffer_dict(
+        self, buffer_dict: Dict[str, Any], rng: np.random.RandomState
+    ):
         """
         Load from a buffer dictionary.
 
@@ -919,7 +941,7 @@ class MemoryEfficientNumPyBuffer(TransitionNumPyBuffer):
         :type buffer_dict: Dict[str, Any]
 
         """
-        super().load_from_buffer_dict(buffer_dict)
+        super().load_from_buffer_dict(buffer_dict, rng)
         self.next_observation = buffer_dict[c.NEXT_OBSERVATION]
         self.next_hidden_state = buffer_dict[c.NEXT_HIDDEN_STATE]
 
@@ -1108,7 +1130,9 @@ class NextStateNumPyBuffer(TransitionNumPyBuffer):
         buffer_dict[c.NEXT_HIDDEN_STATES] = self.next_hidden_states
         return buffer_dict
 
-    def load_from_buffer_dict(self, buffer_dict: Dict[str, Any]):
+    def load_from_buffer_dict(
+        self, buffer_dict: Dict[str, Any], rng: np.random.RandomState
+    ):
         """
         Load from a buffer dictionary.
 
@@ -1116,7 +1140,7 @@ class NextStateNumPyBuffer(TransitionNumPyBuffer):
         :type buffer_dict: Dict[str, Any]
 
         """
-        super().load_from_buffer_dict(buffer_dict)
+        super().load_from_buffer_dict(buffer_dict, rng)
         self.next_observations = buffer_dict[c.NEXT_OBSERVATIONS]
         self.next_hidden_states = buffer_dict[c.NEXT_HIDDEN_STATES]
 
@@ -1352,7 +1376,9 @@ class TrajectoryNumPyBuffer(AbstractNumPyBuffer):
         buffer_dict[c.CURR_EPISODE_LENGTH] = self._curr_episode_length
         return buffer_dict
 
-    def load_from_buffer_dict(self, buffer_dict: Dict[str, Any]):
+    def load_from_buffer_dict(
+        self, buffer_dict: Dict[str, Any], rng: np.random.RandomState
+    ):
         """
         Load from a buffer dictionary.
 
@@ -1360,7 +1386,7 @@ class TrajectoryNumPyBuffer(AbstractNumPyBuffer):
         :type buffer_dict: Dict[str, Any]
 
         """
-        super().load_from_buffer_dict(buffer_dict)
+        super().load_from_buffer_dict(buffer_dict, rng)
         self._curr_episode_length = buffer_dict[c.CURR_EPISODE_LENGTH]
         self._last_observations = buffer_dict[c.LAST_OBSERVATIONS]
         self._last_h_states = buffer_dict[c.LAST_HIDDEN_STATES]

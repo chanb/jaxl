@@ -18,7 +18,7 @@ from jaxl.losses.reinforcement import (
 )
 from jaxl.models import (
     get_model,
-    get_policy,
+    get_residual_policy,
     get_q_function,
     get_update_function,
     q_function_dims,
@@ -26,6 +26,7 @@ from jaxl.models import (
     get_state_action_encoding,
     Temperature,
     get_fixed_policy,
+    load_params,
 )
 from jaxl.optimizers import get_optimizer
 from jaxl.utils import l2_norm, polyak_average_generator
@@ -72,9 +73,9 @@ TEMP_LOG_KEYS = [
 ]
 
 
-class SAC(OffPolicyLearner):
+class ResidualSAC(OffPolicyLearner):
     """
-    Soft Actor Critic (SAC) algorithm. This extends `OffPolicyLearner`.
+    Residual learning with Soft Actor Critic (SAC) algorithm. This extends `OffPolicyLearner`.
     """
 
     _target_entropy: float
@@ -133,7 +134,8 @@ class SAC(OffPolicyLearner):
         :type output_dim: chex.Array
 
         """
-        act_dim = policy_output_dim(output_dim, self._config)
+        backbone_act_dim = policy_output_dim(output_dim, self._model_config.backbone)
+        residual_act_dim = policy_output_dim(output_dim, self._model_config.residual)
 
         encoding_input_dim = (1, *input_dim)
         encoding_output_dim = output_dim[:-1]
@@ -142,24 +144,29 @@ class SAC(OffPolicyLearner):
             encoding_input_dim, encoding_output_dim, self._model_config.qf_encoding
         )
 
-        self._exploration_pi = get_fixed_policy(
-            output_dim, self._config.exploration_policy
-        )
-
         # Initialize parameters for policy and critics
         self._model = {
-            CONST_POLICY: get_model(input_dim, act_dim, self._model_config.policy),
+            CONST_BACKBONE: get_model(
+                input_dim, backbone_act_dim, self._model_config.backbone
+            ),
+            CONST_RESIDUAL: get_model(
+                input_dim, residual_act_dim, self._model_config.residual
+            ),
             CONST_QF: get_model(qf_input_dim, qf_output_dim, self._model_config.qf),
             CONST_TARGET_QF: get_model(
                 qf_input_dim, qf_output_dim, self._model_config.qf
             ),
         }
 
+        backbone_params = load_params(self._model_config.backbone.pretrained_model)[
+            CONST_MODEL_DICT
+        ][CONST_MODEL][CONST_POLICY]
+
         model_keys = jrandom.split(
             jrandom.PRNGKey(self._config.seeds.model_seed), num=4
         )
         dummy_x = self._generate_dummy_x(input_dim)
-        pi_params = self._model[CONST_POLICY].init(model_keys[0], dummy_x)
+        residual_params = self._model[CONST_RESIDUAL].init(model_keys[0], dummy_x)
 
         dummy_x = self._generate_dummy_x(qf_input_dim)
         qf_params = self._model[CONST_QF].init(model_keys[1], dummy_x)
@@ -177,31 +184,40 @@ class SAC(OffPolicyLearner):
             },
         )
 
-        pi_opt, pi_opt_state = get_optimizer(
-            self._optimizer_config.policy, self._model[CONST_POLICY], pi_params
+        residual_opt, residual_opt_state = get_optimizer(
+            self._optimizer_config.residual,
+            self._model[CONST_RESIDUAL],
+            residual_params,
         )
         qf_opt, qf_opt_state = get_optimizer(
             self._optimizer_config.qf, self._model[CONST_QF], qf_params
         )
 
         self._optimizer = {
-            CONST_POLICY: pi_opt,
+            CONST_RESIDUAL: residual_opt,
             CONST_QF: qf_opt,
         }
 
         self._model_dict = {
             CONST_MODEL: {
-                CONST_POLICY: pi_params,
+                CONST_POLICY: {
+                    CONST_BACKBONE: backbone_params,
+                    CONST_RESIDUAL: residual_params,
+                },
                 CONST_QF: qf_params,
                 CONST_TARGET_QF: target_qf_params,
             },
             CONST_OPT_STATE: {
-                CONST_POLICY: pi_opt_state,
+                CONST_RESIDUAL: residual_opt_state,
                 CONST_QF: qf_opt_state,
             },
         }
 
-        self._pi = get_policy(self._model[CONST_POLICY], self._config)
+        self._pi = get_residual_policy(
+            self._model[CONST_BACKBONE],
+            self._model[CONST_RESIDUAL],
+            self._model_config,
+        )
         self._qf = get_q_function(
             self._state_action_encoding,
             enc_params,
@@ -220,6 +236,18 @@ class SAC(OffPolicyLearner):
             CONST_QF: self._qf,
             CONST_TARGET_QF: self._target_qf,
         }
+
+        if hasattr(self._config, "exploration_policy"):
+            self._exploration_pi = get_fixed_policy(
+                output_dim, self._config.exploration_policy
+            )
+        else:
+            self._exploration_pi = get_residual_policy(
+                self._model[CONST_BACKBONE],
+                self._model[CONST_RESIDUAL],
+                self._model_config,
+                use_backbone_only=True,
+            )
 
         # Temperature
         self._target_entropy = getattr(self._config, CONST_TARGET_ENTROPY, CONST_AUTO)
@@ -345,7 +373,7 @@ class SAC(OffPolicyLearner):
         Makes the training step for the actor update.
         """
 
-        pi_update = get_update_function(self._model[CONST_POLICY])
+        pi_update = get_update_function(self._model[CONST_RESIDUAL])
 
         def _pi_step(
             model_dict: Dict[str, Any],
@@ -384,14 +412,14 @@ class SAC(OffPolicyLearner):
 
             aux[CONST_AGG_LOSS] = agg_loss
             aux[CONST_GRAD_NORM] = {
-                CONST_POLICY: l2_norm(grads),
+                CONST_POLICY: l2_norm(grads[CONST_RESIDUAL]),
             }
 
             pi_params, pi_opt_state = pi_update(
-                self._optimizer[CONST_POLICY],
-                grads,
-                model_dict[CONST_OPT_STATE][CONST_POLICY],
-                model_dict[CONST_MODEL][CONST_POLICY],
+                self._optimizer[CONST_RESIDUAL],
+                grads[CONST_RESIDUAL],
+                model_dict[CONST_OPT_STATE][CONST_RESIDUAL],
+                model_dict[CONST_MODEL][CONST_POLICY][CONST_RESIDUAL],
                 aux[CONST_UPDATES],
             )
 
@@ -501,11 +529,12 @@ class SAC(OffPolicyLearner):
             tic = timeit.default_timer()
             step_count = self._buffer_warmup - self._global_step
             self._rollout.rollout(
-                None,
+                self._model_dict[CONST_MODEL][CONST_POLICY],
                 self._exploration_pi,
                 self._obs_rms,
                 self._buffer,
                 step_count,
+                random=getattr(self._config, "random_explore_action", True),
             )
             self._global_step += step_count
             total_rollout_time += timeit.default_timer() - tic
@@ -591,8 +620,10 @@ class SAC(OffPolicyLearner):
                 assert np.isfinite(
                     pi_aux[CONST_AGG_LOSS]
                 ), f"Loss became NaN\npi_aux: {pi_aux}"
-                self._model_dict[CONST_MODEL][CONST_POLICY] = pi_model_dict[CONST_MODEL]
-                self._model_dict[CONST_OPT_STATE][CONST_POLICY] = pi_model_dict[
+                self._model_dict[CONST_MODEL][CONST_POLICY][CONST_RESIDUAL] = (
+                    pi_model_dict[CONST_MODEL]
+                )
+                self._model_dict[CONST_OPT_STATE][CONST_RESIDUAL] = pi_model_dict[
                     CONST_OPT_STATE
                 ]
                 total_pi_update_time += timeit.default_timer() - tic
@@ -674,7 +705,7 @@ class SAC(OffPolicyLearner):
                 CONST_GRAD_NORM
             ][CONST_POLICY].item()
             aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_POLICY}"] = l2_norm(
-                self.model_dict[CONST_MODEL][CONST_POLICY]
+                self.model_dict[CONST_MODEL][CONST_POLICY][CONST_RESIDUAL]
             ).item()
 
             for key in PI_LOG_KEYS:
@@ -701,7 +732,7 @@ class SAC(OffPolicyLearner):
         return aux
 
 
-class CrossQSAC(OffPolicyLearner):
+class ResidualCrossQSAC(ResidualSAC):
     """
     SAC with batch normalization as suggested by Bhatt et al.
     Reference: https://arxiv.org/abs/1902.05605
@@ -745,7 +776,8 @@ class CrossQSAC(OffPolicyLearner):
         :type output_dim: chex.Array
 
         """
-        act_dim = policy_output_dim(output_dim, self._config)
+        backbone_act_dim = policy_output_dim(output_dim, self._model_config.backbone)
+        residual_act_dim = policy_output_dim(output_dim, self._model_config.residual)
 
         encoding_input_dim = (1, *input_dim)
         encoding_output_dim = output_dim[:-1]
@@ -754,21 +786,26 @@ class CrossQSAC(OffPolicyLearner):
             encoding_input_dim, encoding_output_dim, self._model_config.qf_encoding
         )
 
-        self._exploration_pi = get_fixed_policy(
-            output_dim, self._config.exploration_policy
-        )
-
         # Initialize parameters for policy and critics
         self._model = {
-            CONST_POLICY: get_model(input_dim, act_dim, self._model_config.policy),
+            CONST_BACKBONE: get_model(
+                input_dim, backbone_act_dim, self._model_config.backbone
+            ),
+            CONST_RESIDUAL: get_model(
+                input_dim, residual_act_dim, self._model_config.residual
+            ),
             CONST_QF: get_model(qf_input_dim, qf_output_dim, self._model_config.qf),
         }
+
+        backbone_params = load_params(self._model_config.backbone.pretrained_model)[
+            CONST_MODEL_DICT
+        ][CONST_MODEL][CONST_POLICY]
 
         model_keys = jrandom.split(
             jrandom.PRNGKey(self._config.seeds.model_seed), num=4
         )
         dummy_x = self._generate_dummy_x(input_dim)
-        pi_params = self._model[CONST_POLICY].init(model_keys[0], dummy_x)
+        residual_params = self._model[CONST_RESIDUAL].init(model_keys[0], dummy_x)
 
         dummy_x = self._generate_dummy_x(qf_input_dim)
         qf_params = self._model[CONST_QF].init(model_keys[1], dummy_x)
@@ -785,30 +822,39 @@ class CrossQSAC(OffPolicyLearner):
             },
         )
 
-        pi_opt, pi_opt_state = get_optimizer(
-            self._optimizer_config.policy, self._model[CONST_POLICY], pi_params
+        residual_opt, residual_opt_state = get_optimizer(
+            self._optimizer_config.residual,
+            self._model[CONST_RESIDUAL],
+            residual_params,
         )
         qf_opt, qf_opt_state = get_optimizer(
             self._optimizer_config.qf, self._model[CONST_QF], qf_params
         )
 
         self._optimizer = {
-            CONST_POLICY: pi_opt,
+            CONST_RESIDUAL: residual_opt,
             CONST_QF: qf_opt,
         }
 
         self._model_dict = {
             CONST_MODEL: {
-                CONST_POLICY: pi_params,
+                CONST_POLICY: {
+                    CONST_BACKBONE: backbone_params,
+                    CONST_RESIDUAL: residual_params,
+                },
                 CONST_QF: qf_params,
             },
             CONST_OPT_STATE: {
-                CONST_POLICY: pi_opt_state,
+                CONST_RESIDUAL: residual_opt_state,
                 CONST_QF: qf_opt_state,
             },
         }
 
-        self._pi = get_policy(self._model[CONST_POLICY], self._config)
+        self._pi = get_residual_policy(
+            self._model[CONST_BACKBONE],
+            self._model[CONST_RESIDUAL],
+            self._model_config,
+        )
         self._qf = get_q_function(
             self._state_action_encoding,
             enc_params,
@@ -820,6 +866,18 @@ class CrossQSAC(OffPolicyLearner):
             CONST_POLICY: self._pi,
             CONST_QF: self._qf,
         }
+
+        if hasattr(self._config, "exploration_policy"):
+            self._exploration_pi = get_fixed_policy(
+                output_dim, self._config.exploration_policy
+            )
+        else:
+            self._exploration_pi = get_residual_policy(
+                self._model[CONST_BACKBONE],
+                self._model[CONST_RESIDUAL],
+                self._model_config,
+                use_backbone_only=True,
+            )
 
         # Temperature
         self._target_entropy = getattr(self._config, CONST_TARGET_ENTROPY, CONST_AUTO)
@@ -838,20 +896,6 @@ class CrossQSAC(OffPolicyLearner):
 
             self._optimizer[CONST_TEMPERATURE] = temp_opt
             self._model_dict[CONST_OPT_STATE][CONST_TEMPERATURE] = temp_opt_state
-
-    @property
-    def policy(self):
-        """
-        Policy.
-        """
-        return self._pi
-
-    @property
-    def policy_params(self):
-        """
-        Policy parameters.
-        """
-        return self._model_dict[CONST_MODEL][CONST_POLICY]
 
     def make_qf_step(self):
         """
@@ -972,11 +1016,12 @@ class CrossQSAC(OffPolicyLearner):
             tic = timeit.default_timer()
             step_count = self._buffer_warmup - self._global_step
             self._rollout.rollout(
-                None,
+                self._model_dict[CONST_MODEL][CONST_POLICY],
                 self._exploration_pi,
                 self._obs_rms,
                 self._buffer,
                 step_count,
+                random=getattr(self._config, "random_explore_action", True),
             )
             self._global_step += step_count
             total_rollout_time += timeit.default_timer() - tic
@@ -1056,8 +1101,10 @@ class CrossQSAC(OffPolicyLearner):
                 assert np.isfinite(
                     pi_aux[CONST_AGG_LOSS]
                 ), f"Loss became NaN\npi_aux: {pi_aux}"
-                self._model_dict[CONST_MODEL][CONST_POLICY] = pi_model_dict[CONST_MODEL]
-                self._model_dict[CONST_OPT_STATE][CONST_POLICY] = pi_model_dict[
+                self._model_dict[CONST_MODEL][CONST_POLICY][CONST_RESIDUAL] = (
+                    pi_model_dict[CONST_MODEL]
+                )
+                self._model_dict[CONST_OPT_STATE][CONST_RESIDUAL] = pi_model_dict[
                     CONST_OPT_STATE
                 ]
                 total_pi_update_time += timeit.default_timer() - tic
@@ -1135,7 +1182,7 @@ class CrossQSAC(OffPolicyLearner):
                 CONST_GRAD_NORM
             ][CONST_POLICY].item()
             aux[CONST_LOG][f"{CONST_PARAM_NORM}/{CONST_POLICY}"] = l2_norm(
-                self.model_dict[CONST_MODEL][CONST_POLICY]
+                self.model_dict[CONST_MODEL][CONST_POLICY][CONST_RESIDUAL]
             ).item()
 
             for key in PI_LOG_KEYS:

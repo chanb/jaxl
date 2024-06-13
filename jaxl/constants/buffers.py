@@ -15,6 +15,7 @@ LAST_OBSERVATIONS = "last_observations"
 LAST_HIDDEN_STATES = "last_hidden_states"
 
 BUFFER_SIZE = "buffer_size"
+MEMORY_SIZE = "memory_size"
 POINTER = "pointer"
 COUNT = "count"
 DTYPE = "dtype"

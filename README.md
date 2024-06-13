@@ -35,6 +35,9 @@ Potential memory issue:
 export XLA_FLAGS=--xla_gpu_graph_level=0
 ```
 
+### Installing `manipulator-learning` Environments
+See [here](https://github.com/utiasSTARS/lfgp/tree/master)
+
 ### Conda on Salient
 ```
 conda create --name jaxl python=3.11
