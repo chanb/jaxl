@@ -25,67 +25,29 @@ def get_eval_datasets(
     test_data_seed: int,
     context_len: int,
 ):
-    # IWL evaluation
-    iwl_config_dict = copy.deepcopy(config_dict)
-
-    dataset_kwargs = {
-        "p_bursty": 0.0,
-        "target_allowed_in_example": False,
-    }
-
-    iwl_config_dict["learner_config"]["dataset_config"]["dataset_kwargs"].update(
-        dataset_kwargs
-    )
-    iwl_config = parse_dict(iwl_config_dict)
-
-    # IWL evaluation with empty context
-    iwl_empty_examples_config_dict = copy.deepcopy(config_dict)
-
-    dataset_kwargs = {
-        "empty_examples": True,
-    }
-
-    iwl_empty_examples_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ].update(dataset_kwargs)
-    iwl_empty_examples_config = parse_dict(iwl_empty_examples_config_dict)
-
     # ICL with novel input
     icl_novel_inputs_config_dict = copy.deepcopy(config_dict)
-
-    dataset_kwargs = {
-        "p_bursty": 1.0,
-        "bursty_len": context_len // 2,
-    }
-
-    icl_novel_inputs_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ].update(dataset_kwargs)
     icl_novel_inputs_config_dict["learner_config"]["seeds"][
         "data_seed"
     ] = test_data_seed
     icl_novel_inputs_config = parse_dict(icl_novel_inputs_config_dict)
 
-    # ICL with permuted label
-    icl_permuted_label_config_dict = copy.deepcopy(config_dict)
-
-    dataset_kwargs = {
-        "p_bursty": 1.0,
-        "bursty_len": context_len // 2,
-        "novel_abstract_class": True,
-    }
-
-    icl_permuted_label_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ].update(dataset_kwargs)
-    icl_permuted_label_config = parse_dict(icl_permuted_label_config_dict)
-
     configs = {
-        "iwl": iwl_config,
-        "iwl_empty_examples": iwl_empty_examples_config,
         "icl_novel_inputs": icl_novel_inputs_config,
-        "icl_permuted_label": icl_permuted_label_config,
     }
+
+    # Context length evaluations
+    for fixed_start_pos in range(context_len):
+        start_pos_config_dict = copy.deepcopy(config_dict)
+
+        dataset_kwargs = {"fixed_start_pos": fixed_start_pos}
+
+        start_pos_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ].update(dataset_kwargs)
+
+        start_pos_config = parse_dict(start_pos_config_dict)
+        configs["start_pos_{}".format(fixed_start_pos)] = start_pos_config
 
     return {
         eval_name: get_data_loader(config, config.learner_config.seeds.data_seed)
@@ -146,8 +108,6 @@ def main(args: SimpleNamespace):
         ):
             checkpoint_steps.append(checkpoint_step)
             for eval_name in datasets:
-                # tic = timeit.default_timer()
-                # print(curr_run_path, checkpoint_step, eval_name)
                 dataset, data_loader = datasets[eval_name]
                 acc, aux = evaluate(
                     model=model,
@@ -161,8 +121,6 @@ def main(args: SimpleNamespace):
                 )
                 accuracies[eval_name].append(acc)
                 auxes[eval_name].append(aux)
-                # toc = timeit.default_timer()
-                # print("Takes {}s".format(toc - tic))
 
         all_results[exp_name][curr_run_path] = {
             "checkpoint_steps": checkpoint_steps,

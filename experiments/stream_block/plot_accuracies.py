@@ -21,8 +21,8 @@ sns.set_palette("colorblind")
 # Using the set_size function as defined earlier
 doc_width_pt = 1000.0
 
-results_dir = "./results/enforce_both"
-ablation_name = "enforce_both"
+results_dir = "./results"
+ablation_name = ""
 variant = ""
 
 # FILTERS
