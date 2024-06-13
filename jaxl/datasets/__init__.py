@@ -242,7 +242,7 @@ def get_dataset(
             num_dims=dataset_kwargs.num_dims,
             seed=seed,
             novel_abstract_class=getattr(dataset_kwargs, "novel_abstract_class", False),
-            fixed_start_pos=getattr(dataset_kwargs, "fixed_start_pos", None),
+            fixed_start_pos=getattr(dataset_kwargs, "fixed_start_pos", -1),
         )
     else:
         raise ValueError(
