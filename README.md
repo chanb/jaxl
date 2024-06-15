@@ -1,6 +1,6 @@
 # JAXL (JAX Learning)
 ## Prerequisite:
-- Python 3.9+
+- Python 3.9+ (3.10+ with [penzai](https://github.com/google-deepmind/penzai))
 - MuJoCo (See [here](https://github.com/openai/mujoco-py#install-mujoco))
   - Remember to set `LD_LIBRARY_PATH` (e..g. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<PATH_TO_MUJOCO>/.mujoco/mujoco210/bin`)
   - For troubleshooting, see [here](https://github.com/openai/mujoco-py#ubuntu-installtion-troubleshooting)

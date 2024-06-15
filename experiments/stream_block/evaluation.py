@@ -36,6 +36,8 @@ def get_eval_datasets(
         "icl_novel_inputs": icl_novel_inputs_config,
     }
 
+    # TODO: Add evaluation where we only put 1 context example (randomly) that matches the query class, otherwise 0, or other classes
+
     # Context length evaluations
     for fixed_start_pos in range(context_len):
         start_pos_config_dict = copy.deepcopy(config_dict)

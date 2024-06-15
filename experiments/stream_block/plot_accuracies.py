@@ -1,5 +1,7 @@
 import _pickle as pickle
+import argparse
 import chex
+import json
 import math
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,9 +23,24 @@ sns.set_palette("colorblind")
 # Using the set_size function as defined earlier
 doc_width_pt = 1000.0
 
-results_dir = "./results"
-ablation_name = ""
-variant = ""
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--results_dir",
+    type=str,
+    default="./results",
+    help="The directory that stores all experiments",
+)
+parser.add_argument("--ablation_name", type=str, default="", help="Ablation name")
+parser.add_argument("--variant", type=str, default="", help="The evaluation variant")
+parser.add_argument(
+    "--logs_dir", type=str, default=None, help="The directory that logs the results"
+)
+args = parser.parse_args()
+
+results_dir = args.results_dir
+ablation_name = args.ablation_name
+variant = args.variant
+logs_dir = args.logs_dir
 
 # FILTERS
 include_prefix = None
@@ -34,7 +51,6 @@ include_evals = None
 map_eval_to_title = {}
 
 num_cols = 2
-
 interp_gap_size = 1000
 
 agg_result_path = os.path.join(
@@ -45,6 +61,13 @@ plot_path = os.path.join(results_dir, ablation_name, "plots")
 os.makedirs(plot_path, exist_ok=True)
 
 agg_result = pickle.load(open(agg_result_path, "rb"))
+
+
+def get_baseline_accuracy(zipf_exp, num_classes):
+    zipf_weights = np.array([1 / j**zipf_exp for j in range(num_classes, 0, -1)])
+    zipf_weights /= np.sum(zipf_weights)
+    return [np.sum(zipf_weights**2) * 100]
+
 
 max_num_evals = 0
 max_checkpoint_steps = 0
@@ -248,6 +271,20 @@ def plot_main_plot():
             continue
         processed_results = process_exp_runs(exp_runs, x_range)
 
+        baseline_acc = None
+        if logs_dir is not None:
+            config_path = os.path.join(
+                logs_dir, list(exp_runs.keys())[0], "config.json"
+            )
+            config_dict = json.load(open(config_path, "r"))
+            zipf_exp = config_dict["learner_config"]["dataset_config"][
+                "dataset_kwargs"
+            ]["zipf_exp"]
+            num_abstract_classes = config_dict["learner_config"]["dataset_config"][
+                "dataset_kwargs"
+            ]["num_abstract_classes"]
+            baseline_acc = get_baseline_accuracy(zipf_exp, num_abstract_classes)
+
         for eval_name, processed_result in processed_results.items():
             if include_evals and eval_name not in include_evals:
                 continue
@@ -270,10 +307,23 @@ def plot_main_plot():
             )
 
             (ax, ax_i) = map_eval_to_ax[eval_name]
-            ax.plot(x_range, y_means, label=exp_name if ax_i == 0 else "")
+
+            line = ax.plot(x_range, y_means, label=exp_name if ax_i == 0 else "")[0]
             ax.fill_between(
                 x_range, (y_means - y_stderrs), (y_means + y_stderrs), alpha=0.1
             )
+
+            if baseline_acc is not None:
+                for curr_baseline, curr_acc, ls in zip(
+                    ["$\mathbb{E}[\mathbb{I}(y = \hat{y})]$"], baseline_acc, ["-."]
+                ):
+                    ax.axhline(
+                        curr_acc,
+                        label=f"{exp_name}-{curr_baseline}" if ax_i == 0 else "",
+                        c=line.get_color(),
+                        linestyle=ls,
+                        linewidth=1,
+                    )
 
             if update_ax:
                 ax.set_title(map_eval_to_title.get(eval_name, eval_name))

@@ -87,6 +87,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 500000
+        "num_epochs": 300000
     }
 }
