@@ -34,6 +34,7 @@ class InContextSupervisedTransformer(Model):
         positional_encoding: SimpleNamespace,
         query_pred_only: bool = False,
         input_output_same_encoding: bool = True,
+        **kwargs,
     ) -> None:
         self.gpt = GPTModule(
             num_blocks=num_blocks,
@@ -712,6 +713,7 @@ class NoTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
         output_tokenizer_config: SimpleNamespace,
         query_pred_only: bool = False,
         input_output_same_encoding: bool = True,
+        single_tower: bool = False,
     ) -> None:
         self.gpt = GPTModule(
             num_blocks=num_blocks,
@@ -729,7 +731,9 @@ class NoTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
         self.apply_positional_encoding = self._make_get_positional_encoding(
             input_output_same_encoding
         )
-        self.tokenize = jax.jit(self.make_tokenize(), static_argnames=[CONST_EVAL])
+        self.tokenize = jax.jit(
+            self.make_tokenize(single_tower), static_argnames=[CONST_EVAL]
+        )
         self.get_latent = jax.jit(self.make_get_latent(), static_argnames=[CONST_EVAL])
         self.forward = jax.jit(
             self.make_forward(query_pred_only), static_argnames=[CONST_EVAL]
@@ -737,6 +741,7 @@ class NoTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
 
     def make_tokenize(
         self,
+        single_tower: bool,
     ) -> Callable[
         [
             Union[optax.Params, Dict[str, Any]],
@@ -749,6 +754,8 @@ class NoTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
         """
         Makes the tokenize call of the ICL model.
 
+        :param single_tower: whether or not to use the context
+        :type single_tower: bool
         :return: the tokenize call.
         :rtype: Callable[
             [
@@ -761,6 +768,62 @@ class NoTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
             Tuple[chex.Array, chex.Array, Any],
         ]
         """
+
+        if single_tower:
+
+            def tokenize(
+                params: Union[optax.Params, Dict[str, Any]],
+                queries: chex.Array,
+                contexts: Dict[str, chex.Array],
+                eval: bool = False,
+                **kwargs,
+            ) -> Tuple[chex.Array, chex.Array, Any]:
+                """
+                Get latent call of the GPT.
+
+                :param params: the model parameters
+                :param queries: the queries
+                :param contexts: the context with keys `context_input` and `context_output`
+                :type params: Union[optax.Params, Dict[str, Any]]
+                :type queries: chex.Array
+                :type contexts: Dict[str, chex.Array]
+                :return: the output and a pass-through carry
+                :rtype: Tuple[chex.Array, chex.Array, Any]
+
+                """
+                input_embedding = jnp.concatenate(
+                    (
+                        contexts[CONST_CONTEXT_INPUT],
+                        queries,
+                    ),
+                    axis=1,
+                )
+                context_output_embedding = contexts[CONST_CONTEXT_OUTPUT]
+
+                context_output_embedding, _, output_updates = (
+                    self.output_tokenizer.forward(
+                        params[CONST_OUTPUT_TOKENIZER],
+                        contexts[CONST_CONTEXT_OUTPUT],
+                        None,
+                        eval,
+                        **kwargs,
+                    )
+                )
+
+                stacked_inputs = self.apply_positional_encoding(
+                    params, queries, input_embedding, context_output_embedding, **kwargs
+                )
+
+                return (
+                    stacked_inputs[:, [-1]],
+                    None,
+                    {
+                        CONST_INPUT_TOKENIZER: None,
+                        CONST_OUTPUT_TOKENIZER: output_updates,
+                    },
+                )
+
+            return tokenize
 
         def tokenize(
             params: Union[optax.Params, Dict[str, Any]],

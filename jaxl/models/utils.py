@@ -119,6 +119,7 @@ def get_model(
                 model_config.output_tokenizer,
                 getattr(model_config, "query_pred_only", False),
                 getattr(model_config, "input_output_same_encoding", True),
+                single_tower=getattr(model_config, "single_tower", False),
             )
         return InContextSupervisedTransformer(
             output_dim,
