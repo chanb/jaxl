@@ -30,6 +30,8 @@ class StreamBlockBiUniform:
         num_examples: int,
         input_noise_std: float,
         fixed_start_pos: int = -1,
+        abstract_class: int = 0,
+        iid_context: int = 0,
     ):
 
         # NOTE: The zipfian distribution skews towards smaller class labels.
@@ -38,6 +40,24 @@ class StreamBlockBiUniform:
         ] * self.num_high_prob_classes + [
             self.low_prob / self.num_low_prob_classes
         ] * self.num_low_prob_classes
+
+        if iid_context:
+            while True:
+                labels = self.rng.choice(
+                    self.num_classes,
+                    size=(num_examples,),
+                    p=weights,
+                )
+
+                inputs = self.centers[labels]
+                inputs += input_noise_std * self.rng.randn(*inputs.shape)
+                labels = np.eye(self.num_classes)[labels]
+
+                yield {
+                    "example": inputs,
+                    "label": labels,
+                }
+
 
         start_pos = fixed_start_pos
         while True:
@@ -56,7 +76,13 @@ class StreamBlockBiUniform:
 
             inputs = self.centers[labels]
             inputs += input_noise_std * self.rng.randn(*inputs.shape)
-            labels = np.eye(self.num_abstract_classes)[labels]
+
+            if abstract_class:
+                # Class 0 if high-prob lusters, class 1 otherwise
+                labels = labels < self.num_high_prob_classes
+                labels = np.eye(2)[labels]
+            else:
+                labels = np.eye(self.num_classes)[labels]
 
             yield {
                 "example": inputs,

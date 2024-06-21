@@ -313,7 +313,7 @@ def plot_main_plot():
                 x_range, (y_means - y_stderrs), (y_means + y_stderrs), alpha=0.1
             )
 
-            if baseline_acc is not None:
+            if eval_name == "start_pos_0" and baseline_acc is not None:
                 for curr_baseline, curr_acc, ls in zip(
                     ["$\mathbb{E}[\mathbb{I}(y = \hat{y})]$"], baseline_acc, ["-."]
                 ):
