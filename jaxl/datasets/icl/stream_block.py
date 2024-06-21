@@ -14,13 +14,6 @@ class StreamBlock:
         seed: int,
         novel_abstract_class: bool = False,
     ):
-        """
-        NOTE: For experiments:
-        - IWL eval: set p_bursty=0.0
-        - IWL eval with no context: set empty_examples = True in get_sequences method
-        - ICL eval with novel input: use new seed with p_bursty=1 and bursty_len=4
-        - ICL eval with permuted label: set novel_abstract_class = True with p_bursty=1 and bursty_len=4
-        """
         assert num_clusters <= num_base_classes
         self.num_base_classes = num_base_classes
         self.num_clusters = num_clusters
@@ -52,13 +45,35 @@ class StreamBlock:
                 base_to_cluster == cluster_class
             )[0]
 
+    def get_random_contexts(self, num_examples: int):
+        while True:
+            inputs = self.rng.standard_normal(size=(num_examples + 1, self.num_dims))
+            inputs /= np.linalg.norm(inputs, axis=-1, keepdims=True)
+            labels = self.rng.randint(
+                self.num_abstract_classes, size=(num_examples + 1,)
+            )
+            labels[-1] = labels[-2]
+            labels = np.eye(self.num_abstract_classes)[labels]
+
+            yield {
+                "example": inputs,
+                "label": labels,
+            }
+
     def get_sequences(
         self,
         num_examples: int,
         zipf_exp: float,
         input_noise_std: float,
         fixed_start_pos: int = -1,
+        prefix_first_clusters: int = 0,
+        # The next two evals whether or not the last label impacts model prediction
+        eval_perturb_last_label: int = 0,
+        eval_random_context: int = 0,  # Overwrites the original iterator
     ):
+        if eval_random_context:
+            self.get_random_contexts(num_examples)
+
         # NOTE: The zipfian distribution skews towards smaller class labels.
         zipf_weights = np.array(
             [1 / j**zipf_exp for j in range(self.num_abstract_classes, 0, -1)]
@@ -85,12 +100,25 @@ class StreamBlock:
                 p=zipf_weights,
             )
 
+            # NOTE: This is to have deterministic labels for specific clusters
+            if clusters[0] < prefix_first_clusters:
+                abstract_classes[0] = clusters[0] % self.num_abstract_classes
+            if clusters[1] < prefix_first_clusters:
+                abstract_classes[1] = clusters[1] % self.num_abstract_classes
+
             cluster_labels = [clusters[0]] * (num_examples - start_pos) + [
                 clusters[1]
             ] * (start_pos + 1)
             labels = [abstract_classes[0]] * (num_examples - start_pos) + [
                 abstract_classes[1]
             ] * (start_pos + 1)
+
+            if eval_perturb_last_label:
+                new_label = 0
+                while new_label in abstract_classes:
+                    new_label = self.rng.randint(self.num_abstract_classes)
+                labels[-2:] = new_label
+
             labels = np.eye(self.num_abstract_classes)[labels]
             inputs = np.array(list(map(get_input, cluster_labels)))
 
@@ -101,10 +129,14 @@ class StreamBlock:
 
 
 def get_dataset(
+    # For get_sequences
     num_examples: int,
     zipf_exp: float,
     input_noise_std: float,
     fixed_start_pos: int = -1,
+    eval_perturb_last_label: bool = False,
+    eval_random_context: bool = False,
+    # For constructor
     num_base_classes: int = 10,
     num_clusters: int = 10,
     num_abstract_classes: int = 2,
@@ -127,6 +159,8 @@ def get_dataset(
             zipf_exp,
             input_noise_std,
             fixed_start_pos,
+            eval_perturb_last_label,
+            eval_random_context,
         ),
         output_signature={
             "example": tf.TensorSpec(

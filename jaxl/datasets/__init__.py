@@ -243,6 +243,23 @@ def get_dataset(
             seed=seed,
             novel_abstract_class=getattr(dataset_kwargs, "novel_abstract_class", False),
             fixed_start_pos=getattr(dataset_kwargs, "fixed_start_pos", -1),
+            eval_perturb_last_label=getattr(
+                dataset_kwargs, "eval_perturb_last_label", False
+            ),
+            eval_random_context=getattr(dataset_kwargs, "eval_random_context", False),
+        )
+    elif dataset_config.dataset_name == CONST_STREAM_BLOCK_BIUNIFORM:
+        import jaxl.datasets.icl.stream_block_biuniform as data
+
+        dataset = data.get_dataset(
+            num_examples=dataset_kwargs.num_examples,
+            input_noise_std=dataset_kwargs.input_noise_std,
+            num_high_prob_classes=dataset_kwargs.num_high_prob_classes,
+            num_low_prob_classes=dataset_kwargs.num_low_prob_classes,
+            high_prob=dataset_kwargs.high_prob,
+            num_dims=dataset_kwargs.num_dims,
+            seed=seed,
+            fixed_start_pos=getattr(dataset_kwargs, "fixed_start_pos", -1),
         )
     else:
         raise ValueError(
