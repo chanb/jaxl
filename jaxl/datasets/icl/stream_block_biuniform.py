@@ -79,6 +79,7 @@ class StreamBlockBiUniform:
 
             if abstract_class:
                 # Class 0 if high-prob lusters, class 1 otherwise
+                # TODO: Maybe there can be an ablation on varying number of classes?
                 labels = labels < self.num_high_prob_classes
                 labels = np.eye(2)[labels]
             else:
@@ -95,6 +96,8 @@ def get_dataset(
     num_examples: int,
     input_noise_std: float,
     fixed_start_pos: int = -1,
+    abstract_class: int = 0,
+    iid_context: int = 0,
     # For constructor
     num_high_prob_classes: int = 16,
     num_low_prob_classes: int = 256,
@@ -116,6 +119,8 @@ def get_dataset(
             num_examples,
             input_noise_std,
             fixed_start_pos,
+            abstract_class,
+            iid_context,
         ),
         output_signature={
             "example": tf.TensorSpec(
