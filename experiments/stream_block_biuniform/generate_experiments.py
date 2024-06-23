@@ -12,7 +12,7 @@ ablations = {
     "num_high_prob_classes": [2, 16, 64],
     "num_low_prob_classes": [16, 64, 128, 512],
     "abstraxt_class": [0, 1],
-    "iid_context": [0, 1],
+    "iid_context": [0, 1, "single_tower"],
 }
 
 script_paths = []
@@ -29,9 +29,13 @@ for ablation_name, values in ablations.items():
 
         # Write experiment
         config_dict = json.load(open(template_path, "r"))
-        config_dict["learner_config"]["dataset_config"]["dataset_kwargs"][
-            ablation_name
-        ] = value
+
+        if ablation_name == "iid_context" and value == "single_tower":
+            config_dict["model_config"]["single_tower"] = True
+        else:
+            config_dict["learner_config"]["dataset_config"]["dataset_kwargs"][
+                ablation_name
+            ] = value
         config_dict["logging_config"]["save_path"] = os.path.join(
             log_dir, ablation_name
         )
