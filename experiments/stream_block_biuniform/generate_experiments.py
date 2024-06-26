@@ -11,7 +11,7 @@ ablations = {
     "high_prob": [0.6, 0.75, 0.8, 0.9],
     "num_high_prob_classes": [2, 16, 64],
     "num_low_prob_classes": [16, 64, 128, 512],
-    "abstraxt_class": [0, 1],
+    "abstract_class": [0, 1],
     "iid_context": [0, 1, "single_tower"],
 }
 

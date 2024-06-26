@@ -262,6 +262,7 @@ def get_dataset(
             fixed_start_pos=getattr(dataset_kwargs, "fixed_start_pos", -1),
             abstract_class=getattr(dataset_kwargs, "abstract_class", 0),
             iid_context=getattr(dataset_kwargs, "iid_context", 0),
+            sample_low_prob_class_only=getattr(dataset_kwargs, "sample_low_prob_class_only", 0),
         )
     else:
         raise ValueError(

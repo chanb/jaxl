@@ -32,6 +32,7 @@ class StreamBlockBiUniform:
         fixed_start_pos: int = -1,
         abstract_class: int = 0,
         iid_context: int = 0,
+        sample_low_prob_class_only: int = 0,
     ):
 
         # NOTE: The zipfian distribution skews towards smaller class labels.
@@ -45,9 +46,15 @@ class StreamBlockBiUniform:
             while True:
                 labels = self.rng.choice(
                     self.num_classes,
-                    size=(num_examples,),
+                    size=(num_examples + 1,),
                     p=weights,
                 )
+
+                if sample_low_prob_class_only:
+                    labels[-1] = self.rng.choice(
+                        self.num_low_prob_classes,
+                        size=(1,),
+                    ) + self.num_high_prob_classes
 
                 inputs = self.centers[labels]
                 inputs += input_noise_std * self.rng.randn(*inputs.shape)
@@ -70,6 +77,12 @@ class StreamBlockBiUniform:
                 p=weights,
             )
 
+            if sample_low_prob_class_only:
+                block_labels[-1] = self.rng.choice(
+                    self.num_low_prob_classes,
+                    size=(1,),
+                ) + self.num_high_prob_classes
+
             labels = [block_labels[0]] * (num_examples - start_pos) + [
                 block_labels[1]
             ] * (start_pos + 1)
@@ -80,7 +93,7 @@ class StreamBlockBiUniform:
             if abstract_class:
                 # Class 0 if high-prob lusters, class 1 otherwise
                 # TODO: Maybe there can be an ablation on varying number of classes?
-                labels = labels < self.num_high_prob_classes
+                labels = [int(label < self.num_high_prob_classes) for label in labels]
                 labels = np.eye(2)[labels]
             else:
                 labels = np.eye(self.num_classes)[labels]
@@ -98,6 +111,7 @@ def get_dataset(
     fixed_start_pos: int = -1,
     abstract_class: int = 0,
     iid_context: int = 0,
+    sample_low_prob_class_only: int = 0,
     # For constructor
     num_high_prob_classes: int = 16,
     num_low_prob_classes: int = 256,
@@ -105,7 +119,10 @@ def get_dataset(
     num_dims: int = 64,
     seed: int = 42,
 ):
-    num_classes = num_low_prob_classes + num_high_prob_classes
+    if abstract_class:
+        num_classes = 2
+    else:
+        num_classes = num_low_prob_classes + num_high_prob_classes
     task = StreamBlockBiUniform(
         num_high_prob_classes,
         num_low_prob_classes,
@@ -121,6 +138,7 @@ def get_dataset(
             fixed_start_pos,
             abstract_class,
             iid_context,
+            sample_low_prob_class_only,
         ),
         output_signature={
             "example": tf.TensorSpec(
