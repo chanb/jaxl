@@ -101,7 +101,7 @@ class StreamBlockBiUniform:
                 p=weights,
             )
 
-            if stratified:
+            if stratified > 0:
                 # Stratified sampling
                 # Choose low prob. class as query and removes it from being sampled onwards
                 if (
