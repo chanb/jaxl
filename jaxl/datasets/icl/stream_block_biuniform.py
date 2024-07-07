@@ -110,7 +110,7 @@ class StreamBlockBiUniform:
                 ):
                     available_low_prob_idx = self.rng.randint(
                         len(available_low_prob_classes), size=(1,)
-                    )
+                    ).item()
                     query_label = available_low_prob_classes[available_low_prob_idx]
                     available_low_prob_classes.pop(available_low_prob_idx)
                 else:

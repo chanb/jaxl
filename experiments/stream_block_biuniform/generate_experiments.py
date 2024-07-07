@@ -12,6 +12,7 @@ ablations = {
     "num_high_prob_classes": [1000, 2500, 5000],
     "num_low_prob_classes": [10000, 25000, 50000],
     "iid_context": [0, 1, "single_tower"],
+    "stratified": [1],
 }
 
 script_paths = []
