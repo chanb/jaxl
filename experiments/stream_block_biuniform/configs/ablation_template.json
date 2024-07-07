@@ -56,9 +56,10 @@
             "dataset_kwargs": {
                 "num_examples": 8,
                 "input_noise_std": 0.1,
-                "num_high_prob_classes": 16,
-                "num_low_prob_classes": 256,
-                "high_prob": 0.8,
+                "num_high_prob_classes": 2500,
+                "num_low_prob_classes": 25000,
+                "abstract_class": 1,
+                "high_prob": 0.5,
                 "num_dims": 64,
                 "tf_type": "prepare_seqs_for_transformer",
                 "num_workers": -1

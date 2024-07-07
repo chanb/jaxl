@@ -8,10 +8,9 @@ script_dir = "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuni
 log_dir = "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuniform/logs"
 
 ablations = {
-    "high_prob": [0.6, 0.75, 0.8, 0.9],
-    "num_high_prob_classes": [2, 16, 64],
-    "num_low_prob_classes": [16, 64, 128, 512],
-    "abstract_class": [0, 1],
+    "high_prob": [0.2, 0.4, 0.6, 0.8],
+    "num_high_prob_classes": [1000, 2500, 5000],
+    "num_low_prob_classes": [10000, 25000, 50000],
     "iid_context": [0, 1, "single_tower"],
 }
 
