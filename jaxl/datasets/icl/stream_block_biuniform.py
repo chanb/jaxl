@@ -28,19 +28,12 @@ class StreamBlockBiUniform:
         self.centers = self.rng.standard_normal(size=(self.num_classes, self.num_dims))
         self.centers /= np.linalg.norm(self.centers, axis=-1, keepdims=True)
 
-    def get_sequences(
+    def get_iid_context_sequences(
         self,
         num_examples: int,
         input_noise_std: float,
-        fixed_start_pos: int = -1,
         abstract_class: int = 0,
-        iid_context: int = 0,
-        sample_low_prob_class_only: int = 0,
-        sample_high_prob_class_only: int = 0,
-        stratified: int = 0,
     ):
-        assert sample_low_prob_class_only + sample_high_prob_class_only <= 1
-
         # NOTE: The zipfian distribution skews towards smaller class labels.
         weights = [
             self.high_prob / self.num_high_prob_classes
@@ -48,49 +41,49 @@ class StreamBlockBiUniform:
             self.low_prob / self.num_low_prob_classes
         ] * self.num_low_prob_classes
 
-        if iid_context:
-            # Only do IID context
-            while True:
-                labels = self.rng.choice(
-                    self.num_classes,
-                    size=(num_examples + 1,),
-                    p=weights,
-                )
+        # Only do IID context
+        while True:
+            labels = self.rng.choice(
+                self.num_classes,
+                size=(num_examples + 1,),
+                p=weights,
+            )
 
-                if sample_low_prob_class_only:
-                    labels[-1] = (
-                        self.rng.choice(
-                            self.num_low_prob_classes,
-                            size=(1,),
-                        )
-                        + self.num_high_prob_classes
-                    )
+            inputs = self.centers[labels]
+            inputs += input_noise_std * self.rng.randn(*inputs.shape)
 
-                inputs = self.centers[labels]
-                inputs += input_noise_std * self.rng.randn(*inputs.shape)
+            if abstract_class:
+                # Class 0 if high-prob lusters, class 1 otherwise
+                # TODO: Maybe there can be an ablation on varying number of classes?
+                labels = [
+                    int(label < self.num_high_prob_classes) for label in labels
+                ]
+                labels = np.eye(2)[labels]
+            else:
+                labels = np.eye(self.num_classes)[labels]
 
-                if abstract_class:
-                    # Class 0 if high-prob lusters, class 1 otherwise
-                    # TODO: Maybe there can be an ablation on varying number of classes?
-                    labels = [
-                        int(label < self.num_high_prob_classes) for label in labels
-                    ]
-                    labels = np.eye(2)[labels]
-                else:
-                    labels = np.eye(self.num_classes)[labels]
+            yield {
+                "example": inputs,
+                "label": labels,
+            }
 
-                yield {
-                    "example": inputs,
-                    "label": labels,
-                }
+    def get_non_iid_stratified_sequences(
+        self,
+        num_examples: int,
+        input_noise_std: float,
+        fixed_start_pos: int = -1,
+        abstract_class: int = 0,
+        stratified: int = 0,
+    ):
+        # NOTE: The zipfian distribution skews towards smaller class labels.
+        weights = [
+            self.high_prob / self.num_high_prob_classes
+        ] * self.num_high_prob_classes + [
+            self.low_prob / self.num_low_prob_classes
+        ] * self.num_low_prob_classes
 
         start_pos = fixed_start_pos
-        available_low_prob_classes = list(
-            range(
-                self.num_high_prob_classes,
-                self.num_classes,
-            )
-        )
+        low_prob_classes_sample_counts = np.zeros(self.num_low_prob_classes)
         while True:
             if fixed_start_pos == -1:
                 start_pos = self.rng.choice(num_examples)
@@ -101,25 +94,73 @@ class StreamBlockBiUniform:
                 p=weights,
             )
 
-            if stratified > 0:
-                # Stratified sampling
-                # Choose low prob. class as query and removes it from being sampled onwards
-                if (
-                    len(available_low_prob_classes)
-                    and self.rng.rand() >= self.high_prob
-                ):
-                    available_low_prob_idx = self.rng.randint(
-                        len(available_low_prob_classes), size=(1,)
-                    ).item()
-                    query_label = available_low_prob_classes[available_low_prob_idx]
-                    available_low_prob_classes.pop(available_low_prob_idx)
-                else:
-                    query_label = self.rng.choice(
-                        self.num_high_prob_classes,
-                        size=(1,),
-                    )
-                block_labels[-1] = query_label
-            elif sample_low_prob_class_only:
+            # Stratified sampling
+            # Choose low prob. class as query and removes it from being sampled onwards
+            available_low_prob_classes = np.where(low_prob_classes_sample_counts < stratified)[0]
+            if (
+                len(available_low_prob_classes)
+                and self.rng.rand() >= self.high_prob
+            ):
+                query_label = self.rng.choice(available_low_prob_classes)
+                low_prob_classes_sample_counts[query_label] += 1
+                query_label += self.num_high_prob_classes
+            else:
+                query_label = self.rng.choice(
+                    self.num_high_prob_classes,
+                    size=(1,),
+                )
+            block_labels[-1] = query_label
+
+            labels = [block_labels[0]] * (num_examples - start_pos) + [
+                block_labels[1]
+            ] * (start_pos + 1)
+
+            inputs = self.centers[labels]
+            inputs += input_noise_std * self.rng.randn(*inputs.shape)
+
+            if abstract_class:
+                # Class 0 if high-prob lusters, class 1 otherwise
+                # TODO: Maybe there can be an ablation on varying number of classes?
+                labels = [int(label < self.num_high_prob_classes) for label in labels]
+                labels = np.eye(2)[labels]
+            else:
+                labels = np.eye(self.num_classes)[labels]
+
+            yield {
+                "example": inputs,
+                "label": labels,
+            }
+
+    def get_sequences(
+        self,
+        num_examples: int,
+        input_noise_std: float,
+        fixed_start_pos: int = -1,
+        abstract_class: int = 0,
+        sample_low_prob_class_only: int = 0,
+        sample_high_prob_class_only: int = 0,
+    ):
+        assert sample_low_prob_class_only + sample_high_prob_class_only <= 1
+
+        # NOTE: The zipfian distribution skews towards smaller class labels.
+        weights = [
+            self.high_prob / self.num_high_prob_classes
+        ] * self.num_high_prob_classes + [
+            self.low_prob / self.num_low_prob_classes
+        ] * self.num_low_prob_classes
+
+        start_pos = fixed_start_pos
+        while True:
+            if fixed_start_pos == -1:
+                start_pos = self.rng.choice(num_examples)
+
+            block_labels = self.rng.choice(
+                self.num_classes,
+                size=(2,),
+                p=weights,
+            )
+
+            if sample_low_prob_class_only:
                 # Sample low prob. class as query only
                 block_labels[-1] = (
                     self.rng.choice(
@@ -164,7 +205,6 @@ def get_dataset(
     input_noise_std: float,
     fixed_start_pos: int = -1,
     abstract_class: int = 0,
-    iid_context: int = 0,
     sample_low_prob_class_only: int = 0,
     sample_high_prob_class_only: int = 0,
     stratified: int = 0,
@@ -173,6 +213,7 @@ def get_dataset(
     num_low_prob_classes: int = 256,
     high_prob: float = 0.8,
     num_dims: int = 64,
+    mode: str = "default",
     seed: int = 42,
 ):
     if abstract_class:
@@ -186,18 +227,39 @@ def get_dataset(
         num_dims,
         seed,
     )
-    dataset = tf.data.Dataset.from_generator(
-        task.get_sequences,
-        args=(
+
+    if mode == "iid_context":
+        seq_generator = task.get_iid_context_sequences
+        args = (
+            num_examples,
+            input_noise_std,
+            abstract_class,
+        )
+    elif mode == "non_iid_stratified":
+        seq_generator = task.get_non_iid_stratified_sequences
+        args = (
             num_examples,
             input_noise_std,
             fixed_start_pos,
             abstract_class,
-            iid_context,
+            stratified,
+        )
+    elif mode == "default":
+        seq_generator = task.get_sequences
+        args = (
+            num_examples,
+            input_noise_std,
+            fixed_start_pos,
+            abstract_class,
             sample_low_prob_class_only,
             sample_high_prob_class_only,
-            stratified,
-        ),
+        )
+    else:
+        raise NotImplementedError
+
+    dataset = tf.data.Dataset.from_generator(
+        seq_generator,
+        args=args,
         output_signature={
             "example": tf.TensorSpec(
                 shape=(num_examples + 1, num_dims), dtype=tf.dtypes.float32

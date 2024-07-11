@@ -4,15 +4,13 @@ import json
 import os
 
 template_path = "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuniform/configs/ablation_template.json"
-script_dir = "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuniform/ablation/"
+script_dir = (
+    "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuniform/ablation/"
+)
 log_dir = "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuniform/logs"
 
 ablations = {
-    "high_prob": [0.2, 0.4, 0.6, 0.8],
-    "num_high_prob_classes": [1000, 2500, 5000],
-    "num_low_prob_classes": [10000, 25000, 50000],
-    "iid_context": [0, 1, "single_tower"],
-    "stratified": [1],
+    "high_prob": [0.5, 0.75, 0.99],
 }
 
 script_paths = []

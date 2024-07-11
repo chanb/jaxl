@@ -32,73 +32,38 @@ def get_eval_datasets(
     ] = test_data_seed
     icl_novel_inputs_config = parse_dict(icl_novel_inputs_config_dict)
 
-    icl_block_context_config_dict = copy.deepcopy(config_dict)
-    dataset_kwargs = {
-        "iid_context": 0
-    }
-
-    icl_block_context_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ].update(dataset_kwargs)
-    icl_block_context = parse_dict(icl_block_context_config_dict)
-
     icl_iid_context_config_dict = copy.deepcopy(config_dict)
-    dataset_kwargs = {
-        "iid_context": 1
-    }
+    dataset_kwargs = {"mode": "iid_context"}
 
     icl_iid_context_config_dict["learner_config"]["dataset_config"][
         "dataset_kwargs"
     ].update(dataset_kwargs)
     icl_iid_context = parse_dict(icl_iid_context_config_dict)
 
-    icl_low_prob_only_config_dict = copy.deepcopy(config_dict)
-    dataset_kwargs = {
-        "sample_low_prob_class_only": 1,
-        "stratified": 0,
-    }
-
-    icl_low_prob_only_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ].update(dataset_kwargs)
-    icl_low_prob_only = parse_dict(icl_low_prob_only_config_dict)
-
-    icl_high_prob_only_config_dict = copy.deepcopy(config_dict)
-    dataset_kwargs = {
-        "sample_high_prob_class_only": 1,
-        "stratified": 0,
-    }
-
-    icl_high_prob_only_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ].update(dataset_kwargs)
-    icl_high_prob_only = parse_dict(icl_high_prob_only_config_dict)
-    
-
     configs = {
         "icl_novel_inputs": icl_novel_inputs_config,
-        "icl_block_context": icl_block_context,
         "icl_iid_context": icl_iid_context,
-        "icl_low_prob_only": icl_low_prob_only,
-        "icl_high_prob_only": icl_high_prob_only,
     }
 
     # Context length evaluations
-    for fixed_start_pos in range(context_len):
-        start_pos_config_dict = copy.deepcopy(config_dict)
+    for prob_key in ["sample_high_prob_class_only", "sample_low_prob_class_only"]:
+        for fixed_start_pos in range(context_len):
+            start_pos_config_dict = copy.deepcopy(config_dict)
 
-        dataset_kwargs = {
-            "fixed_start_pos": fixed_start_pos,
-            "iid_context": 0,
-            "stratified": 0,
-        }
+            dataset_kwargs = {
+                prob_key: 1,
+                "fixed_start_pos": fixed_start_pos,
+                "mode": "default",
+            }
 
-        start_pos_config_dict["learner_config"]["dataset_config"][
-            "dataset_kwargs"
-        ].update(dataset_kwargs)
+            start_pos_config_dict["learner_config"]["dataset_config"][
+                "dataset_kwargs"
+            ].update(dataset_kwargs)
 
-        start_pos_config = parse_dict(start_pos_config_dict)
-        configs["start_pos_{}".format(fixed_start_pos)] = start_pos_config
+            start_pos_config = parse_dict(start_pos_config_dict)
+            configs["{}-start_pos_{}".format(prob_key, fixed_start_pos)] = (
+                start_pos_config
+            )
 
     return {
         eval_name: get_data_loader(config, config.learner_config.seeds.data_seed)

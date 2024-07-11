@@ -3,7 +3,7 @@
         "save_path": "<TO_FILL>",
         "experiment_name": "<TO_FILL>",
         "log_interval": 50,
-        "checkpoint_interval": 5000
+        "checkpoint_interval": 500
     },
     "model_config": {
         "architecture": "icl_gpt",
@@ -54,13 +54,14 @@
         "dataset_config": {
             "dataset_name": "stream_block_biuniform",
             "dataset_kwargs": {
-                "num_examples": 8,
-                "input_noise_std": 0.1,
-                "num_high_prob_classes": 2500,
-                "num_low_prob_classes": 25000,
-                "abstract_class": 1,
-                "high_prob": 0.5,
+                "num_high_prob_classes": 100,
+                "num_low_prob_classes": 1000,
+                "high_prob": 0.99,
                 "num_dims": 64,
+                "mode": "default",
+                "num_examples": 8,
+                "input_noise_std": 1.0,
+                "abstract_class": 1,
                 "tf_type": "prepare_seqs_for_transformer",
                 "num_workers": -1
             }
@@ -86,6 +87,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 300000
+        "num_epochs": 50000
     }
 }
