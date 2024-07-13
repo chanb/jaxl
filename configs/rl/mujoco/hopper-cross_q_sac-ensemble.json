@@ -73,10 +73,10 @@
             "env_kwargs": {}
         },
         "seeds": {
-            "model_seed": 42,
-            "buffer_seed": 42,
-            "env_seed": 42,
-            "learner_seed": 42
+            "model_seed": 43,
+            "buffer_seed": 43,
+            "env_seed": 43,
+            "learner_seed": 43
         },
         "buffer_config": {
             "buffer_type": "default",

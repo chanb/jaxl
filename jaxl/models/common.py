@@ -12,7 +12,7 @@ import numpy as np
 import optax
 
 from jaxl.constants import *
-from jaxl.models.modules import MLPModule, CNNModule, ResNetV1Module
+from jaxl.models.modules import MLPModule, MLPLayerNormModule, CNNModule, ResNetV1Module
 
 
 def get_activation(activation: str) -> Callable:
@@ -423,16 +423,27 @@ class MLP(Model):
         use_batch_norm: bool = False,
         use_bias: bool = True,
         flatten: bool = False,
+        use_layernorm: bool = False,
     ) -> None:
         self.use_batch_norm = use_batch_norm
-        self.model = MLPModule(
-            layers,
-            get_activation(activation),
-            get_activation(output_activation),
-            use_batch_norm,
-            use_bias,
-            flatten,
-        )
+        if use_layernorm:
+            self.model = MLPLayerNormModule(
+                layers,
+                get_activation(activation),
+                get_activation(output_activation),
+                use_batch_norm,
+                use_bias,
+                flatten,
+            )
+        else:
+            self.model = MLPModule(
+                layers,
+                get_activation(activation),
+                get_activation(output_activation),
+                use_batch_norm,
+                use_bias,
+                flatten,
+            )
         self.forward = jax.jit(self.make_forward(), static_argnames=[CONST_EVAL])
 
     def init(

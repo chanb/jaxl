@@ -62,6 +62,7 @@ def get_model(
             getattr(model_config, "use_batch_norm", False),
             getattr(model_config, "use_bias", True),
             getattr(model_config, "flatten", False),
+            getattr(model_config, "use_layernorm", False),
         )
     elif model_config.architecture == CONST_CNN:
         return CNN(

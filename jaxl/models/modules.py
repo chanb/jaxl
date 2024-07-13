@@ -42,6 +42,46 @@ class MLPModule(nn.Module):
         return x
 
 
+class MLPLayerNormModule(nn.Module):
+    """Multilayer Perceptron with LayerNorm."""
+
+    # The number of hidden units in each hidden layer.
+    layers: Sequence[int]
+    activation: Callable
+    output_activation: Callable
+    use_batch_norm: bool
+    use_bias: bool
+    flatten: bool = False
+
+    @nn.compact
+    def __call__(self, x: chex.Array, eval: bool, **kwargs) -> chex.Array:
+        idx = -1
+        if self.flatten:
+            x = x.reshape((len(x), -1))
+        if self.use_batch_norm:
+            x = nn.BatchNorm(
+                momentum=0.9,
+                epsilon=1e-5,
+                use_bias=self.use_bias,
+                use_scale=True,
+                use_fast_variance=False,
+            )(x, eval)
+
+        # TODO: Experiment on only layernorm at the end
+        for idx, layer in enumerate(self.layers[:-1]):
+            x = self.activation(
+                nn.Dense(layer)(nn.LayerNorm(epsilon=1e-5, use_fast_variance=False)(x))
+            )
+            # self.sow("mlp_latents", "mlp_{}".format(idx), x)
+        x = self.output_activation(
+            nn.Dense(self.layers[-1], use_bias=self.use_bias)(
+                nn.LayerNorm(epsilon=1e-5, use_fast_variance=False)(x)
+            )
+        )
+        # self.sow("mlp_latents", "mlp_{}".format(idx + 1), x)
+        return x
+
+
 class CNNModule(nn.Module):
     """Convolutional layer."""
 
