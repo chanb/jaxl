@@ -634,6 +634,17 @@ def make_cross_q_sac_qf_loss(
 
         def cal_q(curr_q_preds):
             return 0.0
+        
+    if getattr(loss_setting, "double_clipped", True):
+        def compute_bootstrap(all_q_preds):
+            all_q_preds_min = jax.lax.stop_gradient(jnp.min(all_q_preds, axis=0))
+            _, next_q_preds_min = jnp.split(all_q_preds_min, 2)
+            return next_q_preds_min
+    else:
+        def compute_bootstrap(all_q_preds):
+            q_preds_avg = jax.lax.stop_gradient(jnp.mean(all_q_preds, axis=0))
+            _, next_q_preds_avg = jnp.split(q_preds_avg, 2)
+            return next_q_preds_avg
 
     # XXX: It's designed this way so that we don't keep track of gradient of other models.
     def qf_loss(
@@ -711,8 +722,8 @@ def make_cross_q_sac_qf_loss(
         temp = get_temp(temp_params)
         cal_q_loss = cal_q(curr_q_preds)
 
-        # Compute min. clipped TD error
-        next_vs = next_q_preds_min - temp * next_lprobs
+        bootstrapped_q = compute_bootstrap(all_q_preds)
+        next_vs = bootstrapped_q - temp * next_lprobs
         curr_q_targets = rews + gamma * (1 - terminateds) * next_vs
         td_errors = (curr_q_preds - curr_q_targets[None]) ** 2
         loss = reduction(td_errors) + cal_q_loss
