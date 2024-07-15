@@ -738,6 +738,46 @@ class NoTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
         self.forward = jax.jit(
             self.make_forward(query_pred_only), static_argnames=[CONST_EVAL]
         )
+        self.get_attention = jax.jit(self.make_get_attention(), static_argnames=[CONST_EVAL])
+
+    def make_get_attention(
+        self
+    ):
+
+        def get_latent(
+            params: Union[optax.Params, Dict[str, Any]],
+            queries: chex.Array,
+            contexts: Dict[str, chex.Array],
+            eval: bool = False,
+            **kwargs,
+        ) -> Tuple[chex.Array, chex.Array, Any]:
+            """
+            Get latent call of the GPT.
+
+            :param params: the model parameters
+            :param queries: the queries
+            :param contexts: the context with keys `context_input` and `context_output`
+            :type params: Union[optax.Params, Dict[str, Any]]
+            :type queries: chex.Array
+            :type contexts: Dict[str, chex.Array]
+            :return: the output and a pass-through carry
+            :rtype: Tuple[chex.Array, chex.Array, Any]
+
+            """
+            stacked_inputs, _, token_updates = self.tokenize(
+                params, queries, contexts, eval, **kwargs
+            )
+            (repr, gpt_updates) = self.gpt.apply(
+                params[CONST_GPT],
+                stacked_inputs,
+                eval,
+                mutable=["intermediates"],
+                capture_intermediates=True,
+            )
+
+            return repr, None, {**token_updates, CONST_GPT: gpt_updates}
+
+        return get_latent
 
     def make_tokenize(
         self,
