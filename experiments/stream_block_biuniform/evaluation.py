@@ -114,6 +114,18 @@ def main(args: SimpleNamespace):
         )
         dataset_configs["pretraining"] = config.learner_config.dataset_config
 
+        prefetched_data = {}
+        for eval_name in tqdm(datasets, postfix="Prefetching data"):
+            dataset, data_loader = datasets[eval_name]
+            data_iter = iter(data_loader)
+            prefetched_data[eval_name] = dict(
+                samples=[
+                    next(data_iter)
+                    for _ in range(num_eval_samples // batch_size)
+                ],
+                dataset_output_dim=dataset.output_dim[0]
+            )
+
         accuracies = {eval_name: [] for eval_name in datasets}
         auxes = {eval_name: [] for eval_name in datasets}
         checkpoint_steps = []
@@ -128,9 +140,7 @@ def main(args: SimpleNamespace):
                 acc, aux = evaluate(
                     model=model,
                     params=params,
-                    dataset=dataset,
-                    data_loader=data_loader,
-                    num_tasks=num_eval_samples // batch_size,
+                    prefetched_data=prefetched_data[eval_name],
                     max_label=None,
                     context_len=context_len,
                     fixed_length=fixed_length,

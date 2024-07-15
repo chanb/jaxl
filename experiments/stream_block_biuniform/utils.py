@@ -5,6 +5,7 @@ from jaxl.plot_utils import set_size
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import timeit
 
 from sklearn.metrics import confusion_matrix
 
@@ -55,16 +56,13 @@ def plot_examples(
 
 
 # Get model predictions
-def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
+def get_preds_labels(model, params, prefetched_data, max_label=None):
     all_preds = []
     all_labels = []
     all_outputs = []
     num_query_class_in_context = []
 
-    for batch_i, data in enumerate(data_loader):
-        if batch_i >= num_tasks:
-            break
-
+    for batch_i, data in enumerate(prefetched_data["samples"]):
         context_inputs = data["context_inputs"]
         context_outputs = data["context_outputs"]
         queries = data["queries"]
@@ -85,14 +83,9 @@ def get_preds_labels(model, params, data_loader, num_tasks, max_label=None):
             },
             eval=True,
         )
-        # return train_outputs, train_updates, outputs, updates
+
         if max_label is None:
             preds = np.argmax(outputs, axis=-1)
-        elif max_label == CONST_AUTO:
-            print(data_loader.dataset._data["num_classes"])
-            preds = np.argmax(
-                outputs[..., : data_loader.dataset._data["num_classes"]], axis=-1
-            )
         else:
             preds = np.argmax(outputs[..., :max_label], axis=-1)
         labels = np.argmax(one_hot_labels, axis=-1)
@@ -180,21 +173,19 @@ def get_data_loader(
 def evaluate(
     model,
     params,
-    dataset,
-    data_loader,
-    num_tasks,
+    prefetched_data,
     max_label,
     context_len,
     fixed_length=True,
 ):
     preds, labels, outputs, num_query_class_in_context = get_preds_labels(
-        model, params, data_loader, num_tasks, max_label
+        model, params, prefetched_data, max_label
     )
     auxes, _ = print_performance_with_aux(
         preds,
         labels,
         num_query_class_in_context,
-        dataset.output_dim[0],
+        prefetched_data["dataset_output_dim"],
         context_len,
         fixed_length,
     )
