@@ -25,45 +25,50 @@ def get_eval_datasets(
     test_data_seed: int,
     context_len: int,
 ):
-    # ICL with novel input
-    icl_novel_inputs_config_dict = copy.deepcopy(config_dict)
-    icl_novel_inputs_config_dict["learner_config"]["seeds"][
-        "data_seed"
-    ] = test_data_seed
-    icl_novel_inputs_config = parse_dict(icl_novel_inputs_config_dict)
+    for split in ["pretrain", "test"]:
+        if split == "test":
 
-    icl_iid_context_config_dict = copy.deepcopy(config_dict)
-    dataset_kwargs = {"mode": "iid_context"}
+            def modify_seed(config_dict):
+                config_dict["learner_config"]["seeds"]["data_seed"] = test_data_seed
 
-    icl_iid_context_config_dict["learner_config"]["dataset_config"][
-        "dataset_kwargs"
-    ].update(dataset_kwargs)
-    icl_iid_context = parse_dict(icl_iid_context_config_dict)
+        else:
 
-    configs = {
-        "icl_novel_inputs": icl_novel_inputs_config,
-        "icl_iid_context": icl_iid_context,
-    }
+            def modify_seed(config_dict):
+                pass
 
-    # Context length evaluations
-    for prob_key in ["sample_high_prob_class_only", "sample_low_prob_class_only"]:
-        for fixed_start_pos in range(context_len):
-            start_pos_config_dict = copy.deepcopy(config_dict)
+        icl_iid_context_config_dict = copy.deepcopy(config_dict)
+        modify_seed(icl_iid_context_config_dict)
+        dataset_kwargs = {"mode": "iid_context"}
 
-            dataset_kwargs = {
-                prob_key: 1,
-                "fixed_start_pos": fixed_start_pos,
-                "mode": "default",
-            }
+        icl_iid_context_config_dict["learner_config"]["dataset_config"][
+            "dataset_kwargs"
+        ].update(dataset_kwargs)
+        icl_iid_context = parse_dict(icl_iid_context_config_dict)
 
-            start_pos_config_dict["learner_config"]["dataset_config"][
-                "dataset_kwargs"
-            ].update(dataset_kwargs)
+        configs = {
+            f"{split}-icl_iid_context": icl_iid_context,
+        }
 
-            start_pos_config = parse_dict(start_pos_config_dict)
-            configs["{}-start_pos_{}".format(prob_key, fixed_start_pos)] = (
-                start_pos_config
-            )
+        # Context length evaluations
+        for prob_key in ["sample_high_prob_class_only", "sample_low_prob_class_only"]:
+            for fixed_start_pos in range(context_len):
+                start_pos_config_dict = copy.deepcopy(config_dict)
+                modify_seed(start_pos_config_dict)
+
+                dataset_kwargs = {
+                    prob_key: 1,
+                    "fixed_start_pos": fixed_start_pos,
+                    "mode": "default",
+                }
+
+                start_pos_config_dict["learner_config"]["dataset_config"][
+                    "dataset_kwargs"
+                ].update(dataset_kwargs)
+
+                start_pos_config = parse_dict(start_pos_config_dict)
+                configs[
+                    "{}-{}-start_pos_{}".format(split, prob_key, fixed_start_pos)
+                ] = start_pos_config
 
     return {
         eval_name: get_data_loader(config, config.learner_config.seeds.data_seed)
@@ -120,10 +125,9 @@ def main(args: SimpleNamespace):
             data_iter = iter(data_loader)
             prefetched_data[eval_name] = dict(
                 samples=[
-                    next(data_iter)
-                    for _ in range(num_eval_samples // batch_size)
+                    next(data_iter) for _ in range(num_eval_samples // batch_size)
                 ],
-                dataset_output_dim=dataset.output_dim[0]
+                dataset_output_dim=dataset.output_dim[0],
             )
 
         accuracies = {eval_name: [] for eval_name in datasets}
