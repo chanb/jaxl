@@ -1,9 +1,9 @@
 {
     "logging_config": {
-        "save_path": "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuniform/logs/dist_properties-individual_classes",
-        "experiment_name": "10000_low_freq_clusters",
+        "save_path": "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuniform/logs/ind_classes_longer",
+        "experiment_name": "100_low_freq_clusters",
         "log_interval": 50,
-        "checkpoint_interval": 500
+        "checkpoint_interval": 5000
     },
     "model_config": {
         "architecture": "icl_gpt",
@@ -57,8 +57,8 @@
             "dataset_name": "stream_block_biuniform",
             "dataset_kwargs": {
                 "num_high_prob_classes": 1,
-                "num_low_prob_classes": 10000,
-                "high_prob": 0.9,
+                "num_low_prob_classes": 100,
+                "high_prob": 0.999,
                 "num_dims": 64,
                 "mode": "default",
                 "num_examples": 8,
@@ -92,6 +92,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 50000
+        "num_epochs": 500000
     }
 }
