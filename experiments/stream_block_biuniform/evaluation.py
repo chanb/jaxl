@@ -25,6 +25,7 @@ def get_eval_datasets(
     test_data_seed: int,
     context_len: int,
 ):
+    configs = dict()
     for split in ["pretrain", "test"]:
         if split == "test":
 
@@ -45,9 +46,7 @@ def get_eval_datasets(
         ].update(dataset_kwargs)
         icl_iid_context = parse_dict(icl_iid_context_config_dict)
 
-        configs = {
-            f"{split}-icl_iid_context": icl_iid_context,
-        }
+        configs[f"{split}-icl_iid_context"] = icl_iid_context
 
         # Context length evaluations
         for prob_key in ["sample_high_prob_class_only", "sample_low_prob_class_only"]:
