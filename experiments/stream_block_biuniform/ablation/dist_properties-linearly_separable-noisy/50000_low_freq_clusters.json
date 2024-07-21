@@ -1,6 +1,6 @@
 {
     "logging_config": {
-        "save_path": "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuniform/logs/dist_properties-linearly_separable",
+        "save_path": "/Users/chanb/research/personal/jaxl/experiments/stream_block_biuniform/logs/dist_properties-linearly_separable-noisy",
         "experiment_name": "50000_low_freq_clusters",
         "log_interval": 50,
         "checkpoint_interval": 500
@@ -63,7 +63,7 @@
                 "mode": "default",
                 "linearly_separable": true,
                 "num_examples": 8,
-                "input_noise_std": 0.0,
+                "input_noise_std": 1.0,
                 "abstract_class": 1,
                 "tf_type": "prepare_seqs_for_transformer",
                 "num_workers": -1

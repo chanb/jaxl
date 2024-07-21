@@ -47,7 +47,17 @@ include_prefix = None
 include_suffix = None
 exclude_prefix = None
 exclude_suffix = None
-include_evals = None
+# include_evals = None
+include_evals = [
+    "pretrain-sample_high_prob_class_only-start_pos_0",
+    "pretrain-sample_low_prob_class_only-start_pos_0",
+    "test-sample_high_prob_class_only-start_pos_0",
+    "test-sample_low_prob_class_only-start_pos_0",
+    "pretrain-sample_high_prob_class_only-start_pos_1",
+    "pretrain-sample_low_prob_class_only-start_pos_1",
+    "test-sample_high_prob_class_only-start_pos_1",
+    "test-sample_low_prob_class_only-start_pos_1",
+]
 map_eval_to_title = {}
 
 num_cols = 2
@@ -97,6 +107,8 @@ for exp_name, exp_runs in agg_result.items():
         if curr_context_len > max_context_len:
             max_context_len = curr_context_len
 
+if include_evals:
+    max_num_evals = len(include_evals)
 
 def process_exp_runs(exp_runs: dict, x_range: chex.Array):
     interpolated_results = dict()

@@ -63,7 +63,7 @@
                 "mode": "default",
                 "linearly_separable": true,
                 "num_examples": 8,
-                "input_noise_std": 1.0,
+                "input_noise_std": 0.0,
                 "abstract_class": 1,
                 "tf_type": "prepare_seqs_for_transformer",
                 "num_workers": -1
