@@ -51,23 +51,30 @@ def get_eval_datasets(
         # Context length evaluations
         for prob_key in ["sample_high_prob_class_only", "sample_low_prob_class_only"]:
             for fixed_start_pos in range(context_len):
-                start_pos_config_dict = copy.deepcopy(config_dict)
-                modify_seed(start_pos_config_dict)
+                for flip_label in [False, True]:
+                    start_pos_config_dict = copy.deepcopy(config_dict)
+                    modify_seed(start_pos_config_dict)
 
-                dataset_kwargs = {
-                    prob_key: 1,
-                    "fixed_start_pos": fixed_start_pos,
-                    "mode": "default",
-                }
+                    dataset_kwargs = {
+                        prob_key: 1,
+                        "fixed_start_pos": fixed_start_pos,
+                        "mode": "default",
+                        "flip_label": flip_label,
+                    }
 
-                start_pos_config_dict["learner_config"]["dataset_config"][
-                    "dataset_kwargs"
-                ].update(dataset_kwargs)
+                    start_pos_config_dict["learner_config"]["dataset_config"][
+                        "dataset_kwargs"
+                    ].update(dataset_kwargs)
 
-                start_pos_config = parse_dict(start_pos_config_dict)
-                configs[
-                    "{}-{}-start_pos_{}".format(split, prob_key, fixed_start_pos)
-                ] = start_pos_config
+                    start_pos_config = parse_dict(start_pos_config_dict)
+                    configs[
+                        "{}-{}-start_pos_{}{}".format(
+                            split,
+                            prob_key,
+                            fixed_start_pos,
+                            "-flip_label" if flip_label else "",
+                        )
+                    ] = start_pos_config
 
     return {
         eval_name: get_data_loader(config, config.learner_config.seeds.data_seed)

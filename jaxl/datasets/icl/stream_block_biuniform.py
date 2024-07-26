@@ -13,6 +13,7 @@ class StreamBlockBiUniform:
         num_dims: int,
         seed: int,
         linearly_separable: bool = False,
+        flip_label: bool = False,
     ):
         assert 0.0 < high_prob < 1.0
         assert (
@@ -51,8 +52,8 @@ class StreamBlockBiUniform:
                 dists = (high_prob_centers @ boundary[1:] + boundary[:1]) / np.sqrt(
                     np.sum(boundary[1:] ** 2)
                 )
-                replace_mask = dists > -margin
-                done_generation = np.sum(dists > -margin) == 0
+                replace_mask = dists < margin if flip_label else dists > -margin
+                done_generation = np.sum(replace_mask) == 0
             print("Generated high prob centers")
 
             done_generation = False
@@ -70,8 +71,8 @@ class StreamBlockBiUniform:
                 dists = (low_prob_centers @ boundary[1:] + boundary[:1]) / np.sqrt(
                     np.sum(boundary[1:] ** 2)
                 )
-                replace_mask = dists < margin
-                done_generation = np.sum(dists < margin) == 0
+                replace_mask = dists > -margin if flip_label else dists < margin
+                done_generation = np.sum(replace_mask) == 0
             print("Generated low prob centers")
 
             self.centers = np.concatenate((high_prob_centers, low_prob_centers), axis=0)
@@ -264,6 +265,7 @@ def get_dataset(
     mode: str = "default",
     seed: int = 42,
     linearly_separable: bool = False,
+    flip_label: bool = False,
 ):
     if abstract_class:
         num_classes = 2
@@ -276,6 +278,7 @@ def get_dataset(
         num_dims,
         seed,
         linearly_separable,
+        flip_label,
     )
 
     if mode == "iid_context":

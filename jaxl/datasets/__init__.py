@@ -261,6 +261,7 @@ def get_dataset(
             mode=dataset_kwargs.mode,
             seed=seed,
             linearly_separable=getattr(dataset_kwargs, "linearly_separable", False),
+            flip_label=getattr(dataset_kwargs, "flip_label", False),
             fixed_start_pos=getattr(dataset_kwargs, "fixed_start_pos", -1),
             abstract_class=getattr(dataset_kwargs, "abstract_class", 0),
             sample_low_prob_class_only=getattr(
