@@ -118,10 +118,11 @@ def print_performance_with_aux(
     conf_mat = confusion_matrix(all_labels, all_preds, labels=np.arange(output_dim))
     auxes = {}
     acc = np.trace(conf_mat) / np.sum(conf_mat) * 100
-    loss = np.mean(optax.softmax_cross_entropy(
-        all_outputs,
-        jax.nn.one_hot(all_labels, num_classes=output_dim)
-    ))
+    loss = np.mean(
+        optax.softmax_cross_entropy(
+            all_outputs, jax.nn.one_hot(all_labels, num_classes=output_dim)
+        )
+    )
     auxes["all"] = {
         "accuracy": acc,
         "loss": loss,

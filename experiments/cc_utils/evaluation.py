@@ -25,7 +25,13 @@ from jaxl.models import load_config, iterate_models
 from jaxl.utils import parse_dict
 
 from cc_utils.utils import *
-from cc_utils.constants import CONFIG_DIR, LOG_DIR, RUN_REPORT_DIR, REPO_PATH, CC_ACCOUNT
+from cc_utils.constants import (
+    CONFIG_DIR,
+    LOG_DIR,
+    RUN_REPORT_DIR,
+    REPO_PATH,
+    CC_ACCOUNT,
+)
 
 
 def get_eval_datasets(
@@ -128,9 +134,7 @@ def main(args: SimpleNamespace):
         dataset, data_loader = datasets[eval_name]
         data_iter = iter(data_loader)
         prefetched_data[eval_name] = dict(
-            samples=[
-                next(data_iter) for _ in range(num_eval_samples // batch_size)
-            ],
+            samples=[next(data_iter) for _ in range(num_eval_samples // batch_size)],
             dataset_output_dim=dataset.output_dim[0],
         )
 
@@ -139,9 +143,7 @@ def main(args: SimpleNamespace):
     auxes = {eval_name: [] for eval_name in datasets}
     checkpoint_steps = []
     for params, model, checkpoint_step in tqdm(
-        iterate_models(
-            train_dataset.input_dim, train_dataset.output_dim, learner_path
-        )
+        iterate_models(train_dataset.input_dim, train_dataset.output_dim, learner_path)
     ):
         checkpoint_steps.append(checkpoint_step)
         for eval_name in datasets:
