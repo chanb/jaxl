@@ -1,16 +1,16 @@
 {
     "logging_config": {
-        "save_path": "./logs/spherical_data/zipf_larger_experiments",
-        "experiment_name": "p_bursty-1.0-zipf_2.0",
+        "save_path": "<TO_FILL>",
+        "experiment_name": "<TO_FILL>",
         "log_interval": 50,
-        "checkpoint_interval": 5000
+        "checkpoint_interval": 500
     },
     "model_config": {
         "architecture": "icl_gpt",
         "type": "no_tokenizer",
         "num_contexts": 8,
-        "num_blocks": 4,
-        "num_heads": 8,
+        "num_blocks": 2,
+        "num_heads": 1,
         "embed_dim": 64,
         "widening_factor": 4,
         "positional_encoding": {
@@ -42,43 +42,42 @@
         "lr": {
             "scheduler": "linear_warmup_sqrt_decay",
             "scheduler_kwargs": {
-                "max_lr": 3e-4,
+                "max_lr": 0.0003,
                 "warmup_steps": 4000
             }
         },
         "max_grad_norm": false,
-        "mask_names": ["input_tokenizer"]
+        "mask_names": [
+            "input_tokenizer"
+        ]
     },
     "learner_config": {
         "task": "in_context_learning",
         "dataset_config": {
-            "dataset_name": "tight_frame",
+            "dataset_name": "stream_block_biuniform",
             "dataset_kwargs": {
-                "tight_frame_path": "/Users/chanb/research/personal/jaxl/data/sphere_data-dim_64-num_classes_10000.pkl",
-                "num_sequences": 5000000,
-                "sequence_length": 9,
-                "num_holdout": 10,
-                "split": "train",
-                "p_bursty": 1.0,
-                "zipf_exp": 2.0,
-                "random_label": false,
-                "perturb_query": true,
-                "perturb_context": true
-            },
-            "dataset_wrapper": {
-                "type": "FixedLengthContextDataset",
-                "kwargs": {
-                    "context_len": 8
-                }
-            },
-            "num_workers": 6
+                "num_high_prob_classes": 100,
+                "num_low_prob_classes": 100,
+                "high_prob": "<TO_FILL>",
+                "num_dims": 64,
+                "mode": "default",
+                "linearly_separable": true,
+                "num_examples": 8,
+                "input_noise_std": 0.0,
+                "abstract_class": 1,
+                "tf_type": "prepare_seqs_for_transformer",
+                "num_workers": -1
+            }
         },
         "seeds": {
-            "model_seed": 44,
-            "data_seed": 44
+            "model_seed": "<TO_FILL>",
+            "data_seed": "<TO_FILL>"
         },
         "learner": "mle",
-        "losses": ["categorical", "l2"],
+        "losses": [
+            "categorical",
+            "l2"
+        ],
         "loss_settings": [
             {
                 "coefficient": 1.0,
@@ -94,6 +93,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 100000
+        "num_epochs": 50000
     }
 }

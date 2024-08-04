@@ -1,0 +1,7 @@
+HOME_DIR = "/home/chanb"
+CONFIG_DIR = f"{HOME_DIR}/scratch/icl/configs"
+LOG_DIR = f"{HOME_DIR}/scratch/icl/results"
+RUN_REPORT_DIR = f"{HOME_DIR}/scratch/icl/run_reports"
+DATASET_DIR = f"{HOME_DIR}/scratch/icl/datasets"
+REPO_PATH = f"{HOME_DIR}/src/icl/jaxl"
+CC_ACCOUNT = "def-schuurma"
