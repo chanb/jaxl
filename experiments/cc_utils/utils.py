@@ -107,6 +107,7 @@ def get_preds_labels(model, params, prefetched_data, max_label=None):
 
 # Check model accuracy
 def print_performance_with_aux(
+    all_outputs,
     all_preds,
     all_labels,
     num_query_class_in_context,
@@ -118,7 +119,7 @@ def print_performance_with_aux(
     auxes = {}
     acc = np.trace(conf_mat) / np.sum(conf_mat) * 100
     loss = np.mean(optax.softmax_cross_entropy(
-        all_preds,
+        all_outputs,
         jax.nn.one_hot(all_labels, num_classes=output_dim)
     ))
     auxes["all"] = {
@@ -160,7 +161,8 @@ def evaluate(
     preds, labels, outputs, num_query_class_in_context = get_preds_labels(
         model, params, prefetched_data, max_label
     )
-    auxes, _ = print_performance_with_aux(
+    auxes = print_performance_with_aux(
+        outputs,
         preds,
         labels,
         num_query_class_in_context,

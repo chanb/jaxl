@@ -11,6 +11,7 @@ from cc_utils.constants import CONFIG_DIR, LOG_DIR, RUN_REPORT_DIR, REPO_PATH, C
 
 
 for exp_name, exp_config in EXPERIMENTS.items():
+    os.makedirs(os.path.join(RUN_REPORT_DIR, "eval"), exist_ok=True)
     result_dir = os.path.join(
         LOG_DIR, exp_name
     )

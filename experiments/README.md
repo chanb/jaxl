@@ -11,4 +11,5 @@ pip install chex dill matplotlib --no-index
 pip install gymnasium --no-index
 pip install torch torchvision --no-index
 pip install tensorflow_datasets --no-index
+pip install scikit-learn --no-index
 ```
