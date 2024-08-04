@@ -2,7 +2,7 @@
 ## Prerequisite:
 - Python 3.9+ (3.10+ with [penzai](https://github.com/google-deepmind/penzai))
 - MuJoCo (See [here](https://github.com/openai/mujoco-py#install-mujoco))
-  - Remember to set `LD_LIBRARY_PATH` (e..g. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<PATH_TO_MUJOCO>/.mujoco/mujoco210/bin`)
+  - Remember to set `LD_LIBRARY_PATH` (e.g. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<PATH_TO_MUJOCO>/.mujoco/mujoco210/bin`)
   - For troubleshooting, see [here](https://github.com/openai/mujoco-py#ubuntu-installtion-troubleshooting)
 
 ## Installation:
@@ -35,27 +35,7 @@ Potential memory issue:
 export XLA_FLAGS=--xla_gpu_graph_level=0
 ```
 
-### Conda on Salient
-```
-conda create --name jaxl python=3.11
-pip install tensorflow-cpu tensorflow-datasets
-conda install -c conda-forge glew
-conda install -c conda-forge mesalib
-conda install jaxlib=*=*cuda* jax cuda-nvcc -c conda-forge -c nvidia
-conda install -c menpo glfw3
-pip install patchelf
-pip install -r requirements/conda.txt
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install "cython<3"
-pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
-pip install -e .
-```
-
-### Compute Canada
-You may install this code on Compute Canada by simply running `jaxl/installation/compute_canada/initial_setup.sh`.
-
 ## Experiments
-### Locally
 To run a single experiment, you may execute:
 ```
 python main.py --config_path=${config_path} --run_seed=${run_seed} --device=${device}
@@ -66,11 +46,6 @@ Examples of configuration file (i.e. `config_path`) are located under `jaxl/conf
 To run multiple experiments, you may refer to `scripts/mtil/local/inverted_pendulum`.
 In particular, we first run `generate_experts.py` to construct a bash script, say `run_all-inverted_pendulum.sh`.
 Then, running said bash script will execute mutliple experiments.
-
-### Compute Canada
-To run on Compute Canada, you may refer to `scripts/mtil/compute_canada`.
-In partciular, first run `generate_expert_variants.py` to construct `dat` file, consisting of different hyperparameters.
-Then, run `sbatch generate_experts.sh` to run each variant in paralllel.
 
 ## Design Pattern
 This codebase aims to combine both imitation learning and reinforcement learning into a single design pattern.
@@ -118,10 +93,3 @@ cd docs
 sphinx-apidoc -f -o . ..
 make html​
 ```
-
-## Long-term Modification
-- JAX implementation of the replay buffers
-- Revisit A2C, PPO, and MTBC for better loss construction.
-It seems to be using a different design pattern.
-- Revisit how we construct models and optimizers.
-There should be a more elegant way.

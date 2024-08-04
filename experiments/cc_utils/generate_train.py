@@ -11,7 +11,7 @@ import json
 from cc_utils.configs import EXPERIMENTS
 from cc_utils.constants import CONFIG_DIR, LOG_DIR, RUN_REPORT_DIR, REPO_PATH, CC_ACCOUNT
 
-for exp_name, exp_config in EXPERIMENTS:
+for exp_name, exp_config in EXPERIMENTS.items():
     os.makedirs(
         os.path.join(RUN_REPORT_DIR, exp_name),
         exist_ok=True,
