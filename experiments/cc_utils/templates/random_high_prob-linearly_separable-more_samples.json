@@ -56,8 +56,8 @@
         "dataset_config": {
             "dataset_name": "stream_block_biuniform",
             "dataset_kwargs": {
-                "num_high_prob_classes": 100,
-                "num_low_prob_classes": 100,
+                "num_high_prob_classes": 10000,
+                "num_low_prob_classes": 10000,
                 "high_prob": "<TO_FILL>",
                 "num_dims": 64,
                 "mode": "default",
