@@ -27,6 +27,7 @@ for exp_name, exp_config in EXPERIMENTS.items():
     )
 
     num_runs = 0
+    dat_content = ""
     for seed in range(exp_config["num_seeds"]):
         for variant_i, value in enumerate(exp_config["values"]):
             variant_name = "{}_{}-seed_{}".format(
@@ -56,7 +57,12 @@ for exp_name, exp_config in EXPERIMENTS.items():
             )
 
             num_runs += 1
+            dat_content += "export config_path={} \n".format(
+                curr_config_path,
+            )
 
+    with open(os.path.join(CONFIG_DIR, "{}.dat".format(exp_name)), "w+") as f:
+        f.writelines(dat_content)
 
     sbatch_content = ""
     sbatch_content += "#!/bin/bash\n"
