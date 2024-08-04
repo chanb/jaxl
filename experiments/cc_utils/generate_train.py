@@ -81,7 +81,7 @@ for exp_name, exp_config in EXPERIMENTS.items():
     sbatch_content += "source ~/icl_env/bin/activate\n"
     sbatch_content += '`sed -n "${SLURM_ARRAY_TASK_ID}p"'
     sbatch_content += " < {}`\n".format(
-        os.path.join(LOG_DIR, "{}.dat".format(exp_name))
+        os.path.join(CONFIG_DIR, "{}.dat".format(exp_name))
     )
     sbatch_content += "echo ${SLURM_ARRAY_TASK_ID}\n"
     sbatch_content += 'echo "Current working directory is `pwd`"\n'
