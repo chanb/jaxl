@@ -42,23 +42,35 @@ include_prefix = None
 include_suffix = None
 exclude_prefix = None
 exclude_suffix = None
-include_evals = [
-    # IWL
-    # "pretrain-sample_high_prob_class_only-start_pos_0",
-    # "pretrain-sample_low_prob_class_only-start_pos_0",
-    # "pretrain-sample_low_prob_class_only-start_pos_0-flip_label",
-    # "pretrain-sample_high_prob_class_only-start_pos_0-flip_label",
-    # ICL - last context
-    "pretrain-sample_high_prob_class_only-start_pos_1",
-    "pretrain-sample_low_prob_class_only-start_pos_1",
-    "pretrain-sample_low_prob_class_only-start_pos_1-flip_label",
-    "pretrain-sample_high_prob_class_only-start_pos_1-flip_label",
-    # ICL - half contexts
-    # "pretrain-sample_high_prob_class_only-start_pos_4",
-    # "pretrain-sample_low_prob_class_only-start_pos_4",
-    # "pretrain-sample_low_prob_class_only-start_pos_4-flip_label",
-    # "pretrain-sample_high_prob_class_only-start_pos_4-flip_label",
-]
+title = "No Context in Query Class"
+
+if title == "Last Context from Query Class":
+    include_evals = [
+        # ICL - last context
+        "pretrain-sample_high_prob_class_only-start_pos_1",
+        "pretrain-sample_low_prob_class_only-start_pos_1",
+        "pretrain-sample_low_prob_class_only-start_pos_1-flip_label",
+        "pretrain-sample_high_prob_class_only-start_pos_1-flip_label",
+    ]
+elif title == "No Context from Query Class":
+    include_evals = [
+        # IWL
+        "pretrain-sample_high_prob_class_only-start_pos_0",
+        "pretrain-sample_low_prob_class_only-start_pos_0",
+        "pretrain-sample_low_prob_class_only-start_pos_0-flip_label",
+        "pretrain-sample_high_prob_class_only-start_pos_0-flip_label",
+    ]
+elif title == "Half Contexts from Query Class":
+    include_evals = [
+        # ICL - half contexts
+        "pretrain-sample_high_prob_class_only-start_pos_4",
+        "pretrain-sample_low_prob_class_only-start_pos_4",
+        "pretrain-sample_low_prob_class_only-start_pos_4-flip_label",
+        "pretrain-sample_high_prob_class_only-start_pos_4-flip_label",
+    ]
+else:
+    include_evals = None
+
 map_eval_to_title = {
     "pretrain-sample_high_prob_class_only-start_pos_0": "High Freq. Only, In-dist.",
     "pretrain-sample_low_prob_class_only-start_pos_0": "Low Freq. Only, In-dist.",
@@ -194,6 +206,7 @@ if remaining_idx > 0:
 
 fig.supxlabel("Number of updates")
 fig.supylabel("Accuracy")
+fig.suptitle(title)
 fig.legend(
     bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
     loc="lower center",
