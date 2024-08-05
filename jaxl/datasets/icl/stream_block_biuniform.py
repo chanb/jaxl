@@ -13,7 +13,6 @@ class StreamBlockBiUniform:
         num_dims: int,
         seed: int,
         linearly_separable: bool = False,
-        flip_label: bool = False,
     ):
         assert 0.0 < high_prob < 1.0
         assert (
@@ -52,7 +51,7 @@ class StreamBlockBiUniform:
                 dists = (high_prob_centers @ boundary[1:] + boundary[:1]) / np.sqrt(
                     np.sum(boundary[1:] ** 2)
                 )
-                replace_mask = dists < margin if flip_label else dists > -margin
+                replace_mask = dists > -margin
                 done_generation = np.sum(replace_mask) == 0
             print("Generated high prob centers")
 
@@ -71,7 +70,7 @@ class StreamBlockBiUniform:
                 dists = (low_prob_centers @ boundary[1:] + boundary[:1]) / np.sqrt(
                     np.sum(boundary[1:] ** 2)
                 )
-                replace_mask = dists > -margin if flip_label else dists < margin
+                replace_mask = dists < margin
                 done_generation = np.sum(replace_mask) == 0
             print("Generated low prob centers")
 
@@ -190,6 +189,7 @@ class StreamBlockBiUniform:
         abstract_class: int = 0,
         sample_low_prob_class_only: int = 0,
         sample_high_prob_class_only: int = 0,
+        flip_label: int = 0,
     ):
         assert sample_low_prob_class_only + sample_high_prob_class_only <= 1
 
@@ -237,7 +237,10 @@ class StreamBlockBiUniform:
             if abstract_class:
                 # Class 0 if high-prob clusters, class 1 otherwise
                 # TODO: Maybe there can be an ablation on varying number of classes?
-                labels = [int(label < self.num_high_prob_classes) for label in labels]
+                if flip_label:
+                    labels = [1 - int(label < self.num_high_prob_classes) for label in labels]
+                else:
+                    labels = [int(label < self.num_high_prob_classes) for label in labels]
                 labels = np.eye(2)[labels]
             else:
                 labels = np.eye(self.num_classes)[labels]
@@ -257,6 +260,7 @@ def get_dataset(
     sample_low_prob_class_only: int = 0,
     sample_high_prob_class_only: int = 0,
     stratified: int = 0,
+    flip_label: int = 0,
     # For constructor
     num_high_prob_classes: int = 16,
     num_low_prob_classes: int = 256,
@@ -265,7 +269,6 @@ def get_dataset(
     mode: str = "default",
     seed: int = 42,
     linearly_separable: bool = False,
-    flip_label: bool = False,
 ):
     if abstract_class:
         num_classes = 2
@@ -278,7 +281,6 @@ def get_dataset(
         num_dims,
         seed,
         linearly_separable,
-        flip_label,
     )
 
     if mode == "iid_context":
@@ -306,6 +308,7 @@ def get_dataset(
             abstract_class,
             sample_low_prob_class_only,
             sample_high_prob_class_only,
+            flip_label,
         )
     else:
         raise NotImplementedError
