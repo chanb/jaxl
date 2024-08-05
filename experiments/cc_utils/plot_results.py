@@ -42,7 +42,7 @@ include_prefix = None
 include_suffix = None
 exclude_prefix = None
 exclude_suffix = None
-title = "No Context from Query Class"
+title = "Last Context from Query Class"
 key = "losses"
 
 if title == "Last Context from Query Class":
@@ -159,7 +159,8 @@ if include_evals:
         map_eval_to_ax[eval_name][0].set_title(
             map_eval_to_title.get(eval_name, eval_name)
         )
-        map_eval_to_ax[eval_name][0].set_ylim(-1.0, 101.0)
+        if key == "accuracies":
+            map_eval_to_ax[eval_name][0].set_ylim(-1.0, 101.0)
 
 variants = sorted(exp_runs.keys())
 print(variants)
@@ -196,7 +197,8 @@ for variant in tqdm(variants):
 
         if update_ax:
             ax.set_title(map_eval_to_title.get(eval_name, eval_name))
-            ax.set_ylim(-1.0, 101.0)
+            if key == "accuracies":
+                ax.set_ylim(-1.0, 101.0)
 
 remaining_idx = num_cols * num_rows - (max_count + 1)
 if remaining_idx > 0:
@@ -217,4 +219,4 @@ fig.legend(
     fontsize="8",
 )
 
-fig.savefig(save_path, format="pdf", bbox_inches="tight", dpi=600)
+fig.savefig("{}-{}.pdf".format(save_path, key), format="pdf", bbox_inches="tight", dpi=600)
