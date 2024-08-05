@@ -30,22 +30,42 @@ parser.add_argument(
     required=True,
     help="The directory to store the plots",
 )
+parser.add_argument(
+    "--key",
+    choices=["losses", "accuracies"],
+    required=True,
+    help="The key of the statistics to plot",
+)
+parser.add_argument(
+    "--context",
+    choices=["none", "last", "half"],
+    required=True,
+    help="The number of context from query class",
+)
 args = parser.parse_args()
 
 results_dir = args.results_dir
 save_path = args.save_path
+key = args.key
+context = args.context
 
-os.makedirs(os.path.dirname(save_path), exist_ok=True)
+os.makedirs(save_path, exist_ok=True)
 
 # FILTERS
 include_prefix = None
 include_suffix = None
 exclude_prefix = None
 exclude_suffix = None
-title = "Last Context from Query Class"
-key = "losses"
+
+if context == "last":
+    title = "Last Context from Query Class"
+elif context == "half":
+    title = "Half Contexts from Query Class"
+elif context == "none":
+    title = "Last Context from Query Class"
 
 if title == "Last Context from Query Class":
+    eval_type = "icl"
     include_evals = [
         # ICL - last context
         "pretrain-sample_high_prob_class_only-start_pos_1",
@@ -54,6 +74,7 @@ if title == "Last Context from Query Class":
         "pretrain-sample_high_prob_class_only-start_pos_1-flip_label",
     ]
 elif title == "No Context from Query Class":
+    eval_type = "iwl"
     include_evals = [
         # IWL
         "pretrain-sample_high_prob_class_only-start_pos_0",
@@ -62,6 +83,7 @@ elif title == "No Context from Query Class":
         "pretrain-sample_high_prob_class_only-start_pos_0-flip_label",
     ]
 elif title == "Half Contexts from Query Class":
+    eval_type = "icl_half_contexts"
     include_evals = [
         # ICL - half contexts
         "pretrain-sample_high_prob_class_only-start_pos_4",
@@ -219,4 +241,4 @@ fig.legend(
     fontsize="8",
 )
 
-fig.savefig("{}-{}.pdf".format(save_path, key), format="pdf", bbox_inches="tight", dpi=600)
+fig.savefig(os.path.join(save_path, "{}-{}.pdf".format(eval_type, key)), format="pdf", bbox_inches="tight", dpi=600)
