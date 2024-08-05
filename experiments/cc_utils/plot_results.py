@@ -42,7 +42,8 @@ include_prefix = None
 include_suffix = None
 exclude_prefix = None
 exclude_suffix = None
-title = "No Context in Query Class"
+title = "No Context from Query Class"
+key = "losses"
 
 if title == "Last Context from Query Class":
     include_evals = [
@@ -118,11 +119,11 @@ if include_evals:
     max_num_evals = len(include_evals)
 
 
-def process_exp_runs(exp_runs: dict, x_range: chex.Array):
+def process_exp_runs(exp_runs: dict, x_range: chex.Array, key="accuracies"):
     interpolated_results = dict()
     for run_i, (run_name, exp_run) in enumerate(exp_runs.items()):
         curr_checkpoint_steps = exp_run["checkpoint_steps"]
-        curr_accuracies = exp_run["accuracies"]
+        curr_accuracies = exp_run[key]
 
         for eval_name, accuracies in curr_accuracies.items():
             interpolated_results.setdefault(
@@ -165,7 +166,7 @@ print(variants)
 for variant in tqdm(variants):
     exp_run = exp_runs[variant]
     x_range = np.arange(0, max_checkpoint_steps + 1, interp_gap_size)
-    processed_results = process_exp_runs(exp_run, x_range)
+    processed_results = process_exp_runs(exp_run, x_range, key)
 
     for eval_name, processed_result in processed_results.items():
         if include_evals and eval_name not in include_evals:
@@ -205,7 +206,7 @@ if remaining_idx > 0:
         ax.axis("off")
 
 fig.supxlabel("Number of updates")
-fig.supylabel("Accuracy")
+fig.supylabel(key)
 fig.suptitle(title)
 fig.legend(
     bbox_to_anchor=(0.0, 1.0, 1.0, 0.0),
