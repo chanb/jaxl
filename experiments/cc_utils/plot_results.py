@@ -62,7 +62,7 @@ if context == "last":
 elif context == "half":
     title = "Half Contexts from Query Class"
 elif context == "none":
-    title = "Last Context from Query Class"
+    title = "No Context from Query Class"
 
 if title == "Last Context from Query Class":
     eval_type = "icl"
