@@ -17,6 +17,7 @@ from jaxl.plot_utils import set_size, pgf_with_latex
 sns.set_style("darkgrid")
 sns.set_palette("colorblind")
 doc_width_pt = 1000.0
+interp_gap_size = 500
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--results_dir",
@@ -158,7 +159,6 @@ def process_exp_runs(exp_runs: dict, x_range: chex.Array, key="accuracies"):
 
 
 num_cols = 2
-interp_gap_size = 1000
 
 num_rows = math.ceil(max_num_evals / num_cols)
 fig, axes = plt.subplots(
