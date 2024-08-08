@@ -106,7 +106,7 @@ map_eval_to_title = {
     "pretrain-sample_low_prob_class_only-start_pos_1-flip_label": "Low Freq. Only w/ Flipped Label",
     "pretrain-sample_high_prob_class_only-start_pos_4": "High Freq. Only",
     "pretrain-sample_low_prob_class_only-start_pos_4": "Low Freq. Only",
-    "pretrain-sample_high_prob_class_only-start_pos_4-flip_label": "High Freq. Only w/ Flipped Label",``
+    "pretrain-sample_high_prob_class_only-start_pos_4-flip_label": "High Freq. Only w/ Flipped Label",
     "pretrain-sample_low_prob_class_only-start_pos_4-flip_label": "Low Freq. Only w/ Flipped Label",
 }
 max_checkpoint_steps = 0
