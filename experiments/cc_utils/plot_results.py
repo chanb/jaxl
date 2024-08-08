@@ -96,18 +96,18 @@ else:
     include_evals = None
 
 map_eval_to_title = {
-    "pretrain-sample_high_prob_class_only-start_pos_0": "High Freq. Only, In-dist.",
-    "pretrain-sample_low_prob_class_only-start_pos_0": "Low Freq. Only, In-dist.",
-    "pretrain-sample_high_prob_class_only-start_pos_0-flip_label": "Low Freq. Only, In-dist. w/ Flipped Label",  # flip
-    "pretrain-sample_low_prob_class_only-start_pos_0-flip_label": "Low Freq. Only, In-dist. w/ Flipped Label",
-    "pretrain-sample_high_prob_class_only-start_pos_1": "In-dist., High Freq. Only",
-    "pretrain-sample_low_prob_class_only-start_pos_1": "In-dist., Low Freq. Only",
-    "pretrain-sample_high_prob_class_only-start_pos_1-flip_label": "Low Freq. Only, In-dist. w/ Flipped Label",
-    "pretrain-sample_low_prob_class_only-start_pos_1-flip_label": "Low Freq. Only, In-dist. w/ Flipped Label",
-    "pretrain-sample_high_prob_class_only-start_pos_4": "In-dist., High Freq. Only",
-    "pretrain-sample_low_prob_class_only-start_pos_4": "In-dist., Low Freq. Only",
-    "pretrain-sample_high_prob_class_only-start_pos_4-flip_label": "Low Freq. Only, In-dist. w/ Flipped Label",
-    "pretrain-sample_low_prob_class_only-start_pos_4-flip_label": "Low Freq. Only, In-dist. w/ Flipped Label",
+    "pretrain-sample_high_prob_class_only-start_pos_0": "High Freq. Only",
+    "pretrain-sample_low_prob_class_only-start_pos_0": "Low Freq. Only",
+    "pretrain-sample_high_prob_class_only-start_pos_0-flip_label": "High Freq. Only w/ Flipped Label",  # flip
+    "pretrain-sample_low_prob_class_only-start_pos_0-flip_label": "Low Freq. Only w/ Flipped Label",
+    "pretrain-sample_high_prob_class_only-start_pos_1": "High Freq. Only",
+    "pretrain-sample_low_prob_class_only-start_pos_1": "Low Freq. Only",
+    "pretrain-sample_high_prob_class_only-start_pos_1-flip_label": "High Freq. Only w/ Flipped Label",
+    "pretrain-sample_low_prob_class_only-start_pos_1-flip_label": "Low Freq. Only w/ Flipped Label",
+    "pretrain-sample_high_prob_class_only-start_pos_4": "High Freq. Only",
+    "pretrain-sample_low_prob_class_only-start_pos_4": "Low Freq. Only",
+    "pretrain-sample_high_prob_class_only-start_pos_4-flip_label": "High Freq. Only w/ Flipped Label",``
+    "pretrain-sample_low_prob_class_only-start_pos_4-flip_label": "Low Freq. Only w/ Flipped Label",
 }
 max_checkpoint_steps = 0
 max_num_evals = 0
