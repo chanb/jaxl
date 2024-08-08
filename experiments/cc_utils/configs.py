@@ -57,7 +57,7 @@ EXPERIMENTS = {
         "values": [0.5, 0.67, 0.75, 0.8, 0.9, 0.99],
     },
     "linearly_separable-num_frequency_classes_100000": {
-        "run_time": "03:00:00",
+        "run_time": "07:00:00",
         "num_seeds": 10,
         "variant": "high_prob",
         "values": [0.5, 0.67, 0.75, 0.8, 0.9, 0.99],
