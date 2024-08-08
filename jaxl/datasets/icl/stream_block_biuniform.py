@@ -13,6 +13,7 @@ class StreamBlockBiUniform:
         num_dims: int,
         seed: int,
         linearly_separable: bool = False,
+        margin: float = 0.2,
     ):
         assert 0.0 < high_prob < 1.0
         assert (
@@ -33,7 +34,6 @@ class StreamBlockBiUniform:
                 size=(self.num_dims + 1, 1),
             )
             boundary[0] = 0.0  # Pass through origin
-            margin = 0.2
 
             done_generation = False
             high_prob_centers = np.zeros((self.num_high_prob_classes, self.num_dims))
@@ -269,6 +269,7 @@ def get_dataset(
     mode: str = "default",
     seed: int = 42,
     linearly_separable: bool = False,
+    margin: float = 0.2,
 ):
     if abstract_class:
         num_classes = 2
@@ -281,6 +282,7 @@ def get_dataset(
         num_dims,
         seed,
         linearly_separable,
+        margin,
     )
 
     if mode == "iid_context":

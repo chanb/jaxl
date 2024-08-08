@@ -3,7 +3,7 @@
         "save_path": "<TO_FILL>",
         "experiment_name": "<TO_FILL>",
         "log_interval": 50,
-        "checkpoint_interval": 500
+        "checkpoint_interval": 100
     },
     "model_config": {
         "architecture": "icl_gpt",
@@ -63,7 +63,7 @@
                 "mode": "default",
                 "linearly_separable": true,
                 "num_examples": 8,
-                "input_noise_std": 0.0,
+                "input_noise_std": 0.5,
                 "abstract_class": 1,
                 "tf_type": "prepare_seqs_for_transformer",
                 "num_workers": -1
@@ -93,6 +93,6 @@
         "predictor_type": "default"
     },
     "train_config": {
-        "num_epochs": 250000
+        "num_epochs": 50000
     }
 }

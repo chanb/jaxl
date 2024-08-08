@@ -1,0 +1,98 @@
+{
+    "logging_config": {
+        "save_path": "<TO_FILL>",
+        "experiment_name": "<TO_FILL>",
+        "log_interval": 50,
+        "checkpoint_interval": 100
+    },
+    "model_config": {
+        "architecture": "icl_gpt",
+        "type": "no_tokenizer",
+        "num_contexts": 8,
+        "num_blocks": 2,
+        "num_heads": 1,
+        "embed_dim": 64,
+        "widening_factor": 4,
+        "positional_encoding": {
+            "type": "default",
+            "kwargs": {
+                "embed_dim": 64,
+                "max_len": 17
+            }
+        },
+        "input_tokenizer": {
+            "type": "mlp",
+            "kwargs": {
+                "layers": [],
+                "use_bias": false
+            }
+        },
+        "output_tokenizer": {
+            "type": "mlp",
+            "kwargs": {
+                "layers": [],
+                "use_bias": false
+            }
+        },
+        "query_pred_only": true,
+        "input_output_same_encoding": false
+    },
+    "optimizer_config": {
+        "optimizer": "adam",
+        "lr": {
+            "scheduler": "linear_warmup_sqrt_decay",
+            "scheduler_kwargs": {
+                "max_lr": 0.0003,
+                "warmup_steps": 4000
+            }
+        },
+        "max_grad_norm": false,
+        "mask_names": [
+            "input_tokenizer"
+        ]
+    },
+    "learner_config": {
+        "task": "in_context_learning",
+        "dataset_config": {
+            "dataset_name": "stream_block_biuniform",
+            "dataset_kwargs": {
+                "num_high_prob_classes": 100,
+                "num_low_prob_classes": 100,
+                "high_prob": "<TO_FILL>",
+                "num_dims": 64,
+                "mode": "default",
+                "linearly_separable": true,
+                "num_examples": 8,
+                "input_noise_std": 1.0,
+                "abstract_class": 1,
+                "tf_type": "prepare_seqs_for_transformer",
+                "num_workers": -1
+            }
+        },
+        "seeds": {
+            "model_seed": "<TO_FILL>",
+            "data_seed": "<TO_FILL>"
+        },
+        "learner": "mle",
+        "losses": [
+            "categorical",
+            "l2"
+        ],
+        "loss_settings": [
+            {
+                "coefficient": 1.0,
+                "reduction": "mean",
+                "is_one_hot": true
+            },
+            {
+                "coefficient": 0.0
+            }
+        ],
+        "num_updates_per_epoch": 1,
+        "batch_size": 32,
+        "predictor_type": "default"
+    },
+    "train_config": {
+        "num_epochs": 50000
+    }
+}

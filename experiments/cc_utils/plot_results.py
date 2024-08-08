@@ -241,4 +241,9 @@ fig.legend(
     fontsize="8",
 )
 
-fig.savefig(os.path.join(save_path, "{}-{}.pdf".format(eval_type, key)), format="pdf", bbox_inches="tight", dpi=600)
+fig.savefig(
+    os.path.join(save_path, "{}-{}.pdf".format(eval_type, key)),
+    format="pdf",
+    bbox_inches="tight",
+    dpi=600,
+)
