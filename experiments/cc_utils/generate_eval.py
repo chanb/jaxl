@@ -15,7 +15,10 @@ from cc_utils.constants import (
     CC_ACCOUNT,
 )
 
+sbatch_dir = "./sbatch_scripts"
+os.makedirs(sbatch_dir, exist_ok=True)
 
+run_all_content = "#!/bin/bash\n"
 for exp_name, exp_config in EXPERIMENTS.items():
     os.makedirs(os.path.join(RUN_REPORT_DIR, "eval"), exist_ok=True)
     result_dir = os.path.join(LOG_DIR, exp_name)
@@ -61,8 +64,17 @@ for exp_name, exp_config in EXPERIMENTS.items():
     sbatch_content += "  --learner_path=${learner_path} \n"
     sbatch_content += 'echo "Program test finished with exit code $? at: `date`"\n'
 
+    script_path = os.path.join(sbatch_dir, f"run_all-eval-{exp_name}.sh")
     with open(
-        os.path.join(f"./run_all-eval-{exp_name}.sh"),
+        script_path,
         "w+",
     ) as f:
         f.writelines(sbatch_content)
+
+    run_all_content += "sbatch {}\n".format(script_path)
+
+with open(
+    "./sbatch_all_eval.sh",
+    "w+",
+) as f:
+    f.writelines(run_all_content)
