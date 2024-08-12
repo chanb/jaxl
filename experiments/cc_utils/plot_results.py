@@ -17,7 +17,7 @@ from jaxl.plot_utils import set_size, pgf_with_latex
 sns.set_style("darkgrid")
 sns.set_palette("colorblind")
 doc_width_pt = 1000.0
-interp_gap_size = 500
+interp_gap_size = 100
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--results_dir",

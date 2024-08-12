@@ -1,6 +1,7 @@
 HOME_DIR = "/home/chanb"
 CONFIG_DIR = f"{HOME_DIR}/scratch/icl/configs"
 LOG_DIR = f"{HOME_DIR}/scratch/icl/results"
+PLOT_DIR = f"{HOME_DIR}/scratch/icl/plots"
 RUN_REPORT_DIR = f"{HOME_DIR}/scratch/icl/run_reports"
 DATASET_DIR = f"{HOME_DIR}/scratch/icl/datasets"
 REPO_PATH = f"{HOME_DIR}/src/icl/jaxl"

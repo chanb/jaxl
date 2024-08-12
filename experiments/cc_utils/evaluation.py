@@ -38,7 +38,7 @@ def get_eval_datasets(
     config_dict: Dict[str, Any],
     test_data_seed: int,
     context_len: int,
-    skip_test: bool = True,
+    skip_test: bool = False,
 ):
     configs = dict()
     for split in ["pretrain", "test"]:
