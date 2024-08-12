@@ -28,22 +28,25 @@ for runs_dir in os.listdir(LOG_DIR):
         result_path,
         save_path,
     )
+    num_runs += 1
 
-    dat_content += "export results_dir={} save_path={} key=accuracies context=none \n".format(
+    dat_content += "export results_dir={} save_path={} key=accuracies context=last \n".format(
         result_path,
         save_path,
     )
+    num_runs += 1
 
     dat_content += "export results_dir={} save_path={} key=losses context=none \n".format(
         result_path,
         save_path,
     )
+    num_runs += 1
 
     dat_content += "export results_dir={} save_path={} key=losses context=last \n".format(
         result_path,
         save_path,
     )
-    num_runs += 4
+    num_runs += 1
 
 with open(os.path.join(CONFIG_DIR, "plot_results.dat"), "w+") as f:
     f.writelines(dat_content)
