@@ -24,22 +24,22 @@ dat_content = ""
 for runs_dir in os.listdir(LOG_DIR):
     result_path = os.path.join(LOG_DIR, runs_dir)
     save_path=os.path.join(PLOT_DIR, runs_dir)
-    dat_content += "export --results_dir={} --save_path={} --key=accuracies --context=none \n".format(
+    dat_content += "export results_dir={} save_path={} key=accuracies context=none \n".format(
         result_path,
         save_path,
     )
 
-    dat_content += "export --results_dir={} --save_path={} --key=accuracies --context=none \n".format(
+    dat_content += "export results_dir={} save_path={} key=accuracies context=none \n".format(
         result_path,
         save_path,
     )
 
-    dat_content += "export --results_dir={} --save_path={} --key=losses --context=none \n".format(
+    dat_content += "export results_dir={} save_path={} key=losses context=none \n".format(
         result_path,
         save_path,
     )
 
-    dat_content += "export --results_dir={} --save_path={} --key=losses --context=last \n".format(
+    dat_content += "export results_dir={} save_path={} key=losses context=last \n".format(
         result_path,
         save_path,
     )
