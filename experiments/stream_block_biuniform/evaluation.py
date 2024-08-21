@@ -111,7 +111,7 @@ def main(args: SimpleNamespace):
             config.learner_config.seeds.data_seed,
         )
 
-        context_len = config.model_config.num_contexts
+        context_len = config.learner_config.dataset_config.dataset_kwargs.num_examples
         fixed_length = True
 
         datasets, dataset_configs = get_eval_datasets(

@@ -80,6 +80,7 @@ def get_preds_labels(model, params, prefetched_data, max_label=None):
             {
                 CONST_CONTEXT_INPUT: context_inputs,
                 CONST_CONTEXT_OUTPUT: context_outputs,
+                "output": one_hot_labels,
             },
             eval=True,
         )
