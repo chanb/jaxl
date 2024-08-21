@@ -26,6 +26,7 @@ from jaxl.models.transformers import (
     AsyncCustomTokenizerICSupervisedTransformer,
     NoTokenizerICSupervisedTransformer,
 )
+from jaxl.models.simple_icl import SimpleICLModel
 from jaxl.models.policies import *
 from jaxl.models.q_functions import *
 from jaxl.optimizers import *
@@ -131,6 +132,11 @@ def get_model(
             model_config.positional_encoding,
             getattr(model_config, "query_pred_only", False),
             getattr(model_config, "input_output_same_encoding", True),
+        )
+    elif model_config.architecture == CONST_SIMPLE_ICL_MODEL:
+        return SimpleICLModel(
+            model_config.ground_truth_prob,
+            model_config.similarity,
         )
     else:
         raise NotImplementedError

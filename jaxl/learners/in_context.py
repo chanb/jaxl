@@ -142,6 +142,8 @@ class InContextLearner(OfflineLearner):
                 {
                     CONST_CONTEXT_INPUT: context_inputs,
                     CONST_CONTEXT_OUTPUT: context_outputs,
+                    "query": queries,
+                    "output": outputs,
                 },
                 outputs,
             )

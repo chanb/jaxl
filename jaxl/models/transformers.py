@@ -738,11 +738,11 @@ class NoTokenizerICSupervisedTransformer(InContextSupervisedTransformer):
         self.forward = jax.jit(
             self.make_forward(query_pred_only), static_argnames=[CONST_EVAL]
         )
-        self.get_attention = jax.jit(self.make_get_attention(), static_argnames=[CONST_EVAL])
+        self.get_attention = jax.jit(
+            self.make_get_attention(), static_argnames=[CONST_EVAL]
+        )
 
-    def make_get_attention(
-        self
-    ):
+    def make_get_attention(self):
 
         def get_latent(
             params: Union[optax.Params, Dict[str, Any]],

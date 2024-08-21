@@ -238,9 +238,13 @@ class StreamBlockBiUniform:
                 # Class 0 if high-prob clusters, class 1 otherwise
                 # TODO: Maybe there can be an ablation on varying number of classes?
                 if flip_label:
-                    labels = [1 - int(label < self.num_high_prob_classes) for label in labels]
+                    labels = [
+                        1 - int(label < self.num_high_prob_classes) for label in labels
+                    ]
                 else:
-                    labels = [int(label < self.num_high_prob_classes) for label in labels]
+                    labels = [
+                        int(label < self.num_high_prob_classes) for label in labels
+                    ]
                 labels = np.eye(2)[labels]
             else:
                 labels = np.eye(self.num_classes)[labels]
